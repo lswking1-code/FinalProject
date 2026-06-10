@@ -82,6 +82,14 @@ public static class PlayerAnimatorSetupEditor
         ("Land1", "Land1", PlayerAnimState.Land1, new Vector3(1750f, 0f, 0f)),
         ("Stop1", "Stop1", PlayerAnimState.Stop1, new Vector3(2000f, 100f, 0f)),
         ("Stop2", "Stop2", PlayerAnimState.Stop2, new Vector3(2000f, 0f, 0f)),
+        ("Shoot1", "Shoot1", PlayerAnimState.Shoot1, new Vector3(2250f, 100f, 0f)),
+        ("Shoot2", "Shoot2", PlayerAnimState.Shoot2, new Vector3(2250f, 0f, 0f)),
+        ("ShootUp1", "ShootUp1", PlayerAnimState.ShootUp1, new Vector3(2500f, 100f, 0f)),
+        ("ShootUp2", "ShootUp2", PlayerAnimState.ShootUp2, new Vector3(2500f, 0f, 0f)),
+        ("CrouchShoot1", "CrouchShoot1", PlayerAnimState.CrouchShoot1, new Vector3(2750f, 100f, 0f)),
+        ("CrouchShoot2", "CrouchShoot2", PlayerAnimState.CrouchShoot2, new Vector3(2750f, 0f, 0f)),
+        ("ShootDown1", "ShootDown1", PlayerAnimState.ShootDown1, new Vector3(3000f, 100f, 0f)),
+        ("ShootDown2", "ShootDown2", PlayerAnimState.ShootDown2, new Vector3(3000f, 0f, 0f)),
     };
 }
 #endif

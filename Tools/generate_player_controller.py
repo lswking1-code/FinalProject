@@ -18,6 +18,14 @@ clips = [
     ("Land1", "c2e22b81bb6284d4481bf5b8acc35451"),
     ("Stop1", "db701e7a83dcebf41925721621ce018f"),
     ("Stop2", "6f3efb2cf648cb94d9404c44781081cc"),
+    ("Shoot1", "0fc5c80de69053343be1919440e733bc"),
+    ("Shoot2", "ff8c9a34cdd365642a90de647f512787"),
+    ("ShootUp1", "1d0344e88c85ad448a9e3a84f80daa68"),
+    ("ShootUp2", "e69313d8b992df34e91d8b21896c4026"),
+    ("CrouchShoot1", "8fa55c12f35530f4dbd10fa36747207c"),
+    ("CrouchShoot2", "faaede6602d96644eb1b4fba9b186df5"),
+    ("ShootDown1", "d4e5f6789012345678901abcdef00001"),
+    ("ShootDown2", "e5f6789012345678901abcdef0000002"),
 ]
 
 lines = ["%YAML 1.1", "%TAG !u! tag:unity3d.com,2011:"]

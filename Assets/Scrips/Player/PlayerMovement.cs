@@ -21,10 +21,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundCheckRadius = 0.08f;
     [SerializeField] private LayerMask groundLayer;
 
+    [Header("Shooting")]
+    [SerializeField] private float shootHolsterDelay = 0.35f;
+
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
-    private InputSystem_Actions inputActions;
+    private PlayerInputActions inputActions;
 
     private PlayerAnimState currentAnimState = PlayerAnimState.Idle;
     private bool lockedState;
@@ -33,6 +36,8 @@ public class PlayerMovement : MonoBehaviour
     private bool wasRunningHorizontally;
     private float velocityY;
     private float airMoveX;
+    private Vector2 lastMoveInput;
+    private float lastShootInputTime = float.NegativeInfinity;
 
     private void Awake()
     {
@@ -44,7 +49,7 @@ public class PlayerMovement : MonoBehaviour
         rb.gravityScale = 0f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
-        inputActions = new InputSystem_Actions(inputActionAsset);
+        inputActions = new PlayerInputActions(inputActionAsset);
 
         if (groundCheck == null)
         {
@@ -69,6 +74,7 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         Vector2 moveInput = inputActions.Move.ReadValue<Vector2>();
+        lastMoveInput = moveInput;
         bool jumpPressed = inputActions.Jump.WasPressedThisFrame();
         bool isGrounded = CheckGrounded();
 
@@ -82,9 +88,14 @@ public class PlayerMovement : MonoBehaviour
         else if (!wasGrounded && velocityY <= 0f &&
                  currentAnimState is PlayerAnimState.Jump or PlayerAnimState.Jump2)
             BeginLanding();
-        else if (!lockedState)
-            UpdateGroundedState(moveInput, isGrounded);
+        else
+        {
+            UpdateShooting(moveInput);
+            if (!IsShooting() && !lockedState)
+                UpdateGroundedState(moveInput, isGrounded);
+        }
 
+        AdvanceShootFireAnimations();
         AdvanceOneShotAnimations();
         AdvanceLoopingVariants();
         wasGrounded = isGrounded;
@@ -232,6 +243,13 @@ public class PlayerMovement : MonoBehaviour
                 lockedState = false;
                 SetAnimState(PlayerAnimState.Idle);
                 break;
+            case PlayerAnimState.Shoot2:
+            case PlayerAnimState.ShootUp2:
+            case PlayerAnimState.CrouchShoot2:
+            case PlayerAnimState.ShootDown2:
+                lockedState = false;
+                ExitShootToPose(lastMoveInput);
+                break;
         }
     }
 
@@ -295,7 +313,8 @@ public class PlayerMovement : MonoBehaviour
 
     private float GetHorizontalSpeed()
     {
-        if (lockedState || currentAnimState is PlayerAnimState.Stop1 or PlayerAnimState.Stop2 or PlayerAnimState.Land1)
+        if (lockedState || currentAnimState is PlayerAnimState.Stop1 or PlayerAnimState.Stop2 or PlayerAnimState.Land1
+            || IsShooting(currentAnimState))
             return 0f;
 
         float direction = facingRight ? 1f : -1f;
@@ -365,7 +384,175 @@ public class PlayerMovement : MonoBehaviour
     {
         return state is PlayerAnimState.LookUp1 or PlayerAnimState.Run1 or PlayerAnimState.LookUpRun1
             or PlayerAnimState.Crouch1 or PlayerAnimState.Jump or PlayerAnimState.Land1
-            or PlayerAnimState.Stop1 or PlayerAnimState.Stop2;
+            or PlayerAnimState.Stop1 or PlayerAnimState.Stop2
+            or PlayerAnimState.Shoot2 or PlayerAnimState.ShootUp2 or PlayerAnimState.CrouchShoot2
+            or PlayerAnimState.ShootDown2;
+    }
+
+    private enum ShootMode
+    {
+        Standing,
+        Up,
+        Down,
+        Crouch,
+    }
+
+    private void UpdateShooting(Vector2 moveInput)
+    {
+        if (IsShootRecoveryState(currentAnimState))
+            return;
+
+        if (!inputActions.Attack.WasPressedThisFrame() || IsShootFireState(currentAnimState))
+            return;
+
+        if (!CanBeginShoot(moveInput))
+            return;
+
+        ShootMode? mode = GetShootMode(moveInput);
+        if (mode.HasValue)
+            BeginShoot(mode.Value);
+    }
+
+    private void AdvanceShootFireAnimations()
+    {
+        if (!IsShootFireState(currentAnimState) || !IsCurrentAnimFinished())
+            return;
+
+        if (inputActions.Attack.WasPressedThisFrame())
+        {
+            ShootMode? mode = GetShootMode(lastMoveInput);
+            if (mode.HasValue && !IsRunningState())
+                BeginShoot(mode.Value);
+            return;
+        }
+
+        if (Time.time - lastShootInputTime < shootHolsterDelay)
+        {
+            ReplayCurrentAnim();
+            return;
+        }
+
+        BeginShootRecovery(currentAnimState);
+    }
+
+    private bool IsRunningState()
+    {
+        return currentAnimState is PlayerAnimState.Run1 or PlayerAnimState.Run2
+            or PlayerAnimState.LookUpRun1 or PlayerAnimState.LookUpRun2 or PlayerAnimState.LookUpRun3;
+    }
+
+    private static bool IsShooting(PlayerAnimState state)
+    {
+        return state is PlayerAnimState.Shoot1 or PlayerAnimState.Shoot2
+            or PlayerAnimState.ShootUp1 or PlayerAnimState.ShootUp2
+            or PlayerAnimState.CrouchShoot1 or PlayerAnimState.CrouchShoot2
+            or PlayerAnimState.ShootDown1 or PlayerAnimState.ShootDown2;
+    }
+
+    private bool IsShooting() => IsShooting(currentAnimState);
+
+    private static bool IsShootFireState(PlayerAnimState state)
+    {
+        return state is PlayerAnimState.Shoot1 or PlayerAnimState.ShootUp1
+            or PlayerAnimState.CrouchShoot1 or PlayerAnimState.ShootDown1;
+    }
+
+    private static bool IsShootRecoveryState(PlayerAnimState state)
+    {
+        return state is PlayerAnimState.Shoot2 or PlayerAnimState.ShootUp2
+            or PlayerAnimState.CrouchShoot2 or PlayerAnimState.ShootDown2;
+    }
+
+    private bool IsInCrouchPose()
+    {
+        return currentAnimState is PlayerAnimState.Crouch2
+            or PlayerAnimState.CrouchMove1 or PlayerAnimState.CrouchMove2;
+    }
+
+    private bool CanBeginShoot(Vector2 moveInput)
+    {
+        if (lockedState || IsShooting() || IsRunningState())
+            return false;
+
+        return GetShootMode(moveInput).HasValue;
+    }
+
+    private ShootMode? GetShootMode(Vector2 moveInput)
+    {
+        if (IsInCrouchPose())
+            return ShootMode.Crouch;
+
+        if (Mathf.Abs(GetHorizontalInput(moveInput)) > 0.01f)
+            return null;
+
+        if (moveInput.y > inputThreshold || currentAnimState == PlayerAnimState.LookUp2)
+            return ShootMode.Up;
+
+        if (moveInput.y < -inputThreshold)
+            return ShootMode.Down;
+
+        return ShootMode.Standing;
+    }
+
+    private void BeginShoot(ShootMode mode)
+    {
+        PlayerAnimState fireState = mode switch
+        {
+            ShootMode.Standing => PlayerAnimState.Shoot1,
+            ShootMode.Up => PlayerAnimState.ShootUp1,
+            ShootMode.Down => PlayerAnimState.ShootDown1,
+            ShootMode.Crouch => PlayerAnimState.CrouchShoot1,
+            _ => PlayerAnimState.Idle,
+        };
+
+        lastShootInputTime = Time.time;
+
+        if (currentAnimState == fireState)
+            ReplayCurrentAnim();
+        else
+            SetAnimState(fireState);
+    }
+
+    private void BeginShootRecovery(PlayerAnimState fireState)
+    {
+        lockedState = true;
+        switch (fireState)
+        {
+            case PlayerAnimState.Shoot1:
+                SetAnimState(PlayerAnimState.Shoot2);
+                break;
+            case PlayerAnimState.ShootUp1:
+                SetAnimState(PlayerAnimState.ShootUp2);
+                break;
+            case PlayerAnimState.CrouchShoot1:
+                SetAnimState(PlayerAnimState.CrouchShoot2);
+                break;
+            case PlayerAnimState.ShootDown1:
+                SetAnimState(PlayerAnimState.ShootDown2);
+                break;
+        }
+    }
+
+    private void ExitShootToPose(Vector2 moveInput)
+    {
+        switch (currentAnimState)
+        {
+            case PlayerAnimState.Shoot2:
+                SetAnimState(PlayerAnimState.Idle);
+                break;
+            case PlayerAnimState.ShootUp2:
+                if (moveInput.y > inputThreshold)
+                    SetAnimState(PlayerAnimState.LookUp2);
+                else
+                    SetAnimState(PlayerAnimState.Idle);
+                break;
+            case PlayerAnimState.CrouchShoot2:
+                SetAnimState(PlayerAnimState.Crouch2);
+                break;
+            case PlayerAnimState.ShootDown2:
+                SetAnimState(PlayerAnimState.Idle);
+                break;
+        }
     }
 
     private void SetAnimState(PlayerAnimState state)
@@ -375,6 +562,11 @@ public class PlayerMovement : MonoBehaviour
 
         currentAnimState = state;
         animator.Play(StateHashes[(int)state], 0, 0f);
+    }
+
+    private void ReplayCurrentAnim()
+    {
+        animator.Play(StateHashes[(int)currentAnimState], 0, 0f);
     }
 
     private static readonly int[] StateHashes =
@@ -396,5 +588,13 @@ public class PlayerMovement : MonoBehaviour
         PlayerAnimatorIds.Land1,
         PlayerAnimatorIds.Stop1,
         PlayerAnimatorIds.Stop2,
+        PlayerAnimatorIds.Shoot1,
+        PlayerAnimatorIds.Shoot2,
+        PlayerAnimatorIds.ShootUp1,
+        PlayerAnimatorIds.ShootUp2,
+        PlayerAnimatorIds.CrouchShoot1,
+        PlayerAnimatorIds.CrouchShoot2,
+        PlayerAnimatorIds.ShootDown1,
+        PlayerAnimatorIds.ShootDown2,
     };
 }

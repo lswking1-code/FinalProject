@@ -21,6 +21,14 @@ public static class PlayerAnimatorIds
     public static readonly int Land1 = Animator.StringToHash("Land1");
     public static readonly int Stop1 = Animator.StringToHash("Stop1");
     public static readonly int Stop2 = Animator.StringToHash("Stop2");
+    public static readonly int Shoot1 = Animator.StringToHash("Shoot1");
+    public static readonly int Shoot2 = Animator.StringToHash("Shoot2");
+    public static readonly int ShootUp1 = Animator.StringToHash("ShootUp1");
+    public static readonly int ShootUp2 = Animator.StringToHash("ShootUp2");
+    public static readonly int CrouchShoot1 = Animator.StringToHash("CrouchShoot1");
+    public static readonly int CrouchShoot2 = Animator.StringToHash("CrouchShoot2");
+    public static readonly int ShootDown1 = Animator.StringToHash("ShootDown1");
+    public static readonly int ShootDown2 = Animator.StringToHash("ShootDown2");
 }
 
 public enum PlayerAnimState
@@ -42,4 +50,12 @@ public enum PlayerAnimState
     Land1 = 14,
     Stop1 = 15,
     Stop2 = 16,
+    Shoot1 = 17,
+    Shoot2 = 18,
+    ShootUp1 = 19,
+    ShootUp2 = 20,
+    CrouchShoot1 = 21,
+    CrouchShoot2 = 22,
+    ShootDown1 = 23,
+    ShootDown2 = 24,
 }
