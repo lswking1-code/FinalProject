@@ -206,7 +206,7 @@ public static class FrameworkSetupEditor
 
         var image = imageGo.AddComponent<Image>();
         image.color = new Color(0f, 0f, 0f, 0f);
-        image.raycastTarget = true;
+        image.raycastTarget = false;
 
         var fadeCanvas = root.AddComponent<FadeCanvas>();
         fadeCanvas.fadeEvent = fadeEvent;

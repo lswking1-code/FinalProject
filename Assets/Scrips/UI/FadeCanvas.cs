@@ -11,6 +11,11 @@ public class FadeCanvas : MonoBehaviour
 
     private Coroutine fadeCoroutine;
 
+    private void Awake()
+    {
+        UpdateRaycastBlocking();
+    }
+
     private void OnEnable()
     {
         fadeEvent.OnEventRaised += OnFadeEvent;
@@ -25,6 +30,9 @@ public class FadeCanvas : MonoBehaviour
     {
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
+
+        if (fadeImage != null && target.a > 0.01f)
+            fadeImage.raycastTarget = true;
 
         fadeCoroutine = StartCoroutine(FadeRoutine(target, duration));
     }
@@ -51,5 +59,15 @@ public class FadeCanvas : MonoBehaviour
         }
 
         fadeImage.color = target;
+        UpdateRaycastBlocking();
+    }
+
+    private void UpdateRaycastBlocking()
+    {
+        if (fadeImage == null)
+            return;
+
+        // 透明时关闭射线检测，避免挡住下层 UI 按钮
+        fadeImage.raycastTarget = fadeImage.color.a > 0.01f;
     }
 }

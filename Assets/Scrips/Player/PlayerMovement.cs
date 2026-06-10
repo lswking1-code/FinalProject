@@ -4,10 +4,16 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
-public class PlayerMovement : MonoBehaviour
+[RequireComponent(typeof(DataDefination))]
+public class PlayerMovement : MonoBehaviour, ISaveable
 {
+    private const string FacingKeySuffix = "facing";
+
     [Header("Input")]
     [SerializeField] private InputActionAsset inputActionAsset;
+
+    [Header("Save/Load")]
+    [SerializeField] private VoidEventSO newGameEvent;
 
     [Header("Movement")]
     [SerializeField] private float runSpeed = 4f;
@@ -65,11 +71,71 @@ public class PlayerMovement : MonoBehaviour
 
     private void Start() => SetAnimState(PlayerAnimState.Idle);
 
-    private void OnEnable() => inputActions?.Enable();
+    private void OnEnable()
+    {
+        inputActions?.Enable();
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += OnNewGame;
+        ((ISaveable)this).RegisterSaveData();
+    }
 
-    private void OnDisable() => inputActions?.Disable();
+    private void OnDisable()
+    {
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= OnNewGame;
+        ((ISaveable)this).UnregisterSaveData();
+        inputActions?.Disable();
+    }
 
     private void OnDestroy() => inputActions?.Dispose();
+
+    private void OnNewGame() => ResetMovementState();
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        string key = dataId.ID + FacingKeySuffix;
+        float value = facingRight ? 1f : 0f;
+        if (data.floatSavedData.ContainsKey(key))
+            data.floatSavedData[key] = value;
+        else
+            data.floatSavedData.Add(key, value);
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        if (!data.characterPosDict.ContainsKey(dataId.ID))
+            return;
+
+        string key = dataId.ID + FacingKeySuffix;
+        if (data.floatSavedData.TryGetValue(key, out float savedFacing))
+        {
+            facingRight = savedFacing > 0.5f;
+            spriteRenderer.flipX = !facingRight;
+        }
+
+        ResetMovementState();
+    }
+
+    private void ResetMovementState()
+    {
+        velocityY = 0f;
+        airMoveX = 0f;
+        lockedState = false;
+        wasGrounded = true;
+        wasRunningHorizontally = false;
+        rb.position = transform.position;
+        SetAnimState(PlayerAnimState.Idle);
+    }
 
     private void Update()
     {
