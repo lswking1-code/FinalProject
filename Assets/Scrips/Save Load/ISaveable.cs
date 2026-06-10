@@ -5,9 +5,9 @@ using UnityEngine;
 public interface ISaveable
 {
     DataDefination GetDataID();
-    void RegisterSaveData() => DataManager.instance.RegisterSaveData(this);//×¢²á
-    void UnregisterSaveData() => DataManager.instance.UnRegisterSaveData(this);//×¢Ïú
+    void RegisterSaveData() => DataManager.instance.RegisterSaveData(this);// å‘ DataManager æ³¨å†Œ
+    void UnregisterSaveData() => DataManager.instance.UnRegisterSaveData(this);// ä» DataManager æ³¨é”€
     
-    void GetSaveData(Data data);//Í¨¹ı¸Ã½Ó¿Ú´¢´æ
-    void LoadSaveData(Data data);//¼ÓÔØ´¢´æÊı¾İ
+    void GetSaveData(Data data);// å°†å½“å‰çŠ¶æ€å†™å…¥å­˜æ¡£æ•°æ®
+    void LoadSaveData(Data data);// ä»å­˜æ¡£æ•°æ®æ¢å¤çŠ¶æ€
 }

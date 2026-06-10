@@ -5,31 +5,31 @@ using UnityEngine.Events;
 
 public class Character : MonoBehaviour,ISaveable
 {
-    [Header("ÊÂ¼ş¼àÌı")]
+    [Header("äº‹ä»¶ç›‘å¬")]
     public VoidEventSO newGameEvent;
 
-    [Header("»ù´¡ÊôĞÔ")]
+    [Header("åŸºç¡€å±æ€§")]
     public float maxHealth;
     public float currentHealth;
     public float maxPower;
     public float currentPower;
     public float powerRecoverSpeed;
     public float maxAbilityPower;
-    public float AbilityPower;//ÄÜÁ¦Öµ
+    public float AbilityPower;// èƒ½åŠ›å€¼
     public float AbilityPowerRecoverSpeed;
 
-    [Header("ÊÜÉËÎŞµĞ")]
+    [Header("å—ä¼¤æ— æ•Œ")]
     public float invulnerableDuration;
 
-    private float invulnerableCounter;//¼ÆÊı
+    private float invulnerableCounter;// æ— æ•Œå‰©ä½™æ—¶é—´
     public bool invulnerable;
 
     public UnityEvent<Character> OnHealthChange;
 
-    public UnityEvent<Transform> OnTakeDamage;//´´½¨ÊÜÉËÊÂ¼ş
+    public UnityEvent<Transform> OnTakeDamage;// å—ä¼¤æ—¶å¹¿æ’­ï¼Œå‚æ•°ä¸ºæ”»å‡»è€… Transform
     public UnityEvent OnDie;
 
-    //ÎªÁËµĞÈËÄÜÔÚ¿ªÊ¼»ñµÃÑªÁ¿
+    // åˆå§‹åŒ–æ—¶è®¾ç½®æ»¡è¡€ï¼Œä½¿æ•Œäººä¹Ÿèƒ½åœ¨ Start æ—¶è·å¾—æ­£ç¡®è¡€é‡
     private void Start()
     {
         currentHealth = maxHealth;
@@ -59,18 +59,18 @@ public class Character : MonoBehaviour,ISaveable
     {
         if (invulnerable)
         {
-            invulnerableCounter -= Time.deltaTime;//¼ÆËãÊ±¼äÁ÷ÊÅ(ÎŞµĞÊ±¼äÁ÷ÊÅ)
+            invulnerableCounter -= Time.deltaTime;// é€’å‡æ— æ•Œå‰©ä½™æ—¶é—´
             if(invulnerableCounter <= 0)
             {
                 invulnerable = false;
             }
         }
 
-        if(currentPower < maxPower)//»Ø¸´ÌåÁ¦
+        if(currentPower < maxPower)// è‡ªåŠ¨å›å¤ä½“åŠ›
         {
             currentPower += Time.deltaTime * powerRecoverSpeed;
         }
-        if (AbilityPower < maxAbilityPower)//»Ø¸´ÄÜÁ¦Öµ
+        if (AbilityPower < maxAbilityPower)// è‡ªåŠ¨å›å¤èƒ½åŠ›å€¼
         {
             AbilityPower += Time.deltaTime * AbilityPowerRecoverSpeed;
         }
@@ -82,7 +82,7 @@ public class Character : MonoBehaviour,ISaveable
         {
             if (currentHealth > 0)
             {
-                //ËÀÍö¡¢¸üĞÂÑªÁ¿
+                // æººæ°´ï¼šæ¸…é›¶è¡€é‡å¹¶è§¦å‘æ­»äº¡
                 currentHealth = 0;
                 OnHealthChange?.Invoke(this);
                 OnDie?.Invoke();
@@ -99,14 +99,14 @@ public class Character : MonoBehaviour,ISaveable
         {
             currentHealth -= attacker.damage;
             triggerInvulnerable();
-            //Ö´ĞĞÊÜÉË
-            OnTakeDamage?.Invoke(attacker.transform);//²¢»ñµÃµĞÈËµÄÎ»ÖÃ
+            // æ‰§è¡Œå—ä¼¤é€»è¾‘
+            OnTakeDamage?.Invoke(attacker.transform);// å¹¿æ’­å—ä¼¤ï¼Œå¹¶ä¼ å…¥æ”»å‡»è€…ä½ç½®
         }
         else 
         {
-            //TODO:ĞŞ¸´ÖØ¸´´¥·¢ÎÊÌâ£¨ÀàËÆWater£©
+            // TODO: ä¿®å¤é‡å¤è§¦å‘æ­»äº¡çš„é—®é¢˜ï¼ˆå‚è€ƒ Water åŒºåŸŸï¼‰
             currentHealth = 0;
-            //´¥·¢ËÀÍö
+            // è¡€é‡å½’é›¶ï¼Œè§¦å‘æ­»äº¡
             OnDie?.Invoke();
         }
 
@@ -114,9 +114,8 @@ public class Character : MonoBehaviour,ISaveable
     }
 
     /// <summary>
-    /// ´¥·¢ÊÜÉËÎŞµĞ
+    /// è§¦å‘å—ä¼¤åçš„çŸ­æš‚æ— æ•Œ
     /// </summary>
-
     public void HealthRecover(float HP)
     {
         currentHealth += HP;
@@ -171,7 +170,7 @@ public class Character : MonoBehaviour,ISaveable
             this.currentPower = data.floatSavedData[GetDataID().ID + "power"];
             transform.position = data.characterPosDict[GetDataID().ID].ToVector3();
 
-            //Í¨ÖªUI¸üĞÂ
+            // é€šçŸ¥ UI æ›´æ–°è¡€æ¡
             OnHealthChange?.Invoke(this);
         }
     }

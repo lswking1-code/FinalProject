@@ -7,7 +7,7 @@ public class TeleprotPoint : MonoBehaviour, IInteractable
     public SceneLoadEventSO loadEventSO;
     
     public GameSceneSO sceneToGo;
-    public Vector3 positionToGo;//下一个场景玩家出生的默认位置
+    public Vector3 positionToGo;// 鐜╁杩涘叆鐩爣鍦烘櫙鍚庣殑鍑虹敓浣嶇疆
 
     public void TriggerAction()
     {

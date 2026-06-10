@@ -11,7 +11,7 @@ using UnityEngine.InputSystem;
 public class DataManager : MonoBehaviour
 {
     public static DataManager instance;
-    [Header("ÊÂ¼ş¼àÌı")]
+    [Header("äº‹ä»¶ç›‘å¬")]
     public VoidEventSO saveDataEvent;
     public VoidEventSO loadDataEvent;
 

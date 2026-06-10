@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Savepoint : MonoBehaviour,IInteractable
 {
-    [Header("�㲥")]
+    [Header("广播")]
     public VoidEventSO saveDataEvent;
 
-    [Header("��������")]
+    [Header("存档点显示")]
     public SpriteRenderer spriteRenderer;
     public GameObject Light2D;
     public Sprite darkSprite;
@@ -30,7 +30,7 @@ public class Savepoint : MonoBehaviour,IInteractable
                 spriteRenderer.sprite = lightSprite;
             if (Light2D != null)
                 Light2D.SetActive(true);
-            //��������
+            // 触发存档
             saveDataEvent.RaiseEvent();
             this.gameObject.tag = "Untagged";
         }

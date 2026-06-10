@@ -6,11 +6,11 @@ public class SceneLoadEventSO: ScriptableObject
     public UnityAction<GameSceneSO, Vector3, bool> LoadRequestEvent;
 
    /// <summary>
-   /// 场景加成请求
+   /// 鍦烘櫙鍔犺浇璇锋眰
    /// </summary>
-   /// <param name="locationToLoad">要加载的场景</param>
-   /// <param name="posToGo">Player的目的坐标</param>
-   /// <param name="fadeScreen">是否渐入渐出</param>
+   /// <param name="locationToLoad">瑕佸姞杞界殑鍦烘櫙</param>
+   /// <param name="posToGo">鐜╁鐩爣鍧愭爣</param>
+   /// <param name="fadeScreen">鏄惁浣跨敤娓愬叆娓愬嚭</param>
     public void RaiseLoadRequestEvent(GameSceneSO locationToLoad,Vector3 posToGo,bool fadeScreen)
     {
         LoadRequestEvent?.Invoke(locationToLoad, posToGo, fadeScreen);

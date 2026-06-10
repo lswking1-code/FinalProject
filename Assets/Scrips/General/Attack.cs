@@ -6,11 +6,12 @@ public class Attack : MonoBehaviour
 {
     public int damage;
 
-    public float attackRange;//攻击范围
-    public float attackRate;//攻击频率
+    public float attackRange;// 鏀诲嚮鑼冨洿
+    public float attackRate;// 鏀诲嚮棰戠巼
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        collision.GetComponent<Character>()?.TakeDamage(this);//问号用法：判断对方身上是否有该代码，如没有则不执行之后的代码
+        // 绌烘潯浠惰繍绠楃锛氳嫢瀵规柟娌℃湁 Character 缁勪欢鍒欎笉璋冪敤 TakeDamage
+        collision.GetComponent<Character>()?.TakeDamage(this);
     }
 }

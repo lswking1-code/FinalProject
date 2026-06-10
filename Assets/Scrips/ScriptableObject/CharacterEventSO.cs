@@ -6,9 +6,9 @@ using UnityEngine.Events;
 [CreateAssetMenu(menuName = "Event/CharacterEventSO")]
 public class CharacterEventSO : ScriptableObject
 {
-    public UnityAction<Character> OnEventRaised;//¶©ÔÄÊÂ¼ş
+    public UnityAction<Character> OnEventRaised;// è§’è‰²ç›¸å…³äº‹ä»¶
 
-    public void RaiseEvent(Character character)//ºô½ĞÆôÓÃ
+    public void RaiseEvent(Character character)// å¹¿æ’­äº‹ä»¶
     {
         OnEventRaised?.Invoke(character);
     }

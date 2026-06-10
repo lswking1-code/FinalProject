@@ -6,20 +6,20 @@ using UnityEngine.Events;
 [CreateAssetMenu(menuName ="Event/FadeEventSO")]
 public class FadeEventSO : ScriptableObject
 {
-    public UnityAction<Color, float, bool> OnEventRaised;//�����¼�
+    public UnityAction<Color, float, bool> OnEventRaised;// 屏幕淡入淡出事件
     
     /// <summary>
-    /// �𽥱��
+    /// 屏幕逐渐变黑（淡入）
     /// </summary>
-    /// <param name="duration"></param>
+    /// <param name="duration">过渡时长（秒）</param>
     public void FadeIn(float duration)
     {
         RaiseEvent(Color.black, duration, true);
     }
     /// <summary>
-    /// �𽥱�͸��
+    /// 屏幕逐渐变透明（淡出）
     /// </summary>
-    /// <param name="duration"></param>
+    /// <param name="duration">过渡时长（秒）</param>
     public void FadeOut(float duration)
     {
         RaiseEvent(Color.clear, duration, false);

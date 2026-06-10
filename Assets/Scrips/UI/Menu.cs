@@ -9,7 +9,7 @@ public class Menu : MonoBehaviour
 
     private void OnEnable()
     {
-        EventSystem.current.SetSelectedGameObject(newGameButton);//EventSystem.current Ѱ��EventSystem���̶�д��
+        EventSystem.current.SetSelectedGameObject(newGameButton);// 将新游戏按钮设为当前选中项，便于手柄/键盘导航
     }
 
     public void ExitGame()

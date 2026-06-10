@@ -49,9 +49,9 @@ public class PlayerStatBar : MonoBehaviour
 
     }
     /// <summary>
-    /// ????Health????????
+    /// 更新生命值血条显示
     /// </summary>
-    /// <param name="persentage"></param>
+    /// <param name="persentage">生命值百分比（0~1）</param>
     public void OnHealthChange(float persentage)
     {
         if (healthImage != null)

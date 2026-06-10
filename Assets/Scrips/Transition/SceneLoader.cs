@@ -41,7 +41,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
     }
 
-    //TODO:做完MainMenu之后更改
+    // TODO: 完成 MainMenu 流程后调整此处逻辑
     private void Start()
     {
         loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
@@ -84,9 +84,9 @@ public class SceneLoader : MonoBehaviour,ISaveable
     /// <summary>
     /// 场景加载事件请求
     /// </summary>
-    /// <param name="locationToLoad"></param>
-    /// <param name="posToGo"></param>
-    /// <param name="fadeScreen"></param>
+    /// <param name="locationToLoad">要加载的场景</param>
+    /// <param name="posToGo">玩家目标坐标</param>
+    /// <param name="fadeScreen">是否使用渐入渐出</param>
     private void OnLoadRequestEvent(GameSceneSO locationToLoad, Vector3 posToGo, bool fadeScreen)
     {
         if (isLoading)
@@ -110,21 +110,21 @@ public class SceneLoader : MonoBehaviour,ISaveable
     {
         if (fadeScreen)
         {
-            //TODO:变黑
+            // 屏幕淡出变黑
             fadeEvent.FadeIn(fadeDuration);
         }
 
         yield return new WaitForSeconds(fadeDuration);
 
-        //广播事件调整血条显示
+        // 广播场景卸载事件，用于调整血条等 UI 显示
         unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
 
         yield return currentLoadedScene.sceneReference.UnLoadScene();
-        //关闭人物
+        // 隐藏玩家
         playerTrans.gameObject.SetActive(false);
 
 
-        //加载新场景
+        // 开始加载新场景
         LoadNewScene();
     }
 
@@ -137,8 +137,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
     /// <summary>
     /// 场景加载完成后
     /// </summary>
-    /// <param name="obj"></param>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <param name="obj">Addressables 场景加载句柄</param>
     private void OnLoadCompleted(AsyncOperationHandle<SceneInstance> obj)
     {
         currentLoadedScene = sceneToLoad;
@@ -148,14 +147,14 @@ public class SceneLoader : MonoBehaviour,ISaveable
         playerTrans.gameObject.SetActive(true);
         if (fadeScreen)
         {
-            //TODO:
+            // 屏幕淡入变透明
             fadeEvent.FadeOut(fadeDuration);
         }
 
         isLoading = false;
 
         if (currentLoadedScene.sceneType == SceneType.Loaction)
-            //场景加载完成后事件
+            // 关卡场景加载完成后广播事件（如更新相机边界）
             afterSceneLoadedEvent.RaiseEvent();
     }
 

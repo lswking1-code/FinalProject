@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 public class UIManage : MonoBehaviour
 {
     public PlayerStatBar playerStatBar;
-    [Header("ÊÂ¼ş¼àÌı")]
+    [Header("äº‹ä»¶ç›‘å¬")]
     public CharacterEventSO healthEvent;
     public SceneLoadEventSO unloadedSceneEvent;
     public VoidEventSO loadDataEvent;
@@ -15,7 +15,7 @@ public class UIManage : MonoBehaviour
     public VoidEventSO backToMenuEvent;
     public VoidEventSO GameClearEvent;
 
-    [Header("×é¼ş")]
+    [Header("ç»„ä»¶")]
     public GameObject gameOverPannel;
     public GameObject gameClearPannel;
     public GameObject restartBtn;
@@ -64,7 +64,7 @@ public class UIManage : MonoBehaviour
     }
     private void OnUnLoadedSceneEvent(GameSceneSO sceneToLoad, Vector3 arg1, bool arg2)
     {
-        var isMenu = sceneToLoad.sceneType == SceneType.Menu;//¸³Öµ£¬¼òĞ´IFÓï¾ä
+        var isMenu = sceneToLoad.sceneType == SceneType.Menu;// åˆ¤æ–­æ˜¯å¦ä¸ºèœå•åœºæ™¯ï¼Œç”¨äºæ§åˆ¶ HUD æ˜¾ç¤º
         playerStatBar.gameObject.SetActive(!isMenu);
         abilities.SetActive(!isMenu);
         collection.SetActive(!isMenu);
