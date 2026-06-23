@@ -45,6 +45,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable
     private Vector2 lastMoveInput;
     private float lastShootInputTime = float.NegativeInfinity;
 
+    /// <summary>
+    /// 当前移动输入方向，供 PhysicsCheck 等组件读取
+    /// </summary>
+    public Vector2 InputDirection => lastMoveInput;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
