@@ -27,12 +27,6 @@ public class RangedGetCloseState : BaseState
 
     public override void PhysicsUpdate()
     {
-        // #region agent log
-        if (Time.frameCount % 60 == 0)
-            DebugAgentLog.Log("H3", "RangedGetCloseState.PhysicsUpdate", "entered",
-                $"{{\"isHurt\":{currentEnemy.isHurt.ToString().ToLower()},\"isDead\":{currentEnemy.isDead.ToString().ToLower()},\"currentSpeed\":{currentEnemy.currentSpeed}}}");
-        // #endregion
-
         if (rangedEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
 

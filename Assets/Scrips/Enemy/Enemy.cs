@@ -50,8 +50,6 @@ public class Enemy : MonoBehaviour
 
     public Rigidbody2D Rb => rb;
 
-    public string DebugCurrentStateName => currentState?.GetType().Name ?? "null";
-
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();

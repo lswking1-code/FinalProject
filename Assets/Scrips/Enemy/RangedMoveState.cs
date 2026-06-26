@@ -37,12 +37,6 @@ public class RangedMoveState : BaseState
 
     public override void PhysicsUpdate()
     {
-        // #region agent log
-        if (Time.frameCount % 60 == 0)
-            DebugAgentLog.Log("H3", "RangedMoveState.PhysicsUpdate", "entered",
-                $"{{\"isHurt\":{currentEnemy.isHurt.ToString().ToLower()},\"isDead\":{currentEnemy.isDead.ToString().ToLower()},\"moveDir\":{moveDir},\"currentSpeed\":{currentEnemy.currentSpeed}}}");
-        // #endregion
-
         if (rangedEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
 

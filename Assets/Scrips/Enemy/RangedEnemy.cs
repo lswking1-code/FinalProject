@@ -31,39 +31,11 @@ public class RangedEnemy : Enemy
             normalSpeed = 2f;
         if (chaseSpeed <= 0f)
             chaseSpeed = 4f;
-
-        if (Rb != null)
-        {
-            Rb.bodyType = RigidbodyType2D.Kinematic;
-            Rb.gravityScale = 0f;
-            Rb.simulated = false;
-        }
-
-        // #region agent log
-        DebugAgentLog.Log("H2", "RangedEnemy.Awake", "rb init",
-            $"{{\"rbNull\":{(Rb == null).ToString().ToLower()},\"bodyType\":\"{(Rb != null ? Rb.bodyType.ToString() : "none")}\",\"normalSpeed\":{normalSpeed},\"chaseSpeed\":{chaseSpeed},\"runId\":\"post-fix\"}}");
-        // #endregion
     }
 
     void Start()
     {
         ConfigurePhysicsCheck();
-        SyncRigidbodyToTransform();
-    }
-
-    void SyncRigidbodyToTransform()
-    {
-        if (Rb != null)
-            Rb.position = transform.position;
-    }
-
-    void LateUpdate()
-    {
-        // #region agent log
-        if (Time.frameCount % 60 == 0)
-            DebugAgentLog.Log("H7", "RangedEnemy.LateUpdate", "pos check",
-                $"{{\"runId\":\"post-fix-v3\",\"transformX\":{transform.position.x},\"rbX\":{(Rb != null ? Rb.position.x : 0f)},\"simulated\":{(Rb != null && Rb.simulated).ToString().ToLower()}}}");
-        // #endregion
     }
 
     void ConfigurePhysicsCheck()
@@ -103,11 +75,6 @@ public class RangedEnemy : Enemy
 
         float dist = GetHorizontalDistanceToPlayer();
 
-        // #region agent log
-        DebugAgentLog.Log("H6", "RangedEnemy.EvaluateCycle", "distance check",
-            $"{{\"runId\":\"post-fix-v2\",\"dist\":{dist},\"shootRange\":{shootRange},\"state\":\"{DebugCurrentStateName}\",\"enemyX\":{transform.position.x},\"playerX\":{(player != null ? player.position.x : 0f)}}}");
-        // #endregion
-
         if (dist > shootRange)
             SwitchState(NPCState.GetClose);
         else
@@ -117,12 +84,6 @@ public class RangedEnemy : Enemy
     void RollAndEnterAction()
     {
         var next = Random.value < shotProbability ? NPCState.Shot : NPCState.Move;
-
-        // #region agent log
-        DebugAgentLog.Log("H6", "RangedEnemy.RollAndEnterAction", "action roll",
-            $"{{\"runId\":\"post-fix-v2\",\"next\":\"{next}\",\"shotProbability\":{shotProbability}}}");
-        // #endregion
-
         SwitchState(next);
     }
 
@@ -159,14 +120,7 @@ public class RangedEnemy : Enemy
     public void MoveTowardPlayer()
     {
         if (player == null || isHurt || isDead || Rb == null)
-        {
-            // #region agent log
-            if (Time.frameCount % 60 == 0)
-                DebugAgentLog.Log("H3", "RangedEnemy.MoveTowardPlayer", "early return",
-                    $"{{\"playerNull\":{(player == null).ToString().ToLower()},\"isHurt\":{isHurt.ToString().ToLower()},\"isDead\":{isDead.ToString().ToLower()},\"rbNull\":{(Rb == null).ToString().ToLower()},\"state\":\"{DebugCurrentStateName}\"}}");
-            // #endregion
             return;
-        }
 
         float dir = GetMoveDirTowardPlayer();
         ApplyHorizontalMove(dir);
@@ -195,20 +149,7 @@ public class RangedEnemy : Enemy
 
     void ApplyHorizontalMove(float direction)
     {
-        float delta = currentSpeed * direction * Time.fixedDeltaTime;
-        Vector3 posBefore = transform.position;
-        Vector3 newPos = posBefore;
-        newPos.x += delta;
-        transform.position = newPos;
-        Vector3 posAfter = transform.position;
-
-        // #region agent log
-        if (Time.frameCount % 30 == 0)
-        {
-            DebugAgentLog.Log("H1-H5", "RangedEnemy.ApplyHorizontalMove", "move attempt",
-                $"{{\"runId\":\"post-fix-v3\",\"state\":\"{DebugCurrentStateName}\",\"currentSpeed\":{currentSpeed},\"direction\":{direction},\"deltaX\":{delta},\"posBeforeX\":{posBefore.x},\"posAfterX\":{posAfter.x},\"transformMoved\":{(Mathf.Abs(posAfter.x - posBefore.x) > 0.0001f).ToString().ToLower()}}}");
-        }
-        // #endregion
+        Rb.linearVelocity = new Vector2(currentSpeed * direction, Rb.linearVelocity.y);
     }
 
     /// <summary>
