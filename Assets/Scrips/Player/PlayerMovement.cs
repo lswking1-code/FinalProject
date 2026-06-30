@@ -4,10 +4,11 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
 [RequireComponent(typeof(PlayerAnim))]
-
-
-public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 Update，物理在 FixedUpdate
+[RequireComponent(typeof(DataDefination))]
+public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/动画在 Update，物理在 FixedUpdate
 {
+    const string FacingKeySuffix = "facing";
+
     [Header("移动")]
     public float runSpeed = 4f;
     public float crouchMoveSpeed = 2f;
@@ -25,6 +26,10 @@ public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 U
     float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
     int lastKPressFrame = -1; // 最近一次在 Update 检测到 K 的帧号
+
+    [Header("事件监听")]
+    [SerializeField] VoidEventSO newGameEvent;
+    [SerializeField] VoidEventSO afterSceneLoadedEvent;
 
     [Header("跳跃调试（Play 时查看）")]
     [SerializeField] bool dbgKPressedThisUpdate;   // Update：本帧 WasPressedThisFrame
@@ -46,12 +51,22 @@ public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 U
 
     void OnEnable()
     {
-        actions.Player.Enable();//启用玩家输入
+        actions.Player.Enable();
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += OnNewGame;
+        if (afterSceneLoadedEvent != null)
+            afterSceneLoadedEvent.OnEventRaised += OnSceneLoaded;
+        ((ISaveable)this).RegisterSaveData();
     }
 
     void OnDisable()
     {
-        actions.Player.Disable();//禁用玩家输入
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= OnNewGame;
+        if (afterSceneLoadedEvent != null)
+            afterSceneLoadedEvent.OnEventRaised -= OnSceneLoaded;
+        ((ISaveable)this).UnregisterSaveData();
+        actions.Player.Disable();
     }
 
     void OnDestroy()
@@ -194,7 +209,6 @@ public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 U
     void SyncAnimation() // 推进空中阶段；地面按输入切换 Idle/Run
     {
         playerAnim.UpdateAirState(physicsCheck.isGround, rb.linearVelocity.y);
-        //更新空中阶段
 
         if (!physicsCheck.isGround)
             return;
@@ -203,5 +217,62 @@ public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 U
             playerAnim.PlayRunAnim();
         else
             playerAnim.PlayIdleAnim();
+    }
+
+    void OnNewGame() => ResetMovementState();
+
+    void OnSceneLoaded() => ResetMovementState();
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+        if (!data.characterPosDict.ContainsKey(dataId.ID))
+            return;
+
+        string key = dataId.ID + FacingKeySuffix;
+        if (data.floatSavedData.ContainsKey(key))
+            data.floatSavedData[key] = faceDir;
+        else
+            data.floatSavedData.Add(key, faceDir);
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+        if (!data.characterPosDict.ContainsKey(dataId.ID))
+            return;
+
+        string key = dataId.ID + FacingKeySuffix;
+        if (data.floatSavedData.TryGetValue(key, out float savedFacing))
+            faceDir = savedFacing >= 0f ? 1f : -1f;
+
+        ResetMovementState();
+    }
+
+    void ResetMovementState()
+    {
+        moveInput = Vector2.zero;
+        jumpPressed = false;
+        jumpBufferCounter = 0f;
+        lastKPressFrame = -1;
+
+        rb.linearVelocity = Vector2.zero;
+        rb.position = transform.position;
+
+        if (playerAnim.IsCrouching)
+            playerAnim.PlayStandAnim();
+        playerAnim.SetLookUp(false);
+        playerAnim.SetLookDown(false);
+        playerAnim.PlayIdleAnim();
+
+        physicsCheck.Check();
+        playerAnim.UpdateAirState(physicsCheck.isGround, 0f);
+        ApplyFacing();
     }
 }
