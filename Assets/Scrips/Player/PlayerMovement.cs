@@ -2,670 +2,206 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
-[RequireComponent(typeof(SpriteRenderer))]
-[RequireComponent(typeof(DataDefination))]
-public class PlayerMovement : MonoBehaviour, ISaveable
+[RequireComponent(typeof(PhysicsCheck))]
+[RequireComponent(typeof(PlayerAnim))]
+
+
+public class PlayerMovement : MonoBehaviour // 玩家移动：输入/动画在 Update，物理在 FixedUpdate
 {
-    private const string FacingKeySuffix = "facing";
+    [Header("移动")]
+    public float runSpeed = 4f;
+    public float crouchMoveSpeed = 2f;
+    public float jumpHeight = 2.5f;      // 起跳目标高度，用于反算初速度
+    public float inputThreshold = 0.5f;  // 摇杆死区，低于此值视为无输入
+    public float jumpBufferTime = 0.15f; // 跳跃输入缓冲（秒），弥补 Update 与 FixedUpdate 不同步
 
-    [Header("Input")]
-    [SerializeField] private InputActionAsset inputActionAsset;
+    Rigidbody2D rb;
+    PhysicsCheck physicsCheck;
+    PlayerAnim playerAnim;
+    InputSystem_Actions actions;
 
-    [Header("Save/Load")]
-    [SerializeField] private VoidEventSO newGameEvent;
+    Vector2 moveInput;
+    bool jumpPressed;
+    float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
+    float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
+    int lastKPressFrame = -1; // 最近一次在 Update 检测到 K 的帧号
 
-    [Header("Movement")]
-    [SerializeField] private float runSpeed = 4f;
-    [SerializeField] private float crouchMoveSpeed = 2f;
-    [SerializeField] private float jumpHeight = 2.5f;
-    [SerializeField] private float gravity = 25f;
-    [SerializeField] private float inputThreshold = 0.5f;
+    [Header("跳跃调试（Play 时查看）")]
+    [SerializeField] bool dbgKPressedThisUpdate;   // Update：本帧 WasPressedThisFrame
+    [SerializeField] bool dbgJumpBuffered;         // FixedUpdate：缓冲内仍有跳跃意图
+    [SerializeField] float dbgJumpBufferRemaining; // 剩余缓冲时间（秒）
+    [SerializeField] bool dbgIsGroundInFixed;      // FixedUpdate：TryJump 时的 isGround
+    [SerializeField] bool dbgDidJump;              // 本次 FixedUpdate 是否起跳成功
+    [SerializeField] int dbgLastKPressFrame;       // 上次按 K 的帧号
+    [SerializeField] int dbgLastTryJumpFrame;      // 上次 TryJump 的帧号
+    [SerializeField] string dbgResult = "—";       // 最近一次 TryJump 结果说明
 
-    [Header("Ground Check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private float groundCheckRadius = 0.08f;
-    [SerializeField] private LayerMask groundLayer;
-
-    [Header("Shooting")]
-    [SerializeField] private float shootHolsterDelay = 0.35f;
-
-    private Rigidbody2D rb;
-    private Animator animator;
-    private SpriteRenderer spriteRenderer;
-    private PlayerInputActions inputActions;
-
-    private PlayerAnimState currentAnimState = PlayerAnimState.Idle;
-    private bool lockedState;
-    private bool wasGrounded = true;
-    private bool facingRight = true;
-    private bool wasRunningHorizontally;
-    private float velocityY;
-    private float airMoveX;
-    private Vector2 lastMoveInput;
-    private float lastShootInputTime = float.NegativeInfinity;
-
-    /// <summary>
-    /// 当前移动输入方向，供 PhysicsCheck 等组件读取
-    /// </summary>
-    public Vector2 InputDirection => lastMoveInput;
-
-    private void Awake()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        physicsCheck = GetComponent<PhysicsCheck>();
+        playerAnim = GetComponent<PlayerAnim>();
+        actions = new InputSystem_Actions();
+    }
 
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.gravityScale = 0f;
-        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+    void OnEnable()
+    {
+        actions.Player.Enable();//启用玩家输入
+    }
 
-        inputActions = new PlayerInputActions(inputActionAsset);
+    void OnDisable()
+    {
+        actions.Player.Disable();//禁用玩家输入
+    }
 
-        if (groundCheck == null)
+    void OnDestroy()
+    {
+        actions?.Dispose();//释放玩家输入
+    }
+
+    void Update()
+    {
+        ReadInput();
+        HandleCrouch();
+        HandleLook();
+        SyncAnimation(); // 每帧同步动画与空中阶段
+    }
+
+    void FixedUpdate()
+    {
+        physicsCheck.Check();
+
+        if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
+            jumpBufferCounter = jumpBufferTime;
+        jumpBufferCounter -= Time.fixedDeltaTime;
+
+        if (TryJump()) // 起跳覆盖本帧速度，跳过后不再水平移动
         {
-            var groundCheckObject = new GameObject("GroundCheck");
-            groundCheckObject.transform.SetParent(transform);
-            groundCheckObject.transform.localPosition = new Vector3(0f, 0.05f, 0f);
-            groundCheck = groundCheckObject.transform;
-        }
-
-        if (groundLayer.value == 0)
-            groundLayer = LayerMask.GetMask("Ground");
-    }
-
-    private void Start() => SetAnimState(PlayerAnimState.Idle);
-
-    private void OnEnable()
-    {
-        inputActions?.Enable();
-        if (newGameEvent != null)
-            newGameEvent.OnEventRaised += OnNewGame;
-        ((ISaveable)this).RegisterSaveData();
-    }
-
-    private void OnDisable()
-    {
-        if (newGameEvent != null)
-            newGameEvent.OnEventRaised -= OnNewGame;
-        ((ISaveable)this).UnregisterSaveData();
-        inputActions?.Disable();
-    }
-
-    private void OnDestroy() => inputActions?.Dispose();
-
-    private void OnNewGame() => ResetMovementState();
-
-    public DataDefination GetDataID() => GetComponent<DataDefination>();
-
-    public void GetSaveData(Data data)
-    {
-        var dataId = GetDataID();
-        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
-            return;
-
-        string key = dataId.ID + FacingKeySuffix;
-        float value = facingRight ? 1f : 0f;
-        if (data.floatSavedData.ContainsKey(key))
-            data.floatSavedData[key] = value;
-        else
-            data.floatSavedData.Add(key, value);
-    }
-
-    public void LoadSaveData(Data data)
-    {
-        var dataId = GetDataID();
-        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
-            return;
-
-        if (!data.characterPosDict.ContainsKey(dataId.ID))
-            return;
-
-        string key = dataId.ID + FacingKeySuffix;
-        if (data.floatSavedData.TryGetValue(key, out float savedFacing))
-        {
-            facingRight = savedFacing > 0.5f;
-            spriteRenderer.flipX = !facingRight;
-        }
-
-        ResetMovementState();
-    }
-
-    private void ResetMovementState()
-    {
-        velocityY = 0f;
-        airMoveX = 0f;
-        lockedState = false;
-        wasGrounded = true;
-        wasRunningHorizontally = false;
-        rb.position = transform.position;
-        SetAnimState(PlayerAnimState.Idle);
-    }
-
-    private void Update()
-    {
-        Vector2 moveInput = inputActions.Move.ReadValue<Vector2>();
-        lastMoveInput = moveInput;
-        bool jumpPressed = inputActions.Jump.WasPressedThisFrame();
-        bool isGrounded = CheckGrounded();
-
-        UpdateFacing(moveInput.x);
-
-        if (jumpPressed && isGrounded && !lockedState && !IsCrouchInput(moveInput))
-            BeginJump(moveInput.x);
-
-        if (!isGrounded)
-            UpdateAirborneState();
-        else if (!wasGrounded && velocityY <= 0f &&
-                 currentAnimState is PlayerAnimState.Jump or PlayerAnimState.Jump2)
-            BeginLanding();
-        else
-        {
-            UpdateShooting(moveInput);
-            if (!IsShooting() && !lockedState)
-                UpdateGroundedState(moveInput, isGrounded);
-        }
-
-        AdvanceShootFireAnimations();
-        AdvanceOneShotAnimations();
-        AdvanceLoopingVariants();
-        wasGrounded = isGrounded;
-    }
-
-    private void FixedUpdate()
-    {
-        bool isGrounded = CheckGrounded();
-        float horizontalSpeed = GetHorizontalSpeed();
-
-        if (!isGrounded)
-        {
-            velocityY -= gravity * Time.fixedDeltaTime;
-        }
-        else if (velocityY < 0f)
-        {
-            velocityY = 0f;
-        }
-
-        Vector2 delta = new Vector2(horizontalSpeed, velocityY) * Time.fixedDeltaTime;
-        rb.MovePosition(rb.position + delta);
-    }
-
-    private void UpdateGroundedState(Vector2 moveInput, bool isGrounded)
-    {
-        float horizontal = GetHorizontalInput(moveInput);
-        bool lookUp = moveInput.y > inputThreshold;
-        bool crouch = IsCrouchInput(moveInput);
-
-        if (crouch)
-        {
-            wasRunningHorizontally = false;
-            if (Mathf.Abs(horizontal) > 0.01f)
-                SetCrouchMoveState();
-            else if (currentAnimState is PlayerAnimState.CrouchMove1 or PlayerAnimState.CrouchMove2)
-                SetAnimState(PlayerAnimState.Crouch2);
-            else if (currentAnimState == PlayerAnimState.Crouch2)
-                return;
-            else if (currentAnimState == PlayerAnimState.Crouch1)
-                return;
-            else
-                SetAnimState(PlayerAnimState.Crouch1);
+            HandleLook(); // 蹲跳等：离开地面后同帧补判空中向下看
             return;
         }
 
-        if (Mathf.Abs(horizontal) > 0.01f)
-        {
-            if (lookUp)
-            {
-                wasRunningHorizontally = true;
-                SetLookUpRunState();
-            }
-            else
-            {
-                wasRunningHorizontally = true;
-                SetRunState();
-            }
-            return;
-        }
-
-        if (wasRunningHorizontally && ShouldPlayStop())
-        {
-            wasRunningHorizontally = false;
-            SetAnimState(PlayerAnimState.Stop1);
-            lockedState = true;
-            return;
-        }
-
-        wasRunningHorizontally = false;
-
-        if (lookUp)
-        {
-            if (currentAnimState == PlayerAnimState.LookUp2)
-                return;
-            if (currentAnimState == PlayerAnimState.LookUp1)
-                return;
-            SetAnimState(PlayerAnimState.LookUp1);
-            return;
-        }
-
-        if (currentAnimState is PlayerAnimState.Idle or PlayerAnimState.LookUp2 or PlayerAnimState.Stop2)
-        {
-            SetAnimState(PlayerAnimState.Idle);
-            return;
-        }
-
-        if (!IsOneShotState(currentAnimState))
-            SetAnimState(PlayerAnimState.Idle);
+        ApplyHorizontalMovement();
     }
 
-    private void UpdateAirborneState()
+    void ReadInput()
     {
-        wasRunningHorizontally = false;
-        if (currentAnimState == PlayerAnimState.Jump)
-            return;
+        moveInput = actions.Player.Move.ReadValue<Vector2>();
+        jumpPressed = actions.Player.Jump.WasPressedThisFrame();
 
-        SetAnimState(PlayerAnimState.Jump2);
-    }
-
-    private void BeginJump(float moveX)
-    {
-        airMoveX = GetHorizontalInput(new Vector2(moveX, 0f));
-        velocityY = Mathf.Sqrt(2f * gravity * jumpHeight);
-        lockedState = false;
-        SetAnimState(PlayerAnimState.Jump);
-    }
-
-    private void BeginLanding()
-    {
-        velocityY = 0f;
-        SetAnimState(PlayerAnimState.Land1);
-        lockedState = true;
-    }
-
-    private void AdvanceOneShotAnimations()
-    {
-        if (!IsOneShotState(currentAnimState) || !IsCurrentAnimFinished())
-            return;
-
-        switch (currentAnimState)
+        dbgKPressedThisUpdate = jumpPressed;
+        if (jumpPressed)
         {
-            case PlayerAnimState.LookUp1:
-                SetAnimState(PlayerAnimState.LookUp2);
-                break;
-            case PlayerAnimState.Run1:
-                SetAnimState(PlayerAnimState.Run2);
-                break;
-            case PlayerAnimState.LookUpRun1:
-                SetAnimState(PlayerAnimState.LookUpRun2);
-                break;
-            case PlayerAnimState.Crouch1:
-                SetAnimState(PlayerAnimState.Crouch2);
-                break;
-            case PlayerAnimState.Jump:
-                SetAnimState(PlayerAnimState.Jump2);
-                break;
-            case PlayerAnimState.Land1:
-                lockedState = false;
-                SetAnimState(PlayerAnimState.Idle);
-                break;
-            case PlayerAnimState.Stop1:
-                SetAnimState(PlayerAnimState.Stop2);
-                break;
-            case PlayerAnimState.Stop2:
-                lockedState = false;
-                SetAnimState(PlayerAnimState.Idle);
-                break;
-            case PlayerAnimState.Shoot2:
-            case PlayerAnimState.ShootUp2:
-            case PlayerAnimState.CrouchShoot2:
-            case PlayerAnimState.ShootDown2:
-                lockedState = false;
-                ExitShootToPose(lastMoveInput);
-                break;
+            jumpBufferCounter = jumpBufferTime;
+            lastKPressFrame = Time.frameCount;
+            dbgLastKPressFrame = lastKPressFrame;
         }
     }
 
-    private void SetRunState()
+    void HandleCrouch() // 仅地面响应下方向进入/退出蹲姿
     {
-        if (currentAnimState is PlayerAnimState.Run2 or PlayerAnimState.Run1)
+        if (!physicsCheck.isGround)
             return;
 
-        if (currentAnimState is PlayerAnimState.LookUpRun1 or PlayerAnimState.LookUpRun2 or PlayerAnimState.LookUpRun3)
+        bool wantCrouch = moveInput.y < -inputThreshold;
+
+        if (wantCrouch && !playerAnim.IsCrouching)
         {
-            SetAnimState(PlayerAnimState.Run2);
-            return;
+            jumpBufferCounter = 0f; // 进入蹲姿时清跳跃缓冲，避免蹲跳后立刻再次蹲下
+            playerAnim.PlayCrouchAnim();
         }
-
-        SetAnimState(PlayerAnimState.Run1);
+        else if (!wantCrouch && playerAnim.IsCrouching)
+            playerAnim.PlayStandAnim();
     }
 
-    private void SetLookUpRunState()
+    void HandleLook() // W 向上看（地面/空中）；空中 S 向下看
     {
-        if (currentAnimState is PlayerAnimState.LookUpRun1 or PlayerAnimState.LookUpRun2 or PlayerAnimState.LookUpRun3)
-            return;
+        bool wantLookUp = moveInput.y > inputThreshold;
+        bool wantLookDown = !physicsCheck.isGround && moveInput.y < -inputThreshold;
 
-        if (currentAnimState == PlayerAnimState.Run2)
+        playerAnim.SetLookUp(wantLookUp);
+        playerAnim.SetLookDown(wantLookDown);
+    }
+
+    bool TryJump() // 地面起跳；有水平输入为 Leap，初速度 v=sqrt(2gh)
+    {
+        bool wantsJump = jumpBufferCounter > 0f;
+
+        dbgLastTryJumpFrame = Time.frameCount;
+        dbgJumpBuffered = wantsJump;
+        dbgJumpBufferRemaining = Mathf.Max(0f, jumpBufferCounter);
+        dbgIsGroundInFixed = physicsCheck.isGround;
+        dbgDidJump = false;
+
+        if (!wantsJump)
         {
-            SetAnimState(PlayerAnimState.LookUpRun1);
-            return;
-        }
-
-        SetAnimState(PlayerAnimState.LookUpRun1);
-    }
-
-    private void SetCrouchMoveState()
-    {
-        if (currentAnimState is PlayerAnimState.CrouchMove1 or PlayerAnimState.CrouchMove2)
-            return;
-
-        SetAnimState(PlayerAnimState.CrouchMove1);
-    }
-
-    private void AdvanceLoopingVariants()
-    {
-        if (!IsCurrentAnimFinished())
-            return;
-
-        switch (currentAnimState)
-        {
-            case PlayerAnimState.LookUpRun2:
-                SetAnimState(PlayerAnimState.LookUpRun3);
-                break;
-            case PlayerAnimState.LookUpRun3:
-                SetAnimState(PlayerAnimState.LookUpRun2);
-                break;
-            case PlayerAnimState.CrouchMove1:
-                SetAnimState(PlayerAnimState.CrouchMove2);
-                break;
-            case PlayerAnimState.CrouchMove2:
-                SetAnimState(PlayerAnimState.CrouchMove1);
-                break;
-        }
-    }
-
-    private float GetHorizontalSpeed()
-    {
-        if (lockedState || currentAnimState is PlayerAnimState.Stop1 or PlayerAnimState.Stop2 or PlayerAnimState.Land1
-            || IsShooting(currentAnimState))
-            return 0f;
-
-        float direction = facingRight ? 1f : -1f;
-
-        switch (currentAnimState)
-        {
-            case PlayerAnimState.Run1:
-            case PlayerAnimState.Run2:
-            case PlayerAnimState.LookUpRun1:
-            case PlayerAnimState.LookUpRun2:
-            case PlayerAnimState.LookUpRun3:
-                return direction * runSpeed;
-            case PlayerAnimState.CrouchMove1:
-            case PlayerAnimState.CrouchMove2:
-                return direction * crouchMoveSpeed;
-            case PlayerAnimState.Jump:
-            case PlayerAnimState.Jump2:
-                return airMoveX * runSpeed;
-            default:
-                return 0f;
-        }
-    }
-
-    private bool ShouldPlayStop()
-    {
-        return currentAnimState is PlayerAnimState.Run1 or PlayerAnimState.Run2
-            or PlayerAnimState.LookUpRun1 or PlayerAnimState.LookUpRun2 or PlayerAnimState.LookUpRun3;
-    }
-
-    private bool IsCrouchInput(Vector2 moveInput)
-    {
-        return moveInput.y < -inputThreshold || inputActions.Crouch.IsPressed();
-    }
-
-    private float GetHorizontalInput(Vector2 moveInput)
-    {
-        if (Mathf.Abs(moveInput.x) < inputThreshold)
-            return 0f;
-
-        return Mathf.Sign(moveInput.x);
-    }
-
-    private void UpdateFacing(float moveX)
-    {
-        if (Mathf.Abs(moveX) < inputThreshold)
-            return;
-
-        facingRight = moveX > 0f;
-        spriteRenderer.flipX = !facingRight;
-    }
-
-    private bool CheckGrounded()
-    {
-        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-    }
-
-    private bool IsCurrentAnimFinished()
-    {
-        if (animator.IsInTransition(0))
+            dbgResult = lastKPressFrame >= 0
+                ? $"缓冲已过期（按 K 后已过 {Time.frameCount - lastKPressFrame} 帧）"
+                : "无跳跃输入";
             return false;
-
-        AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
-        return info.normalizedTime >= 1f;
-    }
-
-    private static bool IsOneShotState(PlayerAnimState state)
-    {
-        return state is PlayerAnimState.LookUp1 or PlayerAnimState.Run1 or PlayerAnimState.LookUpRun1
-            or PlayerAnimState.Crouch1 or PlayerAnimState.Jump or PlayerAnimState.Land1
-            or PlayerAnimState.Stop1 or PlayerAnimState.Stop2
-            or PlayerAnimState.Shoot2 or PlayerAnimState.ShootUp2 or PlayerAnimState.CrouchShoot2
-            or PlayerAnimState.ShootDown2;
-    }
-
-    private enum ShootMode
-    {
-        Standing,
-        Up,
-        Down,
-        Crouch,
-    }
-
-    private void UpdateShooting(Vector2 moveInput)
-    {
-        if (IsShootRecoveryState(currentAnimState))
-            return;
-
-        if (!inputActions.Attack.WasPressedThisFrame() || IsShootFireState(currentAnimState))
-            return;
-
-        if (!CanBeginShoot(moveInput))
-            return;
-
-        ShootMode? mode = GetShootMode(moveInput);
-        if (mode.HasValue)
-            BeginShoot(mode.Value);
-    }
-
-    private void AdvanceShootFireAnimations()
-    {
-        if (!IsShootFireState(currentAnimState) || !IsCurrentAnimFinished())
-            return;
-
-        if (inputActions.Attack.WasPressedThisFrame())
-        {
-            ShootMode? mode = GetShootMode(lastMoveInput);
-            if (mode.HasValue && !IsRunningState())
-                BeginShoot(mode.Value);
-            return;
         }
 
-        if (Time.time - lastShootInputTime < shootHolsterDelay)
+        if (!physicsCheck.isGround)
         {
-            ReplayCurrentAnim();
-            return;
-        }
-
-        BeginShootRecovery(currentAnimState);
-    }
-
-    private bool IsRunningState()
-    {
-        return currentAnimState is PlayerAnimState.Run1 or PlayerAnimState.Run2
-            or PlayerAnimState.LookUpRun1 or PlayerAnimState.LookUpRun2 or PlayerAnimState.LookUpRun3;
-    }
-
-    private static bool IsShooting(PlayerAnimState state)
-    {
-        return state is PlayerAnimState.Shoot1 or PlayerAnimState.Shoot2
-            or PlayerAnimState.ShootUp1 or PlayerAnimState.ShootUp2
-            or PlayerAnimState.CrouchShoot1 or PlayerAnimState.CrouchShoot2
-            or PlayerAnimState.ShootDown1 or PlayerAnimState.ShootDown2;
-    }
-
-    private bool IsShooting() => IsShooting(currentAnimState);
-
-    private static bool IsShootFireState(PlayerAnimState state)
-    {
-        return state is PlayerAnimState.Shoot1 or PlayerAnimState.ShootUp1
-            or PlayerAnimState.CrouchShoot1 or PlayerAnimState.ShootDown1;
-    }
-
-    private static bool IsShootRecoveryState(PlayerAnimState state)
-    {
-        return state is PlayerAnimState.Shoot2 or PlayerAnimState.ShootUp2
-            or PlayerAnimState.CrouchShoot2 or PlayerAnimState.ShootDown2;
-    }
-
-    private bool IsInCrouchPose()
-    {
-        return currentAnimState is PlayerAnimState.Crouch2
-            or PlayerAnimState.CrouchMove1 or PlayerAnimState.CrouchMove2;
-    }
-
-    private bool CanBeginShoot(Vector2 moveInput)
-    {
-        if (lockedState || IsShooting() || IsRunningState())
+            dbgResult = $"不在地面（缓冲剩余 {dbgJumpBufferRemaining:F2}s）";
             return false;
-
-        return GetShootMode(moveInput).HasValue;
-    }
-
-    private ShootMode? GetShootMode(Vector2 moveInput)
-    {
-        if (IsInCrouchPose())
-            return ShootMode.Crouch;
-
-        if (Mathf.Abs(GetHorizontalInput(moveInput)) > 0.01f)
-            return null;
-
-        if (moveInput.y > inputThreshold || currentAnimState == PlayerAnimState.LookUp2)
-            return ShootMode.Up;
-
-        if (moveInput.y < -inputThreshold)
-            return ShootMode.Down;
-
-        return ShootMode.Standing;
-    }
-
-    private void BeginShoot(ShootMode mode)
-    {
-        PlayerAnimState fireState = mode switch
-        {
-            ShootMode.Standing => PlayerAnimState.Shoot1,
-            ShootMode.Up => PlayerAnimState.ShootUp1,
-            ShootMode.Down => PlayerAnimState.ShootDown1,
-            ShootMode.Crouch => PlayerAnimState.CrouchShoot1,
-            _ => PlayerAnimState.Idle,
-        };
-
-        lastShootInputTime = Time.time;
-
-        if (currentAnimState == fireState)
-            ReplayCurrentAnim();
-        else
-            SetAnimState(fireState);
-    }
-
-    private void BeginShootRecovery(PlayerAnimState fireState)
-    {
-        lockedState = true;
-        switch (fireState)
-        {
-            case PlayerAnimState.Shoot1:
-                SetAnimState(PlayerAnimState.Shoot2);
-                break;
-            case PlayerAnimState.ShootUp1:
-                SetAnimState(PlayerAnimState.ShootUp2);
-                break;
-            case PlayerAnimState.CrouchShoot1:
-                SetAnimState(PlayerAnimState.CrouchShoot2);
-                break;
-            case PlayerAnimState.ShootDown1:
-                SetAnimState(PlayerAnimState.ShootDown2);
-                break;
         }
+
+        bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
+        if (hasHorizontalInput)
+            faceDir = moveInput.x > 0f ? 1f : -1f;
+
+        float gravity = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
+        float jumpVelocity = Mathf.Sqrt(2f * gravity * jumpHeight);
+
+        float horizontalVelocity = hasHorizontalInput ? faceDir * runSpeed : 0f;
+        rb.linearVelocity = new Vector2(horizontalVelocity, jumpVelocity);
+
+        playerAnim.PlayJumpAnim(hasHorizontalInput);
+        ApplyFacing();
+
+        jumpBufferCounter = 0f;
+        dbgDidJump = true;
+        dbgResult = "起跳成功";
+        lastKPressFrame = -1;
+        return true;
     }
 
-    private void ExitShootToPose(Vector2 moveInput)
+    void ApplyHorizontalMovement() // 仅地面水平移动，空中由起跳初速度与重力决定
     {
-        switch (currentAnimState)
-        {
-            case PlayerAnimState.Shoot2:
-                SetAnimState(PlayerAnimState.Idle);
-                break;
-            case PlayerAnimState.ShootUp2:
-                if (moveInput.y > inputThreshold)
-                    SetAnimState(PlayerAnimState.LookUp2);
-                else
-                    SetAnimState(PlayerAnimState.Idle);
-                break;
-            case PlayerAnimState.CrouchShoot2:
-                SetAnimState(PlayerAnimState.Crouch2);
-                break;
-            case PlayerAnimState.ShootDown2:
-                SetAnimState(PlayerAnimState.Idle);
-                break;
-        }
-    }
-
-    private void SetAnimState(PlayerAnimState state)
-    {
-        if (currentAnimState == state)
+        if (!physicsCheck.isGround)
             return;
 
-        currentAnimState = state;
-        animator.Play(StateHashes[(int)state], 0, 0f);
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+
+        if (moveX != 0f)
+            faceDir = moveX;
+
+        float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
+        rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
+
+        if (moveX != 0f)
+            ApplyFacing();
     }
 
-    private void ReplayCurrentAnim()
+    void ApplyFacing() // 翻转 localScale.x，保留绝对缩放
     {
-        animator.Play(StateHashes[(int)currentAnimState], 0, 0f);
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * faceDir;
+        transform.localScale = scale;
     }
 
-    private static readonly int[] StateHashes =
+    void SyncAnimation() // 推进空中阶段；地面按输入切换 Idle/Run
     {
-        PlayerAnimatorIds.Idle,
-        PlayerAnimatorIds.LookUp1,
-        PlayerAnimatorIds.LookUp2,
-        PlayerAnimatorIds.Run1,
-        PlayerAnimatorIds.Run2,
-        PlayerAnimatorIds.LookUpRun1,
-        PlayerAnimatorIds.LookUpRun2,
-        PlayerAnimatorIds.LookUpRun3,
-        PlayerAnimatorIds.Crouch1,
-        PlayerAnimatorIds.Crouch2,
-        PlayerAnimatorIds.CrouchMove1,
-        PlayerAnimatorIds.CrouchMove2,
-        PlayerAnimatorIds.Jump,
-        PlayerAnimatorIds.Jump2,
-        PlayerAnimatorIds.Land1,
-        PlayerAnimatorIds.Stop1,
-        PlayerAnimatorIds.Stop2,
-        PlayerAnimatorIds.Shoot1,
-        PlayerAnimatorIds.Shoot2,
-        PlayerAnimatorIds.ShootUp1,
-        PlayerAnimatorIds.ShootUp2,
-        PlayerAnimatorIds.CrouchShoot1,
-        PlayerAnimatorIds.CrouchShoot2,
-        PlayerAnimatorIds.ShootDown1,
-        PlayerAnimatorIds.ShootDown2,
-    };
+        playerAnim.UpdateAirState(physicsCheck.isGround, rb.linearVelocity.y);
+        //更新空中阶段
+
+        if (!physicsCheck.isGround)
+            return;
+
+        if (Mathf.Abs(moveInput.x) > inputThreshold)
+            playerAnim.PlayRunAnim();
+        else
+            playerAnim.PlayIdleAnim();
+    }
 }

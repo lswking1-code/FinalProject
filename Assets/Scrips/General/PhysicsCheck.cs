@@ -7,7 +7,6 @@ using UnityEngine;
 public class PhysicsCheck : MonoBehaviour
 {
     private CapsuleCollider2D coll;
-    private PlayerMovement playerMovement;
     private Rigidbody2D rb;
 
     [Header("检测参数")]
@@ -31,15 +30,12 @@ public class PhysicsCheck : MonoBehaviour
     {
         coll = GetComponent<CapsuleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
+        RecalculateOffsets();
+    }
 
-        if (!manual)
-        {
-            rightOffset = new Vector2((coll.bounds.size.x + coll.offset.x) / 2, coll.bounds.size.y / 2);
-            leftOffset = new Vector2(-rightOffset.x, rightOffset.y);
-        }
-
-        if (isPlayer)
-            playerMovement = GetComponent<PlayerMovement>();
+    private void Start()
+    {
+        Check();
     }
 
     private void Update()
@@ -47,19 +43,24 @@ public class PhysicsCheck : MonoBehaviour
         Check();
     }
 
+    void RecalculateOffsets()
+    {
+        if (manual || coll == null)
+            return;
+
+        rightOffset = new Vector2((coll.bounds.size.x + coll.offset.x) / 2, coll.bounds.size.y / 2);
+        leftOffset = new Vector2(-rightOffset.x, rightOffset.y);
+        bottomOffset = new Vector2(coll.offset.x, coll.offset.y - coll.size.y * 0.5f);
+    }
+
     /// <summary>
     /// 执行地面、墙体及贴墙状态检测
     /// </summary>
     public void Check()
     {
-        if (onWall)
-            isGround = Physics2D.OverlapCircle(
-                (Vector2)transform.position + new Vector2(bottomOffset.x * transform.localScale.x, bottomOffset.y),
-                checkRaduis, groundLayer);
-        else
-            isGround = Physics2D.OverlapCircle(
-                (Vector2)transform.position + new Vector2(bottomOffset.x * transform.localScale.x, 0),
-                checkRaduis, groundLayer);
+        isGround = Physics2D.OverlapCircle(
+            (Vector2)transform.position + new Vector2(bottomOffset.x * transform.localScale.x, bottomOffset.y),
+            checkRaduis, groundLayer);
 
         touchLeftWall = Physics2D.OverlapCircle(
             (Vector2)transform.position + new Vector2(leftOffset.x, leftOffset.y),
@@ -68,10 +69,10 @@ public class PhysicsCheck : MonoBehaviour
             (Vector2)transform.position + new Vector2(rightOffset.x, rightOffset.y),
             checkRaduis, groundLayer);
 
-        if (isPlayer && playerMovement != null)
+        if (isPlayer && rb != null)
         {
-            Vector2 input = playerMovement.InputDirection;
-            onWall = (touchLeftWall && input.x < 0f || touchRightWall && input.x > 0f) && rb.linearVelocity.y < 0f;
+            float inputX = Input.GetAxisRaw("Horizontal");
+            onWall = (touchLeftWall && inputX < 0f || touchRightWall && inputX > 0f) && rb.linearVelocity.y < 0f;
         }
     }
 

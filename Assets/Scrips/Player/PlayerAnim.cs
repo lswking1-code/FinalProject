@@ -1,65 +1,187 @@
 using UnityEngine;
 
-/// <summary>
-/// 玩家动画控制：站立时上下半身分层显示，蹲姿时切换为全身整图显示。
-/// </summary>
-public class PlayerAnim : MonoBehaviour
+[RequireComponent(typeof(Rigidbody2D))]
+public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参数驱动；上半身 locomotion 由 Play 驱动，蹲姿/着陆/转身走 FullBody 层
 {
-    [Header("动画机")]
+    public enum AirPhaseType // 空中阶段，同步到上下半身 Animator 的 AirPhase 参数
+    {
+        Ground = 0,
+        Jump = 1,    // 原地起跳上升
+        Fall = 2,    // 下落（含走出平台）
+        Leap = 3,    // 带水平速度起跳上升
+        LeapAir = 4, // 带水平速度起跳后的下落
+    }
+
+    enum AirTrack // 起跳类型，区分 Jump / Leap 轨道
+    {
+        None,
+        Jump,
+        Leap,
+    }
+
+    enum BodyDisplayMode // Split=上下半身，FullBody=全身层
+    {
+        Split,
+        FullBody,
+    }
+
+    const string LandStateName = "Land";
+    const string TurnStateName = "Turn";
+    const string CrouchStartStateName = "CrouchStart";
+    const string LookUpStartStateName = "LookUpStart";
+    const string LookUpStateName = "LookUp";
+    const string LookUpEndStateName = "LookUpEnd";
+    const string LookDownStartStateName = "LookDownStart";
+    const string LookDownStateName = "LookDown";
+    const string LookDownEndStateName = "LookDownEnd";
+    const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
+    const string IsLookUpParam = "IsLookUp";
+    const string IsLookDownParam = "IsLookDown";
+
+    [Header("Split 动画机")]
     public Animator upperAnimator;
     public Animator lowerAnimator;
+
+    [Header("FullBody 动画机")]
     public Animator crouchAnimator;
 
     [Header("显示层")]
-    [Tooltip("站立时的上半身物体")]
     public GameObject upBody;
-    [Tooltip("站立时的下半身物体")]
     public GameObject downBody;
-    [Tooltip("蹲姿时的全身物体（整图精灵）")]
+    [Tooltip("全身层：蹲姿、着陆、转身等")]
     public GameObject crouchBody;
 
-    /// <summary>当前是否处于蹲姿模式</summary>
-    private bool isCrouching;
+    [Header("空中")]
+    [Tooltip("竖直速度低于等于该值时视为开始下落")]
+    public float descendVelocityThreshold = 0f;
+
+    Rigidbody2D rb;
+    BodyDisplayMode displayMode = BodyDisplayMode.Split;
+    AirPhaseType airPhase = AirPhaseType.Ground;
+    AirTrack airTrack = AirTrack.None;
+
+    string activeFullBodyState;
+    bool fullBodyAutoExit; // 全身动作播完后是否自动切回 Split
+
+    bool isCrouching;
+    bool isRunning;
+    bool isShooting;
+    bool isLookingUp;
+    bool isLookingDown;
+    bool isEndingLookUp;
+    bool isEndingLookDown;
+    bool jumpInvokedThisFrame; // 本帧是否起跳，防止同帧误判为走出平台
+    bool wasGrounded;          // 上一帧是否在地面
+    bool airStateInitialized;  // 是否完成首次地面检测，避免开局误判 Fall
+    int lastUpperSyncedPhase = -1;   // 代码侧缓存，避免同帧重复 SetInteger 触发 AnyState
+    string lastUpperLocomotionState; // 上半身 locomotion 由 Play 驱动
+    bool lastUpperSyncedLookUp;
+    bool lastUpperSyncedLookDown;
+    bool lastUpperSyncedRun;
+
+    public bool IsCrouching => isCrouching;
+    public bool IsLookingUp => isLookingUp || isEndingLookUp;
+    public bool IsLookingDown => isLookingDown || isEndingLookDown;
+    public AirPhaseType CurrentAirPhase => airPhase;
+    public bool IsInFullBody => displayMode == BodyDisplayMode.FullBody;
+    public string CurrentFullBodyState => activeFullBodyState;
+    public bool IsPlayingLand =>
+        displayMode == BodyDisplayMode.FullBody && activeFullBodyState == LandStateName;
+
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
 
     void Start()
     {
-        // 初始化为站立显示
-        SetStandingMode();
+        SetSplitDisplay();
+        SyncSplitAnimators();
+
+        var physicsCheck = GetComponent<PhysicsCheck>(); // 首帧检测地面，初始化 wasGrounded
+        if (physicsCheck != null)
+        {
+            physicsCheck.Check();
+            wasGrounded = physicsCheck.isGround;
+            airStateInitialized = true;
+        }
     }
 
-    public bool IsCrouching => isCrouching;
-
-    /// <summary>进入蹲姿：隐藏上下半身，显示全身蹲姿层，播放下蹲过渡动画</summary>
-    public void PlayCrouchAnim()
+    void LateUpdate() // 每帧末尾清零 jumpInvokedThisFrame
     {
+        jumpInvokedThisFrame = false;
+    }
+
+    public void UpdateAirState(bool grounded) // PlayerMovement 传入地面检测结果
+    {
+        float velocityY = rb != null ? rb.linearVelocity.y : 0f;
+        UpdateAirState(grounded, velocityY);
+    }
+
+    public void UpdateAirState(bool grounded, float velocityY) // 推进空中阶段并同步 Animator；蹲姿/全身层期间暂停；grounded 地面检测结果，velocityY 竖直速度
+    {
+        if (isCrouching && !grounded)
+            ExitCrouchForAir();
+
         if (isCrouching)
+        {
+            wasGrounded = grounded;
             return;
+        }
 
-        isCrouching = true;
-        upBody.SetActive(false);
-        downBody.SetActive(false);
-        crouchBody.SetActive(true);
+        if (displayMode == BodyDisplayMode.FullBody)
+        {
+            TryAutoExitFullBody(); // normalizedTime 兜底退出，配合 Animation Event
+            wasGrounded = grounded;
+            return;
+        }
 
-        ResetCrouchParams();
-        crouchAnimator.Play("CrouchStart", 0, 0f);
+        AdvanceAirPhase(grounded, velocityY);
+        SyncSplitAnimators();
+        wasGrounded = grounded;
+        airStateInitialized = true;
     }
 
-    /// <summary>退出蹲姿：恢复上下半身显示</summary>
-    public void PlayStandAnim()
+    public void PlayJumpAnim(bool hasHorizontalInput) // 有水平输入走 Leap，否则 Jump；蹲姿起跳先退出 FullBody
     {
-        if (!isCrouching)
-            return;
+        InterruptLand();
 
         isCrouching = false;
-        ResetCrouchParams();
-        crouchBody.SetActive(false);
-        upBody.SetActive(true);
-        downBody.SetActive(true);
+        ResetFullBodyParams();
+        SetSplitDisplay(); // 只切显示层，起跳前不同步 Ground，避免 AnyState 先切 Idle 再切 Jump
+
+        jumpInvokedThisFrame = true;
+
+        if (hasHorizontalInput)
+        {
+            airTrack = AirTrack.Leap;
+            airPhase = AirPhaseType.Leap;
+        }
+        else
+        {
+            airTrack = AirTrack.Jump;
+            airPhase = AirPhaseType.Jump;
+        }
+
+        InvalidateUpperLocomotionCache();
+        SyncSplitAnimators();
     }
 
-    /// <summary>停止移动，回到待机（站立或蹲姿各自处理）</summary>
-    public void PlayIdleAnim()
+    public bool PlayTurnAnim() // 地面站立转身，进入全身 Turn 状态
     {
+        if (isCrouching || displayMode == BodyDisplayMode.FullBody)
+            return false;
+        if (airPhase != AirPhaseType.Ground)
+            return false;
+
+        EnterFullBody(TurnStateName, autoExitOnComplete: true);
+        return true;
+    }
+
+    public void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
+    {
+        isRunning = false;
+
         if (isCrouching)
         {
             crouchAnimator.SetBool("IsRun", false);
@@ -67,104 +189,453 @@ public class PlayerAnim : MonoBehaviour
             return;
         }
 
-        upperAnimator.SetBool("IsRun", false);
-        lowerAnimator.SetBool("IsRun", false);
-        upperAnimator.SetBool("IsShoot", false);
-        upperAnimator.SetBool("IsLookUp", false);
-        upperAnimator.SetBool("IsLookDown", false);
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground)
+        {
+            isShooting = false;
+            SyncSplitAnimators();
+        }
     }
 
-    /// <summary>开始移动（站立跑步 / 蹲姿爬行）</summary>
-    public void PlayRunAnim()
+    public void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
+        isRunning = true;
+
+        if (InterruptLand())
+            return;
+
         if (isCrouching)
         {
             crouchAnimator.SetBool("IsRun", true);
             return;
         }
 
-        upperAnimator.SetBool("IsRun", true);
-        lowerAnimator.SetBool("IsRun", true);
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground)
+            SyncSplitAnimators();
     }
 
-    /// <summary>跳跃会先退出蹲姿，再触发上下半身的空中动画</summary>
-    public void PlayJumpAnim()
-    {
-        if (isCrouching)
-            PlayStandAnim();
-
-        upperAnimator.SetBool("IsGrounded", false);
-        upperAnimator.SetTrigger("Air");
-        lowerAnimator.SetTrigger("Air");
-    }
-
-    /// <summary>同步地面状态到动画机，用于空中/落地状态切换</summary>
-    public void UpdateGroundedState(bool grounded)
+    public void PlayCrouchAnim() // 进入蹲姿，播 CrouchStart，需手动站起退出
     {
         if (isCrouching)
             return;
 
-        upperAnimator.SetBool("IsGrounded", grounded);
+        InterruptLand();
+
+        isCrouching = true;
+        airPhase = AirPhaseType.Ground;
+        airTrack = AirTrack.None;
+        ClearLookState();
+        ResetFullBodyParams();
+        EnterFullBody(CrouchStartStateName, autoExitOnComplete: false);
     }
 
-    /// <summary>近战攻击（站立 / 蹲姿自动分流）</summary>
-    public void PlayMeleeAnim()
+    public void PlayStandAnim() // 站起，恢复 Split 层
     {
+        if (!isCrouching)
+            return;
+
+        isCrouching = false;
+        ResetFullBodyParams();
+        ExitFullBody();
+        RestoreUpperLocomotion();
+    }
+
+    public void PlayShootAnim(bool shooting) // 蹲姿走全身层，地面 Split 走上半身 IsShoot
+    {
+        isShooting = shooting;
+
         if (isCrouching)
         {
+            crouchAnimator.SetBool("IsShoot", shooting);
+            return;
+        }
+
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground)
+            SyncSplitAnimators();
+    }
+
+    public void PlayMeleeAnim() // 蹲姿近战
+    {
+        if (isCrouching)
             crouchAnimator.SetTrigger("Melee");
-            return;
-        }
-
-        upperAnimator.SetTrigger("Melee");
     }
 
-    /// <summary>投掷（站立 / 蹲姿自动分流）</summary>
-    public void PlayThrowAnim()
+    public void PlayThrowAnim() // 蹲姿投掷
     {
         if (isCrouching)
-        {
             crouchAnimator.SetTrigger("Throw");
-            return;
-        }
-
-        upperAnimator.SetTrigger("Throw");
     }
 
-    /// <summary>射击（站立 / 蹲姿自动分流）</summary>
-    public void PlayShootAnim()
+    public void SetLookUp(bool active)
     {
-        if (isCrouching)
+        if (isCrouching || displayMode == BodyDisplayMode.FullBody)
         {
-            crouchAnimator.SetBool("IsShoot", true);
+            if (IsUpperLookActive())
+                StopLook();
             return;
         }
 
-        upperAnimator.SetBool("IsShoot", true);
+        if (active)
+        {
+            if (isLookingDown || isEndingLookDown)
+                StopLook();
+
+            isLookingUp = true;
+            isEndingLookUp = false;
+            ApplyUpperLookParams(lookUp: true, lookDown: false);
+        }
+        else if (isLookingUp)
+        {
+            isLookingUp = false;
+            isEndingLookUp = true;
+            SetUpperLookBool(IsLookUpParam, false);
+        }
     }
 
-    /// <summary>抬头瞄准（仅站立时有效）</summary>
-    public void PlayLookUpAnim()
+    public void SetLookDown(bool active)
     {
-        if (isCrouching)
+        if (isCrouching || displayMode == BodyDisplayMode.FullBody)
+        {
+            if (IsUpperLookActive())
+                StopLook();
             return;
+        }
 
-        upperAnimator.SetBool("IsLookUp", true);
+        if (active)
+        {
+            if (isLookingUp || isEndingLookUp)
+                StopLook();
+
+            isLookingDown = true;
+            isEndingLookDown = false;
+            ApplyUpperLookParams(lookUp: false, lookDown: true);
+        }
+        else if (isLookingDown)
+        {
+            isLookingDown = false;
+            isEndingLookDown = true;
+            SetUpperLookBool(IsLookDownParam, false);
+        }
     }
 
-    /// <summary>低头瞄准（仅站立时有效）</summary>
-    public void PlayLookDownAnim()
-    {
-        if (isCrouching)
-            return;
-
-        upperAnimator.SetBool("IsLookDown", true);
-    }
-
-    /// <summary>切换到站立显示层</summary>
-    private void SetStandingMode()
+    void ExitCrouchForAir()
     {
         isCrouching = false;
+        ResetFullBodyParams();
+        SetSplitDisplay();
+    }
+
+    public void EnterFullBody(string stateName, bool autoExitOnComplete) // 切全身层并从头播放指定状态
+    {
+        ClearLookState();
+        displayMode = BodyDisplayMode.FullBody;
+        activeFullBodyState = stateName;
+        fullBodyAutoExit = autoExitOnComplete;
+
+        if (upBody != null)
+            upBody.SetActive(false);
+        if (downBody != null)
+            downBody.SetActive(false);
+        if (crouchBody != null)
+            crouchBody.SetActive(true);
+
+        // 默认状态为 Crouch，与 CrouchStart/Land/Turn 不同，Play 不会与入场重复
+        if (crouchAnimator != null)
+            crouchAnimator.Play(stateName, 0, 0f);
+    }
+
+    public void ExitFullBody() // 恢复 Split 层并同步参数
+    {
+        displayMode = BodyDisplayMode.Split;
+        activeFullBodyState = null;
+        fullBodyAutoExit = false;
+
+        if (crouchBody != null)
+            crouchBody.SetActive(false);
+        if (upBody != null)
+            upBody.SetActive(true);
+        if (downBody != null)
+            downBody.SetActive(true);
+
+        InvalidateUpperLocomotionCache();
+        SyncSplitAnimators();
+    }
+
+    public void OnFullBodyAnimationFinished() // Animation Event：全身动作结束，触发 autoExit
+    {
+        if (displayMode != BodyDisplayMode.FullBody || !fullBodyAutoExit)
+            return;
+
+        CompleteAutoFullBodyExit();
+    }
+
+    public void OnLandAnimationFinished() => OnFullBodyAnimationFinished(); // 兼容旧事件名
+
+    void EnterFullBodyLand() // 着地播 Land，结束后回地面 Split
+    {
+        EnterFullBody(LandStateName, autoExitOnComplete: true);
+    }
+
+    public bool InterruptLand() // 下半身有输入时立刻退出 Land，返回是否打断了 Land
+    {
+        if (!IsPlayingLand)
+            return false;
+
+        CompleteAutoFullBodyExit();
+        return true;
+    }
+
+    void TryAutoExitFullBody() // 轮询 normalizedTime，Animation Event 未触发时兜底
+    {
+        if (!fullBodyAutoExit || string.IsNullOrEmpty(activeFullBodyState))
+            return;
+        if (!IsFullBodyStateDone(activeFullBodyState))
+            return;
+
+        CompleteAutoFullBodyExit();
+    }
+
+    void CompleteAutoFullBodyExit()
+    {
+        if (activeFullBodyState == LandStateName)
+        {
+            airPhase = AirPhaseType.Ground;
+            airTrack = AirTrack.None;
+        }
+
+        ExitFullBody();
+    }
+
+    void AdvanceAirPhase(bool grounded, float velocityY) // 空中阶段状态机
+    {
+        switch (airPhase)
+        {
+            case AirPhaseType.Ground:
+                if (airStateInitialized && wasGrounded && !grounded && !jumpInvokedThisFrame) // 刚离开地面才进 Fall，避免误判
+                {
+                    airTrack = AirTrack.Jump;
+                    airPhase = AirPhaseType.Fall;
+                }
+                break;
+
+            case AirPhaseType.Jump:
+                if (velocityY <= descendVelocityThreshold)
+                    airPhase = AirPhaseType.Fall;
+                break;
+
+            case AirPhaseType.Leap:
+                if (velocityY <= descendVelocityThreshold)
+                    airPhase = AirPhaseType.LeapAir;
+                break;
+
+            case AirPhaseType.Fall:
+            case AirPhaseType.LeapAir:
+                if (grounded)
+                    EnterFullBodyLand();
+                break;
+        }
+    }
+
+    void SyncSplitAnimators() // 下半身始终同步；Look 期间上半身由代码独占
+    {
+        if (lowerAnimator == null)
+            return;
+
+        int phase = (int)airPhase;
+        lowerAnimator.SetInteger("AirPhase", phase);
+        lowerAnimator.SetBool("IsRun", isRunning);
+
+        if (IsUpperLookActive())
+        {
+            SyncUpperLookParams();
+            MaintainUpperLookEndCompletion();
+            return;
+        }
+
+        if (upperAnimator == null)
+            return;
+
+        SyncUpperLocomotionViaPlay();
+    }
+
+    void SyncUpperLocomotionViaPlay()
+    {
+        if (upperAnimator == null)
+            return;
+
+        int phase = (int)airPhase;
+        string stateName = GetUpperLocomotionStateName();
+        bool phaseChanged = phase != lastUpperSyncedPhase;
+        bool stateChanged = stateName != lastUpperLocomotionState;
+        bool runChanged = airPhase == AirPhaseType.Ground && isRunning != lastUpperSyncedRun;
+
+        if (!phaseChanged && !stateChanged && !runChanged)
+            return;
+
+        // 先 Play 定态，再写参数：参数仅用于阻止 AnyState Ground→Idle，已在目标态时不会重入 Jump/Leap
+        if (stateChanged)
+        {
+            lastUpperLocomotionState = stateName;
+            upperAnimator.Play(stateName, 0, 0f);
+        }
+
+        if (phaseChanged)
+        {
+            lastUpperSyncedPhase = phase;
+            upperAnimator.SetInteger("AirPhase", phase);
+        }
+
+        if (airPhase == AirPhaseType.Ground && runChanged)
+        {
+            lastUpperSyncedRun = isRunning;
+            upperAnimator.SetBool("IsRun", isRunning);
+        }
+    }
+
+    void InvalidateUpperLocomotionCache()
+    {
+        lastUpperSyncedPhase = -1;
+        lastUpperLocomotionState = null;
+        lastUpperSyncedRun = !isRunning;
+    }
+
+    void ApplyUpperLookParams(bool lookUp, bool lookDown)
+    {
+        if (upperAnimator == null)
+            return;
+
+        lastUpperSyncedPhase = UpperLookAirPhaseBlock;
+        lastUpperSyncedRun = isRunning;
+        upperAnimator.SetInteger("AirPhase", UpperLookAirPhaseBlock);
+        // 先写 Look，再清 IsRun，避免 Run 态先匹配 Run→Idle 而进不了 LookUpStart
+        SetUpperLookBool(IsLookUpParam, lookUp);
+        SetUpperLookBool(IsLookDownParam, lookDown);
+        upperAnimator.SetBool("IsRun", false);
+        lastUpperSyncedRun = false;
+    }
+
+    void SyncUpperLookParams()
+    {
+        if (upperAnimator == null)
+            return;
+
+        if (lastUpperSyncedPhase != UpperLookAirPhaseBlock)
+        {
+            lastUpperSyncedPhase = UpperLookAirPhaseBlock;
+            upperAnimator.SetInteger("AirPhase", UpperLookAirPhaseBlock);
+        }
+
+        if (upperAnimator.GetBool("IsRun"))
+            upperAnimator.SetBool("IsRun", false);
+
+        bool wantLookUp = isLookingUp;
+        bool wantLookDown = isLookingDown;
+        SetUpperLookBool(IsLookUpParam, wantLookUp);
+        SetUpperLookBool(IsLookDownParam, wantLookDown);
+    }
+
+    void SetUpperLookBool(string paramName, bool value)
+    {
+        if (upperAnimator == null)
+            return;
+
+        if (paramName == IsLookUpParam)
+        {
+            if (lastUpperSyncedLookUp == value)
+                return;
+
+            lastUpperSyncedLookUp = value;
+        }
+        else if (paramName == IsLookDownParam)
+        {
+            if (lastUpperSyncedLookDown == value)
+                return;
+
+            lastUpperSyncedLookDown = value;
+        }
+
+        upperAnimator.SetBool(paramName, value);
+    }
+
+    void MaintainUpperLookEndCompletion()
+    {
+        if (upperAnimator == null)
+            return;
+
+        var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
+
+        if (isEndingLookUp && info.IsName(LookUpEndStateName) && info.normalizedTime >= 1f)
+            CompleteUpperLookEnd();
+        else if (isEndingLookDown && info.IsName(LookDownEndStateName) && info.normalizedTime >= 1f)
+            CompleteUpperLookEnd();
+    }
+
+    void CompleteUpperLookEnd()
+    {
+        isEndingLookUp = false;
+        isEndingLookDown = false;
+        ResetUpperLookParams();
+        RestoreUpperLocomotion();
+    }
+
+    bool IsUpperLookActive() => isLookingUp || isLookingDown || isEndingLookUp || isEndingLookDown;
+
+    void StopLook()
+    {
+        isLookingUp = false;
+        isLookingDown = false;
+        isEndingLookUp = false;
+        isEndingLookDown = false;
+        ResetUpperLookParams();
+        RestoreUpperLocomotion();
+    }
+
+    void ResetUpperLookParams()
+    {
+        lastUpperSyncedLookUp = true;
+        lastUpperSyncedLookDown = true;
+        SetUpperLookBool(IsLookUpParam, false);
+        SetUpperLookBool(IsLookDownParam, false);
+    }
+
+    void RestoreUpperLocomotion()
+    {
+        if (upperAnimator == null)
+            return;
+
+        InvalidateUpperLocomotionCache();
+        SyncUpperLocomotionViaPlay();
+    }
+
+    string GetUpperLocomotionStateName()
+    {
+        if (airPhase == AirPhaseType.Ground)
+            return isRunning ? "Run" : "Idle";
+
+        switch (airPhase)
+        {
+            case AirPhaseType.Jump: return "Jump";
+            case AirPhaseType.Fall: return "Fall";
+            case AirPhaseType.Leap: return "Leap";
+            case AirPhaseType.LeapAir: return "LeapAir";
+            default: return "Idle";
+        }
+    }
+
+    void ClearLookState()
+    {
+        isLookingUp = false;
+        isLookingDown = false;
+        isEndingLookUp = false;
+        isEndingLookDown = false;
+        ResetUpperLookParams();
+    }
+
+    void SetSplitDisplay() // 强制切回 Split 显示，不自动 Sync
+    {
+        displayMode = BodyDisplayMode.Split;
+        activeFullBodyState = null;
+        fullBodyAutoExit = false;
+
         if (crouchBody != null)
             crouchBody.SetActive(false);
         if (upBody != null)
@@ -173,13 +644,21 @@ public class PlayerAnim : MonoBehaviour
             downBody.SetActive(true);
     }
 
-    /// <summary>重置蹲姿动画机的 Bool 参数</summary>
-    private void ResetCrouchParams()
+    void ResetFullBodyParams()
     {
         if (crouchAnimator == null)
             return;
 
         crouchAnimator.SetBool("IsRun", false);
         crouchAnimator.SetBool("IsShoot", false);
+    }
+
+    bool IsFullBodyStateDone(string stateName, int layer = 0)
+    {
+        if (crouchAnimator == null)
+            return true;
+
+        var info = crouchAnimator.GetCurrentAnimatorStateInfo(layer);
+        return info.IsName(stateName) && info.normalizedTime >= 1f;
     }
 }
