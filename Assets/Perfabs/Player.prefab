@@ -409,6 +409,8 @@ MonoBehaviour:
   longPressThreshold: 0.5
   previewMoveSpeed: 3
   maxPreviewDistance: 5
+  robotDrainRate: 5
+  minAbilityPowerToSpawn: 1
 --- !u!114 &7354277962619288622
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -430,6 +432,7 @@ MonoBehaviour:
   maxAbilityPower: 100
   AbilityPower: 100
   AbilityPowerRecoverSpeed: 2
+  pauseAbilityPowerRecover: 0
   invulnerableDuration: 0
   invulnerable: 0
   OnHealthChange:
