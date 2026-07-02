@@ -211,6 +211,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
+        if (physicsCheck.isGround && playerAnim.IsCrouching && playerAnim.IsShooting)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
 
         if (physicsCheck.isGround)
@@ -229,9 +235,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        // 空中：有输入才改水平速度，无输入保留惯性；不转身
+        // 空中：有输入才改水平速度，无输入保留惯性
         if (moveX != 0f)
+        {
             rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
+
+            if (playerAnim.IsShooting && moveX != faceDir)
+            {
+                faceDir = moveX;
+                ApplyFacing();
+            }
+        }
     }
 
     void ApplyFacing() // 翻转 localScale.x，保留绝对缩放
@@ -246,6 +260,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         playerAnim.UpdateAirState(physicsCheck.isGround, rb.linearVelocity.y);
 
         if (!physicsCheck.isGround || playerAnim.IsTurning)
+            return;
+
+        if (playerAnim.IsCrouching && playerAnim.IsShooting)
             return;
 
         if (Mathf.Abs(moveInput.x) > inputThreshold)

@@ -91,6 +91,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool upperShootUsesAnimatorParam;
 
     public bool IsCrouching => isCrouching;
+    public bool IsShooting => isShooting;
     public bool IsLookingUp => isLookingUp || isEndingLookUp;
     public bool IsLookingDown => isLookingDown || isEndingLookDown;
     public AirPhaseType CurrentAirPhase => airPhase;
@@ -238,6 +239,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
+        if (isCrouching && isShooting)
+            return;
+
         isRunning = true;
 
         if (InterruptLand())
@@ -282,7 +286,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         RestoreUpperLocomotion();
     }
 
-    public bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步
+    public bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
         if (IsPlayingLand)
             InterruptLand();
@@ -329,6 +333,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             {
                 stateName = ShootStateName;
                 upperShootUsesAnimatorParam = false;
+                if (IsUpperLookActive())
+                    StopLook();
             }
         }
 
@@ -465,8 +471,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (info.IsName(shootStateName))
             return false;
 
-        if (info.IsName(LookUpStateName) || info.IsName(LookDownStateName) ||
-            info.IsName(LookUpStartStateName) || info.IsName(LookDownStartStateName))
+        if (info.IsName(LookUpStartStateName) || info.IsName(LookDownStartStateName))
+            return true;
+
+        if (info.IsName(LookUpStateName) || info.IsName(LookDownStateName))
             return false;
 
         return true;
@@ -577,7 +585,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         fullBodyAutoExit = false;
         ResetFullBodyParams();
 
-        if (crouchAnimator != null)
+        if (crouchAnimator == null)
+            return;
+
+        if (isShooting)
+            crouchAnimator.Play(CrouchShootStateName, 0, 0f);
+        else
             crouchAnimator.Play(CrouchStateName, 0, 0f);
     }
 
@@ -851,7 +864,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         var info = activeShootAnimator.GetCurrentAnimatorStateInfo(0);
         if (!info.IsName(activeShootStateName))
+        {
+            CompleteShoot();
             return;
+        }
 
         if (info.normalizedTime < 1f)
             return;
