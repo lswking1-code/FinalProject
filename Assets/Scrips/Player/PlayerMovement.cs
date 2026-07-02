@@ -80,6 +80,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ReadInput();
         HandleCrouch();
         HandleLook();
+        TryTurn();
         SyncAnimation(); // 每帧同步动画与空中阶段
     }
 
@@ -97,6 +98,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
+        TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
     }
 
@@ -137,6 +139,27 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         playerAnim.SetLookUp(wantLookUp);
         playerAnim.SetLookDown(wantLookDown);
+    }
+
+    void TryTurn() // 地面改变朝向时播站立/蹲伏转身
+    {
+        if (!physicsCheck.isGround || playerAnim.IsTurning)
+            return;
+
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (moveX == 0f || moveX == faceDir)
+            return;
+
+        bool started = playerAnim.IsCrouching
+            ? playerAnim.PlayCrouchTurnAnim()
+            : playerAnim.PlayTurnAnim();
+
+        if (!started)
+            return;
+
+        faceDir = moveX;
+        ApplyFacing();
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
     bool TryJump() // 地面起跳；有水平输入为 Leap，初速度 v=sqrt(2gh)
@@ -183,21 +206,29 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         return true;
     }
 
-    void ApplyHorizontalMovement() // 仅地面水平移动，空中由起跳初速度与重力决定
+    void ApplyHorizontalMovement()
     {
-        if (!physicsCheck.isGround)
-            return;
-
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
 
-        if (moveX != 0f)
-            faceDir = moveX;
+        if (physicsCheck.isGround)
+        {
+            if (playerAnim.IsTurning)
+            {
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+                return;
+            }
 
-        float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
-        rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
+            float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
+            rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
 
+            if (moveX != 0f)
+                ApplyFacing();
+            return;
+        }
+
+        // 空中：有输入才改水平速度，无输入保留惯性；不转身
         if (moveX != 0f)
-            ApplyFacing();
+            rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
     }
 
     void ApplyFacing() // 翻转 localScale.x，保留绝对缩放
@@ -211,12 +242,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     {
         playerAnim.UpdateAirState(physicsCheck.isGround, rb.linearVelocity.y);
 
-        if (!physicsCheck.isGround)
+        if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
 
         if (Mathf.Abs(moveInput.x) > inputThreshold)
             playerAnim.PlayRunAnim();
-        else
+        else if (!playerAnim.TryPlayRunStopLand())
             playerAnim.PlayIdleAnim();
     }
 

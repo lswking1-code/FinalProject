@@ -27,6 +27,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     const string LandStateName = "Land";
     const string TurnStateName = "Turn";
+    const string CrouchTurnStateName = "CrouchTurn";
+    const string CrouchStateName = "Crouch";
     const string CrouchStartStateName = "CrouchStart";
     const string LookUpStartStateName = "LookUpStart";
     const string LookUpStateName = "LookUp";
@@ -87,6 +89,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public string CurrentFullBodyState => activeFullBodyState;
     public bool IsPlayingLand =>
         displayMode == BodyDisplayMode.FullBody && activeFullBodyState == LandStateName;
+    public bool IsTurning =>
+        activeFullBodyState == TurnStateName || activeFullBodyState == CrouchTurnStateName;
 
     void Awake()
     {
@@ -125,6 +129,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         if (isCrouching)
         {
+            TryAutoExitCrouchTurn();
             wasGrounded = grounded;
             return;
         }
@@ -145,6 +150,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public void PlayJumpAnim(bool hasHorizontalInput) // 有水平输入走 Leap，否则 Jump；蹲姿起跳先退出 FullBody
     {
         InterruptLand();
+        InterruptTurn();
 
         isCrouching = false;
         ResetFullBodyParams();
@@ -178,6 +184,32 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
+    public bool PlayCrouchTurnAnim() // 蹲伏转身，保持全身层
+    {
+        if (!isCrouching || crouchAnimator == null)
+            return false;
+        if (activeFullBodyState == CrouchTurnStateName)
+            return false;
+
+        ResetFullBodyParams();
+        activeFullBodyState = CrouchTurnStateName;
+        fullBodyAutoExit = true;
+        crouchAnimator.Play(CrouchTurnStateName, 0, 0f);
+        return true;
+    }
+
+    public bool TryPlayRunStopLand() // 站立地面跑动急停：松键边沿播全身 Land
+    {
+        if (!isRunning || isCrouching || IsTurning || IsUpperLookActive() || IsPlayingLand)
+            return false;
+        if (displayMode != BodyDisplayMode.Split || airPhase != AirPhaseType.Ground)
+            return false;
+
+        isRunning = false;
+        EnterFullBodyLand();
+        return true;
+    }
+
     public void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
     {
         isRunning = false;
@@ -201,6 +233,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isRunning = true;
 
         if (InterruptLand())
+            return;
+
+        if (InterruptTurn())
             return;
 
         if (isCrouching)
@@ -362,7 +397,16 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void OnFullBodyAnimationFinished() // Animation Event：全身动作结束，触发 autoExit
     {
-        if (displayMode != BodyDisplayMode.FullBody || !fullBodyAutoExit)
+        if (!fullBodyAutoExit || string.IsNullOrEmpty(activeFullBodyState))
+            return;
+
+        if (activeFullBodyState == CrouchTurnStateName && isCrouching)
+        {
+            CompleteCrouchTurnExit();
+            return;
+        }
+
+        if (displayMode != BodyDisplayMode.FullBody)
             return;
 
         CompleteAutoFullBodyExit();
@@ -370,7 +414,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void OnLandAnimationFinished() => OnFullBodyAnimationFinished(); // 兼容旧事件名
 
-    void EnterFullBodyLand() // 着地播 Land，结束后回地面 Split
+    void EnterFullBodyLand() // 空中落地或地面急停播 Land，结束后回地面 Split
     {
         EnterFullBody(LandStateName, autoExitOnComplete: true);
     }
@@ -382,6 +426,39 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         CompleteAutoFullBodyExit();
         return true;
+    }
+
+    public bool InterruptTurn() // 起跳/移动打断转身
+    {
+        if (!IsTurning)
+            return false;
+
+        if (activeFullBodyState == CrouchTurnStateName)
+            CompleteCrouchTurnExit();
+        else
+            CompleteAutoFullBodyExit();
+
+        return true;
+    }
+
+    void TryAutoExitCrouchTurn() // 蹲伏转身结束，回 Crouch 循环
+    {
+        if (!fullBodyAutoExit || activeFullBodyState != CrouchTurnStateName)
+            return;
+        if (!IsFullBodyStateDone(CrouchTurnStateName))
+            return;
+
+        CompleteCrouchTurnExit();
+    }
+
+    void CompleteCrouchTurnExit()
+    {
+        activeFullBodyState = null;
+        fullBodyAutoExit = false;
+        ResetFullBodyParams();
+
+        if (crouchAnimator != null)
+            crouchAnimator.Play(CrouchStateName, 0, 0f);
     }
 
     void TryAutoExitFullBody() // 轮询 normalizedTime，Animation Event 未触发时兜底
