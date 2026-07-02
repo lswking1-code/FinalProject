@@ -17,6 +17,7 @@ public class Character : MonoBehaviour,ISaveable
     public float maxAbilityPower;
     public float AbilityPower;// 能力值
     public float AbilityPowerRecoverSpeed;
+    [HideInInspector] public bool pauseAbilityPowerRecover;
 
     [Header("受伤无敌")]
     public float invulnerableDuration;
@@ -70,7 +71,7 @@ public class Character : MonoBehaviour,ISaveable
         {
             currentPower += Time.deltaTime * powerRecoverSpeed;
         }
-        if (AbilityPower < maxAbilityPower)// 自动回复能力值
+        if (!pauseAbilityPowerRecover && AbilityPower < maxAbilityPower)// 自动回复能力值
         {
             AbilityPower += Time.deltaTime * AbilityPowerRecoverSpeed;
         }
@@ -138,6 +139,12 @@ public class Character : MonoBehaviour,ISaveable
     public void OnAbility(int cost)
     {
         AbilityPower -= cost;
+        OnHealthChange?.Invoke(this);
+    }
+
+    public void DrainAbilityPower(float amount)
+    {
+        AbilityPower = Mathf.Max(0f, AbilityPower - amount);
         OnHealthChange?.Invoke(this);
     }
 

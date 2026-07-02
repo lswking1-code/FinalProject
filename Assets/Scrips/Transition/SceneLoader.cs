@@ -26,6 +26,11 @@ public class SceneLoader : MonoBehaviour,ISaveable
     [Header("场景")]
     public GameSceneSO firstLoadScene;
     public GameSceneSO menuScene;
+
+    [Header("开发模式")]
+    public bool developMode;
+    public GameSceneSO testScene;
+    public Vector3 testPosition;
     private GameSceneSO currentLoadedScene;
     private GameSceneSO sceneToLoad;
     private Vector3 positionToGo;
@@ -44,8 +49,10 @@ public class SceneLoader : MonoBehaviour,ISaveable
     // TODO: 完成 MainMenu 流程后调整此处逻辑
     private void Start()
     {
-        loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
-        // NewGame();
+        if (developMode)
+            loadEventSO.RaiseLoadRequestEvent(testScene, testPosition, true);
+        else
+            loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
     }
 
     private void OnEnable()

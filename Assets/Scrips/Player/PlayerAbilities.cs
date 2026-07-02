@@ -2,9 +2,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerMovement))]
+[RequireComponent(typeof(Character))]
 public class PlayerAbilities : MonoBehaviour
 {
-    enum Ability1Phase { Idle, Pressing, Aiming }
+    enum Ability1Phase { Idle, Pressing, Aiming, Recalling }
 
     [Header("Robot 生成")]
     [SerializeField] Transform robotGeneratePoint;
@@ -16,9 +17,15 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] float previewMoveSpeed = 3f;
     [SerializeField] float maxPreviewDistance = 5f;
 
+    [Header("AbilityPower")]
+    [SerializeField] float robotDrainRate = 5f;
+    [SerializeField] float minAbilityPowerToSpawn = 1f;
+
     Ability1Phase phase = Ability1Phase.Idle;
     InputSystem_Actions actions;
     PlayerMovement playerMovement;
+    Character character;
+    GameObject activeRobot;
 
     float pressTime;
     Vector3 defaultLocalPos;
@@ -31,6 +38,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         actions = new InputSystem_Actions();
         playerMovement = GetComponent<PlayerMovement>();
+        character = GetComponent<Character>();
     }
 
     void OnEnable() => actions.Player.Enable();
@@ -39,7 +47,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (phase == Ability1Phase.Aiming)
             ExitAimingMode();
-        else if (phase == Ability1Phase.Pressing)
+        else if (phase == Ability1Phase.Pressing || phase == Ability1Phase.Recalling)
             phase = Ability1Phase.Idle;
 
         actions.Player.Disable();
@@ -52,6 +60,8 @@ public class PlayerAbilities : MonoBehaviour
         if (robotGeneratePoint == null)
             return;
 
+        UpdateRobotDrain();
+
         switch (phase)
         {
             case Ability1Phase.Idle:
@@ -62,11 +72,18 @@ public class PlayerAbilities : MonoBehaviour
             case Ability1Phase.Pressing:
                 if (actions.Player.Ability1.IsPressed()
                     && Time.time - pressTime >= longPressThreshold)
-                    EnterAimingMode();
+                {
+                    if (HasActiveRobot())
+                        EnterRecallingMode();
+                    else
+                        EnterAimingMode();
+                }
 
                 if (actions.Player.Ability1.WasReleasedThisFrame())
                 {
-                    SpawnRobot(robotGeneratePoint.position);
+                    if (!HasActiveRobot() && CanSpawnRobot())
+                        SpawnRobot(robotGeneratePoint.position);
+
                     phase = Ability1Phase.Idle;
                 }
                 break;
@@ -76,11 +93,69 @@ public class PlayerAbilities : MonoBehaviour
 
                 if (actions.Player.Ability1.WasReleasedThisFrame())
                 {
-                    SpawnRobot(robotGeneratePoint.position);
+                    if (CanSpawnRobot())
+                        SpawnRobot(robotGeneratePoint.position);
+
                     ExitAimingMode();
                 }
                 break;
+
+            case Ability1Phase.Recalling:
+                if (actions.Player.Ability1.WasReleasedThisFrame())
+                {
+                    DestroyActiveRobot();
+                    phase = Ability1Phase.Idle;
+                }
+                break;
         }
+    }
+
+    bool HasActiveRobot() => activeRobot != null;
+
+    bool CanSpawnRobot()
+    {
+        return !HasActiveRobot()
+            && character != null
+            && character.AbilityPower >= minAbilityPowerToSpawn;
+    }
+
+    void UpdateRobotDrain()
+    {
+        if (activeRobot != null && !activeRobot)
+        {
+            OnRobotRemoved();
+            return;
+        }
+
+        if (!HasActiveRobot())
+            return;
+
+        character.DrainAbilityPower(robotDrainRate * Time.deltaTime);
+
+        if (character.AbilityPower <= 0f)
+            DestroyActiveRobot();
+    }
+
+    void OnRobotSpawned(GameObject robot)
+    {
+        activeRobot = robot;
+        character.pauseAbilityPowerRecover = true;
+    }
+
+    void OnRobotRemoved()
+    {
+        activeRobot = null;
+        if (character != null)
+            character.pauseAbilityPowerRecover = false;
+    }
+
+    void DestroyActiveRobot()
+    {
+        if (!HasActiveRobot())
+            return;
+
+        Destroy(activeRobot);
+        OnRobotRemoved();
     }
 
     void BeginPress()
@@ -101,6 +176,11 @@ public class PlayerAbilities : MonoBehaviour
 
         if (positionPreview != null)
             positionPreview.SetActive(true);
+    }
+
+    void EnterRecallingMode()
+    {
+        phase = Ability1Phase.Recalling;
     }
 
     void UpdateAimingDrift()
@@ -133,6 +213,10 @@ public class PlayerAbilities : MonoBehaviour
             return;
         }
 
-        Instantiate(robotPrefab, worldPos, Quaternion.identity);
+        if (!CanSpawnRobot())
+            return;
+
+        var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
+        OnRobotSpawned(robot);
     }
 }
