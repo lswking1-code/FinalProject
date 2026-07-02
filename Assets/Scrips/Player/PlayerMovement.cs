@@ -25,6 +25,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     bool jumpPressed;
     float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
+    public float FaceDirection => faceDir;
     int lastKPressFrame = -1; // 最近一次在 Update 检测到 K 的帧号
 
     [Header("事件监听")]
