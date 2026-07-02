@@ -151,7 +151,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
         playerTrans.position = positionToGo;
 
-        playerTrans.gameObject.SetActive(true);
+        playerTrans.gameObject.SetActive(currentLoadedScene.sceneType != SceneType.Menu);
         if (fadeScreen)
         {
             // 屏幕淡入变透明

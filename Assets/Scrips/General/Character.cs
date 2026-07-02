@@ -7,6 +7,7 @@ public class Character : MonoBehaviour,ISaveable
 {
     [Header("事件监听")]
     public VoidEventSO newGameEvent;
+    public CharacterEventSO healthEvent;
 
     [Header("基础属性")]
     public float maxHealth;
@@ -40,7 +41,7 @@ public class Character : MonoBehaviour,ISaveable
         currentHealth = maxHealth;
         currentPower = maxPower;
         AbilityPower = maxAbilityPower;
-        OnHealthChange?.Invoke(this);
+        NotifyStatsChanged();
     }
 
     private void OnEnable()
@@ -85,7 +86,7 @@ public class Character : MonoBehaviour,ISaveable
             {
                 // 溺水：清零血量并触发死亡
                 currentHealth = 0;
-                OnHealthChange?.Invoke(this);
+                NotifyStatsChanged();
                 OnDie?.Invoke();
             }
             
@@ -111,7 +112,7 @@ public class Character : MonoBehaviour,ISaveable
             OnDie?.Invoke();
         }
 
-        OnHealthChange?.Invoke(this);
+        NotifyStatsChanged();
     }
 
     /// <summary>
@@ -120,7 +121,7 @@ public class Character : MonoBehaviour,ISaveable
     public void HealthRecover(float HP)
     {
         currentHealth += HP;
-        OnHealthChange?.Invoke(this);
+        NotifyStatsChanged();
     }
     private void triggerInvulnerable()
     {
@@ -134,18 +135,24 @@ public class Character : MonoBehaviour,ISaveable
     public void OnSlide(int cost)
     {
         currentPower -= cost;
-        OnHealthChange?.Invoke(this);
+        NotifyStatsChanged();
     }
     public void OnAbility(int cost)
     {
         AbilityPower -= cost;
-        OnHealthChange?.Invoke(this);
+        NotifyStatsChanged();
     }
 
     public void DrainAbilityPower(float amount)
     {
         AbilityPower = Mathf.Max(0f, AbilityPower - amount);
+        NotifyStatsChanged();
+    }
+
+    void NotifyStatsChanged()
+    {
         OnHealthChange?.Invoke(this);
+        healthEvent?.RaiseEvent(this);
     }
 
     public DataDefination GetDataID()
@@ -178,7 +185,7 @@ public class Character : MonoBehaviour,ISaveable
             transform.position = data.characterPosDict[GetDataID().ID].ToVector3();
 
             // 通知 UI 更新血条
-            OnHealthChange?.Invoke(this);
+            NotifyStatsChanged();
         }
     }
 }

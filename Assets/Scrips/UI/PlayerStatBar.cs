@@ -1,20 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerStatBar : MonoBehaviour
 {
-    private Character currentCharacter;
+    Character currentCharacter;
     public Image healthImage;
     public Image healthDelayImage;
     public Image powerImage;
     public Image ApImage;
 
-    private bool isRecovering;
-    private bool isAPRecovering;
+    bool isRecovering;
 
-    private void Update()
+    void Update()
     {
         if (healthDelayImage != null && healthImage != null &&
             healthDelayImage.fillAmount > healthImage.fillAmount)
@@ -28,30 +25,13 @@ public class PlayerStatBar : MonoBehaviour
             powerImage.fillAmount = persentage;
 
             if (persentage >= 1)
-            {
                 isRecovering = false;
-                return;
-            }
         }
 
-        if (isAPRecovering && ApImage != null && currentCharacter != null)
-        {
-            float APpersentage = currentCharacter.AbilityPower / currentCharacter.maxAbilityPower;
-            ApImage.fillAmount = APpersentage;
-
-            if (APpersentage >= 1)
-            {
-                isAPRecovering = false;
-                return;
-            }
-        }
-
-
+        if (currentCharacter != null)
+            SyncApImage();
     }
-    /// <summary>
-    /// 更新生命值血条显示
-    /// </summary>
-    /// <param name="persentage">生命值百分比（0~1）</param>
+
     public void OnHealthChange(float persentage)
     {
         if (healthImage != null)
@@ -63,10 +43,24 @@ public class PlayerStatBar : MonoBehaviour
         isRecovering = true;
         currentCharacter = character;
     }
+
     public void OnAPChange(Character character)
     {
-        isAPRecovering = true;
         currentCharacter = character;
+        SyncApImage();
     }
 
+    void SyncApImage()
+    {
+        if (ApImage == null || currentCharacter == null)
+            return;
+
+        if (currentCharacter.maxAbilityPower <= 0f)
+        {
+            ApImage.fillAmount = 0f;
+            return;
+        }
+
+        ApImage.fillAmount = currentCharacter.AbilityPower / currentCharacter.maxAbilityPower;
+    }
 }

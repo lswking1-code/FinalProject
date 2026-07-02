@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Character))]
 public class PlayerAbilities : MonoBehaviour
 {
-    enum Ability1Phase { Idle, Pressing, Aiming, Recalling }
+    enum Ability1Phase { Idle, Pressing, Aiming }
 
     [Header("Robot 生成")]
     [SerializeField] Transform robotGeneratePoint;
@@ -47,7 +47,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (phase == Ability1Phase.Aiming)
             ExitAimingMode();
-        else if (phase == Ability1Phase.Pressing || phase == Ability1Phase.Recalling)
+        else if (phase == Ability1Phase.Pressing)
             phase = Ability1Phase.Idle;
 
         actions.Player.Disable();
@@ -74,14 +74,20 @@ public class PlayerAbilities : MonoBehaviour
                     && Time.time - pressTime >= longPressThreshold)
                 {
                     if (HasActiveRobot())
-                        EnterRecallingMode();
+                    {
+                        DestroyActiveRobot();
+                        phase = Ability1Phase.Idle;
+                    }
                     else
+                    {
                         EnterAimingMode();
+                    }
                 }
 
                 if (actions.Player.Ability1.WasReleasedThisFrame())
                 {
-                    if (!HasActiveRobot() && CanSpawnRobot())
+                    if (Time.time - pressTime < longPressThreshold
+                        && !HasActiveRobot() && CanSpawnRobot())
                         SpawnRobot(robotGeneratePoint.position);
 
                     phase = Ability1Phase.Idle;
@@ -97,14 +103,6 @@ public class PlayerAbilities : MonoBehaviour
                         SpawnRobot(robotGeneratePoint.position);
 
                     ExitAimingMode();
-                }
-                break;
-
-            case Ability1Phase.Recalling:
-                if (actions.Player.Ability1.WasReleasedThisFrame())
-                {
-                    DestroyActiveRobot();
-                    phase = Ability1Phase.Idle;
                 }
                 break;
         }
@@ -176,11 +174,6 @@ public class PlayerAbilities : MonoBehaviour
 
         if (positionPreview != null)
             positionPreview.SetActive(true);
-    }
-
-    void EnterRecallingMode()
-    {
-        phase = Ability1Phase.Recalling;
     }
 
     void UpdateAimingDrift()
