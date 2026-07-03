@@ -70,6 +70,7 @@ public class AllyRobot : MonoBehaviour
     {
         spawnPoint = transform.position;
         attackTimer = 0f;
+        FaceRight();
         SwitchState(AllyState.Idle);
     }
 
@@ -119,6 +120,7 @@ public class AllyRobot : MonoBehaviour
         {
             case AllyState.Idle:
                 anim.SetBool(walkBoolName, false);
+                FaceRight();
                 break;
             case AllyState.Chase:
                 anim.SetBool(walkBoolName, true);
@@ -294,15 +296,24 @@ public class AllyRobot : MonoBehaviour
     // ──────────────────────────────────────────────
 
     /// <summary>
-    /// 与现有 Enemy.FacePlayer 一致：目标在右侧 → localScale.x = -1，左侧 → 1。
+    /// 与 PlayerMovement 一致：1 朝右，-1 朝左，通过 localScale.x 翻转。
     /// </summary>
     void FaceTarget(Vector3 targetPos)
     {
         float dx = targetPos.x - transform.position.x;
         if (dx > 0.01f)
-            transform.localScale = new Vector3(-1f, 1f, 1f);
+            SetFacing(1f);
         else if (dx < -0.01f)
-            transform.localScale = new Vector3(1f, 1f, 1f);
+            SetFacing(-1f);
+    }
+
+    void FaceRight() => SetFacing(1f);
+
+    void SetFacing(float faceDir)
+    {
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * faceDir;
+        transform.localScale = scale;
     }
 
     // ──────────────────────────────────────────────

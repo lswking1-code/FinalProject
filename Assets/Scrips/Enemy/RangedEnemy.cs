@@ -5,8 +5,6 @@ using UnityEngine;
 /// </summary>
 public class RangedEnemy : Enemy
 {
-    const float DefaultShotProbability = 0.7f;
-    const float DefaultMoveProbability = 0.3f;
     const float ProbabilityStep = 0.1f;
 
     [Header("远程参数")]
@@ -16,8 +14,14 @@ public class RangedEnemy : Enemy
     public EnemyProjectile projectilePrefab;
     public Transform firePoint;
 
-    [HideInInspector] public float shotProbability = DefaultShotProbability;
-    [HideInInspector] public float moveProbability = DefaultMoveProbability;
+    [Header("行为权重（初始）")]
+    [Tooltip("射击权重，与移动权重按比例决定初始触发概率")]
+    [Min(0f)] public float shotWeight = 0.7f;
+    [Tooltip("移动权重，与射击权重按比例决定初始触发概率")]
+    [Min(0f)] public float moveWeight = 0.3f;
+
+    [HideInInspector] public float shotProbability;
+    [HideInInspector] public float moveProbability;
     [HideInInspector] public EnemyAction? lastAction;
 
     protected override void Awake()
@@ -53,10 +57,23 @@ public class RangedEnemy : Enemy
 
     protected override void OnEnable()
     {
-        shotProbability = DefaultShotProbability;
-        moveProbability = DefaultMoveProbability;
+        ResetActionProbabilities();
         lastAction = null;
         EvaluateCycle();
+    }
+
+    void ResetActionProbabilities()
+    {
+        float total = shotWeight + moveWeight;
+        if (total <= 0f)
+        {
+            shotProbability = 0.5f;
+            moveProbability = 0.5f;
+            return;
+        }
+
+        shotProbability = shotWeight / total;
+        moveProbability = moveWeight / total;
     }
 
     protected override bool ShouldRunTimeCounter() => false;
@@ -106,10 +123,7 @@ public class RangedEnemy : Enemy
             }
         }
         else
-        {
-            shotProbability = DefaultShotProbability;
-            moveProbability = DefaultMoveProbability;
-        }
+            ResetActionProbabilities();
 
         lastAction = action;
     }

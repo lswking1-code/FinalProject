@@ -20,6 +20,8 @@ public class PlayerProjectile : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         attack = GetComponent<Attack>();
         attack.damage = damage;
+        attack.attackType = AttackType.Projectile;
+        attack.ignoreTag = "Player";
     }
 
     void Start()
@@ -44,18 +46,5 @@ public class PlayerProjectile : MonoBehaviour
     void FixedUpdate()
     {
         rb.linearVelocity = direction * speed;
-    }
-
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-            return;
-
-        var character = collision.GetComponent<Character>();
-        if (character != null)
-        {
-            character.TakeDamage(attack);
-            Destroy(gameObject);
-        }
     }
 }

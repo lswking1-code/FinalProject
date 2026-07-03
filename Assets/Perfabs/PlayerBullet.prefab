@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2116673155432072033}
   - component: {fileID: 1207313983663696913}
   - component: {fileID: 785616209480741553}
-  m_Layer: 7
+  m_Layer: 10
   m_Name: PlayerBullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 15
-  damage: 10
+  damage: 50
   lifetime: 5
 --- !u!114 &785616209480741553
 MonoBehaviour:
