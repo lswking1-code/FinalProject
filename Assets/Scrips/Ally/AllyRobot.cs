@@ -14,7 +14,7 @@ public class AllyRobot : MonoBehaviour
     // ──────────────────────────────────────────────
     //  状态
     // ──────────────────────────────────────────────
-    enum AllyState { Idle, Chase, Attack, Return }
+    enum AllyState { Idle, Chase, Attack, Return, Pulling }
 
     AllyState currentState;
 
@@ -45,6 +45,28 @@ public class AllyRobot : MonoBehaviour
     public string walkBoolName = "walk";
     [Tooltip("攻击 Trigger 参数名")]
     public string attackTriggerName = "attack";
+    [Tooltip("牵引 Trigger 参数名")]
+    public string pullTriggerName = "pull";
+
+    [Header("牵引召回 (Ability2)")]
+    [Tooltip("钩爪伸出速度（单位/秒）")]
+    public float pullExtendSpeed = 12f;
+    [Tooltip("钩爪收回 / 拖拽速度（单位/秒）")]
+    public float pullSpeed = 8f;
+    [Tooltip("到达落点的距离阈值")]
+    public float pullArriveThreshold = 0.1f;
+    [Tooltip("落点在机器人面向玩家一侧的水平距离")]
+    public float pullLandingDistanceX = 0.8f;
+    [Tooltip("落点相对机器人 Y 轴偏移")]
+    public float pullLandingYOffset = 0f;
+    [Tooltip("玩家与机器人超过此距离则拒绝拖拽（0 = 无限制）")]
+    public float pullMaxRange = 15f;
+    [Tooltip("每次拖拽后的冷却（秒）")]
+    public float pullCooldown = 1f;
+    [Tooltip("单次牵引消耗的 AbilityPower")]
+    public float pullAbilityPowerCost = 5f;
+
+    public bool IsPulling => currentState == AllyState.Pulling;
 
     // ──────────────────────────────────────────────
     //  内部引用与运行时变量
@@ -55,6 +77,13 @@ public class AllyRobot : MonoBehaviour
     Vector3 spawnPoint;
     Transform currentTarget;
     float attackTimer;
+    float pullCooldownTimer;
+
+    Transform owner;
+    PlayerMovement ownerMovement;
+    Character ownerCharacter;
+    Rigidbody2D ownerRb;
+    AllyRobotPullVisual pullVisual;
 
     // ──────────────────────────────────────────────
     //  Unity 生命周期
@@ -64,26 +93,39 @@ public class AllyRobot : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
     }
 
     void Start()
     {
+        pullVisual?.Initialize(this);
         spawnPoint = transform.position;
         attackTimer = 0f;
         FaceRight();
         SwitchState(AllyState.Idle);
     }
 
+    void OnDestroy()
+    {
+        if (IsPulling)
+        {
+            pullVisual?.Cancel();
+            EndPull();
+        }
+    }
+
     void Update()
     {
         attackTimer -= Time.deltaTime;
+        pullCooldownTimer -= Time.deltaTime;
 
         switch (currentState)
         {
-            case AllyState.Idle:   UpdateIdle();   break;
-            case AllyState.Chase:  UpdateChase();  break;
-            case AllyState.Attack: UpdateAttack(); break;
-            case AllyState.Return: UpdateReturn(); break;
+            case AllyState.Idle:    UpdateIdle();    break;
+            case AllyState.Chase:   UpdateChase();   break;
+            case AllyState.Attack:  UpdateAttack();  break;
+            case AllyState.Return:  UpdateReturn();  break;
+            case AllyState.Pulling: UpdatePulling(); break;
         }
     }
 
@@ -97,11 +139,157 @@ public class AllyRobot : MonoBehaviour
             case AllyState.Return:
                 MoveTowardSpawn();
                 break;
+            case AllyState.Pulling:
+                StopMoving();
+                break;
             case AllyState.Idle:
             case AllyState.Attack:
                 StopMoving();
                 break;
         }
+    }
+
+    public void Initialize(Transform player)
+    {
+        owner = player;
+        ownerMovement = player.GetComponent<PlayerMovement>();
+        ownerCharacter = player.GetComponent<Character>();
+        ownerRb = player.GetComponent<Rigidbody2D>();
+    }
+
+    public bool TryStartPull()
+    {
+        if (IsPulling || pullCooldownTimer > 0f)
+            return false;
+
+        if (owner == null || ownerMovement == null || ownerCharacter == null || ownerRb == null)
+            return false;
+
+        if (ownerMovement.IsActionLocked)
+            return false;
+
+        if (ownerCharacter.AbilityPower < pullAbilityPowerCost)
+            return false;
+
+        if (pullMaxRange > 0f
+            && Vector2.Distance(owner.position, transform.position) > pullMaxRange)
+            return false;
+
+        Vector2 landing = ComputeLandingPoint();
+        if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
+            return false;
+
+        ownerCharacter.DrainAbilityPower(pullAbilityPowerCost);
+
+        FaceTarget(owner.position);
+        anim.SetTrigger(pullTriggerName);
+
+        if (pullVisual != null)
+            pullVisual.Begin(owner, pullExtendSpeed, pullSpeed, 0f, pullArriveThreshold);
+        else
+            BeginPullWithoutVisual();
+
+        SwitchState(AllyState.Pulling);
+        pullCooldownTimer = pullCooldown;
+        return true;
+    }
+
+    void BeginPullWithoutVisual()
+    {
+        if (ownerCharacter != null)
+            ownerCharacter.SetForcedInvulnerable(true);
+        if (ownerMovement != null)
+            ownerMovement.BeginExternalControl();
+    }
+
+    public Vector2 GetPullLandingPoint() => ComputeLandingPoint();
+
+    public void OnHookGrabbed()
+    {
+        if (ownerCharacter != null)
+            ownerCharacter.SetForcedInvulnerable(true);
+        if (ownerMovement != null && !ownerMovement.IsActionLocked)
+            ownerMovement.BeginExternalControl();
+    }
+
+    public void OnHookRetractStep(Vector2 hookPos)
+    {
+        if (ownerRb != null)
+            ownerRb.MovePosition(hookPos);
+    }
+
+    public void OnHookRetractComplete()
+    {
+        if (ownerRb != null)
+            ownerRb.position = ComputeLandingPoint();
+        ResumeStateAfterPull();
+    }
+
+    Vector2 ComputeLandingPoint()
+    {
+        float side = Mathf.Sign(owner.position.x - transform.position.x);
+        if (side == 0f && ownerMovement != null)
+            side = ownerMovement.FaceDirection;
+
+        return (Vector2)transform.position
+            + Vector2.right * side * pullLandingDistanceX
+            + Vector2.up * pullLandingYOffset;
+    }
+
+    void UpdatePulling()
+    {
+        if (owner == null || ownerMovement == null || ownerCharacter == null)
+        {
+            pullVisual?.Cancel();
+            anim.Play("Idle", 0, 0f);
+            EndPull();
+            SwitchState(AllyState.Idle);
+            return;
+        }
+
+        if (pullVisual == null || !pullVisual.IsActive)
+            UpdatePullingFallback();
+    }
+
+    void UpdatePullingFallback()
+    {
+        if (ownerMovement == null || ownerRb == null)
+            return;
+
+        if (!ownerMovement.IsActionLocked)
+            BeginPullWithoutVisual();
+
+        Vector2 landing = ComputeLandingPoint();
+        ownerMovement.StepExternalMove(landing, pullSpeed);
+
+        if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
+        {
+            ownerRb.position = landing;
+            ResumeStateAfterPull();
+        }
+    }
+
+    void EndPull()
+    {
+        if (ownerCharacter != null)
+            ownerCharacter.SetForcedInvulnerable(false);
+
+        if (ownerMovement != null && ownerMovement.IsActionLocked)
+            ownerMovement.EndExternalControl();
+    }
+
+    void ResumeStateAfterPull()
+    {
+        if (TryAcquireTarget(out Transform target))
+        {
+            BeginCombat(target);
+            return;
+        }
+
+        if (IsOutsideMaxChaseRange())
+            SwitchState(AllyState.Return);
+        else
+            SwitchState(AllyState.Idle);
     }
 
     // ──────────────────────────────────────────────
@@ -133,6 +321,10 @@ public class AllyRobot : MonoBehaviour
                 anim.SetBool(walkBoolName, true);
                 currentTarget = null;
                 break;
+            case AllyState.Pulling:
+                anim.SetBool(walkBoolName, false);
+                StopMoving();
+                break;
         }
     }
 
@@ -162,7 +354,15 @@ public class AllyRobot : MonoBehaviour
             SwitchState(AllyState.Chase);
     }
 
-    void OnExitState(AllyState state) { }
+    void OnExitState(AllyState state)
+    {
+        if (state == AllyState.Pulling)
+        {
+            pullVisual?.Cancel();
+            anim.Play("Idle", 0, 0f);
+            EndPull();
+        }
+    }
 
     // ──────────────────────────────────────────────
     //  各状态 Update 逻辑

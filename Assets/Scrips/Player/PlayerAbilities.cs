@@ -106,6 +106,19 @@ public class PlayerAbilities : MonoBehaviour
                 }
                 break;
         }
+
+        UpdateAbility2();
+    }
+
+    void UpdateAbility2()
+    {
+        if (playerMovement.IsActionLocked || phase != Ability1Phase.Idle)
+            return;
+
+        if (!actions.Player.Ability2.WasPressedThisFrame() || !HasActiveRobot())
+            return;
+
+        activeRobot.GetComponent<AllyRobot>()?.TryStartPull();
     }
 
     bool HasActiveRobot() => activeRobot != null;
@@ -158,6 +171,9 @@ public class PlayerAbilities : MonoBehaviour
 
     void BeginPress()
     {
+        if (playerMovement.IsActionLocked)
+            return;
+
         phase = Ability1Phase.Pressing;
         pressTime = Time.time;
         defaultLocalPos = robotGeneratePoint.localPosition;
@@ -210,6 +226,7 @@ public class PlayerAbilities : MonoBehaviour
             return;
 
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
+        robot.GetComponent<AllyRobot>()?.Initialize(transform);
         OnRobotSpawned(robot);
     }
 }

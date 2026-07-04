@@ -39,6 +39,9 @@ public class PlayerShooting : MonoBehaviour
 
     void Update()
     {
+        if (playerMovement.IsActionLocked)
+            return;
+
         if (actions.Player.Attack.WasPressedThisFrame()
             && playerAnim.TryPlayShootAnim())
             Fire(ResolveFireDir());

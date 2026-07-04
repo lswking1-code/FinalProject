@@ -25,6 +25,11 @@ public class Character : MonoBehaviour,ISaveable
 
     private float invulnerableCounter;// 无敌剩余时间
     public bool invulnerable;
+    bool forcedInvulnerable;
+
+    public bool IsForcedInvulnerable => forcedInvulnerable;
+
+    public void SetForcedInvulnerable(bool value) => forcedInvulnerable = value;
 
     public UnityEvent<Character> OnHealthChange;
 
@@ -80,6 +85,9 @@ public class Character : MonoBehaviour,ISaveable
 
     private void OnTriggerStay2D(Collider2D other)
     {
+        if (forcedInvulnerable)
+            return;
+
         if (other.CompareTag("Water"))
         {
             if (currentHealth > 0)
@@ -94,7 +102,7 @@ public class Character : MonoBehaviour,ISaveable
     }
     public void TakeDamage(Attack attacker)
     {
-        if (invulnerable)
+        if (invulnerable || forcedInvulnerable)
             return;
         //Debug.Log(attacker.damage);
         if(currentHealth-attacker.damage > 0)

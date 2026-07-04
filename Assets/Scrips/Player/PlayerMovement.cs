@@ -20,6 +20,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     PhysicsCheck physicsCheck;
     PlayerAnim playerAnim;
     InputSystem_Actions actions;
+    CapsuleCollider2D capsuleCollider;
+
+    float savedGravityScale;
+    bool savedColliderEnabled;
+
+    public bool IsActionLocked { get; private set; }
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -50,6 +56,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
         playerAnim = GetComponent<PlayerAnim>();
+        capsuleCollider = GetComponent<CapsuleCollider2D>();
         actions = new InputSystem_Actions();
     }
 
@@ -65,6 +72,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void OnDisable()
     {
+        if (IsActionLocked)
+            EndExternalControl();
+
         if (newGameEvent != null)
             newGameEvent.OnEventRaised -= OnNewGame;
         if (afterSceneLoadedEvent != null)
@@ -80,6 +90,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void Update()
     {
+        if (IsActionLocked)
+            return;
+
         ReadInput();
         HandleCrouch();
         HandleLook();
@@ -89,6 +102,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void FixedUpdate()
     {
+        if (IsActionLocked)
+            return;
+
         physicsCheck.Check();
 
         if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
@@ -309,6 +325,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ResetMovementState()
     {
+        if (IsActionLocked)
+            EndExternalControl();
+
         moveInput = Vector2.zero;
         jumpPressed = false;
         jumpBufferCounter = 0f;
@@ -326,5 +345,42 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         physicsCheck.Check();
         playerAnim.UpdateAirState(physicsCheck.isGround, 0f);
         ApplyFacing();
+    }
+
+    public void BeginExternalControl()
+    {
+        if (IsActionLocked)
+            return;
+
+        savedGravityScale = rb.gravityScale;
+        savedColliderEnabled = capsuleCollider != null && capsuleCollider.enabled;
+
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
+        if (capsuleCollider != null)
+            capsuleCollider.enabled = false;
+
+        IsActionLocked = true;
+    }
+
+    public void EndExternalControl()
+    {
+        if (!IsActionLocked)
+            return;
+
+        rb.gravityScale = savedGravityScale;
+        if (capsuleCollider != null)
+            capsuleCollider.enabled = savedColliderEnabled;
+
+        IsActionLocked = false;
+    }
+
+    public void StepExternalMove(Vector2 target, float speed)
+    {
+        if (!IsActionLocked)
+            return;
+
+        Vector2 next = Vector2.MoveTowards(rb.position, target, speed * Time.fixedDeltaTime);
+        rb.MovePosition(next);
     }
 }
