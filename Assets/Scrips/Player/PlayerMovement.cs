@@ -227,7 +227,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
-        if (physicsCheck.isGround && playerAnim.IsCrouching && playerAnim.IsShooting)
+        if (physicsCheck.isGround && playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing))
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -256,7 +256,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         {
             rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
 
-            if (playerAnim.IsShooting && moveX != faceDir)
+            if ((playerAnim.IsShooting || playerAnim.IsThrowing) && moveX != faceDir)
             {
                 faceDir = moveX;
                 ApplyFacing();
@@ -278,7 +278,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
 
-        if (playerAnim.IsCrouching && playerAnim.IsShooting)
+        if (playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing))
             return;
 
         if (Mathf.Abs(moveInput.x) > inputThreshold)

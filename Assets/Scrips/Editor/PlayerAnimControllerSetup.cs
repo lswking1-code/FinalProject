@@ -29,6 +29,9 @@ public static class PlayerAnimControllerSetup
     const string LookDownEndClipPath = "Assets/Arts/Metal Slug/lookdown_end.anim";
     const string FullBodyPath = "Assets/Animation/fullbody.controller";
     const string CrouchShootClipPath = "Assets/Arts/Metal Slug/crouch_shoot.anim";
+    const string ThrowClipPath = "Assets/Arts/Metal Slug/throw.anim";
+    const string AirThrowClipPath = "Assets/Arts/Metal Slug/air_throw.anim";
+    const string CrouchThrowClipPath = "Assets/Arts/Metal Slug/crouch_throw.anim";
 
     [InitializeOnLoadMethod]
     static void ScheduleFixup()
@@ -38,6 +41,7 @@ public static class PlayerAnimControllerSetup
             EnsureAirPhaseParameters();
             EnsureLookAnimatorParamDrivenTransitions();
             EnsureLookShootAnimatorTransitions();
+            EnsureThrowAnimatorStates();
         };
     }
 
@@ -193,6 +197,76 @@ public static class PlayerAnimControllerSetup
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             Debug.Log("已为 fullbody.controller 配置 CrouchShoot 状态。");
+        }
+    }
+
+    [MenuItem("Lost Division/Ensure Throw Animator States")]
+    public static void EnsureThrowAnimatorStates()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+
+        var upController = AssetDatabase.LoadAssetAtPath<AnimatorController>(UpPath);
+        if (upController != null)
+        {
+            var upSm = upController.layers[0].stateMachine;
+            var upStates = BuildStateMap(upSm);
+            changed |= EnsureStateMotion(upStates, "Throw", ThrowClipPath);
+            changed |= EnsureStateMotion(upStates, "AirThrow", AirThrowClipPath);
+
+            if (!upStates.ContainsKey("Throw"))
+            {
+                var state = upSm.AddState("Throw", new Vector3(800f, 400f, 0f));
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(ThrowClipPath);
+                if (clip != null)
+                    state.motion = clip;
+                changed = true;
+            }
+
+            if (!upStates.ContainsKey("AirThrow"))
+            {
+                var state = upSm.AddState("AirThrow", new Vector3(800f, 500f, 0f));
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(AirThrowClipPath);
+                if (clip != null)
+                    state.motion = clip;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                EditorUtility.SetDirty(upController);
+            }
+        }
+
+        var fullBodyController = AssetDatabase.LoadAssetAtPath<AnimatorController>(FullBodyPath);
+        if (fullBodyController != null)
+        {
+            var sm = fullBodyController.layers[0].stateMachine;
+            var states = BuildStateMap(sm);
+            bool fullBodyChanged = EnsureStateMotion(states, "CrouchThrow", CrouchThrowClipPath);
+
+            if (!states.ContainsKey("CrouchThrow"))
+            {
+                var state = sm.AddState("CrouchThrow", new Vector3(600f, 400f, 0f));
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(CrouchThrowClipPath);
+                if (clip != null)
+                    state.motion = clip;
+                fullBodyChanged = true;
+            }
+
+            if (fullBodyChanged)
+            {
+                EditorUtility.SetDirty(fullBodyController);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已为 up/fullbody.controller 配置投掷动画状态。");
         }
     }
 
