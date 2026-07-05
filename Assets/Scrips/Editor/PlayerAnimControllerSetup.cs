@@ -41,7 +41,7 @@ public static class PlayerAnimControllerSetup
             EnsureAirPhaseParameters();
             EnsureLookAnimatorParamDrivenTransitions();
             EnsureLookShootAnimatorTransitions();
-            EnsureThrowAnimatorStates();
+            RepairAnimatorControllers();
         };
     }
 
@@ -200,6 +200,48 @@ public static class PlayerAnimControllerSetup
         }
     }
 
+    static readonly string[] RepairControllerPaths =
+    {
+        "Assets/Animation/explosion.controller",
+        "Assets/Animation/grenade.controller",
+        UpPath,
+        FullBodyPath,
+        DownPath,
+    };
+
+    [MenuItem("Lost Division/Repair Animator Controllers")]
+    public static void RepairAnimatorControllers()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+        foreach (var path in RepairControllerPaths)
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (controller == null)
+                continue;
+
+            bool controllerChanged = false;
+            foreach (var layer in controller.layers)
+                controllerChanged |= RepairStateMachine(layer.stateMachine, path);
+
+            if (controllerChanged)
+            {
+                EditorUtility.SetDirty(controller);
+                changed = true;
+            }
+        }
+
+        EnsureThrowAnimatorStates();
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已修复 Animator Controller 中的无效过渡。");
+        }
+    }
+
     [MenuItem("Lost Division/Ensure Throw Animator States")]
     public static void EnsureThrowAnimatorStates()
     {
@@ -212,49 +254,18 @@ public static class PlayerAnimControllerSetup
         if (upController != null)
         {
             var upSm = upController.layers[0].stateMachine;
-            var upStates = BuildStateMap(upSm);
-            changed |= EnsureStateMotion(upStates, "Throw", ThrowClipPath);
-            changed |= EnsureStateMotion(upStates, "AirThrow", AirThrowClipPath);
-
-            if (!upStates.ContainsKey("Throw"))
-            {
-                var state = upSm.AddState("Throw", new Vector3(800f, 400f, 0f));
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(ThrowClipPath);
-                if (clip != null)
-                    state.motion = clip;
-                changed = true;
-            }
-
-            if (!upStates.ContainsKey("AirThrow"))
-            {
-                var state = upSm.AddState("AirThrow", new Vector3(800f, 500f, 0f));
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(AirThrowClipPath);
-                if (clip != null)
-                    state.motion = clip;
-                changed = true;
-            }
+            changed |= EnsureDirectPlayState(upSm, "Throw", ThrowClipPath, new Vector3(800f, 400f, 0f));
+            changed |= EnsureDirectPlayState(upSm, "AirThrow", AirThrowClipPath, new Vector3(800f, 500f, 0f));
 
             if (changed)
-            {
                 EditorUtility.SetDirty(upController);
-            }
         }
 
         var fullBodyController = AssetDatabase.LoadAssetAtPath<AnimatorController>(FullBodyPath);
         if (fullBodyController != null)
         {
             var sm = fullBodyController.layers[0].stateMachine;
-            var states = BuildStateMap(sm);
-            bool fullBodyChanged = EnsureStateMotion(states, "CrouchThrow", CrouchThrowClipPath);
-
-            if (!states.ContainsKey("CrouchThrow"))
-            {
-                var state = sm.AddState("CrouchThrow", new Vector3(600f, 400f, 0f));
-                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(CrouchThrowClipPath);
-                if (clip != null)
-                    state.motion = clip;
-                fullBodyChanged = true;
-            }
+            bool fullBodyChanged = EnsureDirectPlayState(sm, "CrouchThrow", CrouchThrowClipPath, new Vector3(600f, 400f, 0f));
 
             if (fullBodyChanged)
             {
@@ -605,6 +616,82 @@ public static class PlayerAnimControllerSetup
         }
 
         return false;
+    }
+
+    static bool RepairStateMachine(AnimatorStateMachine sm, string assetPath)
+    {
+        bool changed = false;
+
+        for (int i = sm.anyStateTransitions.Length - 1; i >= 0; i--)
+        {
+            var transition = sm.anyStateTransitions[i];
+            if (!IsBrokenTransition(transition))
+                continue;
+
+            sm.RemoveAnyStateTransition(transition);
+            Object.DestroyImmediate(transition, true);
+            changed = true;
+            Debug.LogWarning($"已从 {assetPath} 移除损坏的 Any State 过渡。", sm);
+        }
+
+        foreach (var child in sm.states)
+        {
+            var state = child.state;
+            for (int i = state.transitions.Length - 1; i >= 0; i--)
+            {
+                var transition = state.transitions[i];
+                if (!IsBrokenTransition(transition))
+                    continue;
+
+                state.RemoveTransition(transition);
+                Object.DestroyImmediate(transition, true);
+                changed = true;
+                Debug.LogWarning($"已从 {assetPath}/{state.name} 移除损坏的过渡。", state);
+            }
+        }
+
+        foreach (var child in sm.stateMachines)
+            changed |= RepairStateMachine(child.stateMachine, assetPath);
+
+        return changed;
+    }
+
+    static bool IsBrokenTransition(AnimatorStateTransition transition)
+    {
+        if (transition == null)
+            return true;
+
+        if (transition.isExit)
+            return false;
+
+        if (transition.destinationStateMachine != null)
+            return false;
+
+        return transition.destinationState == null;
+    }
+
+    static bool EnsureDirectPlayState(
+        AnimatorStateMachine sm,
+        string stateName,
+        string clipPath,
+        Vector3 position)
+    {
+        var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+        if (clip == null)
+            return false;
+
+        var states = BuildStateMap(sm);
+        if (states.TryGetValue(stateName, out var existing))
+        {
+            if (existing.motion == clip && existing.transitions.Length == 0)
+                return false;
+
+            sm.RemoveState(existing);
+        }
+
+        var state = sm.AddState(stateName, position);
+        state.motion = clip;
+        return true;
     }
 
     static Dictionary<string, AnimatorState> BuildStateMap(AnimatorStateMachine sm)
