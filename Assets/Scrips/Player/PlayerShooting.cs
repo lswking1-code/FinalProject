@@ -12,6 +12,7 @@ public enum FireDir // 射击朝向
 [DefaultExecutionOrder(100)]
 [RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(PlayerMovement))]
+[RequireComponent(typeof(PlayerMelee))]
 public class PlayerShooting : MonoBehaviour
 {
     [SerializeField] PlayerProjectile projectilePrefab;
@@ -23,12 +24,14 @@ public class PlayerShooting : MonoBehaviour
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
     PlayerMovement playerMovement;
+    PlayerMelee playerMelee;
 
     void Awake()
     {
         actions = new InputSystem_Actions();
         playerAnim = GetComponent<PlayerAnim>();
         playerMovement = GetComponent<PlayerMovement>();
+        playerMelee = GetComponent<PlayerMelee>();
     }
 
     void OnEnable() => actions.Player.Enable();
@@ -42,9 +45,15 @@ public class PlayerShooting : MonoBehaviour
         if (playerMovement.IsActionLocked)
             return;
 
-        if (actions.Player.Attack.WasPressedThisFrame()
-            && playerAnim.TryPlayShootAnim())
-            Fire(ResolveFireDir());
+        if (actions.Player.Attack.WasPressedThisFrame())
+        {
+            if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
+                && playerMelee.TryMelee())
+                return;
+
+            if (playerAnim.TryPlayShootAnim())
+                Fire(ResolveFireDir());
+        }
     }
 
     FireDir ResolveFireDir()

@@ -227,7 +227,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
-        if (physicsCheck.isGround && playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing))
+        if (physicsCheck.isGround && playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee))
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -256,7 +256,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         {
             rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
 
-            if ((playerAnim.IsShooting || playerAnim.IsThrowing) && moveX != faceDir)
+            if ((playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee) && moveX != faceDir)
             {
                 faceDir = moveX;
                 ApplyFacing();
@@ -271,6 +271,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         transform.localScale = scale;
     }
 
+    public void FaceTowardWorldX(float worldX)
+    {
+        float newDir = worldX >= transform.position.x ? 1f : -1f;
+        if (Mathf.Approximately(newDir, faceDir))
+            return;
+
+        faceDir = newDir;
+        ApplyFacing();
+    }
+
     void SyncAnimation() // 推进空中阶段；地面按输入切换 Idle/Run
     {
         playerAnim.UpdateAirState(physicsCheck.isGround, rb.linearVelocity.y);
@@ -278,7 +288,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
 
-        if (playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing))
+        if (playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee))
             return;
 
         if (Mathf.Abs(moveInput.x) > inputThreshold)

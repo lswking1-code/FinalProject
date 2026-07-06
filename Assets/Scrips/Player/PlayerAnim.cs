@@ -43,6 +43,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     const string ThrowStateName = "Throw";
     const string AirThrowStateName = "AirThrow";
     const string CrouchThrowStateName = "CrouchThrow";
+    const string MeleeStateName = "Melee";
+    const string AirMeleeStateName = "AirMelee";
+    const string CrouchMeleeStateName = "CrouchMelee";
     const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
     const string IsLookUpParam = "IsLookUp";
     const string IsLookDownParam = "IsLookDown";
@@ -78,6 +81,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool isRunning;
     bool isShooting;
     bool isThrowing;
+    bool isMelee;
     bool isLookingUp;
     bool isLookingDown;
     bool isEndingLookUp;
@@ -95,10 +99,13 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool upperShootUsesAnimatorParam;
     string activeThrowStateName;
     Animator activeThrowAnimator;
+    string activeMeleeStateName;
+    Animator activeMeleeAnimator;
 
     public bool IsCrouching => isCrouching;
     public bool IsShooting => isShooting;
     public bool IsThrowing => isThrowing;
+    public bool IsMelee => isMelee;
     public bool IsLookingUp => isLookingUp || isEndingLookUp;
     public bool IsLookingDown => isLookingDown || isEndingLookDown;
     public AirPhaseType CurrentAirPhase => airPhase;
@@ -150,6 +157,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             TryAutoExitCrouchTurn();
             MaintainShootCompletion();
             MaintainThrowCompletion();
+            MaintainMeleeCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -165,6 +173,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         SyncSplitAnimators();
         MaintainShootCompletion();
         MaintainThrowCompletion();
+        MaintainMeleeCompletion();
         wasGrounded = grounded;
         airStateInitialized = true;
     }
@@ -242,13 +251,13 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground && !isShooting && !isThrowing)
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground && !isShooting && !isThrowing && !isMelee)
             SyncSplitAnimators();
     }
 
     public void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
-        if (isCrouching && (isShooting || isThrowing))
+        if (isCrouching && (isShooting || isThrowing || isMelee))
             return;
 
         isRunning = true;
@@ -297,6 +306,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
+        if (isMelee)
+            CompleteMelee();
+
         if (isThrowing)
             CompleteThrow();
 
@@ -367,6 +379,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
+        if (isMelee)
+            CompleteMelee();
+
         if (isShooting)
             CompleteShoot();
 
@@ -411,10 +426,68 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void PlayMeleeAnim() // 蹲姿近战
+    public bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
+        if (isShooting)
+            CompleteShoot();
+        if (isThrowing)
+            CompleteThrow();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (activeFullBodyState == TurnStateName)
+            InterruptTurn();
+        else if (activeFullBodyState == CrouchTurnStateName)
+        {
+            activeFullBodyState = null;
+            fullBodyAutoExit = false;
+            ResetFullBodyParams();
+        }
+
+        string stateName;
+        Animator animator;
+
         if (isCrouching)
-            crouchAnimator.SetTrigger("Melee");
+        {
+            stateName = CrouchMeleeStateName;
+            animator = crouchAnimator;
+            if (crouchAnimator != null)
+                crouchAnimator.SetBool("IsRun", false);
+        }
+        else
+        {
+            if (upperAnimator == null)
+                return false;
+
+            animator = upperAnimator;
+            if (IsUpperLookActive())
+                StopLook();
+
+            stateName = airPhase == AirPhaseType.Ground ? MeleeStateName : AirMeleeStateName;
+        }
+
+        if (animator == null)
+            return false;
+
+        isMelee = true;
+        activeMeleeStateName = stateName;
+        activeMeleeAnimator = animator;
+        animator.Play(stateName, 0, 0f);
+        return true;
+    }
+
+    public bool TryGetMeleeAnimProgress(out float normalizedTime)
+    {
+        normalizedTime = 0f;
+        if (!isMelee || activeMeleeAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
+            return false;
+
+        var info = activeMeleeAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(activeMeleeStateName))
+            return false;
+
+        normalizedTime = info.normalizedTime;
+        return true;
     }
 
     public void SetLookUp(bool active)
@@ -644,6 +717,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             crouchAnimator.Play(CrouchShootStateName, 0, 0f);
         else if (isThrowing)
             crouchAnimator.Play(CrouchThrowStateName, 0, 0f);
+        else if (isMelee)
+            crouchAnimator.Play(CrouchMeleeStateName, 0, 0f);
         else
             crouchAnimator.Play(CrouchStateName, 0, 0f);
     }
@@ -715,7 +790,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (isShooting || isThrowing)
+        if (isShooting || isThrowing || isMelee)
             return;
 
         if (upperAnimator == null)
@@ -945,6 +1020,57 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
 
         CompleteThrow();
+    }
+
+    void MaintainMeleeCompletion()
+    {
+        if (!isMelee || activeMeleeAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
+            return;
+
+        var info = activeMeleeAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(activeMeleeStateName))
+        {
+            if (isCrouching
+                && activeMeleeStateName == CrouchMeleeStateName
+                && (info.IsName(CrouchStateName) || info.IsName("CrouchMove")))
+                return;
+
+            CompleteMelee();
+            return;
+        }
+
+        if (info.normalizedTime < 1f)
+            return;
+
+        CompleteMelee();
+    }
+
+    void CompleteMelee()
+    {
+        isMelee = false;
+        activeMeleeStateName = null;
+        activeMeleeAnimator = null;
+
+        if (isCrouching)
+        {
+            if (crouchAnimator == null)
+                return;
+
+            if (isRunning)
+            {
+                crouchAnimator.SetBool("IsRun", true);
+                crouchAnimator.Play(CrouchStateName, 0, 0f);
+            }
+            else
+            {
+                crouchAnimator.SetBool("IsRun", false);
+                crouchAnimator.Play(CrouchStateName, 0, 0f);
+            }
+
+            return;
+        }
+
+        RestoreUpperLocomotion();
     }
 
     void CompleteThrow()

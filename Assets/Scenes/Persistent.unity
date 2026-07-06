@@ -723,9 +723,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 5921266497787217222, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7012345678901234509, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: meleeDetectRange
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7012345678901234509, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: meleeDetectHeight
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
 --- !u!4 &1221583060 stripped

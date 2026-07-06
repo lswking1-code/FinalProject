@@ -32,7 +32,7 @@ public class Attack : MonoBehaviour
         if (!string.IsNullOrEmpty(ignoreTag) && collision.CompareTag(ignoreTag))
             return;
 
-        var target = collision.GetComponent<Character>();
+        var target = collision.GetComponentInParent<Character>();
         if (target == null || hitTargets.Contains(target))
             return;
         if (attackRate > 0f && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)

@@ -32,6 +32,9 @@ public static class PlayerAnimControllerSetup
     const string ThrowClipPath = "Assets/Arts/Metal Slug/throw.anim";
     const string AirThrowClipPath = "Assets/Arts/Metal Slug/air_throw.anim";
     const string CrouchThrowClipPath = "Assets/Arts/Metal Slug/crouch_throw.anim";
+    const string MeleeClipPath = "Assets/Arts/Metal Slug/melee.anim";
+    const string AirMeleeClipPath = "Assets/Arts/Metal Slug/air_melee.anim";
+    const string CrouchMeleeClipPath = "Assets/Arts/Metal Slug/crouch_melee.anim";
 
     [InitializeOnLoadMethod]
     static void ScheduleFixup()
@@ -234,6 +237,7 @@ public static class PlayerAnimControllerSetup
         }
 
         EnsureThrowAnimatorStates();
+        EnsureMeleeAnimatorStates();
 
         if (changed)
         {
@@ -278,6 +282,45 @@ public static class PlayerAnimControllerSetup
         {
             AssetDatabase.SaveAssets();
             Debug.Log("已为 up/fullbody.controller 配置投掷动画状态。");
+        }
+    }
+
+    [MenuItem("Lost Division/Ensure Melee Animator States")]
+    public static void EnsureMeleeAnimatorStates()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+
+        var upController = AssetDatabase.LoadAssetAtPath<AnimatorController>(UpPath);
+        if (upController != null)
+        {
+            var upSm = upController.layers[0].stateMachine;
+            changed |= EnsureDirectPlayState(upSm, "Melee", MeleeClipPath, new Vector3(900f, 400f, 0f));
+            changed |= EnsureDirectPlayState(upSm, "AirMelee", AirMeleeClipPath, new Vector3(900f, 500f, 0f));
+
+            if (changed)
+                EditorUtility.SetDirty(upController);
+        }
+
+        var fullBodyController = AssetDatabase.LoadAssetAtPath<AnimatorController>(FullBodyPath);
+        if (fullBodyController != null)
+        {
+            var sm = fullBodyController.layers[0].stateMachine;
+            bool fullBodyChanged = EnsureDirectPlayState(sm, "CrouchMelee", CrouchMeleeClipPath, new Vector3(600f, 500f, 0f));
+
+            if (fullBodyChanged)
+            {
+                EditorUtility.SetDirty(fullBodyController);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已为 up/fullbody.controller 配置近战动画状态。");
         }
     }
 
