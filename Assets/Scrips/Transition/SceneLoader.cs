@@ -3,16 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.InputSystem;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-public class SceneLoader : MonoBehaviour,ISaveable
+public class SceneLoader : MonoBehaviour, ISaveable
 {
-    public enum PlayerCharacterType
+    [Serializable]
+    public class PlayerCharacterBinding
     {
-        Player,
-        PlayerMachinist
+        public PlayerCharacterSO character;
+        public Transform instanceTransform;
     }
 
     public Transform playerTrans;
@@ -20,9 +22,12 @@ public class SceneLoader : MonoBehaviour,ISaveable
     public Vector3 menuPosition;
 
     [Header("玩家选择")]
-    public PlayerCharacterType selectedPlayer = PlayerCharacterType.PlayerMachinist;
-    public Transform playerInstance;
-    public Transform playerMachinistInstance;
+    public PlayerRegistrySO playerRegistry;
+    public PlayerCharacterSO selectedCharacter;
+    public PlayerCharacterBinding[] playerCharacterBindings = Array.Empty<PlayerCharacterBinding>();
+
+    [Header("相机")]
+    public CameraControl cameraControl;
 
     [Header("事件监听")]
     public SceneLoadEventSO loadEventSO;
@@ -42,6 +47,8 @@ public class SceneLoader : MonoBehaviour,ISaveable
     public bool developMode;
     public GameSceneSO testScene;
     public Vector3 testPosition;
+    public bool enableDevelopCharacterSwitch = true;
+
     private GameSceneSO currentLoadedScene;
     private GameSceneSO sceneToLoad;
     private Vector3 positionToGo;
@@ -51,6 +58,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
     private void Awake()
     {
+        EnsureSelectedCharacter();
         ApplyPlayerSelection();
     }
 
@@ -63,6 +71,23 @@ public class SceneLoader : MonoBehaviour,ISaveable
             loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
     }
 
+    private void Update()
+    {
+        if (!developMode || !enableDevelopCharacterSwitch || playerRegistry == null)
+            return;
+
+        var keyboard = Keyboard.current;
+        if (keyboard == null)
+            return;
+
+        if (keyboard.digit1Key.wasPressedThisFrame)
+            SelectCharacterByIndex(0);
+        else if (keyboard.digit2Key.wasPressedThisFrame)
+            SelectCharacterByIndex(1);
+        else if (keyboard.digit3Key.wasPressedThisFrame)
+            SelectCharacterByIndex(2);
+    }
+
     private void OnEnable()
     {
         loadEventSO.LoadRequestEvent += OnLoadRequestEvent;
@@ -72,6 +97,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
         ISaveable saveable = this;
         saveable.RegisterSaveData();
     }
+
     private void OnDisable()
     {
         loadEventSO.LoadRequestEvent -= OnLoadRequestEvent;
@@ -80,6 +106,26 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
         ISaveable saveable = this;
         saveable.UnregisterSaveData();
+    }
+
+    public void SelectCharacter(PlayerCharacterSO character)
+    {
+        if (character == null || character == selectedCharacter)
+            return;
+
+        bool wasVisible = playerTrans != null && playerTrans.gameObject.activeSelf;
+        selectedCharacter = character;
+        ApplyPlayerSelection();
+        if (wasVisible && playerTrans != null)
+            playerTrans.gameObject.SetActive(true);
+    }
+
+    public void SelectCharacterByIndex(int index)
+    {
+        if (playerRegistry == null)
+            return;
+
+        SelectCharacter(playerRegistry.GetByIndex(index));
     }
 
     private void OnBackToMenuEvent()
@@ -95,33 +141,165 @@ public class SceneLoader : MonoBehaviour,ISaveable
         loadEventSO.RaiseLoadRequestEvent(sceneToLoad, firstPosition, true);
     }
 
+    void EnsureSelectedCharacter()
+    {
+        if (selectedCharacter != null)
+            return;
+
+        if (playerRegistry == null)
+            return;
+
+        if (playerRegistry.defaultCharacter != null)
+            selectedCharacter = playerRegistry.defaultCharacter;
+        else if (playerRegistry.characters.Count > 0)
+            selectedCharacter = playerRegistry.characters[0];
+    }
+
     void ApplyPlayerSelection()
     {
-        Transform selected = selectedPlayer == PlayerCharacterType.PlayerMachinist
-            ? playerMachinistInstance
-            : playerInstance;
+        if (playerRegistry == null)
+        {
+            Debug.LogWarning("SceneLoader: 未配置 PlayerRegistrySO。");
+            return;
+        }
 
+        EnsureSelectedCharacter();
+        ResolvePlayerInstances();
+
+        if (selectedCharacter == null)
+        {
+            Debug.LogWarning("SceneLoader: 未找到有效角色配置。");
+            return;
+        }
+
+        Transform selected = GetInstanceTransform(selectedCharacter);
         if (selected == null)
         {
-            Debug.LogWarning("SceneLoader: 未配置玩家 Transform 引用。");
+            Debug.LogWarning($"SceneLoader: 角色 {selectedCharacter.displayName} 未配置 Persistent 实例引用。");
             return;
         }
 
         playerTrans = selected;
 
-        if (playerInstance != null && playerInstance != selected)
-            playerInstance.gameObject.SetActive(false);
-        if (playerMachinistInstance != null && playerMachinistInstance != selected)
-            playerMachinistInstance.gameObject.SetActive(false);
+        foreach (var binding in playerCharacterBindings)
+        {
+            if (binding.instanceTransform == null || binding.instanceTransform == selected)
+                continue;
+
+            binding.instanceTransform.gameObject.SetActive(false);
+        }
+
+        BindCameraToPlayer();
     }
 
+    void ResolvePlayerInstances()
+    {
+        if (playerRegistry == null)
+            return;
 
-    /// <summary>
-    /// 场景加载事件请求
-    /// </summary>
-    /// <param name="locationToLoad">要加载的场景</param>
-    /// <param name="posToGo">玩家目标坐标</param>
-    /// <param name="fadeScreen">是否使用渐入渐出</param>
+        if (playerCharacterBindings == null || playerCharacterBindings.Length == 0)
+            playerCharacterBindings = BuildBindingsFromRegistry();
+
+        foreach (var binding in playerCharacterBindings)
+        {
+            if (binding.character == null)
+                continue;
+
+            binding.instanceTransform = ResolveSceneInstance(binding.instanceTransform, binding.character);
+        }
+    }
+
+    PlayerCharacterBinding[] BuildBindingsFromRegistry()
+    {
+        var bindings = new List<PlayerCharacterBinding>();
+        foreach (var character in playerRegistry.characters)
+        {
+            if (character == null)
+                continue;
+
+            bindings.Add(new PlayerCharacterBinding
+            {
+                character = character,
+                instanceTransform = FindCharacterInScene(character)
+            });
+        }
+
+        return bindings.ToArray();
+    }
+
+    Transform ResolveSceneInstance(Transform reference, PlayerCharacterSO character)
+    {
+        if (IsSceneInstance(reference))
+            return reference;
+
+        return FindCharacterInScene(character);
+    }
+
+    static bool IsSceneInstance(Transform transform)
+    {
+        return transform != null && transform.gameObject.scene.IsValid();
+    }
+
+    Transform FindCharacterInScene(PlayerCharacterSO character)
+    {
+        if (character == null)
+            return null;
+
+        string targetName = GetCharacterObjectName(character);
+        foreach (var root in gameObject.scene.GetRootGameObjects())
+        {
+            if (root.name == targetName)
+                return root.transform;
+
+            var child = root.transform.Find(targetName);
+            if (child != null)
+                return child;
+        }
+
+        return null;
+    }
+
+    static string GetCharacterObjectName(PlayerCharacterSO character)
+    {
+        return string.IsNullOrEmpty(character.displayName) ? character.name : character.displayName;
+    }
+
+    Transform GetInstanceTransform(PlayerCharacterSO character)
+    {
+        foreach (var binding in playerCharacterBindings)
+        {
+            if (!IsSameCharacter(binding.character, character))
+                continue;
+
+            if (IsSceneInstance(binding.instanceTransform))
+                return binding.instanceTransform;
+
+            binding.instanceTransform = FindCharacterInScene(character);
+            return binding.instanceTransform;
+        }
+
+        return FindCharacterInScene(character);
+    }
+
+    static bool IsSameCharacter(PlayerCharacterSO a, PlayerCharacterSO b)
+    {
+        if (a == null || b == null)
+            return false;
+
+        if (ReferenceEquals(a, b))
+            return true;
+
+        return a.name == b.name && GetCharacterObjectName(a) == GetCharacterObjectName(b);
+    }
+
+    void BindCameraToPlayer()
+    {
+        if (cameraControl == null || playerTrans == null)
+            return;
+
+        cameraControl.SetFollowTarget(playerTrans);
+    }
+
     private void OnLoadRequestEvent(GameSceneSO locationToLoad, Vector3 posToGo, bool fadeScreen)
     {
         if (isLoading)
@@ -145,21 +323,17 @@ public class SceneLoader : MonoBehaviour,ISaveable
     {
         if (fadeScreen)
         {
-            // 屏幕淡出变黑
             fadeEvent.FadeIn(fadeDuration);
         }
 
         yield return new WaitForSeconds(fadeDuration);
 
-        // 广播场景卸载事件，用于调整血条等 UI 显示
         unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
 
         yield return currentLoadedScene.sceneReference.UnLoadScene();
-        // 隐藏玩家
-        playerTrans.gameObject.SetActive(false);
+        if (playerTrans != null)
+            playerTrans.gameObject.SetActive(false);
 
-
-        // 开始加载新场景
         LoadNewScene();
     }
 
@@ -169,27 +343,32 @@ public class SceneLoader : MonoBehaviour,ISaveable
         loadingOption.Completed += OnLoadCompleted;
     }
 
-    /// <summary>
-    /// 场景加载完成后
-    /// </summary>
-    /// <param name="obj">Addressables 场景加载句柄</param>
     private void OnLoadCompleted(AsyncOperationHandle<SceneInstance> obj)
     {
         currentLoadedScene = sceneToLoad;
 
+        ApplyPlayerSelection();
+
+        if (playerTrans == null)
+        {
+            Debug.LogError("SceneLoader: 场景加载完成但 playerTrans 为空，无法显示玩家。");
+            isLoading = false;
+            return;
+        }
+
         playerTrans.position = positionToGo;
 
         playerTrans.gameObject.SetActive(currentLoadedScene.sceneType != SceneType.Menu);
+        BindCameraToPlayer();
+
         if (fadeScreen)
         {
-            // 屏幕淡入变透明
             fadeEvent.FadeOut(fadeDuration);
         }
 
         isLoading = false;
 
         if (currentLoadedScene.sceneType == SceneType.Loaction)
-            // 关卡场景加载完成后广播事件（如更新相机边界）
             afterSceneLoadedEvent.RaiseEvent();
     }
 
@@ -201,11 +380,20 @@ public class SceneLoader : MonoBehaviour,ISaveable
     public void GetSaveData(Data data)
     {
         data.SaveGameScene(currentLoadedScene);
+        data.selectedCharacterIndex = playerRegistry != null
+            ? playerRegistry.IndexOf(selectedCharacter)
+            : -1;
     }
 
     public void LoadSaveData(Data data)
     {
+        if (playerRegistry != null && data.selectedCharacterIndex >= 0)
+            selectedCharacter = playerRegistry.GetByIndex(data.selectedCharacterIndex);
+
         ApplyPlayerSelection();
+
+        if (playerTrans == null)
+            return;
 
         var playerID = playerTrans.GetComponent<DataDefination>().ID;
         if (data.characterPosDict.ContainsKey(playerID))

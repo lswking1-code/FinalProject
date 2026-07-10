@@ -501,7 +501,7 @@ Transform:
   m_GameObject: {fileID: 6572320002224097586}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.2889528, y: -0.7695633, z: -0.04318613}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -554,6 +554,7 @@ MonoBehaviour:
   jumpHeight: 2.5
   inputThreshold: 0.5
   jumpBufferTime: 0.2
+  crouchColliderSize: {x: 1.08, y: 1.2}
   newGameEvent: {fileID: 0}
   afterSceneLoadedEvent: {fileID: 0}
   dbgKPressedThisUpdate: 0
@@ -637,14 +638,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 6572320002224097586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2e3f4a5b6c7489012345678901bcdef, type: 3}
+  m_Script: {fileID: 11500000, guid: 828134a9a29463547a28e52cf1aa25f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+  normalProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+  comboProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+  chargeProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
   forwardPoint: {fileID: 2800590082269034882}
   crouchPoint: {fileID: 8591273858336282524}
   upPoint: {fileID: 3562070384078571298}
   downPoint: {fileID: 1124422903828144628}
+  comboFinisherCount: 4
+  comboResetWindow: 0.8
+  chargeHoldThreshold: 0.3
 --- !u!114 &3851702237518858642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -698,7 +704,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   persistentType: 0
-  ID: 99ebb52a-87ce-406b-8604-e6a36e6318ef
+  ID: b8f7a6e5-d4c3-4b2a-9f8e-7d6c5b4a3921
 --- !u!114 &3614759619717667695
 MonoBehaviour:
   m_ObjectHideFlags: 0

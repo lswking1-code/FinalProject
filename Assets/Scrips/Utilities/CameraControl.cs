@@ -50,6 +50,12 @@ public class CameraControl : MonoBehaviour
         composer.Damping = new Vector3(0.1f, 0.1f, 0f);
     }
 
+    public void SetFollowTarget(Transform target)
+    {
+        playerTransform = target;
+        BindFollowTarget();
+    }
+
     private void BindFollowTarget()
     {
         if (playerTransform == null)
