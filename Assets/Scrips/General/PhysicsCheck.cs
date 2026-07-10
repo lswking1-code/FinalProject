@@ -53,6 +53,8 @@ public class PhysicsCheck : MonoBehaviour
         bottomOffset = new Vector2(coll.offset.x, coll.offset.y - coll.size.y * 0.5f);
     }
 
+    public void RefreshOffsets() => RecalculateOffsets();
+
     /// <summary>
     /// 执行地面、墙体及贴墙状态检测
     /// </summary>

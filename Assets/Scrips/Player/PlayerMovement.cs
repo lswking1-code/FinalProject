@@ -16,11 +16,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public float inputThreshold = 0.5f;  // 摇杆死区，低于此值视为无输入
     public float jumpBufferTime = 0.15f; // 跳跃输入缓冲（秒），弥补 Update 与 FixedUpdate 不同步
 
+    [Header("蹲伏碰撞")]
+    [SerializeField] Vector2 crouchColliderSize = new Vector2(1.08f, 1.2f);
+
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
     PlayerAnim playerAnim;
     InputSystem_Actions actions;
     CapsuleCollider2D capsuleCollider;
+    Vector2 standingColliderSize;
+    Vector2 standingColliderOffset;
+    bool lastCrouchColliderState;
 
     float savedGravityScale;
     bool savedColliderEnabled;
@@ -57,6 +63,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         physicsCheck = GetComponent<PhysicsCheck>();
         playerAnim = GetComponent<PlayerAnim>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
+        if (capsuleCollider != null)
+        {
+            standingColliderSize = capsuleCollider.size;
+            standingColliderOffset = capsuleCollider.offset;
+        }
         actions = new InputSystem_Actions();
     }
 
@@ -90,14 +101,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void Update()
     {
-        if (IsActionLocked)
-            return;
+        if (!IsActionLocked)
+        {
+            ReadInput();
+            HandleCrouch();
+            HandleLook();
+            TryTurn();
+            SyncAnimation(); // 每帧同步动画与空中阶段
+        }
 
-        ReadInput();
-        HandleCrouch();
-        HandleLook();
-        TryTurn();
-        SyncAnimation(); // 每帧同步动画与空中阶段
+        ApplyCrouchCollider(playerAnim.IsCrouching);
     }
 
     void FixedUpdate()
@@ -251,6 +264,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
+        // 朝墙推时不强制水平速度，避免碰撞求解抵消重力导致贴墙悬空
+        if (moveX < 0f && physicsCheck.touchLeftWall)
+            moveX = 0f;
+        else if (moveX > 0f && physicsCheck.touchRightWall)
+            moveX = 0f;
+
         // 空中：有输入才改水平速度，无输入保留惯性
         if (moveX != 0f)
         {
@@ -392,5 +411,29 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         Vector2 next = Vector2.MoveTowards(rb.position, target, speed * Time.fixedDeltaTime);
         rb.MovePosition(next);
+    }
+
+    void ApplyCrouchCollider(bool crouching)
+    {
+        if (capsuleCollider == null || lastCrouchColliderState == crouching)
+            return;
+
+        lastCrouchColliderState = crouching;
+
+        if (crouching)
+        {
+            float bottom = standingColliderOffset.y - standingColliderSize.y * 0.5f;
+            capsuleCollider.size = crouchColliderSize;
+            capsuleCollider.offset = new Vector2(
+                standingColliderOffset.x,
+                bottom + crouchColliderSize.y * 0.5f);
+        }
+        else
+        {
+            capsuleCollider.size = standingColliderSize;
+            capsuleCollider.offset = standingColliderOffset;
+        }
+
+        physicsCheck.RefreshOffsets();
     }
 }

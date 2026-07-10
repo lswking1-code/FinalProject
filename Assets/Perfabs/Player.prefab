@@ -202,6 +202,7 @@ GameObject:
   - component: {fileID: 3610466219504325499}
   - component: {fileID: 5921266497787217222}
   - component: {fileID: 7354277962619288622}
+  - component: {fileID: 8901234567890123457}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -490,7 +491,34 @@ MonoBehaviour:
       m_Calls: []
   OnDie:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 8901234567890123457}
+        m_TargetAssemblyTypeName: PlayerDeath, Assembly-CSharp
+        m_MethodName: HandleDeath
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &8901234567890123457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8f4a2b13c5d4970a6e1f2d3c4b5a678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameOverEvent: {fileID: 11400000, guid: 32e2bd9bedf493549ab65b9166ed307f, type: 2}
+  loadDataEvent: {fileID: 11400000, guid: d053ac14c824369478dc3b9df1c43169, type: 2}
+  newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,6 +765,7 @@ GameObject:
   - component: {fileID: 5464488737162168973}
   - component: {fileID: 8426311522068214211}
   - component: {fileID: 3027643877075010879}
+  - component: {fileID: 8901234567890123458}
   m_Layer: 9
   m_Name: FullBody
   m_TagString: Untagged
@@ -836,6 +865,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8901234567890123458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6077945265886347755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7d8e9f01a2b34c56d7e8f9012345678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6179147413237324398
 GameObject:
   m_ObjectHideFlags: 0

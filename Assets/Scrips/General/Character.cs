@@ -26,7 +26,9 @@ public class Character : MonoBehaviour,ISaveable
     private float invulnerableCounter;// 无敌剩余时间
     public bool invulnerable;
     bool forcedInvulnerable;
+    bool isDead;
 
+    public bool IsDead => isDead;
     public bool IsForcedInvulnerable => forcedInvulnerable;
 
     public void SetForcedInvulnerable(bool value) => forcedInvulnerable = value;
@@ -43,6 +45,9 @@ public class Character : MonoBehaviour,ISaveable
     }
     private void NewGame()
     {
+        isDead = false;
+        forcedInvulnerable = false;
+        invulnerable = false;
         currentHealth = maxHealth;
         currentPower = maxPower;
         AbilityPower = maxAbilityPower;
@@ -89,38 +94,44 @@ public class Character : MonoBehaviour,ISaveable
             return;
 
         if (other.CompareTag("Water"))
-        {
-            if (currentHealth > 0)
-            {
-                // 溺水：清零血量并触发死亡
-                currentHealth = 0;
-                NotifyStatsChanged();
-                OnDie?.Invoke();
-            }
-            
-        }
+            Die();
     }
+
     public void TakeDamage(Attack attacker)
     {
-        if (invulnerable || forcedInvulnerable)
+        if (isDead || invulnerable || forcedInvulnerable)
             return;
-        //Debug.Log(attacker.damage);
-        if(currentHealth-attacker.damage > 0)
+
+        if (currentHealth - attacker.damage > 0)
         {
             currentHealth -= attacker.damage;
             triggerInvulnerable();
-            // 执行受伤逻辑
-            OnTakeDamage?.Invoke(attacker.transform);// 广播受伤，并传入攻击者位置
+            OnTakeDamage?.Invoke(attacker.transform);
+            NotifyStatsChanged();
         }
-        else 
+        else
         {
-            // TODO: 修复重复触发死亡的问题（参考 Water 区域）
-            currentHealth = 0;
-            // 血量归零，触发死亡
-            OnDie?.Invoke();
+            Die();
         }
+    }
 
+    void Die()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+        currentHealth = 0;
         NotifyStatsChanged();
+        OnDie?.Invoke();
+    }
+
+    public void Revive()
+    {
+        isDead = false;
+        forcedInvulnerable = false;
+        invulnerable = false;
+        invulnerableCounter = 0f;
     }
 
     /// <summary>
@@ -188,6 +199,8 @@ public class Character : MonoBehaviour,ISaveable
     {
         if (data.characterPosDict.ContainsKey(GetDataID().ID))
         {
+            isDead = false;
+            forcedInvulnerable = false;
             this.currentHealth = data.floatSavedData[GetDataID().ID + "health"];
             this.currentPower = data.floatSavedData[GetDataID().ID + "power"];
             transform.position = data.characterPosDict[GetDataID().ID].ToVector3();

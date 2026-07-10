@@ -46,6 +46,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     const string MeleeStateName = "Melee";
     const string AirMeleeStateName = "AirMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
+    const string DieStateName = "Die";
     const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
     const string IsLookUpParam = "IsLookUp";
     const string IsLookDownParam = "IsLookDown";
@@ -82,6 +83,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool isShooting;
     bool isThrowing;
     bool isMelee;
+    bool isDead;
     bool isLookingUp;
     bool isLookingDown;
     bool isEndingLookUp;
@@ -106,6 +108,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool IsShooting => isShooting;
     public bool IsThrowing => isThrowing;
     public bool IsMelee => isMelee;
+    public bool IsDead => isDead;
     public bool IsLookingUp => isLookingUp || isEndingLookUp;
     public bool IsLookingDown => isLookingDown || isEndingLookDown;
     public AirPhaseType CurrentAirPhase => airPhase;
@@ -149,6 +152,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void UpdateAirState(bool grounded, float velocityY) // 推进空中阶段并同步 Animator；蹲姿/全身层期间暂停；grounded 地面检测结果，velocityY 竖直速度
     {
+        if (isDead)
+            return;
+
         if (isCrouching && !grounded)
             ExitCrouchForAir();
 
@@ -488,6 +494,42 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         normalizedTime = info.normalizedTime;
         return true;
+    }
+
+    public void PlayDieAnim()
+    {
+        isDead = true;
+        isCrouching = false;
+        isRunning = false;
+        isShooting = false;
+        isThrowing = false;
+        isMelee = false;
+        ClearLookState();
+        ResetFullBodyParams();
+        EnterFullBody(DieStateName, autoExitOnComplete: false);
+    }
+
+    public bool TryGetDieAnimProgress(out float normalizedTime)
+    {
+        normalizedTime = 0f;
+        if (!isDead || crouchAnimator == null)
+            return false;
+
+        var info = crouchAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(DieStateName))
+            return false;
+
+        normalizedTime = info.normalizedTime;
+        return true;
+    }
+
+    public void ResetFromDeath()
+    {
+        isDead = false;
+        activeFullBodyState = null;
+        fullBodyAutoExit = false;
+        ExitFullBody();
+        RestoreUpperLocomotion();
     }
 
     public void SetLookUp(bool active)
