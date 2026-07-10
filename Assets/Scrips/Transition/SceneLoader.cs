@@ -9,9 +9,20 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour,ISaveable
 {
+    public enum PlayerCharacterType
+    {
+        Player,
+        PlayerMachinist
+    }
+
     public Transform playerTrans;
     public Vector3 firstPosition;
     public Vector3 menuPosition;
+
+    [Header("玩家选择")]
+    public PlayerCharacterType selectedPlayer = PlayerCharacterType.PlayerMachinist;
+    public Transform playerInstance;
+    public Transform playerMachinistInstance;
 
     [Header("事件监听")]
     public SceneLoadEventSO loadEventSO;
@@ -40,10 +51,7 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
     private void Awake()
     {
-        // Addressables.LoadSceneAsync(firstLoadScene.sceneReference, LoadSceneMode.Additive);
-        // currentLoadedScene = firstLoadScene;
-        // currentLoadedScene.sceneReference.LoadSceneAsync(LoadSceneMode.Additive);
-
+        ApplyPlayerSelection();
     }
 
     // TODO: 完成 MainMenu 流程后调整此处逻辑
@@ -82,9 +90,29 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
     private void NewGame()
     {
+        ApplyPlayerSelection();
         sceneToLoad = firstLoadScene;
-        // OnLoadRequestEvent(sceneToLoad, firstPosition, true);
         loadEventSO.RaiseLoadRequestEvent(sceneToLoad, firstPosition, true);
+    }
+
+    void ApplyPlayerSelection()
+    {
+        Transform selected = selectedPlayer == PlayerCharacterType.PlayerMachinist
+            ? playerMachinistInstance
+            : playerInstance;
+
+        if (selected == null)
+        {
+            Debug.LogWarning("SceneLoader: 未配置玩家 Transform 引用。");
+            return;
+        }
+
+        playerTrans = selected;
+
+        if (playerInstance != null && playerInstance != selected)
+            playerInstance.gameObject.SetActive(false);
+        if (playerMachinistInstance != null && playerMachinistInstance != selected)
+            playerMachinistInstance.gameObject.SetActive(false);
     }
 
 
@@ -177,6 +205,8 @@ public class SceneLoader : MonoBehaviour,ISaveable
 
     public void LoadSaveData(Data data)
     {
+        ApplyPlayerSelection();
+
         var playerID = playerTrans.GetComponent<DataDefination>().ID;
         if (data.characterPosDict.ContainsKey(playerID))
         {
