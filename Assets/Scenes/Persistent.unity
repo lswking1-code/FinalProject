@@ -723,6 +723,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 3670684932593068974, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5921266497787217222, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_Enabled
       value: 0
@@ -737,13 +741,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
---- !u!4 &1221583060 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 146101076622597715, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
-  m_PrefabInstance: {fileID: 1221583059}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1235663681
 GameObject:
   m_ObjectHideFlags: 0
@@ -823,7 +823,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 079f52737390ee840860f18bb5395f69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTrans: {fileID: 1221583060}
+  playerTrans: {fileID: 1481321784}
   firstPosition: {x: -5, y: 0, z: 0}
   menuPosition: {x: 0, y: 0, z: 0}
   loadEventSO: {fileID: 11400000, guid: 2c203c89dbbbeaa4ca10886558811755, type: 2}
@@ -834,7 +834,7 @@ MonoBehaviour:
   unloadedSceneEvent: {fileID: 11400000, guid: 3c4bec529b6aadf4d959deb3648300ab, type: 2}
   firstLoadScene: {fileID: 11400000, guid: 64a5216639bc0c64fa5dd585ff5a8d05, type: 2}
   menuScene: {fileID: 11400000, guid: 4195e70b8ad30c94d8015c7196410f1c, type: 2}
-  developMode: 1
+  developMode: 0
   testScene: {fileID: 11400000, guid: 1a1e2a5f9101f2d48a10500852c86b6c, type: 2}
   testPosition: {x: 0, y: 0, z: 0}
   fadeDuration: 0.5
@@ -1190,6 +1190,11 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!4 &1481321784 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3566494782694489320, guid: f35faea56f8590b49b34b8bdbed8ecaf, type: 3}
+  m_PrefabInstance: {fileID: 7122203321635393483}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1716451664
 GameObject:
   m_ObjectHideFlags: 0
