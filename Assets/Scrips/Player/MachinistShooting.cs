@@ -56,6 +56,9 @@ public class MachinistShooting : MonoBehaviour
         switch (phase)
         {
             case ShootPhase.Idle:
+                if (playerAnim.IsPlayingMachinistComboShoot)
+                    break;
+
                 if (actions.Player.Attack.WasPressedThisFrame())
                 {
                     pressTime = Time.time;

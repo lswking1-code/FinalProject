@@ -36,6 +36,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     Vector2 moveInput;
     bool jumpPressed;
     float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
+    bool comboShootInputSnapshotActive;
+    float comboStartMoveX;
+    bool comboStartWantCrouch;
+    bool comboStartWasCrouching;
+    bool comboStartHadJumpBuffer;
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
     public float FaceDirection => faceDir;
     public bool GetShootLookUp() => actions.Player.Move.ReadValue<Vector2>().y > inputThreshold;
@@ -104,6 +109,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!IsActionLocked)
         {
             ReadInput();
+            TryInterruptMachinistComboShoot();
             HandleCrouch();
             HandleLook();
             TryTurn();
@@ -130,6 +136,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
+        TryInterruptMachinistComboShoot();
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
     }
@@ -146,6 +153,57 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             lastKPressFrame = Time.frameCount;
             dbgLastKPressFrame = lastKPressFrame;
         }
+    }
+
+    void TryInterruptMachinistComboShoot()
+    {
+        if (!playerAnim.IsPlayingMachinistComboShoot)
+        {
+            comboShootInputSnapshotActive = false;
+            return;
+        }
+
+        if (!comboShootInputSnapshotActive)
+        {
+            CaptureComboShootInputSnapshot();
+            comboShootInputSnapshotActive = true;
+            return;
+        }
+
+        if (!HasMachinistComboShootInterruptInput())
+            return;
+
+        playerAnim.InterruptMachinistComboShootFromInput();
+    }
+
+    void CaptureComboShootInputSnapshot()
+    {
+        comboStartMoveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        comboStartWantCrouch = physicsCheck.isGround && moveInput.y < -inputThreshold;
+        comboStartWasCrouching = playerAnim.IsCrouching;
+        comboStartHadJumpBuffer = jumpBufferCounter > 0f;
+    }
+
+    bool HasMachinistComboShootInterruptInput()
+    {
+        if (jumpPressed)
+            return true;
+
+        if (jumpBufferCounter > 0f && !comboStartHadJumpBuffer)
+            return true;
+
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (moveX != comboStartMoveX)
+            return true;
+
+        bool wantCrouch = physicsCheck.isGround && moveInput.y < -inputThreshold;
+        if (wantCrouch != comboStartWantCrouch)
+            return true;
+
+        if (comboStartWasCrouching && playerAnim.IsCrouching && !wantCrouch)
+            return true;
+
+        return false;
     }
 
     void HandleCrouch() // 仅地面响应下方向进入/退出蹲姿
