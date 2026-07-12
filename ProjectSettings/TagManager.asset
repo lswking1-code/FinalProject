@@ -22,7 +22,7 @@ TagManager:
   - Player
   - PlayerBullet
   - Robot
-  - 
+  - Platform
   - 
   - 
   - 
@@ -54,6 +54,9 @@ TagManager:
     locked: 0
   - name: Bullet
     uniqueID: 2893840143
+    locked: 0
+  - name: Background
+    uniqueID: 1992624177
     locked: 0
   m_RenderingLayers:
   - Default

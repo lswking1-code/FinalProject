@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
+    PlatformDropThrough platformDropThrough;
     PlayerAnim playerAnim;
     InputSystem_Actions actions;
     CapsuleCollider2D capsuleCollider;
@@ -66,6 +67,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     {
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        platformDropThrough = GetComponent<PlatformDropThrough>();
         playerAnim = GetComponent<PlayerAnim>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
         if (capsuleCollider != null)
@@ -124,6 +126,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             return;
 
+        if (platformDropThrough != null)
+            platformDropThrough.UpdateCollisions();
+
         physicsCheck.Check();
 
         if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
@@ -139,6 +144,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         TryInterruptMachinistComboShoot();
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
+        CancelVelocityIntoObstacle();
     }
 
     void ReadInput()
@@ -276,6 +282,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return false;
         }
 
+        if (moveInput.y < -inputThreshold
+            && platformDropThrough != null
+            && platformDropThrough.TryBeginDropThrough(moveInput, inputThreshold))
+        {
+            jumpBufferCounter = 0f;
+            dbgResult = "单向平台下穿";
+            lastKPressFrame = -1;
+            return false;
+        }
+
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
         if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
@@ -311,6 +327,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (physicsCheck.IsBlockedHorizontally(moveX))
+            moveX = 0f;
 
         if (physicsCheck.isGround)
         {
@@ -328,12 +346,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        // 朝墙推时不强制水平速度，避免碰撞求解抵消重力导致贴墙悬空
-        if (moveX < 0f && physicsCheck.touchLeftWall)
-            moveX = 0f;
-        else if (moveX > 0f && physicsCheck.touchRightWall)
-            moveX = 0f;
-
         // 空中：有输入才改水平速度，无输入保留惯性
         if (moveX != 0f)
         {
@@ -345,6 +357,22 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                 ApplyFacing();
             }
         }
+        else if (!physicsCheck.isGround && (physicsCheck.touchLeftWall || physicsCheck.touchRightWall))
+        {
+            // 贴障碍物且无输入时仍清除朝墙的水平速度，避免物理求解把 Y 速度抵消
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        }
+    }
+
+    /// <summary>
+    /// 清除朝障碍物方向的速度分量（含起跳惯性），防止贴墙/卡台阶角悬空。
+    /// </summary>
+    void CancelVelocityIntoObstacle()
+    {
+        if (physicsCheck.IsBlockedHorizontally(-1f) && rb.linearVelocity.x < 0f)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        else if (physicsCheck.IsBlockedHorizontally(1f) && rb.linearVelocity.x > 0f)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
     void ApplyFacing() // 翻转 localScale.x，保留绝对缩放

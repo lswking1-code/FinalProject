@@ -8,6 +8,7 @@ public class PhysicsCheck : MonoBehaviour
 {
     private CapsuleCollider2D coll;
     private Rigidbody2D rb;
+    PlatformDropThrough platformDropThrough;
 
     [Header("检测参数")]
     [Tooltip("勾选后使用手动配置的偏移量，否则根据碰撞体自动计算左右偏移")]
@@ -26,11 +27,26 @@ public class PhysicsCheck : MonoBehaviour
     public bool touchRightWall;
     public bool onWall;
 
+    bool collisionTouchLeft;
+    bool collisionTouchRight;
+
     private void Awake()
     {
         coll = GetComponent<CapsuleCollider2D>();
         rb = GetComponent<Rigidbody2D>();
+        if (isPlayer)
+            platformDropThrough = GetComponent<PlatformDropThrough>();
         RecalculateOffsets();
+
+        if (isPlayer && coll != null && coll.sharedMaterial == null)
+        {
+            var noFriction = new PhysicsMaterial2D("PlayerNoFriction")
+            {
+                friction = 0f,
+                bounciness = 0f
+            };
+            coll.sharedMaterial = noFriction;
+        }
     }
 
     private void Start()
@@ -56,20 +72,81 @@ public class PhysicsCheck : MonoBehaviour
     public void RefreshOffsets() => RecalculateOffsets();
 
     /// <summary>
+    /// 指定水平方向是否被 Ground 层阻挡（含已贴合与即将进入两种情况）。
+    /// </summary>
+    public bool IsBlockedHorizontally(float direction)
+    {
+        if (Mathf.Approximately(direction, 0f))
+            return false;
+
+        if (direction < 0f)
+            return touchLeftWall;
+        return touchRightWall;
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) == 0)
+            return;
+
+        if (!CountsAsSolidObstacle(collision.collider))
+            return;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.x > 0.3f)
+                collisionTouchLeft = true;
+            if (contact.normal.x < -0.3f)
+                collisionTouchRight = true;
+        }
+    }
+
+    bool CheckSideOverlap(float direction)
+    {
+        Bounds bounds = coll.bounds;
+        float skin = Mathf.Max(checkRaduis, 0.05f);
+        float probeWidth = skin;
+        float probeHeight = bounds.size.y * 0.9f;
+        float centerX = direction > 0f
+            ? bounds.max.x + probeWidth * 0.5f
+            : bounds.min.x - probeWidth * 0.5f;
+
+        Vector2 center = new Vector2(centerX, bounds.center.y);
+        Vector2 size = new Vector2(probeWidth, probeHeight);
+        Collider2D hit = Physics2D.OverlapBox(center, size, 0f, groundLayer);
+        if (hit != null && !CountsAsSolidObstacle(hit))
+            return false;
+        return hit != null;
+    }
+
+    bool CountsAsSolidObstacle(Collider2D obstacle)
+    {
+        if (platformDropThrough == null || obstacle == null)
+            return true;
+        return platformDropThrough.ShouldCollideWith(obstacle);
+    }
+
+    /// <summary>
     /// 执行地面、墙体及贴墙状态检测
     /// </summary>
     public void Check()
     {
-        isGround = Physics2D.OverlapCircle(
-            (Vector2)transform.position + new Vector2(bottomOffset.x * transform.localScale.x, bottomOffset.y),
-            checkRaduis, groundLayer);
+        float facing = Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(facing, 0f))
+            facing = 1f;
 
-        touchLeftWall = Physics2D.OverlapCircle(
-            (Vector2)transform.position + new Vector2(leftOffset.x, leftOffset.y),
-            checkRaduis, groundLayer);
-        touchRightWall = Physics2D.OverlapCircle(
-            (Vector2)transform.position + new Vector2(rightOffset.x, rightOffset.y),
-            checkRaduis, groundLayer);
+        Vector2 groundOrigin = (Vector2)transform.position
+            + new Vector2(bottomOffset.x * facing, bottomOffset.y);
+        RaycastHit2D groundHit = Physics2D.Raycast(
+            groundOrigin, Vector2.down, checkRaduis, groundLayer);
+        isGround = groundHit.collider != null
+            && groundHit.normal.y > 0.5f
+            && CountsAsSolidObstacle(groundHit.collider);
+
+        touchLeftWall = collisionTouchLeft || CheckSideOverlap(-1f);
+        touchRightWall = collisionTouchRight || CheckSideOverlap(1f);
+        collisionTouchLeft = false;
+        collisionTouchRight = false;
 
         if (isPlayer && rb != null)
         {
@@ -80,14 +157,32 @@ public class PhysicsCheck : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.DrawWireSphere(
-            (Vector2)transform.position + new Vector2(bottomOffset.x * transform.localScale.x, bottomOffset.y),
-            checkRaduis);
-        Gizmos.DrawWireSphere(
-            (Vector2)transform.position + new Vector2(leftOffset.x, leftOffset.y),
-            checkRaduis);
-        Gizmos.DrawWireSphere(
-            (Vector2)transform.position + new Vector2(rightOffset.x, rightOffset.y),
-            checkRaduis);
+        if (coll == null)
+            coll = GetComponent<CapsuleCollider2D>();
+        if (coll == null)
+            return;
+
+        float facing = Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(facing, 0f))
+            facing = 1f;
+
+        Vector2 groundOrigin = (Vector2)transform.position
+            + new Vector2(bottomOffset.x * facing, bottomOffset.y);
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(groundOrigin, groundOrigin + Vector2.down * checkRaduis);
+
+        Bounds bounds = coll.bounds;
+        float skin = Mathf.Max(checkRaduis, 0.05f);
+        float probeHeight = bounds.size.y * 0.9f;
+        Gizmos.color = Color.red;
+        DrawSideProbeGizmo(bounds.min.x - skin * 0.5f, bounds.center.y, skin, probeHeight);
+        DrawSideProbeGizmo(bounds.max.x + skin * 0.5f, bounds.center.y, skin, probeHeight);
+    }
+
+    static void DrawSideProbeGizmo(float centerX, float centerY, float width, float height)
+    {
+        Vector3 center = new Vector3(centerX, centerY, 0f);
+        Vector3 size = new Vector3(width, height, 0f);
+        Gizmos.DrawWireCube(center, size);
     }
 }

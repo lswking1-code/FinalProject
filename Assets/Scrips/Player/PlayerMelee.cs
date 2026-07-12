@@ -5,14 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerMelee : MonoBehaviour
 {
-    [SerializeField] float meleeDetectRange = 2f;
-    [SerializeField] float meleeDetectHeight = 2f;
     [SerializeField] int damage = 40;
     [SerializeField] float hitStart = 0.15f;
     [SerializeField] float hitEnd = 0.45f;
     [SerializeField] Transform meleePoint1;
     [SerializeField] Transform meleePoint2;
     [SerializeField] GameObject meleeHitbox;
+    [SerializeField] MeleeDetectZone detectZone;
 
     PlayerAnim playerAnim;
     PlayerMovement playerMovement;
@@ -59,16 +58,41 @@ public class PlayerMelee : MonoBehaviour
         }
     }
 
-    public bool IsEnemyInMeleeRange() => FindNearestMeleeTarget() != null;
+    void LateUpdate() => SyncDetectZoneAnchor();
+
+    public bool IsEnemyInMeleeRange()
+        => detectZone != null && detectZone.HasValidTarget;
 
     public bool TryMelee()
     {
-        var target = FindNearestMeleeTarget();
+        if (detectZone == null)
+            return false;
+
+        var target = detectZone.GetNearestTarget(transform.position);
         if (target == null)
             return false;
 
         playerMovement.FaceTowardWorldX(target.position.x);
         return playerAnim.TryPlayMeleeAnim();
+    }
+
+    void SyncDetectZoneAnchor()
+    {
+        if (detectZone == null)
+            return;
+
+        Transform anchor = playerAnim.IsCrouching ? meleePoint2 : meleePoint1;
+        if (anchor == null)
+            anchor = transform;
+
+        var zoneTransform = detectZone.transform;
+        if (zoneTransform.parent == anchor)
+            return;
+
+        zoneTransform.SetParent(anchor, false);
+        zoneTransform.localPosition = Vector3.zero;
+        zoneTransform.localRotation = Quaternion.identity;
+        zoneTransform.localScale = Vector3.one;
     }
 
     void SyncHitboxAnchor()
@@ -88,47 +112,5 @@ public class PlayerMelee : MonoBehaviour
         hitboxTransform.localPosition = Vector3.zero;
         hitboxTransform.localRotation = Quaternion.identity;
         hitboxTransform.localScale = Vector3.one;
-    }
-
-    Transform FindNearestMeleeTarget()
-    {
-        var enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        Vector2 playerPos = transform.position;
-        Transform nearest = null;
-        float nearestDist = float.MaxValue;
-
-        foreach (var enemy in enemies)
-        {
-            if (!IsValidMeleeTarget(enemy.transform, playerPos, out float dist))
-                continue;
-
-            if (dist < nearestDist)
-            {
-                nearestDist = dist;
-                nearest = enemy.transform;
-            }
-        }
-
-        return nearest;
-    }
-
-    bool IsValidMeleeTarget(Transform enemy, Vector2 playerPos, out float distance)
-    {
-        distance = float.MaxValue;
-
-        var enemyComponent = enemy.GetComponent<Enemy>();
-        if (enemyComponent != null && enemyComponent.isDead)
-            return false;
-
-        var character = enemy.GetComponent<Character>();
-        if (character != null && character.currentHealth <= 0f)
-            return false;
-
-        Vector2 delta = (Vector2)enemy.position - playerPos;
-        if (Mathf.Abs(delta.y) > meleeDetectHeight)
-            return false;
-
-        distance = delta.magnitude;
-        return distance <= meleeDetectRange;
     }
 }
