@@ -394,6 +394,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
                 stateName = ShootStateName;
                 upperShootUsesAnimatorParam = false;
                 ClearLookStateForHorizontalShoot();
+                BlockUpperAirPhaseForHorizontalShoot();
             }
         }
 
@@ -480,6 +481,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
                     : ShootStateName;
                 upperShootUsesAnimatorParam = false;
                 ClearLookStateForHorizontalShoot();
+                BlockUpperAirPhaseForHorizontalShoot();
             }
         }
 
@@ -619,6 +621,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         activeShootStateName = ChargeShootStateName;
         activeShootAnimator = animator;
         upperShootUsesAnimatorParam = false;
+        if (!isCrouching)
+            BlockUpperAirPhaseForHorizontalShoot();
         animator.Play(ChargeShootStateName, 0, 0f);
         return true;
     }
@@ -1194,6 +1198,18 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         lastUpperSyncedRun = !isRunning;
     }
 
+    void BlockUpperAirPhaseForHorizontalShoot()
+    {
+        if (upperAnimator == null)
+            return;
+
+        if (lastUpperSyncedPhase == UpperLookAirPhaseBlock)
+            return;
+
+        lastUpperSyncedPhase = UpperLookAirPhaseBlock;
+        upperAnimator.SetInteger("AirPhase", UpperLookAirPhaseBlock);
+    }
+
     void ApplyUpperLookParams(bool lookUp, bool lookDown)
     {
         if (upperAnimator == null)
@@ -1444,6 +1460,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         if (!isShooting || activeShootAnimator == null || string.IsNullOrEmpty(activeShootStateName))
             return;
+
+        if (!upperShootUsesAnimatorParam && activeShootAnimator == upperAnimator)
+            BlockUpperAirPhaseForHorizontalShoot();
 
         var info = activeShootAnimator.GetCurrentAnimatorStateInfo(0);
 
