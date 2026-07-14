@@ -8,7 +8,6 @@ using UnityEngine;
 /// 伤害输出依赖武器子物体上挂载的 Attack.cs（OnTriggerStay2D）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Animator))]
 public class AllyRobot : MonoBehaviour
 {
     // ──────────────────────────────────────────────
@@ -40,7 +39,9 @@ public class AllyRobot : MonoBehaviour
     [Tooltip("以生成点为圆心，超过此距离强制返回")]
     public float maxChaseRange = 10f;
 
-    [Header("动画参数名")]
+    [Header("动画")]
+    [Tooltip("手动拖入 Animator；留空则在 Awake 时尝试从自身获取")]
+    [SerializeField] Animator anim;
     [Tooltip("行走 Bool 参数名")]
     public string walkBoolName = "walk";
     [Tooltip("攻击 Trigger 参数名")]
@@ -72,7 +73,6 @@ public class AllyRobot : MonoBehaviour
     //  内部引用与运行时变量
     // ──────────────────────────────────────────────
     Rigidbody2D rb;
-    Animator anim;
 
     Vector3 spawnPoint;
     Transform currentTarget;
@@ -91,7 +91,8 @@ public class AllyRobot : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
+        if (anim == null)
+            anim = GetComponent<Animator>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
     }
