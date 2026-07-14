@@ -1,28 +1,22 @@
 fileFormatVersion: 2
-guid: 6da5075d9b33e8c46b563d9d95a4fdfb
+guid: 0301cf38543f3334cbdefe86e9cb5e53
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5167071185996182777
-    second: PlayerM_UpShoot1_0
+      213: -8928889993035630035
+    second: PlayerM_CrouchShoot2_0
   - first:
-      213: -5302915726057925388
-    second: PlayerM_UpShoot1_1
+      213: 151669257852053983
+    second: PlayerM_CrouchShoot2_1
   - first:
-      213: 3047881282157441067
-    second: PlayerM_UpShoot1_2
+      213: 6786513496909669531
+    second: PlayerM_CrouchShoot2_2
   - first:
-      213: -6212818685516567563
-    second: PlayerM_UpShoot1_3
+      213: 4046883586620691466
+    second: PlayerM_CrouchShoot2_3
   - first:
-      213: 3379931655626354854
-    second: PlayerM_UpShoot1_4
-  - first:
-      213: 2691161826745830716
-    second: PlayerM_UpShoot1_5
-  - first:
-      213: 7911606475470464412
-    second: PlayerM_UpShoot1_6
+      213: -4124814648715669425
+    second: PlayerM_CrouchShoot2_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -144,155 +138,111 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_UpShoot1_0
+      name: PlayerM_CrouchShoot2_0
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 205
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.34, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2a329ecbd5361480800000000000000
+      internalID: -8928889993035630035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot2_1
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 205
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.34, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd96e9de266da1200800000000000000
+      internalID: 151669257852053983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot2_2
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 205
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.34, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b94e1b6a11a8e2e50800000000000000
+      internalID: 6786513496909669531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot2_3
       rect:
         serializedVersion: 2
         x: 17
         y: 141
-        width: 30
-        height: 51
+        width: 50
+        height: 40
       alignment: 9
-      pivot: {x: 0.53333336, y: 0.19607843}
+      pivot: {x: 0.34, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 70b8a85f120ea48b0800000000000000
-      internalID: -5167071185996182777
+      spriteID: a0492e34e2b692830800000000000000
+      internalID: 4046883586620691466
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_UpShoot1_1
+      name: PlayerM_CrouchShoot2_4
       rect:
         serializedVersion: 2
-        x: 65
+        x: 81
         y: 141
-        width: 30
-        height: 51
+        width: 50
+        height: 40
       alignment: 9
-      pivot: {x: 0.53333336, y: 0.19607843}
+      pivot: {x: 0.34, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4f41c724e324866b0800000000000000
-      internalID: -5302915726057925388
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_UpShoot1_2
-      rect:
-        serializedVersion: 2
-        x: 113
-        y: 141
-        width: 30
-        height: 51
-      alignment: 9
-      pivot: {x: 0.53333336, y: 0.19607843}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b207e84b0ef3c4a20800000000000000
-      internalID: 3047881282157441067
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_UpShoot1_3
-      rect:
-        serializedVersion: 2
-        x: 18
-        y: 72
-        width: 30
-        height: 51
-      alignment: 9
-      pivot: {x: 0.53333336, y: 0.19607843}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5fb20eb8252a7c9a0800000000000000
-      internalID: -6212818685516567563
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_UpShoot1_4
-      rect:
-        serializedVersion: 2
-        x: 65
-        y: 72
-        width: 30
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5, y: 0.19607843}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6a0f4b2eeede7ee20800000000000000
-      internalID: 3379931655626354854
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_UpShoot1_5
-      rect:
-        serializedVersion: 2
-        x: 113
-        y: 72
-        width: 30
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5, y: 0.19607843}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c3dc64c4c6de85520800000000000000
-      internalID: 2691161826745830716
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_UpShoot1_6
-      rect:
-        serializedVersion: 2
-        x: 161
-        y: 72
-        width: 30
-        height: 51
-      alignment: 9
-      pivot: {x: 0.5, y: 0.19607843}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c95e8150c2cabcd60800000000000000
-      internalID: 7911606475470464412
+      spriteID: f4099f26ee6b1c6c0800000000000000
+      internalID: -4124814648715669425
       vertices: []
       indices: 
       edges: []
@@ -301,7 +251,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 7f09bb7744a398c4488d26b7683dc6e6
+    spriteID: 46dd9cd60f0fcbc40b3c5644a1968088
     internalID: 0
     vertices: []
     indices: 
@@ -311,13 +261,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_UpShoot1_0: -5167071185996182777
-      PlayerM_UpShoot1_1: -5302915726057925388
-      PlayerM_UpShoot1_2: 3047881282157441067
-      PlayerM_UpShoot1_3: -6212818685516567563
-      PlayerM_UpShoot1_4: 3379931655626354854
-      PlayerM_UpShoot1_5: 2691161826745830716
-      PlayerM_UpShoot1_6: 7911606475470464412
+      PlayerM_CrouchShoot2_0: -8928889993035630035
+      PlayerM_CrouchShoot2_1: 151669257852053983
+      PlayerM_CrouchShoot2_2: 6786513496909669531
+      PlayerM_CrouchShoot2_3: 4046883586620691466
+      PlayerM_CrouchShoot2_4: -4124814648715669425
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

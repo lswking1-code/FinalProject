@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 780a1e3c7c613aa4388866c06eb57a85
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6816035255350224813
+    second: PlayerM_Crouch_0
+  - first:
+      213: -335614590571025873
+    second: PlayerM_Crouch_1
+  - first:
+      213: 5782886121844167536
+    second: PlayerM_Crouch_2
+  - first:
+      213: -7349019239707085251
+    second: PlayerM_Crouch_3
+  - first:
+      213: 8018704970775019184
+    second: PlayerM_Crouch_4
+  - first:
+      213: -1776833252225616217
+    second: PlayerM_Crouch_5
+  - first:
+      213: -8275110892029707535
+    second: PlayerM_Crouch_6
+  - first:
+      213: 1018721849255436521
+    second: PlayerM_Crouch_7
+  - first:
+      213: -2758417416558827286
+    second: PlayerM_Crouch_8
+  - first:
+      213: -429040259084525132
+    second: PlayerM_Crouch_9
+  - first:
+      213: -7106713380331063766
+    second: PlayerM_Crouch_10
+  - first:
+      213: -903053268360512728
+    second: PlayerM_Crouch_11
+  - first:
+      213: 7145596578091015545
+    second: PlayerM_Crouch_12
+  - first:
+      213: 1422726224358877833
+    second: PlayerM_Crouch_13
+  - first:
+      213: -8118890378851963008
+    second: PlayerM_Crouch_14
+  - first:
+      213: 1652950800863007867
+    second: PlayerM_Crouch_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: PlayerM_Crouch_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 204
+        width: 23
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da760bba3fb679e50800000000000000
+      internalID: 6816035255350224813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_1
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 204
+        width: 24
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2a639bde48a75bf0800000000000000
+      internalID: -335614590571025873
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_2
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 205
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 073de0de940f04050800000000000000
+      internalID: 5782886121844167536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_3
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 205
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d367fb130f9030a90800000000000000
+      internalID: -7349019239707085251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_4
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 141
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0be34bd9fa9284f60800000000000000
+      internalID: 8018704970775019184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_5
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 141
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a67df7329b6757e0800000000000000
+      internalID: -1776833252225616217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_6
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 141
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fa7a93bc76e82d80800000000000000
+      internalID: -8275110892029707535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_7
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 141
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e0accddf1a332e00800000000000000
+      internalID: 1018721849255436521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_8
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 77
+        width: 35
+        height: 40
+      alignment: 9
+      pivot: {x: 0.51428574, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae8a2cf69f128b9d0800000000000000
+      internalID: -2758417416558827286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_9
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 76
+        width: 27
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b1ece2582ebb0af0800000000000000
+      internalID: -429040259084525132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_10
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 76
+        width: 25
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a26f9d465d1ef5d90800000000000000
+      internalID: -7106713380331063766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_11
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 77
+        width: 48
+        height: 40
+      alignment: 9
+      pivot: {x: 0.375, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82bbd1646d5b773f0800000000000000
+      internalID: -903053268360512728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_12
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 13
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.35999998, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 97d9c519a324a2360800000000000000
+      internalID: 7145596578091015545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_13
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 13
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.36, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98a2b8f86f98eb310800000000000000
+      internalID: 1422726224358877833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_14
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 13
+        width: 50
+        height: 40
+      alignment: 9
+      pivot: {x: 0.36, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08f21365738e35f80800000000000000
+      internalID: -8118890378851963008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Crouch_15
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 13
+        width: 34
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7413a4eef570f610800000000000000
+      internalID: 1652950800863007867
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 02d6711a401136c4190d0e0914519256
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      PlayerM_Crouch_0: 6816035255350224813
+      PlayerM_Crouch_1: -335614590571025873
+      PlayerM_Crouch_10: -7106713380331063766
+      PlayerM_Crouch_11: -903053268360512728
+      PlayerM_Crouch_12: 7145596578091015545
+      PlayerM_Crouch_13: 1422726224358877833
+      PlayerM_Crouch_14: -8118890378851963008
+      PlayerM_Crouch_15: 1652950800863007867
+      PlayerM_Crouch_2: 5782886121844167536
+      PlayerM_Crouch_3: -7349019239707085251
+      PlayerM_Crouch_4: 8018704970775019184
+      PlayerM_Crouch_5: -1776833252225616217
+      PlayerM_Crouch_6: -8275110892029707535
+      PlayerM_Crouch_7: 1018721849255436521
+      PlayerM_Crouch_8: -2758417416558827286
+      PlayerM_Crouch_9: -429040259084525132
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
