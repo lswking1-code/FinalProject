@@ -81,6 +81,26 @@ public class CameraControl : MonoBehaviour
             impulseSource.GenerateImpulse();
     }
 
+    /// <summary>
+    /// 将相机限制切换到指定碰撞体形状（如遭遇战区域 Bounds）。
+    /// </summary>
+    public void SetCameraBounds(Collider2D shape)
+    {
+        if (confiner2D == null || shape == null)
+            return;
+
+        confiner2D.BoundingShape2D = shape;
+        confiner2D.InvalidateBoundingShapeCache();
+    }
+
+    /// <summary>
+    /// 恢复为场景级 tag 为 Bounds 的相机边界。
+    /// </summary>
+    public void RestoreCameraBounds()
+    {
+        GetNewCameraBounds();
+    }
+
     private void GetNewCameraBounds()
     {
         if (confiner2D == null)

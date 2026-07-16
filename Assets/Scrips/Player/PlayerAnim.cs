@@ -85,6 +85,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     Rigidbody2D rb;
     PlayerMovement playerMovement;
+    PhysicsCheck physicsCheck;
     BodyDisplayMode displayMode = BodyDisplayMode.Split;
     AirPhaseType airPhase = AirPhaseType.Ground;
     AirTrack airTrack = AirTrack.None;
@@ -147,6 +148,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         rb = GetComponent<Rigidbody2D>();
         playerMovement = GetComponent<PlayerMovement>();
+        physicsCheck = GetComponent<PhysicsCheck>();
     }
 
     void Start()
@@ -180,7 +182,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
 
         if (isCrouching && !grounded)
-            ExitCrouchForAir();
+            ExitCrouchForAir(velocityY);
 
         if (isCrouching)
         {
@@ -381,13 +383,13 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             {
                 stateName = LookUpShootStateName;
                 upperShootUsesAnimatorParam = true;
-                BeginLookShoot(true, false, LookUpShootStateName);
+                BeginLookShoot(true, false);
             }
             else if (shootLookDown)
             {
                 stateName = LookDownShootStateName;
                 upperShootUsesAnimatorParam = true;
-                BeginLookShoot(false, true, LookDownShootStateName);
+                BeginLookShoot(false, true);
             }
             else
             {
@@ -408,7 +410,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (isCrouching)
             animator.Play(stateName, 0, 0f);
         else
+        {
             animator.Play(stateName, 0, 0f); // 仰视/俯视也强制 Play，避免 Trigger 与 MaintainShootCompletion 竞态
+            ResetUpperShootTrigger();
+        }
 
         return true;
     }
@@ -464,7 +469,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
                     ? LookUpComboShootStateName
                     : LookUpShootStateName;
                 upperShootUsesAnimatorParam = true;
-                BeginLookShoot(true, false, stateName);
+                BeginLookShoot(true, false);
             }
             else if (shootLookDown)
             {
@@ -472,7 +477,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
                     ? LookDownComboShootStateName
                     : LookDownShootStateName;
                 upperShootUsesAnimatorParam = true;
-                BeginLookShoot(false, true, stateName);
+                BeginLookShoot(false, true);
             }
             else
             {
@@ -503,7 +508,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (isCrouching)
             animator.Play(stateName, 0, 0f);
         else
+        {
             animator.Play(stateName, 0, 0f);
+            ResetUpperShootTrigger();
+        }
 
         return true;
     }
@@ -813,6 +821,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             isEndingLookUp = false;
             ApplyUpperLookParams(lookUp: true, lookDown: false);
             TrySwitchHorizontalShootToLookShoot(LookUpShootStateName);
+            EnsureUpperLookLoopWhenNotShooting(LookUpStateName, LookUpStartStateName, LookUpShootStateName, LookUpComboShootStateName);
         }
         else if (isLookingUp)
         {
@@ -855,6 +864,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             isEndingLookDown = false;
             ApplyUpperLookParams(lookUp: false, lookDown: true);
             TrySwitchHorizontalShootToLookShoot(LookDownShootStateName);
+            EnsureUpperLookLoopWhenNotShooting(LookDownStateName, LookDownStartStateName, LookDownShootStateName, LookDownComboShootStateName);
         }
         else if (isLookingDown)
         {
@@ -887,6 +897,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isEndingLookUp = false;
         isEndingLookDown = false;
         ResetUpperLookParams();
+        ResetUpperShootTrigger();
     }
 
     void InterruptLookShootForLookEnd(string lookEndStateName)
@@ -898,11 +909,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         comboShootPinnedNormalized = 0f;
         comboShootInputInterrupted = false;
 
+        ResetUpperShootTrigger();
         if (upperAnimator != null)
             upperAnimator.Play(lookEndStateName, 0, 0f);
     }
 
-    void BeginLookShoot(bool lookUp, bool lookDown, string shootStateName)
+    void BeginLookShoot(bool lookUp, bool lookDown)
     {
         if (upperAnimator == null)
             return;
@@ -926,10 +938,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             ApplyUpperLookParams(lookUp: false, lookDown: true);
         }
 
-        if (ShouldPlayLookShootDirectly(shootStateName))
-            upperAnimator.Play(shootStateName, 0, 0f);
-        else
-            upperAnimator.SetTrigger(ShootTriggerParam);
+        // 由调用方 Play 射击态；不再 SetTrigger，避免 Play 强切后 Trigger 残留，落地回 LookUpStart 时误进 LookUpShoot
+        ResetUpperShootTrigger();
     }
 
     void TrySwitchHorizontalShootToLookShoot(string lookShootStateName)
@@ -943,35 +953,79 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         upperShootUsesAnimatorParam = true;
         activeShootStateName = lookShootStateName;
         upperAnimator.Play(lookShootStateName, 0, 0f);
+        ResetUpperShootTrigger();
     }
 
-    bool ShouldPlayLookShootDirectly(string shootStateName)
+    void ResetUpperShootTrigger()
     {
-        if (upperAnimator == null)
-            return true;
-
-        var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
-        if (info.IsName(shootStateName))
-            return false;
-
-        if (info.IsName(LookUpStartStateName) || info.IsName(LookDownStartStateName))
-            return true;
-
-        if (info.IsName(LookUpStateName) || info.IsName(LookDownStateName))
-            return false;
-
-        return true;
+        if (upperAnimator != null)
+            upperAnimator.ResetTrigger(ShootTriggerParam);
     }
 
-    void ExitCrouchForAir()
+    void EnsureUpperLookLoopWhenNotShooting(
+        string lookLoopState,
+        string lookStartState,
+        string lookShootState,
+        string lookComboShootState)
+    {
+        if (isShooting || upperAnimator == null)
+            return;
+
+        ResetUpperShootTrigger();
+        var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
+        if (info.IsName(lookLoopState) || info.IsName(lookStartState))
+            return;
+
+        // 未在射击却停在 Look*Shoot：强制回 Look 循环，避免落地后继续播完射击片段
+        if (info.IsName(lookShootState) || info.IsName(lookComboShootState))
+        {
+            upperAnimator.Play(lookLoopState, 0, 0f);
+            return;
+        }
+
+        upperAnimator.Play(lookStartState, 0, 0f);
+    }
+
+    void ExitCrouchForAir(float velocityY)
     {
         isCrouching = false;
         ResetFullBodyParams();
         SetSplitDisplay();
+
+        bool hasHorizontal =
+            isRunning || (rb != null && Mathf.Abs(rb.linearVelocity.x) > 0.1f);
+
+        if (velocityY > descendVelocityThreshold)
+        {
+            if (hasHorizontal)
+            {
+                airTrack = AirTrack.Leap;
+                airPhase = AirPhaseType.Leap;
+            }
+            else
+            {
+                airTrack = AirTrack.Jump;
+                airPhase = AirPhaseType.Jump;
+            }
+        }
+        else if (airTrack == AirTrack.Leap || hasHorizontal)
+        {
+            airTrack = AirTrack.Leap;
+            airPhase = AirPhaseType.LeapAir;
+        }
+        else
+        {
+            airTrack = AirTrack.Jump;
+            airPhase = AirPhaseType.Fall;
+        }
+
+        InvalidateUpperLocomotionCache();
+        SyncSplitAnimators();
     }
 
     public void EnterFullBody(string stateName, bool autoExitOnComplete) // 切全身层并从头播放指定状态
     {
+        CancelUpperShootForFullBody();
         ClearLookState();
         displayMode = BodyDisplayMode.FullBody;
         activeFullBodyState = stateName;
@@ -1002,8 +1056,79 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (downBody != null)
             downBody.SetActive(true);
 
+        ResetUpperShootTrigger();
         InvalidateUpperLocomotionCache();
+
+        // 落地后若仍按住上/下，直接回 Look 循环，避免冻结的 LookUpShoot 继续播，也避开 LookUpStart 上残留 Shoot 过渡
+        if (TryRestoreLookAfterFullBody())
+        {
+            if (lowerAnimator != null)
+            {
+                lowerAnimator.SetInteger("AirPhase", (int)airPhase);
+                lowerAnimator.SetBool("IsRun", isRunning);
+            }
+            return;
+        }
+
         SyncSplitAnimators();
+    }
+
+    void CancelUpperShootForFullBody()
+    {
+        if (!isShooting && !isCharging)
+        {
+            ResetUpperShootTrigger();
+            return;
+        }
+
+        isShooting = false;
+        activeShootStateName = null;
+        activeShootAnimator = null;
+        upperShootUsesAnimatorParam = false;
+        comboShootPinnedNormalized = 0f;
+        comboShootInputInterrupted = false;
+        pendingLookUpReleaseAfterCombo = false;
+        pendingLookDownReleaseAfterCombo = false;
+
+        if (isCharging)
+            CancelMachinistCharge();
+
+        ResetUpperShootTrigger();
+    }
+
+    bool TryRestoreLookAfterFullBody()
+    {
+        if (upperAnimator == null || isCrouching)
+            return false;
+
+        bool wantLookUp = playerMovement != null && playerMovement.GetShootLookUp();
+        bool wantLookDown = playerMovement != null && playerMovement.GetShootLookDown();
+
+        if (wantLookUp)
+        {
+            isLookingUp = true;
+            isLookingDown = false;
+            isEndingLookUp = false;
+            isEndingLookDown = false;
+            ApplyUpperLookParams(lookUp: true, lookDown: false);
+            ResetUpperShootTrigger();
+            upperAnimator.Play(LookUpStateName, 0, 0f);
+            return true;
+        }
+
+        if (wantLookDown)
+        {
+            isLookingDown = true;
+            isLookingUp = false;
+            isEndingLookDown = false;
+            isEndingLookUp = false;
+            ApplyUpperLookParams(lookUp: false, lookDown: true);
+            ResetUpperShootTrigger();
+            upperAnimator.Play(LookDownStateName, 0, 0f);
+            return true;
+        }
+
+        return false;
     }
 
     public void OnFullBodyAnimationFinished() // Animation Event：全身动作结束，触发 autoExit
@@ -1111,8 +1236,16 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         switch (airPhase)
         {
             case AirPhaseType.Ground:
-                if (airStateInitialized && wasGrounded && !grounded && !jumpInvokedThisFrame) // 刚离开地面才进 Fall，避免误判
+                if (airStateInitialized && wasGrounded && !grounded && !jumpInvokedThisFrame)
                 {
+                    // 上坡踏上平台时竖直速度仍向上，不应误判为下落
+                    if (velocityY > descendVelocityThreshold)
+                        break;
+
+                    // 刚离开斜坡踏上/走下平台时，沿坡速度不等于坠落
+                    if (physicsCheck != null && physicsCheck.WasOnSlopeRecently && velocityY > -8f)
+                        break;
+
                     airTrack = AirTrack.Jump;
                     airPhase = AirPhaseType.Fall;
                 }
@@ -1350,6 +1483,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         bool wantLookUp = playerMovement != null && playerMovement.GetShootLookUp();
         bool wantLookDown = playerMovement != null && playerMovement.GetShootLookDown();
 
+        ResetUpperShootTrigger();
+
         if (wantLookUp)
         {
             isLookingUp = true;
@@ -1400,6 +1535,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         pendingLookUpReleaseAfterCombo = false;
         pendingLookDownReleaseAfterCombo = false;
         ResetUpperLookParams();
+        ResetUpperShootTrigger();
         RestoreUpperLocomotion();
     }
 
@@ -1444,6 +1580,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         pendingLookUpReleaseAfterCombo = false;
         pendingLookDownReleaseAfterCombo = false;
         ResetUpperLookParams();
+        ResetUpperShootTrigger();
     }
 
     void SetSplitDisplay() // 强制切回 Split 显示，不自动 Sync
@@ -1628,6 +1765,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         activeShootAnimator = null;
         comboShootPinnedNormalized = 0f;
         comboShootInputInterrupted = false;
+        ResetUpperShootTrigger();
 
         if (isCrouching)
         {

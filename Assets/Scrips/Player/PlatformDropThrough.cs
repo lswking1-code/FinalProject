@@ -27,6 +27,8 @@ public class PlatformDropThrough : MonoBehaviour
     [SerializeField] float dropThroughTimeout = 1f;
 
     PhysicsCheck physicsCheck;
+    PlayerMovement playerMovement;
+    PlayerAnim playerAnim;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
 
@@ -41,6 +43,8 @@ public class PlatformDropThrough : MonoBehaviour
     void Awake()
     {
         physicsCheck = GetComponent<PhysicsCheck>();
+        playerMovement = GetComponent<PlayerMovement>();
+        playerAnim = GetComponent<PlayerAnim>();
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 
@@ -63,6 +67,7 @@ public class PlatformDropThrough : MonoBehaviour
         UpdateDropThroughState();
 
         float playerFeet = capsuleCollider.bounds.min.y;
+        Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, playerFeet);
         float vy = rb.linearVelocity.y;
         var activeThisFrame = new HashSet<Collider2D>();
 
@@ -77,7 +82,7 @@ public class PlatformDropThrough : MonoBehaviour
                 continue;
 
             activeThisFrame.Add(col);
-            SetCollisionIgnored(col, !ShouldCollide(col, playerFeet, vy));
+            SetCollisionIgnored(col, !ShouldCollide(col, playerFeet, feetPos, vy));
             trackedPlatforms.Add(col);
         }
 
@@ -131,17 +136,49 @@ public class PlatformDropThrough : MonoBehaviour
         if (platform == null || !IsOneWayPlatform(platform))
             return true;
 
-        return ShouldCollide(platform, capsuleCollider.bounds.min.y, rb.linearVelocity.y);
+        return ShouldCollideForPhysics(platform);
+    }
+
+    /// <summary>
+    /// 供 PhysicsCheck 地面射线过滤：斜坡在可站立范围内始终视为实体地面。
+    /// </summary>
+    public bool ShouldCountAsGround(Collider2D platform, Vector2 hitNormal)
+    {
+        if (platform == null || !IsOneWayPlatform(platform))
+            return true;
+
+        var slope = platform.GetComponent<SlopeOneWayPlatform>();
+        if (slope == null)
+            return ShouldCollideForPhysics(platform);
+
+        if (hitNormal.y <= 0.5f)
+            return false;
+
+        Vector2 feetPos = GetFeetPosition();
+        return slope.IsFeetAboveSurface(feetPos);
+    }
+
+    Vector2 GetFeetPosition() =>
+        new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
+
+    bool ShouldCollideForPhysics(Collider2D platform)
+    {
+        Vector2 feetPos = GetFeetPosition();
+        return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
     }
 
     /// <summary>
     /// 核心判定：区分「从下方/侧方穿过」与「从上方落下/站在平台上/在平台顶起跳」。
     /// 旧逻辑要求脚底始终高于顶面才碰撞，落地穿透顶面那一帧会关闭碰撞导致穿板。
     /// </summary>
-    bool ShouldCollide(Collider2D platform, float playerFeet, float vy)
+    bool ShouldCollide(Collider2D platform, float playerFeet, Vector2 feetPos, float vy)
     {
         if (activeDropPlatform == platform)
             return false;
+
+        var slope = platform.GetComponent<SlopeOneWayPlatform>();
+        if (slope != null)
+            return ShouldCollideWithSlope(slope, feetPos, vy);
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
@@ -160,6 +197,60 @@ public class PlatformDropThrough : MonoBehaviour
 
         // 在平台顶面起跳：保持碰撞，避免在平台上跳时穿板
         return playerFeet >= platformTop - surfaceMargin;
+    }
+
+    bool ShouldCollideWithSlope(
+        SlopeOneWayPlatform slope,
+        Vector2 feetPos,
+        float vy)
+    {
+        float margin = slope.SurfaceMargin;
+        float standMargin = slope.StandMargin;
+        float signedDist = slope.GetSignedDistanceToSurface(feetPos);
+        bool baseCollide = ComputeSlopeOneWayCollision(signedDist, vy, margin, standMargin);
+
+        bool onHorizontalGround = physicsCheck.isGround && physicsCheck.groundNormal.y > 0.9f;
+        if (!onHorizontalGround || playerMovement == null)
+            return baseCollide;
+
+        float inputThreshold = playerMovement.InputThreshold;
+        Vector2 moveInput = playerMovement.MoveInput;
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (Mathf.Approximately(moveX, 0f))
+            return baseCollide;
+
+        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
+        Vector2 horizontalMove = new Vector2(moveX, 0f);
+
+        if (slope.IsInBottomJunction(feetPos))
+        {
+            float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
+            if (towardAscent > inputThreshold)
+                return !isCrouching;
+        }
+
+        if (slope.IsInTopJunction(feetPos))
+        {
+            float towardDescent = Vector2.Dot(horizontalMove, -slope.AscentDirection);
+            if (towardDescent > inputThreshold)
+                return isCrouching;
+        }
+
+        return baseCollide;
+    }
+
+    static bool ComputeSlopeOneWayCollision(float signedDist, float vy, float margin, float standMargin)
+    {
+        if (signedDist < -(margin + standMargin))
+            return false;
+
+        if (vy > 0.15f && signedDist < margin)
+            return false;
+
+        if (signedDist >= -standMargin)
+            return true;
+
+        return vy <= 0f && signedDist >= -margin;
     }
 
     /// <summary>
@@ -208,8 +299,17 @@ public class PlatformDropThrough : MonoBehaviour
             return;
         }
 
-        float platformBottom = activeDropPlatform.bounds.min.y;
         float playerFeet = capsuleCollider.bounds.min.y;
+        var slope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>();
+        if (slope != null)
+        {
+            Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, playerFeet);
+            if (slope.GetSignedDistanceToSurface(feetPos) < -dropThroughResetMargin)
+                ResetDropThrough();
+            return;
+        }
+
+        float platformBottom = activeDropPlatform.bounds.min.y;
         if (playerFeet < platformBottom - dropThroughResetMargin)
             ResetDropThrough();
     }

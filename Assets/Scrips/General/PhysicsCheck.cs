@@ -26,9 +26,23 @@ public class PhysicsCheck : MonoBehaviour
     public bool touchLeftWall;
     public bool touchRightWall;
     public bool onWall;
+    public Vector2 groundNormal = Vector2.up;
+    public bool isOnSlope;
 
     bool collisionTouchLeft;
     bool collisionTouchRight;
+    bool collisionGround;
+    Vector2 collisionGroundNormal;
+    bool wasOnSlope;
+    Vector2 lastGroundNormal;
+    int lastGroundFrame = int.MinValue;
+    int lastSlopeFrame = int.MinValue;
+    const int GroundCoyoteFrames = 8;
+    const int SlopeCoyoteFrames = 10;
+    const float SlopeTransitionCastExtra = 0.45f;
+
+    public bool WasOnSlopeRecently =>
+        Time.frameCount - lastSlopeFrame <= SlopeCoyoteFrames;
 
     private void Awake()
     {
@@ -56,7 +70,8 @@ public class PhysicsCheck : MonoBehaviour
 
     private void Update()
     {
-        Check();
+        if (!isPlayer)
+            Check();
     }
 
     void RecalculateOffsets()
@@ -89,16 +104,52 @@ public class PhysicsCheck : MonoBehaviour
         if (((1 << collision.gameObject.layer) & groundLayer) == 0)
             return;
 
-        if (!CountsAsSolidObstacle(collision.collider))
-            return;
-
         foreach (ContactPoint2D contact in collision.contacts)
         {
+            if (contact.normal.y > 0.5f && TryRegisterCollisionGround(collision.collider, contact.normal))
+            {
+                collisionGround = true;
+                collisionGroundNormal = contact.normal;
+            }
+
+            // 仅将接近竖直的法线视为墙体，避免斜坡接触误判为侧墙
+            if (Mathf.Abs(contact.normal.y) >= 0.6f)
+                continue;
+
+            if (!CountsAsSolidObstacle(collision.collider))
+                continue;
+
             if (contact.normal.x > 0.3f)
                 collisionTouchLeft = true;
             if (contact.normal.x < -0.3f)
                 collisionTouchRight = true;
         }
+    }
+
+    bool TryRegisterCollisionGround(Collider2D col, Vector2 normal)
+    {
+        var slope = col.GetComponent<SlopeOneWayPlatform>();
+        if (slope != null)
+        {
+            Vector2 feetPos = new Vector2(coll.bounds.center.x, coll.bounds.min.y);
+            return slope.IsFeetAboveSurface(feetPos);
+        }
+
+        if (platformDropThrough != null)
+            return platformDropThrough.ShouldCountAsGround(col, normal);
+
+        return true;
+    }
+
+    bool IsSlopeSurfaceHit(Collider2D hit)
+    {
+        if (hit == null)
+            return false;
+
+        if (hit.GetComponent<SlopeOneWayPlatform>() != null)
+            return true;
+
+        return false;
     }
 
     bool CheckSideOverlap(float direction)
@@ -114,9 +165,15 @@ public class PhysicsCheck : MonoBehaviour
         Vector2 center = new Vector2(centerX, bounds.center.y);
         Vector2 size = new Vector2(probeWidth, probeHeight);
         Collider2D hit = Physics2D.OverlapBox(center, size, 0f, groundLayer);
-        if (hit != null && !CountsAsSolidObstacle(hit))
+        if (hit == null)
             return false;
-        return hit != null;
+
+        if (IsSlopeSurfaceHit(hit))
+            return false;
+
+        if (!CountsAsSolidObstacle(hit))
+            return false;
+        return true;
     }
 
     bool CountsAsSolidObstacle(Collider2D obstacle)
@@ -124,6 +181,17 @@ public class PhysicsCheck : MonoBehaviour
         if (platformDropThrough == null || obstacle == null)
             return true;
         return platformDropThrough.ShouldCollideWith(obstacle);
+    }
+
+    bool CountsAsGroundHit(RaycastHit2D hit)
+    {
+        if (hit.collider == null || hit.normal.y <= 0.5f)
+            return false;
+
+        if (platformDropThrough == null)
+            return true;
+
+        return platformDropThrough.ShouldCountAsGround(hit.collider, hit.normal);
     }
 
     /// <summary>
@@ -137,11 +205,49 @@ public class PhysicsCheck : MonoBehaviour
 
         Vector2 groundOrigin = (Vector2)transform.position
             + new Vector2(bottomOffset.x * facing, bottomOffset.y);
-        RaycastHit2D groundHit = Physics2D.Raycast(
-            groundOrigin, Vector2.down, checkRaduis, groundLayer);
-        isGround = groundHit.collider != null
-            && groundHit.normal.y > 0.5f
-            && CountsAsSolidObstacle(groundHit.collider);
+        RaycastHit2D groundHit = Physics2D.CircleCast(
+            groundOrigin, 0.08f, Vector2.down, checkRaduis, groundLayer);
+
+        bool rayGround = groundHit.collider != null && CountsAsGroundHit(groundHit);
+        bool rawGround = collisionGround || rayGround;
+        Vector2 bridgeNormal = Vector2.zero;
+
+        if (!rawGround && (wasOnSlope || WasOnSlopeRecently))
+        {
+            RaycastHit2D slopeExitHit = Physics2D.CircleCast(
+                groundOrigin, 0.08f, Vector2.down, checkRaduis + SlopeTransitionCastExtra, groundLayer);
+            if (slopeExitHit.collider != null && CountsAsGroundHit(slopeExitHit))
+            {
+                rawGround = true;
+                bridgeNormal = slopeExitHit.normal;
+            }
+        }
+
+        if (rawGround)
+        {
+            if (collisionGround)
+                groundNormal = collisionGroundNormal;
+            else if (rayGround)
+                groundNormal = groundHit.normal;
+            else
+                groundNormal = bridgeNormal;
+
+            lastGroundNormal = groundNormal;
+            lastGroundFrame = Time.frameCount;
+        }
+
+        isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
+        if (isGround && !rawGround)
+            groundNormal = lastGroundNormal;
+        else if (!isGround)
+            groundNormal = Vector2.up;
+
+        isOnSlope = isGround && groundNormal.y > 0.5f && groundNormal.y < 0.99f;
+        if (isOnSlope)
+            lastSlopeFrame = Time.frameCount;
+        wasOnSlope = isOnSlope;
+
+        collisionGround = false;
 
         touchLeftWall = collisionTouchLeft || CheckSideOverlap(-1f);
         touchRightWall = collisionTouchRight || CheckSideOverlap(1f);

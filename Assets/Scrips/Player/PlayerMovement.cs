@@ -31,6 +31,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     float savedGravityScale;
     bool savedColliderEnabled;
+    float normalGravityScale;
 
     public bool IsActionLocked { get; private set; }
 
@@ -44,6 +45,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     bool comboStartHadJumpBuffer;
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
     public float FaceDirection => faceDir;
+    public Vector2 MoveInput => moveInput;
+    public float InputThreshold => inputThreshold;
     public bool GetShootLookUp() => actions.Player.Move.ReadValue<Vector2>().y > inputThreshold;
     public bool GetShootLookDown() =>
         !physicsCheck.isGround && actions.Player.Move.ReadValue<Vector2>().y < -inputThreshold;
@@ -76,6 +79,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             standingColliderOffset = capsuleCollider.offset;
         }
         actions = new InputSystem_Actions();
+        normalGravityScale = rb.gravityScale;
     }
 
     void OnEnable()
@@ -112,13 +116,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         {
             ReadInput();
             TryInterruptMachinistComboShoot();
-            HandleCrouch();
             HandleLook();
             TryTurn();
-            SyncAnimation(); // 每帧同步动画与空中阶段
+            SyncAnimation(); // 先推进空中/落地，再处理蹲姿，才能同帧打断 Land
+            HandleCrouch();
         }
 
         ApplyCrouchCollider(playerAnim.IsCrouching);
+
+        if (!IsActionLocked)
+            physicsCheck.Check();
     }
 
     void FixedUpdate()
@@ -130,6 +137,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             platformDropThrough.UpdateCollisions();
 
         physicsCheck.Check();
+        UpdateSlopeGravity();
 
         if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
             jumpBufferCounter = jumpBufferTime;
@@ -145,6 +153,62 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
         CancelVelocityIntoObstacle();
+        CancelVelocityIntoSlope();
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (IsActionLocked)
+            return;
+
+        if (((1 << collision.gameObject.layer) & physicsCheck.groundLayer) == 0)
+            return;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y <= 0.5f)
+                continue;
+
+            var slope = collision.collider.GetComponent<SlopeOneWayPlatform>();
+            if (slope == null)
+                continue;
+
+            Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
+            if (!slope.IsFeetAboveSurface(feetPos))
+                continue;
+
+            MaintainSlopeContact(contact.normal);
+            return;
+        }
+    }
+
+    void MaintainSlopeContact(Vector2 groundNormal)
+    {
+        if (!physicsCheck.isGround || rb.linearVelocity.y > 0.05f)
+            return;
+
+        rb.gravityScale = 0f;
+
+        if (playerAnim.IsTurning || playerAnim.IsCharging)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
+        Vector2 tangent = new Vector2(-groundNormal.y, groundNormal.x).normalized;
+
+        if (Mathf.Approximately(moveX, 0f))
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        if (Mathf.Sign(tangent.x) != Mathf.Sign(moveX))
+            tangent = -tangent;
+
+        rb.linearVelocity = tangent * speed;
     }
 
     void ReadInput()
@@ -221,6 +285,20 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (wantCrouch && !playerAnim.IsCrouching)
         {
+            // Land 期间 airPhase 仍可能是 Fall/LeapAir；按住 S 应立刻打断落地动画进蹲
+            if (playerAnim.IsPlayingLand)
+            {
+                jumpBufferCounter = 0f;
+                playerAnim.PlayCrouchAnim();
+                return;
+            }
+
+            // 起跳后 coyote 期间 isGround 仍为 true；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
+            if (playerAnim.CurrentAirPhase != PlayerAnim.AirPhaseType.Ground)
+                return;
+            if (rb.linearVelocity.y > 0.05f)
+                return;
+
             jumpBufferCounter = 0f; // 进入蹲姿时清跳跃缓冲，避免蹲跳后立刻再次蹲下
             playerAnim.PlayCrouchAnim();
         }
@@ -296,7 +374,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
 
-        float gravity = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
+        rb.gravityScale = normalGravityScale;
+        float gravity = Mathf.Abs(Physics2D.gravity.y * normalGravityScale);
         float jumpVelocity = Mathf.Sqrt(2f * gravity * jumpHeight);
 
         float horizontalVelocity = hasHorizontalInput ? faceDir * runSpeed : 0f;
@@ -327,7 +406,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (physicsCheck.IsBlockedHorizontally(moveX))
+        if (!physicsCheck.isOnSlope && physicsCheck.IsBlockedHorizontally(moveX))
             moveX = 0f;
 
         if (physicsCheck.isGround)
@@ -339,7 +418,27 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             }
 
             float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
-            rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
+
+            if (physicsCheck.isOnSlope)
+            {
+                Vector2 normal = physicsCheck.groundNormal;
+                Vector2 tangent = new Vector2(-normal.y, normal.x).normalized;
+
+                if (Mathf.Approximately(moveX, 0f))
+                {
+                    rb.linearVelocity = Vector2.zero;
+                }
+                else
+                {
+                    if (Mathf.Sign(tangent.x) != Mathf.Sign(moveX))
+                        tangent = -tangent;
+                    rb.linearVelocity = tangent * speed;
+                }
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
+            }
 
             if (moveX != 0f)
                 ApplyFacing();
@@ -369,10 +468,38 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// </summary>
     void CancelVelocityIntoObstacle()
     {
+        if (physicsCheck.isOnSlope)
+            return;
+
         if (physicsCheck.IsBlockedHorizontally(-1f) && rb.linearVelocity.x < 0f)
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         else if (physicsCheck.IsBlockedHorizontally(1f) && rb.linearVelocity.x > 0f)
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    /// <summary>
+    /// 站在斜坡上时移除法向速度分量，防止物理求解与重力导致滑落。
+    /// </summary>
+    void CancelVelocityIntoSlope()
+    {
+        if (!physicsCheck.isGround || !physicsCheck.isOnSlope)
+            return;
+
+        Vector2 normal = physicsCheck.groundNormal;
+        Vector2 velocity = rb.linearVelocity;
+        float normalSpeed = Vector2.Dot(velocity, normal);
+        rb.linearVelocity = velocity - normal * normalSpeed;
+    }
+
+    /// <summary>
+    /// 站在斜坡上时关闭重力，避免无摩擦刚体在物理步后沿坡滑落。
+    /// </summary>
+    void UpdateSlopeGravity()
+    {
+        if (physicsCheck.isGround && physicsCheck.isOnSlope)
+            rb.gravityScale = 0f;
+        else
+            rb.gravityScale = normalGravityScale;
     }
 
     void ApplyFacing() // 翻转 localScale.x，保留绝对缩放
@@ -456,6 +583,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.linearVelocity = Vector2.zero;
         rb.position = transform.position;
+        rb.gravityScale = normalGravityScale;
 
         if (playerAnim.IsCrouching)
             playerAnim.PlayStandAnim();
