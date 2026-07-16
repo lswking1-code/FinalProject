@@ -235,7 +235,7 @@ TextureImporter:
       name: PlayerM_UpShoot1_4
       rect:
         serializedVersion: 2
-        x: 65
+        x: 66
         y: 72
         width: 30
         height: 51
@@ -257,7 +257,7 @@ TextureImporter:
       name: PlayerM_UpShoot1_5
       rect:
         serializedVersion: 2
-        x: 113
+        x: 114
         y: 72
         width: 30
         height: 51
@@ -279,7 +279,7 @@ TextureImporter:
       name: PlayerM_UpShoot1_6
       rect:
         serializedVersion: 2
-        x: 161
+        x: 162
         y: 72
         width: 30
         height: 51
@@ -293,6 +293,28 @@ TextureImporter:
       bones: []
       spriteID: c95e8150c2cabcd60800000000000000
       internalID: 7911606475470464412
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Bullet
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 36
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5bd4435c19904784abce5c42e3fa0889
+      internalID: -247286164
       vertices: []
       indices: 
       edges: []
@@ -311,6 +333,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
+      PlayerM_Bullet: -247286164
       PlayerM_UpShoot1_0: -5167071185996182777
       PlayerM_UpShoot1_1: -5302915726057925388
       PlayerM_UpShoot1_2: 3047881282157441067

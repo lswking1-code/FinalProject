@@ -13,7 +13,7 @@ public class AllyRobot : MonoBehaviour
     // ──────────────────────────────────────────────
     //  状态
     // ──────────────────────────────────────────────
-    enum AllyState { Idle, Chase, Attack, Return, Pulling }
+    enum AllyState { Idle, Chase, Attack, Return, Pulling, ComboAttacking }
 
     AllyState currentState;
 
@@ -48,6 +48,11 @@ public class AllyRobot : MonoBehaviour
     public string attackTriggerName = "attack";
     [Tooltip("牵引 Trigger 参数名")]
     public string pullTriggerName = "pull";
+    [Tooltip("连击协同攻击 Trigger 参数名")]
+    public string comboAttackTriggerName = "comboAttack";
+
+    [Header("事件监听")]
+    [SerializeField] VoidEventSO robotComboEvent;
 
     [Header("牵引召回 (Ability2)")]
     [Tooltip("钩爪伸出速度（单位/秒）")]
@@ -84,6 +89,7 @@ public class AllyRobot : MonoBehaviour
     Character ownerCharacter;
     Rigidbody2D ownerRb;
     AllyRobotPullVisual pullVisual;
+    bool comboAttackAnimSeen;
 
     // ──────────────────────────────────────────────
     //  Unity 生命周期
@@ -106,6 +112,18 @@ public class AllyRobot : MonoBehaviour
         SwitchState(AllyState.Idle);
     }
 
+    void OnEnable()
+    {
+        if (robotComboEvent != null)
+            robotComboEvent.OnEventRaised += ComboAttack;
+    }
+
+    void OnDisable()
+    {
+        if (robotComboEvent != null)
+            robotComboEvent.OnEventRaised -= ComboAttack;
+    }
+
     void OnDestroy()
     {
         if (IsPulling)
@@ -122,11 +140,12 @@ public class AllyRobot : MonoBehaviour
 
         switch (currentState)
         {
-            case AllyState.Idle:    UpdateIdle();    break;
-            case AllyState.Chase:   UpdateChase();   break;
-            case AllyState.Attack:  UpdateAttack();  break;
-            case AllyState.Return:  UpdateReturn();  break;
-            case AllyState.Pulling: UpdatePulling(); break;
+            case AllyState.Idle:           UpdateIdle();           break;
+            case AllyState.Chase:          UpdateChase();          break;
+            case AllyState.Attack:         UpdateAttack();         break;
+            case AllyState.Return:         UpdateReturn();         break;
+            case AllyState.Pulling:        UpdatePulling();        break;
+            case AllyState.ComboAttacking: UpdateComboAttacking(); break;
         }
     }
 
@@ -141,6 +160,7 @@ public class AllyRobot : MonoBehaviour
                 MoveTowardSpawn();
                 break;
             case AllyState.Pulling:
+            case AllyState.ComboAttacking:
                 StopMoving();
                 break;
             case AllyState.Idle:
@@ -161,6 +181,9 @@ public class AllyRobot : MonoBehaviour
     public bool TryStartPull()
     {
         if (IsPulling || pullCooldownTimer > 0f)
+            return false;
+
+        if (currentState == AllyState.ComboAttacking)
             return false;
 
         if (owner == null || ownerMovement == null || ownerCharacter == null || ownerRb == null)
@@ -193,6 +216,25 @@ public class AllyRobot : MonoBehaviour
         SwitchState(AllyState.Pulling);
         pullCooldownTimer = pullCooldown;
         return true;
+    }
+
+    public void ComboAttack()
+    {
+        if (IsPulling || currentState == AllyState.ComboAttacking)
+            return;
+
+        StopMoving();
+        if (anim != null)
+            anim.SetBool(walkBoolName, false);
+
+        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+            FaceTarget(currentTarget.position);
+
+        if (anim != null)
+            anim.SetTrigger(comboAttackTriggerName);
+
+        attackTimer = attackCooldown;
+        SwitchState(AllyState.ComboAttacking);
     }
 
     void BeginPullWithoutVisual()
@@ -326,6 +368,11 @@ public class AllyRobot : MonoBehaviour
                 anim.SetBool(walkBoolName, false);
                 StopMoving();
                 break;
+            case AllyState.ComboAttacking:
+                anim.SetBool(walkBoolName, false);
+                StopMoving();
+                comboAttackAnimSeen = false;
+                break;
         }
     }
 
@@ -454,6 +501,27 @@ public class AllyRobot : MonoBehaviour
             SwitchState(AllyState.Idle);
         }
     }
+
+    void UpdateComboAttacking()
+    {
+        StopMoving();
+
+        if (anim == null)
+        {
+            ResumeStateAfterCombo();
+            return;
+        }
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        bool inCombo = info.IsName("ComboAttack");
+        if (inCombo)
+            comboAttackAnimSeen = true;
+
+        if (comboAttackAnimSeen && (!inCombo || info.normalizedTime >= 1f))
+            ResumeStateAfterCombo();
+    }
+
+    void ResumeStateAfterCombo() => ResumeStateAfterPull();
 
     // ──────────────────────────────────────────────
     //  移动

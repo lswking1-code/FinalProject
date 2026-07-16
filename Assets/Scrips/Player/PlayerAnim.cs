@@ -1027,6 +1027,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     void EnterFullBodyLand() // 空中落地或地面急停播 Land，结束后回地面 Split
     {
+        // 空中最终连击未播完就落地：直接结束，避免回到 Split 后被 pin 逻辑在地面重播
+        if (IsPlayingMachinistComboShoot)
+            CompleteShoot();
+
         EnterFullBody(LandStateName, autoExitOnComplete: true);
     }
 

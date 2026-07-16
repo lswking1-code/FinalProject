@@ -7,6 +7,7 @@ using UnityEngine.InputSystem;
 public class MachinistShooting : MonoBehaviour
 {
     enum ShootPhase { Idle, Pressing, Charging }
+    enum ComboStance { Ground, Air, Crouch }
 
     [Header("子弹")]
     [SerializeField] PlayerProjectile normalProjectilePrefab;
@@ -22,9 +23,18 @@ public class MachinistShooting : MonoBehaviour
     [Header("连击")]
     [SerializeField] int comboFinisherCount = 4;
     [SerializeField] float comboResetWindow = 0.8f;
+    [Tooltip("普通射击最短间隔（秒），0 表示不限制；不影响终结连击与蓄力")]
+    [SerializeField] float normalFireInterval = 0f;
+    [Tooltip("普通连击：动画开始后延迟多久再生成子弹")]
+    [SerializeField] float normalFireDelay = 0f;
+    [Tooltip("终结连击：动画开始后延迟多久再生成子弹")]
+    [SerializeField] float comboFireDelay = 0f;
 
     [Header("蓄力")]
     [SerializeField] float chargeHoldThreshold = 0.3f;
+
+    [Header("事件")]
+    [SerializeField] VoidEventSO robotComboEvent;
 
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
@@ -34,6 +44,15 @@ public class MachinistShooting : MonoBehaviour
     float pressTime;
     int comboCount;
     float lastShotTime;
+
+    bool hasPendingFire;
+    float pendingFireAt;
+    FireDir pendingFireDir;
+    PlayerProjectile pendingPrefab;
+    bool pendingRaiseComboEvent;
+
+    bool hasTrackedComboStance;
+    ComboStance lastComboStance;
 
     void Awake()
     {
@@ -50,6 +69,9 @@ public class MachinistShooting : MonoBehaviour
 
     void Update()
     {
+        TrySpawnPendingProjectile();
+        TryResetComboOnStanceChange();
+
         if (playerMovement.IsActionLocked)
             return;
 
@@ -97,6 +119,44 @@ public class MachinistShooting : MonoBehaviour
             comboCount = 0;
     }
 
+    void TryResetComboOnStanceChange()
+    {
+        var stance = ResolveComboStance();
+        if (!hasTrackedComboStance)
+        {
+            hasTrackedComboStance = true;
+            lastComboStance = stance;
+            return;
+        }
+
+        if (stance == lastComboStance)
+            return;
+
+        comboCount = 0;
+        lastComboStance = stance;
+    }
+
+    ComboStance ResolveComboStance()
+    {
+        if (playerAnim.IsCrouching)
+            return ComboStance.Crouch;
+        if (playerAnim.CurrentAirPhase != PlayerAnim.AirPhaseType.Ground)
+            return ComboStance.Air;
+        return ComboStance.Ground;
+    }
+
+    void TrySpawnPendingProjectile()
+    {
+        if (!hasPendingFire || Time.time < pendingFireAt)
+            return;
+
+        hasPendingFire = false;
+        bool raiseCombo = pendingRaiseComboEvent;
+        pendingRaiseComboEvent = false;
+        Fire(pendingFireDir, pendingPrefab, raiseCombo);
+        pendingPrefab = null;
+    }
+
     bool IsComboExpired() =>
         comboCount > 0 && Time.time - lastShotTime > comboResetWindow;
 
@@ -104,6 +164,10 @@ public class MachinistShooting : MonoBehaviour
     {
         if (IsComboExpired())
             comboCount = 0;
+
+        bool isFinisherNext = comboCount + 1 >= comboFinisherCount;
+        if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
+            return;
 
         comboCount++;
         var kind = comboCount >= comboFinisherCount ? MachinistShootKind.Combo : MachinistShootKind.Normal;
@@ -115,11 +179,39 @@ public class MachinistShooting : MonoBehaviour
         }
 
         lastShotTime = Time.time;
-        var prefab = kind == MachinistShootKind.Combo ? comboProjectilePrefab : normalProjectilePrefab;
-        Fire(ResolveFireDir(), prefab);
+        bool isCombo = kind == MachinistShootKind.Combo;
+        var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
+        float delay = isCombo ? comboFireDelay : normalFireDelay;
+        ScheduleFire(ResolveFireDir(), prefab, delay, isCombo);
 
-        if (kind == MachinistShootKind.Combo)
+        if (isCombo)
             comboCount = 0;
+    }
+
+    void ScheduleFire(FireDir dir, PlayerProjectile prefab, float delay, bool raiseComboEvent = false)
+    {
+        if (prefab == null)
+        {
+            hasPendingFire = false;
+            pendingPrefab = null;
+            pendingRaiseComboEvent = false;
+            return;
+        }
+
+        if (delay <= 0f)
+        {
+            hasPendingFire = false;
+            pendingPrefab = null;
+            pendingRaiseComboEvent = false;
+            Fire(dir, prefab, raiseComboEvent);
+            return;
+        }
+
+        hasPendingFire = true;
+        pendingFireAt = Time.time + delay;
+        pendingFireDir = dir;
+        pendingPrefab = prefab;
+        pendingRaiseComboEvent = raiseComboEvent;
     }
 
     void FireChargeShot()
@@ -142,7 +234,7 @@ public class MachinistShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, PlayerProjectile prefab)
+    void Fire(FireDir dir, PlayerProjectile prefab, bool raiseComboEvent = false)
     {
         if (prefab == null)
             return;
@@ -151,6 +243,9 @@ public class MachinistShooting : MonoBehaviour
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
         projectile.Init(dir, faceY);
+
+        if (raiseComboEvent)
+            robotComboEvent?.RaiseEvent();
     }
 
     Transform GetFirePoint(FireDir dir) => dir switch
