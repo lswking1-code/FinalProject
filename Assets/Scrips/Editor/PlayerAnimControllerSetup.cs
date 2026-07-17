@@ -228,6 +228,12 @@ public static class PlayerAnimControllerSetup
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
     const string ChargeShootStateName = "ChargeShoot";
+    const string LookUpChargeStartStateName = "LookUpChargeStart";
+    const string LookUpChargeLoopStateName = "LookUpChargeLoop";
+    const string LookUpChargeShootStateName = "LookUpChargeShoot";
+    const string LookDownChargeStartStateName = "LookDownChargeStart";
+    const string LookDownChargeLoopStateName = "LookDownChargeLoop";
+    const string LookDownChargeShootStateName = "LookDownChargeShoot";
     const string IsChargingParam = "IsCharging";
 
     [MenuItem("Lost Division/Ensure Machinist Shoot Animator States")]
@@ -269,9 +275,18 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, ShootClipPath, new Vector3(1050f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, ShootClipPath, new Vector3(1200f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistChargeShootClipPath, new Vector3(1350f, 0f, 0f));
+        // 方向蓄力 Start/Loop：空占位（后续补剪辑）；Shoot 挂已有 charge_shoot
+        changed |= EnsureMachinistState(sm, states, LookUpChargeStartStateName, null, new Vector3(1050f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeLoopStateName, null, new Vector3(1200f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeShootStateName, MachinistLookUpChargeShootClipPath, new Vector3(1350f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeStartStateName, null, new Vector3(1050f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeLoopStateName, null, new Vector3(1200f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeShootStateName, MachinistLookDownChargeShootClipPath, new Vector3(1350f, -120f, 0f));
 
         states = BuildStateMap(sm);
         changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
+        changed |= EnsureExitTimeTransition(states, LookUpChargeStartStateName, LookUpChargeLoopStateName, 0.95f);
+        changed |= EnsureExitTimeTransition(states, LookDownChargeStartStateName, LookDownChargeLoopStateName, 0.95f);
         changed |= EnsureTriggerTransition(states, "LookUp", LookUpComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerTransition(states, "LookDown", LookDownComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, ComboShootStateName, ShootTriggerParam);
@@ -348,7 +363,9 @@ public static class PlayerAnimControllerSetup
             changed = true;
         }
 
-        changed |= EnsureStateMotion(states, stateName, clipPath);
+        // clipPath 为空：只建状态占位，不挂 motion（后续补剪辑）
+        if (!string.IsNullOrEmpty(clipPath))
+            changed |= EnsureStateMotion(states, stateName, clipPath);
         return changed;
     }
 

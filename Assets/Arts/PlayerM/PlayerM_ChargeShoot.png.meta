@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 2ba756dbd641fd640a78fc5781b5453f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4746531641485964214
+    second: PlayerM_ChargeShoot_0
+  - first:
+      213: 9023556490957914394
+    second: PlayerM_ChargeShoot_1
+  - first:
+      213: -3171130838661482196
+    second: PlayerM_ChargeShoot_2
+  - first:
+      213: 472113473339791043
+    second: PlayerM_ChargeShoot_3
+  - first:
+      213: -2138335178539033383
+    second: PlayerM_ChargeShoot_4
+  - first:
+      213: -4259255432597511902
+    second: PlayerM_ChargeShoot_5
+  - first:
+      213: -3583195816368623727
+    second: PlayerM_ChargeShoot_6
+  - first:
+      213: 3590642976257507576
+    second: PlayerM_ChargeShoot_7
+  - first:
+      213: 4499938329927516418
+    second: PlayerM_ChargeShoot_8
+  - first:
+      213: -2511681386185378948
+    second: PlayerM_ChargeShoot_9
+  - first:
+      213: 5240455046839002583
+    second: PlayerM_ChargeShoot_10
+  - first:
+      213: 4737311858615609148
+    second: PlayerM_ChargeShoot_11
+  - first:
+      213: -4744601540383004069
+    second: PlayerM_ChargeShoot_12
+  - first:
+      213: -8018955275949048010
+    second: PlayerM_ChargeShoot_13
+  - first:
+      213: 1376144015773567136
+    second: PlayerM_ChargeShoot_14
+  - first:
+      213: -2425882293073696852
+    second: PlayerM_ChargeShoot_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 204
+        width: 36
+        height: 40
+      alignment: 9
+      pivot: {x: 0.41666666, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b33ce531611fd140800000000000000
+      internalID: 4746531641485964214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_1
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 203
+        width: 46
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a118736d1dc1a3d70800000000000000
+      internalID: 9023556490957914394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_2
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 203
+        width: 35
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c29bb49bd41edf3d0800000000000000
+      internalID: -3171130838661482196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_3
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 203
+        width: 37
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c61810e3b84d8600800000000000000
+      internalID: 472113473339791043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_4
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 139
+        width: 48
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dc95780c7b1352e0800000000000000
+      internalID: -2138335178539033383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_5
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 139
+        width: 47
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2216f5420c514e4c0800000000000000
+      internalID: -4259255432597511902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_6
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 139
+        width: 49
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19faeacb36ee54ec0800000000000000
+      internalID: -3583195816368623727
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_7
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 155
+        width: 48
+        height: 25
+      alignment: 9
+      pivot: {x: 0.3541667, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f0841b43c684d130800000000000000
+      internalID: 3590642976257507576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_8
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 91
+        width: 48
+        height: 25
+      alignment: 9
+      pivot: {x: 0.35416666, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2018e72c11ef27e30800000000000000
+      internalID: 4499938329927516418
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_9
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 91
+        width: 48
+        height: 25
+      alignment: 9
+      pivot: {x: 0.35416666, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c73b5733617b42dd0800000000000000
+      internalID: -2511681386185378948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_10
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 91
+        width: 50
+        height: 25
+      alignment: 9
+      pivot: {x: 0.34, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7d5ed389916d9b840800000000000000
+      internalID: 5240455046839002583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_11
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 75
+        width: 46
+        height: 41
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c37670b39005eb140800000000000000
+      internalID: 4737311858615609148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_12
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 27
+        width: 50
+        height: 25
+      alignment: 9
+      pivot: {x: 0.34, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b5a23b8790ac72eb0800000000000000
+      internalID: -4744601540383004069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_13
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 27
+        width: 50
+        height: 25
+      alignment: 9
+      pivot: {x: 0.34, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 63fff4ba9a2f6b090800000000000000
+      internalID: -8018955275949048010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShoot_14
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 27
+        width: 50
+        height: 25
+      alignment: 9
+      pivot: {x: 0.32, y: 0.12}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a886f3f0bb091310800000000000000
+      internalID: 1376144015773567136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeBullet
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 32
+        width: 22
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca7ae6648e8855ed0800000000000000
+      internalID: -2425882293073696852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 974c7c466935eb74bb207f291e4411b4
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      PlayerM_ChargeBullet: -2425882293073696852
+      PlayerM_ChargeShoot_0: 4746531641485964214
+      PlayerM_ChargeShoot_1: 9023556490957914394
+      PlayerM_ChargeShoot_10: 5240455046839002583
+      PlayerM_ChargeShoot_11: 4737311858615609148
+      PlayerM_ChargeShoot_12: -4744601540383004069
+      PlayerM_ChargeShoot_13: -8018955275949048010
+      PlayerM_ChargeShoot_14: 1376144015773567136
+      PlayerM_ChargeShoot_2: -3171130838661482196
+      PlayerM_ChargeShoot_3: 472113473339791043
+      PlayerM_ChargeShoot_4: -2138335178539033383
+      PlayerM_ChargeShoot_5: -4259255432597511902
+      PlayerM_ChargeShoot_6: -3583195816368623727
+      PlayerM_ChargeShoot_7: 3590642976257507576
+      PlayerM_ChargeShoot_8: 4499938329927516418
+      PlayerM_ChargeShoot_9: -2511681386185378948
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

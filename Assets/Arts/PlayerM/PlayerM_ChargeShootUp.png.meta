@@ -1,22 +1,25 @@
 fileFormatVersion: 2
-guid: 0301cf38543f3334cbdefe86e9cb5e53
+guid: 5d520e61dd9ef4141b368aa92281a26c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8928889993035630035
-    second: PlayerM_CrouchShoot2_0
+      213: 6287245853344544030
+    second: PlayerM_ChargeShootUp_0
   - first:
-      213: 151669257852053983
-    second: PlayerM_CrouchShoot2_1
+      213: -1106282568865466346
+    second: PlayerM_ChargeShootUp_1
   - first:
-      213: 6786513496909669531
-    second: PlayerM_CrouchShoot2_2
+      213: -5927342746965082134
+    second: PlayerM_ChargeShootUp_2
   - first:
-      213: 4046883586620691466
-    second: PlayerM_CrouchShoot2_3
+      213: 6112447558257881573
+    second: PlayerM_ChargeShootUp_3
   - first:
-      213: -4124814648715669425
-    second: PlayerM_CrouchShoot2_4
+      213: 6096976761849672097
+    second: PlayerM_ChargeShootUp_4
+  - first:
+      213: 1258424775593281380
+    second: PlayerM_ChargeShootUp_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -138,265 +141,155 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_0
+      name: PlayerM_ChargeShootUp_0
       rect:
         serializedVersion: 2
-        x: 17
-        y: 205
-        width: 50
-        height: 40
+        x: 18
+        y: 200
+        width: 30
+        height: 50
       alignment: 9
-      pivot: {x: 0.34, y: 0}
+      pivot: {x: 0.53333336, y: 0.19999999}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d2a329ecbd5361480800000000000000
-      internalID: -8928889993035630035
+      spriteID: e153628dac8c04750800000000000000
+      internalID: 6287245853344544030
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_1
+      name: PlayerM_ChargeShootUp_1
       rect:
         serializedVersion: 2
-        x: 81
-        y: 205
-        width: 50
-        height: 40
+        x: 65
+        y: 200
+        width: 30
+        height: 50
       alignment: 9
-      pivot: {x: 0.34, y: 0}
+      pivot: {x: 0.53333336, y: 0.19999999}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fd96e9de266da1200800000000000000
-      internalID: 151669257852053983
+      spriteID: 618319d6dd1b5a0f0800000000000000
+      internalID: -1106282568865466346
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_2
+      name: PlayerM_ChargeShootUp_2
       rect:
         serializedVersion: 2
-        x: 145
-        y: 205
-        width: 50
-        height: 40
+        x: 113
+        y: 200
+        width: 30
+        height: 50
       alignment: 9
-      pivot: {x: 0.34, y: 0}
+      pivot: {x: 0.53333336, y: 0.19999999}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b94e1b6a11a8e2e50800000000000000
-      internalID: 6786513496909669531
+      spriteID: aef78211d29ddbda0800000000000000
+      internalID: -5927342746965082134
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_3
+      name: PlayerM_ChargeShootUp_3
       rect:
         serializedVersion: 2
-        x: 17
-        y: 141
-        width: 50
-        height: 40
+        x: 161
+        y: 200
+        width: 30
+        height: 50
       alignment: 9
-      pivot: {x: 0.34, y: 0}
+      pivot: {x: 0.53333336, y: 0.19999999}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a0492e34e2b692830800000000000000
-      internalID: 4046883586620691466
+      spriteID: 5e13a2a4ba6c3d450800000000000000
+      internalID: 6112447558257881573
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_4
-      rect:
-        serializedVersion: 2
-        x: 81
-        y: 141
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f4099f26ee6b1c6c0800000000000000
-      internalID: -4124814648715669425
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_5
-      rect:
-        serializedVersion: 2
-        x: 17
-        y: 77
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b858fe318a8b9de41a70f675be2aedda
-      internalID: -924265479
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_6
-      rect:
-        serializedVersion: 2
-        x: 81
-        y: 77
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: a952cf87ec05c5d4491db45197ef073a
-      internalID: -694559263
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_7
-      rect:
-        serializedVersion: 2
-        x: 145
-        y: 77
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8a133780622aad84ab505632803375ca
-      internalID: 1606809460
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_8
-      rect:
-        serializedVersion: 2
-        x: 17
-        y: 13
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b1c9b078afd029d47b983d0c549c83fb
-      internalID: 163326619
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_9
-      rect:
-        serializedVersion: 2
-        x: 81
-        y: 13
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7781ae0c0a251d64995ea7d1764980c7
-      internalID: -641987367
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_10
-      rect:
-        serializedVersion: 2
-        x: 145
-        y: 13
-        width: 50
-        height: 40
-      alignment: 9
-      pivot: {x: 0.34, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e2a5efeaea468744788f9ebb369021be
-      internalID: 83006576
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_CrouchShoot2_11
+      name: PlayerM_ChargeShootUp_4
       rect:
         serializedVersion: 2
         x: 209
-        y: 13
-        width: 47
-        height: 40
+        y: 200
+        width: 30
+        height: 50
       alignment: 9
-      pivot: {x: 0.3617021, y: 0}
+      pivot: {x: 0.53333336, y: 0.19999999}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a17cddcf00dc9450800000000000000
+      internalID: 6096976761849672097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShootUp_5
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 136
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.53333336, y: 0.19999999}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 467c9cd7aa2d67110800000000000000
+      internalID: 1258424775593281380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ChargeShootUp_6
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 136
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.53333336, y: 0.19999999}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d7bc5cd04aa77a34d9340b1550bc572f
-      internalID: -42466703
+      spriteID: 3e16c1c950ce2074fb6ab470f2fb8e32
+      internalID: -1399840050
       vertices: []
       indices: 
       edges: []
@@ -405,7 +298,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 46dd9cd60f0fcbc40b3c5644a1968088
+    spriteID: db533c4266b2e1d4cb0d16b7789e5c6c
     internalID: 0
     vertices: []
     indices: 
@@ -415,18 +308,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_CrouchShoot2_0: -8928889993035630035
-      PlayerM_CrouchShoot2_1: 151669257852053983
-      PlayerM_CrouchShoot2_10: 83006576
-      PlayerM_CrouchShoot2_11: -42466703
-      PlayerM_CrouchShoot2_2: 6786513496909669531
-      PlayerM_CrouchShoot2_3: 4046883586620691466
-      PlayerM_CrouchShoot2_4: -4124814648715669425
-      PlayerM_CrouchShoot2_5: -924265479
-      PlayerM_CrouchShoot2_6: -694559263
-      PlayerM_CrouchShoot2_7: 1606809460
-      PlayerM_CrouchShoot2_8: 163326619
-      PlayerM_CrouchShoot2_9: -641987367
+      PlayerM_ChargeShootUp_0: 6287245853344544030
+      PlayerM_ChargeShootUp_1: -1106282568865466346
+      PlayerM_ChargeShootUp_2: -5927342746965082134
+      PlayerM_ChargeShootUp_3: 6112447558257881573
+      PlayerM_ChargeShootUp_4: 6096976761849672097
+      PlayerM_ChargeShootUp_5: 1258424775593281380
+      PlayerM_ChargeShootUp_6: -1399840050
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

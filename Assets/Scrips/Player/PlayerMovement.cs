@@ -283,6 +283,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         bool wantCrouch = moveInput.y < -inputThreshold;
 
+        // 蓄力中：蹲下/站起只切换蓄力姿态，不中断蓄力
+        if (playerAnim.IsCharging)
+        {
+            bool wantLookUp = moveInput.y > inputThreshold;
+            playerAnim.SyncChargeAimFromInput(wantLookUp, wantLookDown: false, wantCrouch);
+            if (wantCrouch)
+                jumpBufferCounter = 0f;
+            return;
+        }
+
         if (wantCrouch && !playerAnim.IsCrouching)
         {
             // Land 期间 airPhase 仍可能是 Fall/LeapAir；按住 S 应立刻打断落地动画进蹲
@@ -311,6 +321,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         bool wantLookUp = moveInput.y > inputThreshold;
         bool wantLookDown = !physicsCheck.isGround && moveInput.y < -inputThreshold;
 
+        // 蓄力中：上下输入切蓄力方向，不走普通 Look
+        if (playerAnim.IsCharging)
+        {
+            // 地面蹲下由 HandleCrouch 处理；此处只同步上下瞄准（地面按下不算 LookDown）
+            bool wantCrouch = physicsCheck.isGround && moveInput.y < -inputThreshold;
+            if (!wantCrouch)
+                playerAnim.SyncChargeAimFromInput(wantLookUp, wantLookDown, wantCrouch: false);
+            return;
+        }
+
         playerAnim.SetLookUp(wantLookUp);
         playerAnim.SetLookDown(wantLookDown);
     }
@@ -322,6 +342,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
         if (moveX == 0f || moveX == faceDir)
+            return;
+
+        // 蓄力中：左右输入忽略（不翻面、不转身、不移动）
+        if (playerAnim.IsCharging)
             return;
 
         bool started = playerAnim.IsCrouching
@@ -371,7 +395,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
-        if (hasHorizontalInput)
+        // 蓄力中左右无效：起跳不改朝向、不带水平速度
+        if (playerAnim.IsCharging)
+            hasHorizontalInput = false;
+        else if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
 
         rb.gravityScale = normalGravityScale;
@@ -525,6 +552,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
+
+        if (playerAnim.IsCharging)
+        {
+            playerAnim.PlayIdleAnim();
+            return;
+        }
 
         if (playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee))
             return;

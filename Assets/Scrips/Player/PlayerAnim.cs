@@ -6,6 +6,14 @@ public enum MachinistShootKind
     Combo,
 }
 
+public enum MachinistChargeAim
+{
+    Forward,
+    Up,
+    Down,
+    Crouch,
+}
+
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参数驱动；上半身 locomotion 由 Play 驱动，蹲姿/着陆/转身走 FullBody 层
 {
@@ -53,6 +61,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
     const string ChargeShootStateName = "ChargeShoot";
+    const string LookUpChargeStartStateName = "LookUpChargeStart";
+    const string LookUpChargeLoopStateName = "LookUpChargeLoop";
+    const string LookUpChargeShootStateName = "LookUpChargeShoot";
+    const string LookDownChargeStartStateName = "LookDownChargeStart";
+    const string LookDownChargeLoopStateName = "LookDownChargeLoop";
+    const string LookDownChargeShootStateName = "LookDownChargeShoot";
     const string ThrowStateName = "Throw";
     const string AirThrowStateName = "AirThrow";
     const string CrouchThrowStateName = "CrouchThrow";
@@ -117,6 +131,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool upperShootUsesAnimatorParam;
     Animator activeChargeAnimator;
     string activeChargeStateName;
+    MachinistChargeAim activeChargeAim;
     string activeThrowStateName;
     Animator activeThrowAnimator;
     string activeMeleeStateName;
@@ -129,6 +144,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool IsCrouching => isCrouching;
     public bool IsShooting => isShooting;
     public bool IsCharging => isCharging;
+    public MachinistChargeAim ActiveChargeAim => activeChargeAim;
     public bool IsPlayingMachinistComboShoot =>
         isShooting && IsMachinistComboShootState(activeShootStateName);
     public bool IsThrowing => isThrowing;
@@ -292,7 +308,11 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
-        if (isCrouching && (isShooting || isCharging || isThrowing || isMelee))
+        // 蓄力中禁止跑动动画（站立下半身 / 蹲姿全身）
+        if (isCharging)
+            return;
+
+        if (isCrouching && (isShooting || isThrowing || isMelee))
             return;
 
         if (IsPlayingMachinistComboShoot)
@@ -598,20 +618,154 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             ResetFullBodyParams();
         }
 
-        Animator animator = isCrouching ? crouchAnimator : upperAnimator;
-        if (animator == null)
-            return false;
+        // 清普通 Look，改由蓄力瞄准态接管上半身
+        if (IsUpperLookActive())
+            ClearLookState();
+
+        isRunning = false;
+        if (lowerAnimator != null)
+            lowerAnimator.SetBool("IsRun", false);
+        if (isCrouching && crouchAnimator != null)
+            crouchAnimator.SetBool("IsRun", false);
 
         isCharging = true;
-        activeChargeAnimator = animator;
-        activeChargeStateName = ChargeStartStateName;
+        var aim = ResolveInitialChargeAim();
+        ApplyChargeAim(aim, playStart: true);
+        if (activeChargeAnimator == null)
+        {
+            isCharging = false;
+            activeChargeAim = MachinistChargeAim.Forward;
+            return false;
+        }
 
-        if (!isCrouching && IsUpperLookActive())
-            StopLook();
-
-        animator.SetBool(IsChargingParam, false);
-        animator.Play(ChargeStartStateName, 0, 0f);
         return true;
+    }
+
+    public void SetChargeAim(MachinistChargeAim aim)
+    {
+        if (!isCharging)
+            return;
+
+        if (aim == activeChargeAim)
+            return;
+
+        ApplyChargeAim(aim, playStart: true);
+    }
+
+    public void SyncChargeAimFromInput(bool wantLookUp, bool wantLookDown, bool wantCrouch)
+    {
+        if (!isCharging)
+            return;
+
+        MachinistChargeAim aim;
+        if (wantCrouch)
+            aim = MachinistChargeAim.Crouch;
+        else if (wantLookUp)
+            aim = MachinistChargeAim.Up;
+        else if (wantLookDown)
+            aim = MachinistChargeAim.Down;
+        else
+            aim = MachinistChargeAim.Forward;
+
+        SetChargeAim(aim);
+    }
+
+    MachinistChargeAim ResolveInitialChargeAim()
+    {
+        if (isCrouching)
+            return MachinistChargeAim.Crouch;
+
+        if (playerMovement != null)
+        {
+            if (playerMovement.GetShootLookUp())
+                return MachinistChargeAim.Up;
+            if (playerMovement.GetShootLookDown())
+                return MachinistChargeAim.Down;
+        }
+
+        return MachinistChargeAim.Forward;
+    }
+
+    void ApplyChargeAim(MachinistChargeAim aim, bool playStart)
+    {
+        bool wantCrouch = aim == MachinistChargeAim.Crouch;
+
+        if (wantCrouch && !isCrouching)
+            EnterCrouchChargeDisplay();
+        else if (!wantCrouch && isCrouching)
+            ExitCrouchChargeDisplay();
+
+        activeChargeAim = aim;
+
+        Animator animator = wantCrouch ? crouchAnimator : upperAnimator;
+        if (animator == null)
+        {
+            activeChargeAnimator = null;
+            activeChargeStateName = null;
+            return;
+        }
+
+        if (activeChargeAnimator != null && activeChargeAnimator != animator)
+            activeChargeAnimator.SetBool(IsChargingParam, false);
+
+        string startName = GetChargeStartStateName(aim);
+        string loopName = GetChargeLoopStateName(aim);
+        string stateName = playStart ? startName : loopName;
+
+        activeChargeAnimator = animator;
+        activeChargeStateName = stateName;
+        animator.SetBool(IsChargingParam, !playStart);
+        animator.Play(stateName, 0, 0f);
+    }
+
+    static string GetChargeStartStateName(MachinistChargeAim aim) => aim switch
+    {
+        MachinistChargeAim.Up => LookUpChargeStartStateName,
+        MachinistChargeAim.Down => LookDownChargeStartStateName,
+        _ => ChargeStartStateName,
+    };
+
+    static string GetChargeLoopStateName(MachinistChargeAim aim) => aim switch
+    {
+        MachinistChargeAim.Up => LookUpChargeLoopStateName,
+        MachinistChargeAim.Down => LookDownChargeLoopStateName,
+        _ => ChargeLoopStateName,
+    };
+
+    static string GetChargeShootStateName(MachinistChargeAim aim) => aim switch
+    {
+        MachinistChargeAim.Up => LookUpChargeShootStateName,
+        MachinistChargeAim.Down => LookDownChargeShootStateName,
+        _ => ChargeShootStateName,
+    };
+
+    void EnterCrouchChargeDisplay()
+    {
+        InterruptLand();
+        ClearLookState();
+
+        isCrouching = true;
+        airPhase = AirPhaseType.Ground;
+        airTrack = AirTrack.None;
+        displayMode = BodyDisplayMode.FullBody;
+        activeFullBodyState = ChargeLoopStateName;
+        fullBodyAutoExit = false;
+        ResetFullBodyParams();
+
+        if (upBody != null)
+            upBody.SetActive(false);
+        if (downBody != null)
+            downBody.SetActive(false);
+        if (crouchBody != null)
+            crouchBody.SetActive(true);
+    }
+
+    void ExitCrouchChargeDisplay()
+    {
+        isCrouching = false;
+        ResetFullBodyParams();
+        SetSplitDisplay();
+        InvalidateUpperLocomotionCache();
     }
 
     public bool ReleaseMachinistCharge()
@@ -620,18 +774,22 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return false;
 
         var animator = activeChargeAnimator;
+        var aim = activeChargeAim;
+        string shootState = GetChargeShootStateName(aim);
+
         isCharging = false;
         activeChargeAnimator = null;
         activeChargeStateName = null;
+        activeChargeAim = MachinistChargeAim.Forward;
         animator.SetBool(IsChargingParam, false);
 
         isShooting = true;
-        activeShootStateName = ChargeShootStateName;
+        activeShootStateName = shootState;
         activeShootAnimator = animator;
         upperShootUsesAnimatorParam = false;
-        if (!isCrouching)
+        if (aim == MachinistChargeAim.Forward && !isCrouching)
             BlockUpperAirPhaseForHorizontalShoot();
-        animator.Play(ChargeShootStateName, 0, 0f);
+        animator.Play(shootState, 0, 0f);
         return true;
     }
 
@@ -646,6 +804,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isCharging = false;
         activeChargeAnimator = null;
         activeChargeStateName = null;
+        activeChargeAim = MachinistChargeAim.Forward;
     }
 
     public bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
@@ -804,6 +963,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void SetLookUp(bool active)
     {
+        if (isCharging)
+            return;
+
         if (isCrouching || displayMode == BodyDisplayMode.FullBody)
         {
             if (IsUpperLookActive())
@@ -847,6 +1009,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void SetLookDown(bool active)
     {
+        if (isCharging)
+            return;
+
         if (isCrouching || displayMode == BodyDisplayMode.FullBody)
         {
             if (IsUpperLookActive())
@@ -988,6 +1153,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     void ExitCrouchForAir(float velocityY)
     {
+        bool keepCharge = isCharging;
+        MachinistChargeAim chargeAim = activeChargeAim;
+
         isCrouching = false;
         ResetFullBodyParams();
         SetSplitDisplay();
@@ -1020,6 +1188,20 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         }
 
         InvalidateUpperLocomotionCache();
+
+        if (keepCharge)
+        {
+            // 蹲姿蓄力离地：保持蓄力，切到站立方向蓄力（Crouch → Forward，或按输入 Up/Down）
+            if (chargeAim == MachinistChargeAim.Crouch)
+                chargeAim = ResolveInitialChargeAim();
+            if (chargeAim == MachinistChargeAim.Crouch)
+                chargeAim = MachinistChargeAim.Forward;
+
+            activeChargeAim = chargeAim; // 避免 Apply 再 ExitCrouch
+            ApplyChargeAim(chargeAim, playStart: true);
+            return;
+        }
+
         SyncSplitAnimators();
     }
 
@@ -1273,6 +1455,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         if (lowerAnimator == null)
             return;
+
+        // 蓄力锁移动：下半身保持 Idle，避免输入仍驱动奔跑
+        if (isCharging)
+            isRunning = false;
 
         int phase = (int)airPhase;
         lowerAnimator.SetInteger("AirPhase", phase);
@@ -1653,12 +1839,18 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (!info.IsName(activeChargeStateName))
             return;
 
-        if (activeChargeStateName != ChargeStartStateName || info.normalizedTime < 1f)
+        string startName = GetChargeStartStateName(activeChargeAim);
+        string loopName = GetChargeLoopStateName(activeChargeAim);
+        if (activeChargeStateName != startName)
             return;
 
-        activeChargeStateName = ChargeLoopStateName;
+        // 空占位（无 motion / 长度≈0）立即进 Loop；有剪辑则等播完
+        if (info.length > 0.001f && info.normalizedTime < 1f)
+            return;
+
+        activeChargeStateName = loopName;
         activeChargeAnimator.SetBool(IsChargingParam, true);
-        activeChargeAnimator.Play(ChargeLoopStateName, 0, 0f);
+        activeChargeAnimator.Play(loopName, 0, 0f);
     }
 
     void MaintainThrowCompletion()

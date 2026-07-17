@@ -1663,7 +1663,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1191447930
 Transform:
   m_ObjectHideFlags: 0
@@ -1691,14 +1691,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a132eb186d4e02408a7fb88381037dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+  enemyPrefabs: []
+  pickMode: 0
+  waveCount: 3
+  spawnCountPerWave: 2
+  maxTotalSpawns: 0
+  spawnInterval: 5
+  initialDelay: 2
   spawnPoints:
   - {fileID: 1191447930}
   - {fileID: 1215786184}
-  spawnCountPerWave: 2
-  spawnInterval: 5
-  initialDelay: 2
+  encounterZone: {fileID: 0}
   spawnOnStart: 1
+  OnWaveSpawned:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSpawningCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1215786183
 GameObject:
   m_ObjectHideFlags: 0

@@ -517,7 +517,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runSpeed: 5
   crouchMoveSpeed: 3
-  jumpHeight: 2.5
+  jumpHeight: 3
   inputThreshold: 0.5
   jumpBufferTime: 0.2
   crouchColliderSize: {x: 1.08, y: 1.2}
@@ -609,7 +609,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
   comboProjectilePrefab: {fileID: 1207313983663696913, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
-  chargeProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+  chargeProjectilePrefab: {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
   forwardPoint: {fileID: 2800590082269034882}
   crouchPoint: {fileID: 8591273858336282524}
   upPoint: {fileID: 3562070384078571298}
@@ -646,6 +646,8 @@ MonoBehaviour:
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
+  groundNormal: {x: 0, y: 1}
+  isOnSlope: 0
 --- !u!114 &5817356231846119991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -976,8 +978,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -624170957
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 1018721849255436521, guid: 780a1e3c7c613aa4388866c06eb57a85, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

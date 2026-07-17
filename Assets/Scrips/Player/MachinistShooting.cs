@@ -12,7 +12,7 @@ public class MachinistShooting : MonoBehaviour
     [Header("子弹")]
     [SerializeField] PlayerProjectile normalProjectilePrefab;
     [SerializeField] PlayerProjectile comboProjectilePrefab;
-    [SerializeField] PlayerProjectile chargeProjectilePrefab;
+    [SerializeField] PlayerMChargeBullet chargeProjectilePrefab;
 
     [Header("发射点")]
     [SerializeField] Transform forwardPoint;
@@ -217,11 +217,32 @@ public class MachinistShooting : MonoBehaviour
     void FireChargeShot()
     {
         comboCount = 0;
+        // Release 会清 ActiveChargeAim，须先解析方向
+        var fireDir = ResolveChargeFireDir();
         if (!playerAnim.ReleaseMachinistCharge())
             return;
 
-        Fire(ResolveFireDir(), chargeProjectilePrefab);
+        FireCharge(fireDir, chargeProjectilePrefab);
     }
+
+    void FireCharge(FireDir dir, PlayerMChargeBullet prefab)
+    {
+        if (prefab == null)
+            return;
+
+        Transform point = GetFirePoint(dir);
+        float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
+        var projectile = Instantiate(prefab, point.position, Quaternion.identity);
+        projectile.Init(dir, faceY);
+    }
+
+    FireDir ResolveChargeFireDir() => playerAnim.ActiveChargeAim switch
+    {
+        MachinistChargeAim.Up => FireDir.Up,
+        MachinistChargeAim.Down => FireDir.Down,
+        MachinistChargeAim.Crouch => FireDir.Crouch,
+        _ => FireDir.Forward,
+    };
 
     FireDir ResolveFireDir()
     {
