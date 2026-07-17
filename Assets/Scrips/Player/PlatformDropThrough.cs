@@ -40,6 +40,8 @@ public class PlatformDropThrough : MonoBehaviour
     Collider2D activeDropPlatform;
     float dropThroughTimer;
 
+    public bool IsDroppingThrough => activeDropPlatform != null;
+
     void Awake()
     {
         physicsCheck = GetComponent<PhysicsCheck>();
@@ -239,23 +241,25 @@ public class PlatformDropThrough : MonoBehaviour
         return baseCollide;
     }
 
+    /// <summary>
+    /// 斜坡单向：可站立区始终碰撞（含起跳）；从下方上升可穿越；落下可站立。
+    /// </summary>
     static bool ComputeSlopeOneWayCollision(float signedDist, float vy, float margin, float standMargin)
     {
         if (signedDist < -(margin + standMargin))
             return false;
 
-        if (vy > 0.15f && signedDist < margin)
-            return false;
-
+        // 可站立区：保持碰撞，站上起跳不会穿坡
         if (signedDist >= -standMargin)
             return true;
 
-        return vy <= 0f && signedDist >= -margin;
+        // 坡体内部：上升穿越，下落接住
+        if (vy > 0.15f)
+            return false;
+
+        return true;
     }
 
-    /// <summary>
-    /// 脚底短射线检测当前所站是否为单向平台（用于触发下穿）。
-    /// </summary>
     bool TryGetOneWayPlatformBelow(out Collider2D platformCollider)
     {
         platformCollider = null;
@@ -266,8 +270,13 @@ public class PlatformDropThrough : MonoBehaviour
 
         Vector2 origin = (Vector2)transform.position
             + new Vector2(physicsCheck.bottomOffset.x * facing, physicsCheck.bottomOffset.y);
-        RaycastHit2D hit = Physics2D.Raycast(
-            origin, Vector2.down, physicsCheck.checkRaduis + 0.05f, physicsCheck.groundLayer);
+
+        float castDistance = physicsCheck.checkRaduis + 0.05f;
+        if (physicsCheck.isOnSlope)
+            castDistance += 0.4f;
+
+        RaycastHit2D hit = Physics2D.CircleCast(
+            origin, 0.1f, Vector2.down, castDistance, physicsCheck.groundLayer);
 
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
@@ -304,7 +313,8 @@ public class PlatformDropThrough : MonoBehaviour
         if (slope != null)
         {
             Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, playerFeet);
-            if (slope.GetSignedDistanceToSurface(feetPos) < -dropThroughResetMargin)
+            float clearMargin = dropThroughResetMargin + slope.StandMargin * 0.5f;
+            if (slope.GetSignedDistanceToSurface(feetPos) < -clearMargin)
                 ResetDropThrough();
             return;
         }

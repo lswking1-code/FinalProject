@@ -32,8 +32,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float savedGravityScale;
     bool savedColliderEnabled;
     float normalGravityScale;
+    /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
+    float slopeDetachTimer;
 
     public bool IsActionLocked { get; private set; }
+    public bool IsSlopeDetached => slopeDetachTimer > 0f;
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -133,6 +136,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             return;
 
+        if (slopeDetachTimer > 0f)
+            slopeDetachTimer -= Time.fixedDeltaTime;
+
         if (platformDropThrough != null)
             platformDropThrough.UpdateCollisions();
 
@@ -158,7 +164,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void OnCollisionStay2D(Collision2D collision)
     {
-        if (IsActionLocked)
+        if (IsActionLocked || IsSlopeDetached)
+            return;
+
+        if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
             return;
 
         if (((1 << collision.gameObject.layer) & physicsCheck.groundLayer) == 0)
@@ -184,7 +193,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void MaintainSlopeContact(Vector2 groundNormal)
     {
-        if (!physicsCheck.isGround || rb.linearVelocity.y > 0.05f)
+        if (IsSlopeDetached || !physicsCheck.isGround)
+            return;
+
+        if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
+            return;
+
+        // 上升中不贴合，避免吃掉起跳速度
+        if (rb.linearVelocity.y > 0.05f)
             return;
 
         rb.gravityScale = 0f;
@@ -209,6 +225,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             tangent = -tangent;
 
         rb.linearVelocity = tangent * speed;
+    }
+
+    void BeginSlopeDetach(float duration = 0.2f)
+    {
+        slopeDetachTimer = Mathf.Max(slopeDetachTimer, duration);
+        rb.gravityScale = normalGravityScale;
     }
 
     void ReadInput()
@@ -388,6 +410,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             && platformDropThrough != null
             && platformDropThrough.TryBeginDropThrough(moveInput, inputThreshold))
         {
+            BeginSlopeDetach(0.35f);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, -2f));
             jumpBufferCounter = 0f;
             dbgResult = "单向平台下穿";
             lastKPressFrame = -1;
@@ -401,11 +425,24 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         else if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
 
-        rb.gravityScale = normalGravityScale;
+        // 斜坡站立时 gravityScale 可能为 0，必须用正常重力反算初速度
         float gravity = Mathf.Abs(Physics2D.gravity.y * normalGravityScale);
         float jumpVelocity = Mathf.Sqrt(2f * gravity * jumpHeight);
 
         float horizontalVelocity = hasHorizontalInput ? faceDir * runSpeed : 0f;
+
+        if (physicsCheck.isOnSlope)
+        {
+            BeginSlopeDetach(0.25f);
+            // 沿法线微抬，减少起跳帧仍卡在坡面里
+            Vector2 n = physicsCheck.groundNormal;
+            rb.position += n * 0.06f;
+        }
+        else
+        {
+            rb.gravityScale = normalGravityScale;
+        }
+
         rb.linearVelocity = new Vector2(horizontalVelocity, jumpVelocity);
 
         playerAnim.PlayJumpAnim(hasHorizontalInput);
@@ -438,6 +475,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (physicsCheck.isGround)
         {
+            // 斜坡起跳后 coyote 仍可能判接地，不能覆盖上升速度
+            if (IsSlopeDetached)
+            {
+                if (moveX != 0f)
+                {
+                    rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
+                    ApplyFacing();
+                }
+                return;
+            }
+
             if (playerAnim.IsTurning)
             {
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -509,7 +557,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// </summary>
     void CancelVelocityIntoSlope()
     {
+        if (IsSlopeDetached)
+            return;
+
         if (!physicsCheck.isGround || !physicsCheck.isOnSlope)
+            return;
+
+        if (rb.linearVelocity.y > 0.05f)
             return;
 
         Vector2 normal = physicsCheck.groundNormal;
@@ -518,11 +572,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.linearVelocity = velocity - normal * normalSpeed;
     }
 
-    /// <summary>
-    /// 站在斜坡上时关闭重力，避免无摩擦刚体在物理步后沿坡滑落。
-    /// </summary>
     void UpdateSlopeGravity()
     {
+        if (IsSlopeDetached || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
+        {
+            rb.gravityScale = normalGravityScale;
+            return;
+        }
+
         if (physicsCheck.isGround && physicsCheck.isOnSlope)
             rb.gravityScale = 0f;
         else
@@ -613,6 +670,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         jumpPressed = false;
         jumpBufferCounter = 0f;
         lastKPressFrame = -1;
+        slopeDetachTimer = 0f;
 
         rb.linearVelocity = Vector2.zero;
         rb.position = transform.position;
