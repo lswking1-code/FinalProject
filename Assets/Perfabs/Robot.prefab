@@ -353,9 +353,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: -624170957
+  m_SortingLayer: 1
+  m_SortingOrder: -1
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -472,7 +472,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
   m_SortingLayer: 1
-  m_SortingOrder: -1
+  m_SortingOrder: 0
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -622,10 +622,10 @@ MonoBehaviour:
   dashSpeed: 12
   dashTimeout: 1.5
   arriveThreshold: 0.15
-  detectRangeX: 10.08
+  detectRangeX: 13
   attackDistance: 1.56
   attackCooldown: 1
-  maxChaseRange: 13.95
+  maxChaseRange: 15
   anim: {fileID: 2370199281924299456}
   walkBoolName: walk
   attackTriggerName: attack
@@ -634,6 +634,7 @@ MonoBehaviour:
   dashStartTriggerName: dashStart
   dashStartStateName: DashAttack_start
   dashLoopStateName: DashAttack_loop
+  dashActiveBoolName: dashActive
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
   pullExtendSpeed: 50
   pullSpeed: 15

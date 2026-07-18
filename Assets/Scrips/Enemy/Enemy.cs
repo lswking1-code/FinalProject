@@ -38,6 +38,7 @@ public class Enemy : MonoBehaviour
     [Header("状态")]
     public bool isHurt;
     public bool isDead;
+    [HideInInspector] public bool isMarked;
 
     [HideInInspector] public Transform player;
 

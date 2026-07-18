@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1889227775165499583}
   - component: {fileID: 2027867819761731706}
   - component: {fileID: 2116673155432072033}
-  - component: {fileID: 1207313983663696913}
+  - component: {fileID: -5845897735575499202}
   - component: {fileID: 785616209480741553}
   m_Layer: 10
   m_Name: PlayerMComboBullet
@@ -154,7 +154,7 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
---- !u!114 &1207313983663696913
+--- !u!114 &-5845897735575499202
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -163,12 +163,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7954760529879662823}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1f2a3b4c5d6478901234567890abcde, type: 3}
+  m_Script: {fileID: 11500000, guid: 134d1e2a4d68a2f49ac8036869cdf42e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 15
-  damage: 50
+  damage: 20
   lifetime: 5
+  abilityPowerRestore: 4
 --- !u!114 &785616209480741553
 MonoBehaviour:
   m_ObjectHideFlags: 0

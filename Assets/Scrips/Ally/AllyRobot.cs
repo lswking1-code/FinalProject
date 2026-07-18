@@ -70,6 +70,8 @@ public class AllyRobot : MonoBehaviour
     public string dashStartStateName = "DashAttack_start";
     [Tooltip("Combo 冲锋冲刺循环 Animator 状态名")]
     public string dashLoopStateName = "DashAttack_loop";
+    [Tooltip("冲刺进行中 Bool 参数名（Animator 兜底退出用）")]
+    public string dashActiveBoolName = "dashActive";
 
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
@@ -117,6 +119,7 @@ public class AllyRobot : MonoBehaviour
     bool comboAttackAnimSeen;
     bool comboDashWindupAnimSeen;
     float dashTimer;
+    bool pendingRetarget;
 
     // ──────────────────────────────────────────────
     //  Unity 生命周期
@@ -209,6 +212,37 @@ public class AllyRobot : MonoBehaviour
         ownerRb = player.GetComponent<Rigidbody2D>();
     }
 
+    /// <summary>
+    /// 请求重新索敌。若正在牵引 / Combo，则延后到该动作结束后执行。
+    /// </summary>
+    public void RequestRetarget()
+    {
+        if (IsPulling || IsBusyWithCombo)
+        {
+            pendingRetarget = true;
+            return;
+        }
+
+        PerformRetarget();
+    }
+
+    void PerformRetarget()
+    {
+        pendingRetarget = false;
+
+        if (TryAcquireTarget(out Transform target))
+        {
+            BeginCombat(target);
+            return;
+        }
+
+        currentTarget = null;
+        if (IsOutsideMaxChaseRange())
+            SwitchState(AllyState.Return);
+        else
+            SwitchState(AllyState.Idle);
+    }
+
     public bool TryStartPull()
     {
         if (IsPulling || pullCooldownTimer > 0f)
@@ -274,7 +308,7 @@ public class AllyRobot : MonoBehaviour
         if (anim != null)
             anim.SetBool(walkBoolName, false);
 
-        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+        if (IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
         if (anim != null)
@@ -290,7 +324,7 @@ public class AllyRobot : MonoBehaviour
         if (anim != null)
             anim.SetBool(walkBoolName, false);
 
-        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
+        if (IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
         if (anim != null)
@@ -385,16 +419,8 @@ public class AllyRobot : MonoBehaviour
 
     void ResumeStateAfterPull()
     {
-        if (TryAcquireTarget(out Transform target))
-        {
-            BeginCombat(target);
-            return;
-        }
-
-        if (IsOutsideMaxChaseRange())
-            SwitchState(AllyState.Return);
-        else
-            SwitchState(AllyState.Idle);
+        // 牵引 / Combo 结束后统一重新索敌（含 TaggetArea 延后请求）
+        PerformRetarget();
     }
 
     // ──────────────────────────────────────────────
@@ -412,35 +438,43 @@ public class AllyRobot : MonoBehaviour
         switch (state)
         {
             case AllyState.Idle:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, false);
                 FaceRight();
                 break;
             case AllyState.Chase:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, true);
                 break;
             case AllyState.Attack:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, false);
                 StopMoving();
                 break;
             case AllyState.Return:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, true);
                 currentTarget = null;
                 break;
             case AllyState.Pulling:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, false);
                 StopMoving();
                 break;
             case AllyState.ComboAttacking:
+                SetDashActive(false);
                 anim.SetBool(walkBoolName, false);
                 StopMoving();
                 comboAttackAnimSeen = false;
                 break;
             case AllyState.ComboDashWindup:
+                SetDashActive(true);
                 anim.SetBool(walkBoolName, false);
                 StopMoving();
                 comboDashWindupAnimSeen = false;
                 break;
             case AllyState.ComboDashing:
+                SetDashActive(true);
                 anim.SetBool(walkBoolName, false);
                 dashTimer = dashTimeout;
                 break;
@@ -455,10 +489,40 @@ public class AllyRobot : MonoBehaviour
 
     bool IsInAttackRange(Transform target) => GetDistXTo(target) <= attackDistance;
 
+    /// <summary>
+    /// 目标仍存在、处于激活状态，且未进入死亡流程。
+    /// </summary>
+    bool IsValidCombatTarget(Transform target)
+    {
+        if (target == null || !target.gameObject.activeInHierarchy)
+            return false;
+
+        Enemy enemy = target.GetComponent<Enemy>();
+        return enemy == null || !enemy.isDead;
+    }
+
     bool TryAcquireTarget(out Transform target)
     {
         target = FindClosestEnemy();
         return target != null;
+    }
+
+    void SetDashActive(bool active)
+    {
+        if (anim != null)
+            anim.SetBool(dashActiveBoolName, active);
+    }
+
+    /// <summary>
+    /// 统一退出 Combo 冲刺：停移、强制 Idle，再恢复常规 AI 状态。
+    /// </summary>
+    void ExitComboDash()
+    {
+        StopMoving();
+        SetDashActive(false);
+        if (anim != null)
+            anim.Play("Idle", 0, 0f);
+        ResumeStateAfterCombo();
     }
 
     void BeginCombat(Transform target)
@@ -489,6 +553,12 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateIdle()
     {
+        if (pendingRetarget)
+        {
+            PerformRetarget();
+            return;
+        }
+
         if (TryAcquireTarget(out Transform target))
             BeginCombat(target);
     }
@@ -501,7 +571,7 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
+        if (!IsValidCombatTarget(currentTarget))
         {
             if (!TryAcquireTarget(out currentTarget))
             {
@@ -529,7 +599,7 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
+        if (!IsValidCombatTarget(currentTarget))
         {
             if (!TryAcquireTarget(out currentTarget))
             {
@@ -596,8 +666,16 @@ public class AllyRobot : MonoBehaviour
     {
         StopMoving();
 
-        if (currentTarget != null && currentTarget.gameObject.activeInHierarchy)
-            FaceTarget(currentTarget.position);
+        if (!IsValidCombatTarget(currentTarget))
+        {
+            if (!TryAcquireTarget(out currentTarget))
+            {
+                ExitComboDash();
+                return;
+            }
+        }
+
+        FaceTarget(currentTarget.position);
 
         if (anim == null)
         {
@@ -616,11 +694,11 @@ public class AllyRobot : MonoBehaviour
 
     void StartComboDash()
     {
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
+        if (!IsValidCombatTarget(currentTarget))
         {
             if (!TryAcquireTarget(out currentTarget))
             {
-                ResumeStateAfterCombo();
+                ExitComboDash();
                 return;
             }
         }
@@ -647,19 +725,15 @@ public class AllyRobot : MonoBehaviour
         dashTimer -= Time.deltaTime;
         if (dashTimer <= 0f)
         {
-            StopMoving();
-            if (anim != null)
-                anim.Play("Idle", 0, 0f);
-            ResumeStateAfterCombo();
+            ExitComboDash();
             return;
         }
 
-        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
+        if (!IsValidCombatTarget(currentTarget))
         {
             if (!TryAcquireTarget(out currentTarget))
             {
-                StopMoving();
-                ResumeStateAfterCombo();
+                ExitComboDash();
                 return;
             }
         }
@@ -681,7 +755,7 @@ public class AllyRobot : MonoBehaviour
 
     void MoveTowardTarget()
     {
-        if (currentTarget == null) return;
+        if (!IsValidCombatTarget(currentTarget)) return;
 
         // 已在攻击范围内则不移动
         if (IsInAttackRange(currentTarget))
@@ -696,7 +770,7 @@ public class AllyRobot : MonoBehaviour
 
     void MoveTowardTargetDash()
     {
-        if (currentTarget == null) return;
+        if (!IsValidCombatTarget(currentTarget)) return;
 
         if (IsInAttackRange(currentTarget))
         {
@@ -757,30 +831,45 @@ public class AllyRobot : MonoBehaviour
 
     /// <summary>
     /// 用 Tag "Enemy" 直接搜索，不依赖 Physics2D 仿真状态（兼容 simulated=false 的敌人）。
-    /// 返回 X 轴距离最近且在 detectRangeX 范围内的目标；未找到则返回 null。
+    /// 标记敌人优先；同优先级内取 X 轴距离最近且在 detectRangeX 范围内的目标。
     /// </summary>
     Transform FindClosestEnemy()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
-        Transform closest = null;
-        float minDistX = float.MaxValue;
+        Transform closestMarked = null;
+        Transform closestUnmarked = null;
+        float minMarkedDistX = float.MaxValue;
+        float minUnmarkedDistX = float.MaxValue;
 
         foreach (var e in enemies)
         {
             if (!e.gameObject.activeInHierarchy) continue;
 
+            Enemy enemy = e.GetComponent<Enemy>();
+            if (enemy != null && enemy.isDead) continue;
+
             float distX = Mathf.Abs(transform.position.x - e.transform.position.x);
             if (distX > detectRangeX) continue;
 
-            if (distX < minDistX)
+            bool marked = enemy != null && enemy.isMarked;
+
+            if (marked)
             {
-                minDistX = distX;
-                closest = e.transform;
+                if (distX < minMarkedDistX)
+                {
+                    minMarkedDistX = distX;
+                    closestMarked = e.transform;
+                }
+            }
+            else if (distX < minUnmarkedDistX)
+            {
+                minUnmarkedDistX = distX;
+                closestUnmarked = e.transform;
             }
         }
 
-        return closest;
+        return closestMarked != null ? closestMarked : closestUnmarked;
     }
 
     // ──────────────────────────────────────────────

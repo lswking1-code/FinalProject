@@ -607,8 +607,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 828134a9a29463547a28e52cf1aa25f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalProjectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
-  comboProjectilePrefab: {fileID: 1207313983663696913, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
+  normalProjectilePrefab: {fileID: 340545589965268769, guid: caa09d0d5f4a56b4a8b464526f859919, type: 3}
+  comboProjectilePrefab: {fileID: -5845897735575499202, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
   chargeProjectilePrefab: {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
   forwardPoint: {fileID: 2800590082269034882}
   crouchPoint: {fileID: 8591273858336282524}
@@ -680,7 +680,7 @@ MonoBehaviour:
   longPressThreshold: 0.5
   previewMoveSpeed: 3
   maxPreviewDistance: 5
-  robotDrainRate: 2.5
+  robotDrainRate: 5
   minAbilityPowerToSpawn: 1
 --- !u!114 &7077185591638236879
 MonoBehaviour:

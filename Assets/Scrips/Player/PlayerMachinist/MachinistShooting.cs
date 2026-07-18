@@ -10,8 +10,8 @@ public class MachinistShooting : MonoBehaviour
     enum ComboStance { Ground, Air, Crouch }
 
     [Header("子弹")]
-    [SerializeField] PlayerProjectile normalProjectilePrefab;
-    [SerializeField] PlayerProjectile comboProjectilePrefab;
+    [SerializeField] PlayerMNormalBullet normalProjectilePrefab;
+    [SerializeField] PlayerMNormalBullet comboProjectilePrefab;
     [SerializeField] PlayerMChargeBullet chargeProjectilePrefab;
 
     [Header("发射点")]
@@ -39,6 +39,7 @@ public class MachinistShooting : MonoBehaviour
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
     PlayerMovement playerMovement;
+    Character character;
 
     ShootPhase phase = ShootPhase.Idle;
     float pressTime;
@@ -48,7 +49,7 @@ public class MachinistShooting : MonoBehaviour
     bool hasPendingFire;
     float pendingFireAt;
     FireDir pendingFireDir;
-    PlayerProjectile pendingPrefab;
+    PlayerMNormalBullet pendingPrefab;
     bool pendingRaiseComboEvent;
 
     bool hasTrackedComboStance;
@@ -59,6 +60,7 @@ public class MachinistShooting : MonoBehaviour
         actions = new InputSystem_Actions();
         playerAnim = GetComponent<PlayerAnim>();
         playerMovement = GetComponent<PlayerMovement>();
+        character = GetComponent<Character>();
     }
 
     void OnEnable() => actions.Player.Enable();
@@ -188,7 +190,7 @@ public class MachinistShooting : MonoBehaviour
             comboCount = 0;
     }
 
-    void ScheduleFire(FireDir dir, PlayerProjectile prefab, float delay, bool raiseComboEvent = false)
+    void ScheduleFire(FireDir dir, PlayerMNormalBullet prefab, float delay, bool raiseComboEvent = false)
     {
         if (prefab == null)
         {
@@ -255,7 +257,7 @@ public class MachinistShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, PlayerProjectile prefab, bool raiseComboEvent = false)
+    void Fire(FireDir dir, PlayerMNormalBullet prefab, bool raiseComboEvent = false)
     {
         if (prefab == null)
             return;
@@ -263,7 +265,7 @@ public class MachinistShooting : MonoBehaviour
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        projectile.Init(dir, faceY);
+        projectile.Init(dir, faceY, character);
 
         if (raiseComboEvent)
             robotComboEvent?.RaiseEvent();

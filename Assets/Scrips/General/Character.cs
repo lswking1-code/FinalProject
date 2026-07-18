@@ -168,6 +168,12 @@ public class Character : MonoBehaviour,ISaveable
         NotifyStatsChanged();
     }
 
+    public void RestoreAbilityPower(float amount)
+    {
+        AbilityPower = Mathf.Min(maxAbilityPower, AbilityPower + amount);
+        NotifyStatsChanged();
+    }
+
     void NotifyStatsChanged()
     {
         OnHealthChange?.Invoke(this);
