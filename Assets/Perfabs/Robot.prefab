@@ -619,6 +619,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 3
+  dashSpeed: 12
+  dashTimeout: 1.5
   arriveThreshold: 0.15
   detectRangeX: 10.08
   attackDistance: 1.56
@@ -629,6 +631,9 @@ MonoBehaviour:
   attackTriggerName: attack
   pullTriggerName: pull
   comboAttackTriggerName: comboAttack
+  dashStartTriggerName: dashStart
+  dashStartStateName: DashAttack_start
+  dashLoopStateName: DashAttack_loop
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
   pullExtendSpeed: 50
   pullSpeed: 15
@@ -665,7 +670,7 @@ Transform:
   m_GameObject: {fileID: 6250385081535608555}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 1.46, y: -0.38, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
