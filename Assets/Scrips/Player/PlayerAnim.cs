@@ -358,6 +358,16 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         isCrouching = false;
         ResetFullBodyParams();
+
+        // 蹲姿射击/投掷/近战绑在 crouchAnimator；起身后 crouchBody 会关掉。
+        // 若不先结束，isShooting 等标志会卡住，SyncSplitAnimators 永久跳过上半身同步。
+        if (isShooting && activeShootAnimator == crouchAnimator)
+            CompleteShoot();
+        else if (isThrowing && activeThrowAnimator == crouchAnimator)
+            CompleteThrow();
+        else if (isMelee && activeMeleeAnimator == crouchAnimator)
+            CompleteMelee();
+
         ExitFullBody();
         RestoreUpperLocomotion();
     }
@@ -1788,6 +1798,13 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (!isShooting || activeShootAnimator == null || string.IsNullOrEmpty(activeShootStateName))
             return;
 
+        // crouchBody 被隐藏后 Animator 停更，必须兜底结束，否则上半身永久卡 Idle
+        if (!activeShootAnimator.isActiveAndEnabled)
+        {
+            CompleteShoot();
+            return;
+        }
+
         if (!upperShootUsesAnimatorParam && activeShootAnimator == upperAnimator)
             BlockUpperAirPhaseForHorizontalShoot();
 
@@ -1858,6 +1875,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (!isThrowing || activeThrowAnimator == null || string.IsNullOrEmpty(activeThrowStateName))
             return;
 
+        if (!activeThrowAnimator.isActiveAndEnabled)
+        {
+            CompleteThrow();
+            return;
+        }
+
         var info = activeThrowAnimator.GetCurrentAnimatorStateInfo(0);
         if (!info.IsName(activeThrowStateName))
         {
@@ -1875,6 +1898,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         if (!isMelee || activeMeleeAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
             return;
+
+        if (!activeMeleeAnimator.isActiveAndEnabled)
+        {
+            CompleteMelee();
+            return;
+        }
 
         var info = activeMeleeAnimator.GetCurrentAnimatorStateInfo(0);
         if (!info.IsName(activeMeleeStateName))
