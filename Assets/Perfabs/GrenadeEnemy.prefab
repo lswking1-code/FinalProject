@@ -201,7 +201,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 2039525417
-  m_SortingLayer: 2
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -9095717837082945937, guid: 207ee8102dd4143d288186ef0be518ee, type: 3}
   m_Color: {r: 0.80910105, g: 0.5537175, b: 0, a: 1}
@@ -349,9 +349,9 @@ MonoBehaviour:
   isDead: 0
   isMarked: 0
   player: {fileID: 0}
-  shootRange: 5
+  shootRange: 7.5
   actionDuration: 2
-  fireInterval: 0.7
+  fireInterval: 0.6
   projectilePrefab: {fileID: 0}
   firePoint: {fileID: 0}
   shotWeight: 0.3
@@ -360,6 +360,8 @@ MonoBehaviour:
   moveProbability: 0.3
   grenadePrefab: {fileID: 2000000000000000006, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
   throwPoint: {fileID: 5507517411812069850}
+  throwAngle: 75
+  throwSpeed: 8
 --- !u!114 &7759382780292668202
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,6 +8,10 @@ public class GrenadeEnemy : RangedEnemy
     [Header("手雷")]
     public EnemyGrenade grenadePrefab;
     public Transform throwPoint;
+    [Tooltip("抛射角（度，相对水平向上；0=平抛，90=竖直向上）")]
+    [SerializeField] float throwAngle = 35.5f;
+    [Tooltip("抛射速度（越大飞得越远/越高）")]
+    [SerializeField] float throwSpeed = 8.6f;
 
     protected override void Awake()
     {
@@ -32,7 +36,7 @@ public class GrenadeEnemy : RangedEnemy
         var throwerCollider = GetComponent<Collider2D>();
 
         var grenade = Instantiate(grenadePrefab, spawnPos, Quaternion.identity);
-        grenade.Init(dir, throwerVelocity, throwerCollider);
+        grenade.Init(dir, throwerVelocity, throwerCollider, throwAngle, throwSpeed);
         FacePlayer();
     }
 }
