@@ -1691,11 +1691,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a132eb186d4e02408a7fb88381037dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefabs:
-  - {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-  pickMode: 0
-  waveCount: 5
-  spawnCountPerWave: 3
+  waves:
+  - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+    count: 3
+  - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+    count: 5
+  - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+    count: 5
+  - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+    count: 7
   maxTotalSpawns: 0
   spawnInterval: 10
   initialDelay: 2
