@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5270986536797637205}
   - component: {fileID: 6839639135164282548}
   - component: {fileID: 5223061095695500060}
-  m_Layer: 11
+  m_Layer: 13
   m_Name: Attact1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -138,10 +138,10 @@ PolygonCollider2D:
     - - {x: 1.9490097, y: -0.877326}
       - {x: 1.4237078, y: -2.734643}
       - {x: 0.9353536, y: -1.8855386}
-      - {x: 1.0969234, y: -3.6231875}
-      - {x: 1.6128104, y: -4.7199535}
-      - {x: 2.139957, y: -4.5648775}
-      - {x: 2.5163314, y: -2.7237628}
+      - {x: 0.9157293, y: -4.0511956}
+      - {x: 1.6038245, y: -5.556929}
+      - {x: 2.2761931, y: -5.5407386}
+      - {x: 2.8447175, y: -3.2633007}
       - {x: 2.1834192, y: 2.4301276}
   m_UseDelaunayMesh: 0
 --- !u!114 &5223061095695500060
@@ -354,7 +354,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: -1
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -471,7 +471,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -618,12 +618,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8dd3e72076fe804e9ec8088f8e0bf63, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
-  dashSpeed: 12
+  moveSpeed: 4
+  dashSpeed: 20
   dashTimeout: 1.5
   arriveThreshold: 0.15
   detectRangeX: 13
-  attackDistance: 1.56
+  attackDistance: 1.9
   attackCooldown: 1
   maxChaseRange: 15
   anim: {fileID: 2370199281924299456}
@@ -655,7 +655,7 @@ GameObject:
   - component: {fileID: 3360517918631508734}
   - component: {fileID: 2617176597531842192}
   - component: {fileID: 8882642382638665570}
-  m_Layer: 11
+  m_Layer: 13
   m_Name: Attack2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -743,7 +743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 50
+  damage: 40
   attackRange: 0
   attackRate: 0
   attackType: 0
