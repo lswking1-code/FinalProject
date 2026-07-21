@@ -1,5 +1,13 @@
 using UnityEngine;
 
+public enum FireDir
+{
+    Forward,
+    Crouch,
+    Up,
+    Down,
+}
+
 /// <summary>
 /// 玩家发射的子弹，沿指定方向飞行并对敌人造成伤害。
 /// </summary>

@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a7489900bbcdddeeff1122, type: 3}
+  m_Name: Weapon_4_Flame
+  m_EditorClassIdentifier: 
+  weaponId: 4
+  displayName: "\u706B\u7130\u67AA"
+  enabledInCycle: 0
+  projectilePrefab: {fileID: 1207313983663696913, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+  burstCount: 1
+  burstInterval: 0.06
+  spreadOffset: 0
+  idle: {fileID: 0}
+  run: {fileID: 0}
+  jump: {fileID: 0}
+  fall: {fileID: 0}
+  leap: {fileID: 0}
+  leapAir: {fileID: 0}
+  lookUpStart: {fileID: 0}
+  lookUp: {fileID: 0}
+  lookUpEnd: {fileID: 0}
+  lookDownStart: {fileID: 0}
+  lookDown: {fileID: 0}
+  lookDownEnd: {fileID: 0}
+  shoot: {fileID: 7400000, guid: c37ecf87d5408a349b0380c46805abd2, type: 2}
+  lookUpShoot: {fileID: 7400000, guid: 9ce3ce0fb92db75499cb1f4e735d09b6, type: 2}
+  lookDownShoot: {fileID: 7400000, guid: 4ae48c0aa846d7747990f97cd357f359, type: 2}
+  melee: {fileID: 0}
+  airMelee: {fileID: 0}
+  throwClip: {fileID: 0}
+  airThrow: {fileID: 0}
+  weaponSwitch: {fileID: 0}
+  crouch: {fileID: 0}
+  crouchStart: {fileID: 0}
+  crouchMove: {fileID: 0}
+  crouchTurn: {fileID: 0}
+  crouchShoot: {fileID: 7400000, guid: 4438cf3cfffb8a24088eee8ec6392fff, type: 2}
+  crouchMelee: {fileID: 0}
+  crouchThrow: {fileID: 0}
+  crouchWeaponSwitch: {fileID: 0}
+  land: {fileID: 0}
+  turn: {fileID: 0}
+  die: {fileID: 0}

@@ -1216,6 +1216,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4400902295563859580, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4400902295563859580, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9123456789012345678, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: 'weapons.Array.data[4]'
+      value: 
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1309,7 +1321,7 @@ MonoBehaviour:
   firstPosition: {x: 0, y: 0, z: 0}
   menuPosition: {x: 0, y: 0, z: 0}
   playerRegistry: {fileID: 11400000, guid: c4d5e6f7890123456789abcdef012345, type: 2}
-  selectedCharacter: {fileID: 11400000, guid: 6b2c3d4e5f6789012345678abcdef012, type: 2}
+  selectedCharacter: {fileID: 11400000, guid: 5a1b2c3d4e5f678901234567abcdef01, type: 2}
   playerCharacterBindings:
   - character: {fileID: 11400000, guid: 5a1b2c3d4e5f678901234567abcdef01, type: 2}
     instanceTransform: {fileID: 1221583060}
@@ -1324,7 +1336,7 @@ MonoBehaviour:
   unloadedSceneEvent: {fileID: 11400000, guid: 3c4bec529b6aadf4d959deb3648300ab, type: 2}
   firstLoadScene: {fileID: 11400000, guid: 64a5216639bc0c64fa5dd585ff5a8d05, type: 2}
   menuScene: {fileID: 11400000, guid: 4195e70b8ad30c94d8015c7196410f1c, type: 2}
-  developMode: 0
+  developMode: 1
   testScene: {fileID: 11400000, guid: 1a1e2a5f9101f2d48a10500852c86b6c, type: 2}
   testPosition: {x: 0, y: -28, z: 0}
   enableDevelopCharacterSwitch: 1

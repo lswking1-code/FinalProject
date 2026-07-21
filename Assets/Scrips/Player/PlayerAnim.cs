@@ -74,11 +74,14 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     const string AirMeleeStateName = "AirMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string DieStateName = "Die";
+    const string WeaponSwitchStateName = "WeaponSwitch";
+    const string CrouchWeaponSwitchStateName = "CrouchWeaponSwitch";
     const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
     const string IsLookUpParam = "IsLookUp";
     const string IsLookDownParam = "IsLookDown";
     const string ShootTriggerParam = "Shoot";
     const string IsChargingParam = "IsCharging";
+    const string WeaponIdParam = "WeaponID";
 
     [Header("Split 动画机")]
     public Animator upperAnimator;
@@ -113,6 +116,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool isCharging;
     bool isThrowing;
     bool isMelee;
+    bool isSwitchingWeapon;
     bool isDead;
     bool isLookingUp;
     bool isLookingDown;
@@ -136,6 +140,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     Animator activeThrowAnimator;
     string activeMeleeStateName;
     Animator activeMeleeAnimator;
+    string activeWeaponSwitchStateName;
+    Animator activeWeaponSwitchAnimator;
+    AnimatorOverrideController upperOverrideController;
+    AnimatorOverrideController crouchOverrideController;
+    RuntimeAnimatorController upperBaseController;
+    RuntimeAnimatorController crouchBaseController;
     float comboShootPinnedNormalized;
     bool comboShootInputInterrupted;
     bool pendingLookUpReleaseAfterCombo;
@@ -149,6 +159,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isShooting && IsMachinistComboShootState(activeShootStateName);
     public bool IsThrowing => isThrowing;
     public bool IsMelee => isMelee;
+    public bool IsSwitchingWeapon => isSwitchingWeapon;
     public bool IsDead => isDead;
     public bool IsLookingUp => isLookingUp || isEndingLookUp;
     public bool IsLookingDown => isLookingDown || isEndingLookDown;
@@ -165,10 +176,12 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         rb = GetComponent<Rigidbody2D>();
         playerMovement = GetComponent<PlayerMovement>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        EnsureOverrideControllers();
     }
 
     void Start()
     {
+        EnsureOverrideControllers();
         SetSplitDisplay();
         SyncSplitAnimators();
 
@@ -207,6 +220,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             MaintainChargeCompletion();
             MaintainThrowCompletion();
             MaintainMeleeCompletion();
+            MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -215,6 +229,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         {
             TryAutoExitFullBody(); // normalizedTime 兜底退出，配合 Animation Event
             MaintainChargeCompletion();
+            MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -225,6 +240,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         MaintainChargeCompletion();
         MaintainThrowCompletion();
         MaintainMeleeCompletion();
+        MaintainWeaponSwitchCompletion();
         wasGrounded = grounded;
         airStateInitialized = true;
     }
@@ -302,7 +318,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground && !isShooting && !isCharging && !isThrowing && !isMelee)
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground && !isShooting && !isCharging && !isThrowing && !isMelee && !isSwitchingWeapon)
             SyncSplitAnimators();
     }
 
@@ -312,7 +328,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (isCharging)
             return;
 
-        if (isCrouching && (isShooting || isThrowing || isMelee))
+        if (isCrouching && (isShooting || isThrowing || isMelee || isSwitchingWeapon))
             return;
 
         if (IsPlayingMachinistComboShoot)
@@ -341,6 +357,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (isCrouching)
             return;
 
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
         InterruptLand();
 
         isCrouching = true;
@@ -355,6 +374,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         if (!isCrouching)
             return;
+
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
 
         isCrouching = false;
         ResetFullBodyParams();
@@ -374,6 +396,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
+        if (isSwitchingWeapon)
+            return false;
+
         if (isMelee)
             CompleteMelee();
 
@@ -450,6 +475,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayMachinistShootAnim(MachinistShootKind kind)
     {
+        if (isSwitchingWeapon)
+            return false;
+
         if (IsPlayingMachinistComboShoot)
             return false;
 
@@ -605,6 +633,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool BeginMachinistCharge()
     {
+        if (isSwitchingWeapon)
+            return false;
+
         if (isCharging)
             return true;
 
@@ -819,6 +850,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
+        if (isSwitchingWeapon)
+            return false;
+
         if (isMelee)
             CompleteMelee();
 
@@ -871,6 +905,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
+        if (isSwitchingWeapon)
+            return false;
+
         if (isShooting)
             CompleteShoot();
         if (isThrowing)
@@ -921,6 +958,85 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
+    public void ApplyWeaponDefinition(WeaponDefinition def)
+    {
+        if (def == null || !def.IsPoseComplete)
+            return;
+
+        EnsureOverrideControllers();
+        ApplyOverridesToController(upperOverrideController, def);
+        ApplyOverridesToController(crouchOverrideController, def);
+
+        if (upperAnimator != null && HasAnimatorParam(upperAnimator, WeaponIdParam))
+            upperAnimator.SetInteger(WeaponIdParam, def.weaponId);
+        if (crouchAnimator != null && HasAnimatorParam(crouchAnimator, WeaponIdParam))
+            crouchAnimator.SetInteger(WeaponIdParam, def.weaponId);
+
+        InvalidateUpperLocomotionCache();
+    }
+
+    public bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
+    {
+        if (def == null || !def.IsPoseComplete || isDead)
+            return false;
+
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
+        if (isShooting)
+            CompleteShoot();
+        if (isThrowing)
+            CompleteThrow();
+        if (isMelee)
+            CompleteMelee();
+        if (isCharging)
+            CancelMachinistCharge();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (activeFullBodyState == TurnStateName)
+            InterruptTurn();
+        else if (activeFullBodyState == CrouchTurnStateName)
+        {
+            activeFullBodyState = null;
+            fullBodyAutoExit = false;
+            ResetFullBodyParams();
+        }
+
+        ApplyWeaponDefinition(def);
+
+        string stateName;
+        Animator animator;
+
+        if (isCrouching)
+        {
+            stateName = CrouchWeaponSwitchStateName;
+            animator = crouchAnimator;
+            if (crouchAnimator != null)
+                crouchAnimator.SetBool("IsRun", false);
+        }
+        else
+        {
+            if (upperAnimator == null)
+                return false;
+
+            animator = upperAnimator;
+            if (IsUpperLookActive())
+                StopLook();
+
+            stateName = WeaponSwitchStateName;
+        }
+
+        if (animator == null)
+            return false;
+
+        isSwitchingWeapon = true;
+        activeWeaponSwitchStateName = stateName;
+        activeWeaponSwitchAnimator = animator;
+        animator.Play(stateName, 0, 0f);
+        return true;
+    }
+
     public bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;
@@ -943,6 +1059,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isShooting = false;
         isThrowing = false;
         isMelee = false;
+        isSwitchingWeapon = false;
         ClearLookState();
         ResetFullBodyParams();
         EnterFullBody(DieStateName, autoExitOnComplete: false);
@@ -1165,6 +1282,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         bool keepCharge = isCharging;
         MachinistChargeAim chargeAim = activeChargeAim;
+
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
 
         isCrouching = false;
         ResetFullBodyParams();
@@ -1398,6 +1518,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             crouchAnimator.Play(CrouchThrowStateName, 0, 0f);
         else if (isMelee)
             crouchAnimator.Play(CrouchMeleeStateName, 0, 0f);
+        else if (isSwitchingWeapon)
+            crouchAnimator.Play(CrouchWeaponSwitchStateName, 0, 0f);
         else
             crouchAnimator.Play(CrouchStateName, 0, 0f);
     }
@@ -1481,7 +1603,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (isShooting || isCharging || isThrowing || isMelee)
+        if (isShooting || isCharging || isThrowing || isMelee || isSwitchingWeapon)
             return;
 
         if (upperAnimator == null)
@@ -1923,6 +2045,42 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         CompleteMelee();
     }
 
+    void MaintainWeaponSwitchCompletion()
+    {
+        if (!isSwitchingWeapon || activeWeaponSwitchAnimator == null || string.IsNullOrEmpty(activeWeaponSwitchStateName))
+            return;
+
+        var info = activeWeaponSwitchAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(activeWeaponSwitchStateName))
+        {
+            CompleteWeaponSwitch();
+            return;
+        }
+
+        if (info.normalizedTime < 1f)
+            return;
+
+        CompleteWeaponSwitch();
+    }
+
+    void CompleteWeaponSwitch()
+    {
+        isSwitchingWeapon = false;
+        activeWeaponSwitchStateName = null;
+        activeWeaponSwitchAnimator = null;
+
+        if (isCrouching)
+        {
+            if (crouchAnimator != null)
+                crouchAnimator.Play(CrouchStateName, 0, 0f);
+            return;
+        }
+
+        InvalidateUpperLocomotionCache();
+        if (displayMode == BodyDisplayMode.Split)
+            SyncUpperLocomotionViaPlay();
+    }
+
     void CompleteMelee()
     {
         isMelee = false;
@@ -2037,5 +2195,86 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         var info = crouchAnimator.GetCurrentAnimatorStateInfo(layer);
         return info.IsName(stateName) && info.normalizedTime >= 1f;
+    }
+
+    void EnsureOverrideControllers()
+    {
+        if (upperAnimator != null && upperOverrideController == null)
+        {
+            var current = upperAnimator.runtimeAnimatorController;
+            if (current is AnimatorOverrideController existing)
+            {
+                upperOverrideController = existing;
+                upperBaseController = existing.runtimeAnimatorController;
+            }
+            else if (current != null)
+            {
+                upperBaseController = current;
+                upperOverrideController = new AnimatorOverrideController(upperBaseController)
+                {
+                    name = upperBaseController.name + "_WeaponOverride",
+                };
+                upperAnimator.runtimeAnimatorController = upperOverrideController;
+            }
+        }
+
+        if (crouchAnimator != null && crouchOverrideController == null)
+        {
+            var current = crouchAnimator.runtimeAnimatorController;
+            if (current is AnimatorOverrideController existing)
+            {
+                crouchOverrideController = existing;
+                crouchBaseController = existing.runtimeAnimatorController;
+            }
+            else if (current != null)
+            {
+                crouchBaseController = current;
+                crouchOverrideController = new AnimatorOverrideController(crouchBaseController)
+                {
+                    name = crouchBaseController.name + "_WeaponOverride",
+                };
+                crouchAnimator.runtimeAnimatorController = crouchOverrideController;
+            }
+        }
+    }
+
+    void ApplyOverridesToController(AnimatorOverrideController overrideController, WeaponDefinition def)
+    {
+        if (overrideController == null || def == null)
+            return;
+
+        var pairs = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>>();
+        overrideController.GetOverrides(pairs);
+
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            AnimationClip original = pairs[i].Key;
+            if (original == null)
+                continue;
+
+            AnimationClip replacement = def.weaponId == 0
+                ? original
+                : def.GetOverrideForBaseClip(original);
+
+            pairs[i] = new System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>(
+                original,
+                replacement != null ? replacement : original);
+        }
+
+        overrideController.ApplyOverrides(pairs);
+    }
+
+    static bool HasAnimatorParam(Animator animator, string paramName)
+    {
+        if (animator == null || string.IsNullOrEmpty(paramName))
+            return false;
+
+        foreach (var param in animator.parameters)
+        {
+            if (param.name == paramName)
+                return true;
+        }
+
+        return false;
     }
 }
