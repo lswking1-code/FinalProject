@@ -13,7 +13,7 @@ public enum FireDir
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Attack))]
-public class PlayerProjectile : MonoBehaviour
+public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
 {
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;
@@ -44,7 +44,7 @@ public class PlayerProjectile : MonoBehaviour
         _ => Quaternion.Euler(0, faceY, 0),
     };
 
-    public void Init(FireDir dir, float faceY)
+    public void Init(FireDir dir, float faceY, Character owner = null)
     {
         transform.rotation = GetRotation(dir, faceY);
         direction = transform.right;

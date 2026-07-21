@@ -9,15 +9,6 @@ public class WeaponDefinition : ScriptableObject
     [Tooltip("仅当姿态齐套时才会真正进入 Q/E 轮换")]
     public bool enabledInCycle = true;
 
-    [Header("射击")]
-    public PlayerProjectile projectilePrefab;
-    [Tooltip("单次按下连发数；1 为单发")]
-    public int burstCount = 1;
-    [Tooltip("连发间隔（秒）")]
-    public float burstInterval = 0.06f;
-    [Tooltip("相对枪口的最大位置偏移；水平射击为上下，仰俯射为左右；0 为无散射")]
-    public float spreadOffset = 0f;
-
     [Header("上半身 Locomotion")]
     public AnimationClip idle;
     public AnimationClip run;

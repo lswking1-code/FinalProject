@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +6,6 @@ public static class WeaponDefinitionSetup
 {
     const string WeaponsFolder = "Assets/Data SO/Weapons";
     const string ClipRoot = "Assets/Arts/Metal Slug";
-    const string BulletPath = "Assets/Perfabs/PlayerBullet.prefab";
     const string PlayerPrefabPath = "Assets/Perfabs/Player.prefab";
 
     [InitializeOnLoadMethod]
@@ -36,14 +34,13 @@ public static class WeaponDefinitionSetup
         if (!AssetDatabase.IsValidFolder(WeaponsFolder))
             AssetDatabase.CreateFolder("Assets/Data SO", "Weapons");
 
-        var bullet = AssetDatabase.LoadAssetAtPath<PlayerProjectile>(BulletPath);
         var defs = new WeaponDefinition[5];
 
-        defs[0] = EnsureDef("Weapon_0_Pistol", 0, "手枪", true, bullet, FillPistol, forceFill);
-        defs[1] = EnsureDef("Weapon_1_Heavy", 1, "机枪", true, bullet, FillHeavy, forceFill);
-        defs[2] = EnsureDef("Weapon_2_Shotgun", 2, "霰弹枪", false, bullet, FillShotgun, forceFill);
-        defs[3] = EnsureDef("Weapon_3_Laser", 3, "镭射枪", false, bullet, FillLaser, forceFill);
-        defs[4] = EnsureDef("Weapon_4_Flame", 4, "火焰枪", false, bullet, FillFlame, forceFill);
+        defs[0] = EnsureDef("Weapon_0_Pistol", 0, "手枪", true, FillPistol, forceFill);
+        defs[1] = EnsureDef("Weapon_1_Heavy", 1, "机枪", true, FillHeavy, forceFill);
+        defs[2] = EnsureDef("Weapon_2_Shotgun", 2, "霰弹枪", false, FillShotgun, forceFill);
+        defs[3] = EnsureDef("Weapon_3_Laser", 3, "镭射枪", false, FillLaser, forceFill);
+        defs[4] = EnsureDef("Weapon_4_Flame", 4, "火焰枪", false, FillFlame, forceFill);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -86,7 +83,6 @@ public static class WeaponDefinitionSetup
         int id,
         string displayName,
         bool enabledInCycle,
-        PlayerProjectile bullet,
         System.Action<WeaponDefinition> fill,
         bool forceFill)
     {
@@ -102,8 +98,6 @@ public static class WeaponDefinitionSetup
 
         def.weaponId = id;
         def.displayName = displayName;
-        if (def.projectilePrefab == null)
-            def.projectilePrefab = bullet;
 
         // 新建或菜单强制同步时才按 Fill* 写动画；平时保留 Inspector 手改
         if (created || forceFill)
@@ -160,10 +154,6 @@ public static class WeaponDefinitionSetup
 
     static void FillHeavy(WeaponDefinition d)
     {
-        d.burstCount = 3;
-        d.burstInterval = 0.06f;
-        d.spreadOffset = 0.12f;
-
         // 有专用 Clip 的填专用；缺口用同族 h_* 最近姿态占位（仍是持机枪姿，非手枪兜底）
         d.idle = Clip("h_idle_up");
         d.run = Clip("h_run_up");

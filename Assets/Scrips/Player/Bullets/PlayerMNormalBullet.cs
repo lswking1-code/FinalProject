@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Attack))]
-public class PlayerMNormalBullet : MonoBehaviour
+public class PlayerMNormalBullet : MonoBehaviour, IPlayerAmmo
 {
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;

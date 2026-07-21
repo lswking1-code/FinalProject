@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Attack))]
-public class PlayerMChargeBullet : MonoBehaviour
+public class PlayerMChargeBullet : MonoBehaviour, IPlayerAmmo
 {
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;
@@ -33,7 +33,7 @@ public class PlayerMChargeBullet : MonoBehaviour
         startPosition = transform.position;
     }
 
-    public void Init(FireDir dir, float faceY)
+    public void Init(FireDir dir, float faceY, Character owner = null)
     {
         transform.rotation = PlayerProjectile.GetRotation(dir, faceY);
         direction = transform.right;

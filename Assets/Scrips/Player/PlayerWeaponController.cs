@@ -25,15 +25,6 @@ public class PlayerWeaponController : MonoBehaviour
     public int CurrentWeaponId => currentWeaponId;
     public int InitialWeaponId => initialWeaponId;
 
-    public PlayerProjectile CurrentProjectilePrefab
-    {
-        get
-        {
-            var def = GetDefinition(currentWeaponId);
-            return def != null ? def.projectilePrefab : null;
-        }
-    }
-
     public WeaponDefinition CurrentDefinition => GetDefinition(currentWeaponId);
 
     void Awake()

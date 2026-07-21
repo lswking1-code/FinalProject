@@ -235,7 +235,8 @@ public class MachinistShooting : MonoBehaviour
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        projectile.Init(dir, faceY);
+        IPlayerAmmo ammo = projectile;
+        ammo.Init(dir, faceY, character);
     }
 
     FireDir ResolveChargeFireDir() => playerAnim.ActiveChargeAim switch
@@ -265,7 +266,8 @@ public class MachinistShooting : MonoBehaviour
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        projectile.Init(dir, faceY, character);
+        IPlayerAmmo ammo = projectile;
+        ammo.Init(dir, faceY, character);
 
         if (raiseComboEvent)
             robotComboEvent?.RaiseEvent();

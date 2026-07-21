@@ -1208,6 +1208,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2800417885547717695, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3480843724505779087, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3670684932593068974, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1223,6 +1231,10 @@ PrefabInstance:
     - target: {fileID: 4400902295563859580, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.y
       value: 1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8590570490092612770, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 9123456789012345678, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: 'weapons.Array.data[4]'
