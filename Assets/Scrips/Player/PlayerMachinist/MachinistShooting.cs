@@ -74,7 +74,7 @@ public class MachinistShooting : MonoBehaviour
         TrySpawnPendingProjectile();
         TryResetComboOnStanceChange();
 
-        if (playerMovement.IsActionLocked)
+        if (playerMovement.IsActionLocked || playerAnim.IsDispatching)
             return;
 
         switch (phase)

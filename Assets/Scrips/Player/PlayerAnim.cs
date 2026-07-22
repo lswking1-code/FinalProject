@@ -67,6 +67,10 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     const string LookDownChargeStartStateName = "LookDownChargeStart";
     const string LookDownChargeLoopStateName = "LookDownChargeLoop";
     const string LookDownChargeShootStateName = "LookDownChargeShoot";
+    const string DispatchStateName = "M_Dispatch";
+    const string DispatchLoopStateName = "M_Dispatch_loop";
+    const string CrouchDispatchStateName = "M_CrouchDispatch";
+    const string CrouchDispatchLoopStateName = "M_CrouchDispatch_loop";
     const string ThrowStateName = "Throw";
     const string AirThrowStateName = "AirThrow";
     const string CrouchThrowStateName = "CrouchThrow";
@@ -114,6 +118,11 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool isRunning;
     bool isShooting;
     bool isCharging;
+    bool isDispatching;
+    bool dispatchHoldForLoop;
+    bool dispatchAutoEndOnIntroComplete;
+    bool dispatchInLoop;
+    bool dispatchIsCrouch;
     bool isThrowing;
     bool isMelee;
     bool isSwitchingWeapon;
@@ -136,6 +145,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     Animator activeChargeAnimator;
     string activeChargeStateName;
     MachinistChargeAim activeChargeAim;
+    Animator activeDispatchAnimator;
+    string activeDispatchStateName;
     string activeThrowStateName;
     Animator activeThrowAnimator;
     string activeMeleeStateName;
@@ -154,6 +165,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool IsCrouching => isCrouching;
     public bool IsShooting => isShooting;
     public bool IsCharging => isCharging;
+    public bool IsDispatching => isDispatching;
     public MachinistChargeAim ActiveChargeAim => activeChargeAim;
     public bool IsPlayingMachinistComboShoot =>
         isShooting && IsMachinistComboShootState(activeShootStateName);
@@ -218,6 +230,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             TryAutoExitCrouchTurn();
             MaintainShootCompletion();
             MaintainChargeCompletion();
+            MaintainDispatchCompletion();
             MaintainThrowCompletion();
             MaintainMeleeCompletion();
             MaintainWeaponSwitchCompletion();
@@ -229,6 +242,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         {
             TryAutoExitFullBody(); // normalizedTime 兜底退出，配合 Animation Event
             MaintainChargeCompletion();
+            MaintainDispatchCompletion();
             MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
@@ -238,6 +252,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         SyncSplitAnimators();
         MaintainShootCompletion();
         MaintainChargeCompletion();
+        MaintainDispatchCompletion();
         MaintainThrowCompletion();
         MaintainMeleeCompletion();
         MaintainWeaponSwitchCompletion();
@@ -273,7 +288,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool PlayTurnAnim() // 地面站立转身，进入全身 Turn 状态
     {
-        if (isCrouching || displayMode == BodyDisplayMode.FullBody)
+        if (isCrouching || displayMode == BodyDisplayMode.FullBody || isDispatching)
             return false;
         if (airPhase != AirPhaseType.Ground)
             return false;
@@ -284,7 +299,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool PlayCrouchTurnAnim() // 蹲伏转身，保持全身层
     {
-        if (!isCrouching || crouchAnimator == null)
+        if (!isCrouching || crouchAnimator == null || isDispatching)
             return false;
         if (activeFullBodyState == CrouchTurnStateName)
             return false;
@@ -318,7 +333,8 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground && !isShooting && !isCharging && !isThrowing && !isMelee && !isSwitchingWeapon)
+        if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground
+            && !isShooting && !isCharging && !isDispatching && !isThrowing && !isMelee && !isSwitchingWeapon)
             SyncSplitAnimators();
     }
 
@@ -326,6 +342,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         // 蓄力中禁止跑动动画（站立下半身 / 蹲姿全身）
         if (isCharging)
+            return;
+
+        if (isDispatching && isCrouching)
             return;
 
         if (isCrouching && (isShooting || isThrowing || isMelee || isSwitchingWeapon))
@@ -357,6 +376,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         if (isCrouching)
             return;
 
+        if (isDispatching)
+            EndDispatch();
+
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
@@ -374,6 +396,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     {
         if (!isCrouching)
             return;
+
+        if (isDispatching)
+            EndDispatch();
 
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
@@ -476,6 +501,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool TryPlayMachinistShootAnim(MachinistShootKind kind)
     {
         if (isSwitchingWeapon)
+            return false;
+
+        if (isDispatching)
             return false;
 
         if (IsPlayingMachinistComboShoot)
@@ -634,6 +662,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool BeginMachinistCharge()
     {
         if (isSwitchingWeapon)
+            return false;
+
+        if (isDispatching)
             return false;
 
         if (isCharging)
@@ -848,9 +879,184 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         activeChargeAim = MachinistChargeAim.Forward;
     }
 
+    public bool BeginDispatch()
+    {
+        if (isDead || isSwitchingWeapon)
+            return false;
+
+        if (isDispatching)
+            return true;
+
+        if (isMelee)
+            CompleteMelee();
+
+        if (isThrowing)
+            CompleteThrow();
+
+        if (isShooting)
+            CompleteShoot();
+
+        if (isCharging)
+            CancelMachinistCharge();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (activeFullBodyState == TurnStateName)
+            InterruptTurn();
+        else if (activeFullBodyState == CrouchTurnStateName)
+        {
+            activeFullBodyState = null;
+            fullBodyAutoExit = false;
+            ResetFullBodyParams();
+        }
+
+        if (IsUpperLookActive())
+            ClearLookState();
+
+        dispatchIsCrouch = isCrouching;
+        dispatchHoldForLoop = false;
+        dispatchAutoEndOnIntroComplete = false;
+        dispatchInLoop = false;
+
+        if (dispatchIsCrouch)
+        {
+            if (crouchAnimator == null)
+                return false;
+
+            isRunning = false;
+            crouchAnimator.SetBool("IsRun", false);
+
+            isDispatching = true;
+            activeDispatchAnimator = crouchAnimator;
+            activeDispatchStateName = CrouchDispatchStateName;
+            activeFullBodyState = CrouchDispatchStateName;
+            fullBodyAutoExit = false;
+            crouchAnimator.Play(CrouchDispatchStateName, 0, 0f);
+            return true;
+        }
+
+        if (upperAnimator == null)
+            return false;
+
+        isDispatching = true;
+        activeDispatchAnimator = upperAnimator;
+        activeDispatchStateName = DispatchStateName;
+        BlockUpperAirPhaseForHorizontalShoot();
+        upperAnimator.Play(DispatchStateName, 0, 0f);
+        return true;
+    }
+
+    public void SetDispatchHold(bool hold)
+    {
+        if (!isDispatching)
+            return;
+
+        dispatchHoldForLoop = hold;
+        if (!hold)
+            return;
+
+        // 若 intro 已结束仍按住，立刻切 loop
+        if (!dispatchInLoop)
+            TryEnterDispatchLoop();
+    }
+
+    public void SetDispatchAutoEnd(bool autoEnd)
+    {
+        if (!isDispatching)
+            return;
+
+        dispatchAutoEndOnIntroComplete = autoEnd;
+        if (!autoEnd || dispatchInLoop || dispatchHoldForLoop)
+            return;
+
+        if (activeDispatchAnimator == null)
+        {
+            EndDispatch();
+            return;
+        }
+
+        string introName = dispatchIsCrouch ? CrouchDispatchStateName : DispatchStateName;
+        var info = activeDispatchAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(introName) || info.normalizedTime >= 1f)
+            EndDispatch();
+    }
+
+    public void EndDispatch()
+    {
+        if (!isDispatching)
+            return;
+
+        bool wasCrouch = dispatchIsCrouch;
+        isDispatching = false;
+        dispatchHoldForLoop = false;
+        dispatchAutoEndOnIntroComplete = false;
+        dispatchInLoop = false;
+        activeDispatchAnimator = null;
+        activeDispatchStateName = null;
+        dispatchIsCrouch = false;
+
+        if (wasCrouch)
+        {
+            if (isCrouching && crouchAnimator != null)
+            {
+                activeFullBodyState = CrouchStateName;
+                fullBodyAutoExit = false;
+                crouchAnimator.Play(CrouchStateName, 0, 0f);
+            }
+            return;
+        }
+
+        RestoreUpperLocomotion();
+    }
+
+    void TryEnterDispatchLoop()
+    {
+        if (!isDispatching || dispatchInLoop || activeDispatchAnimator == null)
+            return;
+
+        string loopName = dispatchIsCrouch ? CrouchDispatchLoopStateName : DispatchLoopStateName;
+        dispatchInLoop = true;
+        activeDispatchStateName = loopName;
+        if (dispatchIsCrouch)
+            activeFullBodyState = loopName;
+        activeDispatchAnimator.Play(loopName, 0, 0f);
+    }
+
+    void MaintainDispatchCompletion()
+    {
+        if (!isDispatching || activeDispatchAnimator == null || string.IsNullOrEmpty(activeDispatchStateName))
+            return;
+
+        if (!activeDispatchAnimator.isActiveAndEnabled)
+        {
+            EndDispatch();
+            return;
+        }
+
+        if (dispatchInLoop)
+            return;
+
+        var info = activeDispatchAnimator.GetCurrentAnimatorStateInfo(0);
+        string introName = dispatchIsCrouch ? CrouchDispatchStateName : DispatchStateName;
+        if (!info.IsName(introName))
+            return;
+
+        if (info.length > 0.001f && info.normalizedTime < 1f)
+            return;
+
+        if (dispatchHoldForLoop)
+            TryEnterDispatchLoop();
+        else if (dispatchAutoEndOnIntroComplete)
+            EndDispatch();
+        // Pressing 阶段 intro 已结束：定格末帧，等短按松开 AutoEnd 或长按 Hold→loop
+    }
+
     public bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
         if (isSwitchingWeapon)
+            return false;
+
+        if (isDispatching)
             return false;
 
         if (isMelee)
@@ -906,6 +1112,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     public bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
         if (isSwitchingWeapon)
+            return false;
+
+        if (isDispatching)
             return false;
 
         if (isShooting)
@@ -1057,6 +1266,14 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         isCrouching = false;
         isRunning = false;
         isShooting = false;
+        isCharging = false;
+        isDispatching = false;
+        dispatchHoldForLoop = false;
+        dispatchAutoEndOnIntroComplete = false;
+        dispatchInLoop = false;
+        dispatchIsCrouch = false;
+        activeDispatchAnimator = null;
+        activeDispatchStateName = null;
         isThrowing = false;
         isMelee = false;
         isSwitchingWeapon = false;
@@ -1514,6 +1731,9 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
         if (isShooting)
             crouchAnimator.Play(CrouchShootStateName, 0, 0f);
+        else if (isDispatching)
+            crouchAnimator.Play(
+                dispatchInLoop ? CrouchDispatchLoopStateName : CrouchDispatchStateName, 0, 0f);
         else if (isThrowing)
             crouchAnimator.Play(CrouchThrowStateName, 0, 0f);
         else if (isMelee)
@@ -1603,7 +1823,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             return;
         }
 
-        if (isShooting || isCharging || isThrowing || isMelee || isSwitchingWeapon)
+        if (isShooting || isCharging || isDispatching || isThrowing || isMelee || isSwitchingWeapon)
             return;
 
         if (upperAnimator == null)

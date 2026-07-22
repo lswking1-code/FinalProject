@@ -205,7 +205,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.gravityScale = 0f;
 
-        if (playerAnim.IsTurning || playerAnim.IsCharging)
+        if (playerAnim.IsTurning || playerAnim.IsCharging
+            || (playerAnim.IsCrouching && playerAnim.IsDispatching))
         {
             rb.linearVelocity = Vector2.zero;
             return;
@@ -315,6 +316,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
+        // 召唤动画期间锁定蹲/站姿态，避免 intro/loop 中途换层
+        if (playerAnim.IsDispatching)
+        {
+            if (wantCrouch)
+                jumpBufferCounter = 0f;
+            return;
+        }
+
         if (wantCrouch && !playerAnim.IsCrouching)
         {
             // Land 期间 airPhase 仍可能是 Fall/LeapAir；按住 S 应立刻打断落地动画进蹲
@@ -353,6 +362,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
+        if (playerAnim.IsDispatching)
+            return;
+
         playerAnim.SetLookUp(wantLookUp);
         playerAnim.SetLookDown(wantLookDown);
     }
@@ -368,6 +380,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         // 蓄力中：左右输入忽略（不翻面、不转身、不移动）
         if (playerAnim.IsCharging)
+            return;
+
+        // 蹲姿召唤期间不转身、不移动
+        if (playerAnim.IsCrouching && playerAnim.IsDispatching)
             return;
 
         bool started = playerAnim.IsCrouching
@@ -420,7 +436,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
         // 蓄力中左右无效：起跳不改朝向、不带水平速度
-        if (playerAnim.IsCharging)
+        if (playerAnim.IsCharging || (playerAnim.IsCrouching && playerAnim.IsDispatching))
             hasHorizontalInput = false;
         else if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
@@ -457,7 +473,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
-        if (physicsCheck.isGround && playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee))
+        if (physicsCheck.isGround && playerAnim.IsCrouching
+            && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsDispatching))
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -615,6 +632,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             playerAnim.PlayIdleAnim();
             return;
         }
+
+        if (playerAnim.IsCrouching && playerAnim.IsDispatching)
+            return;
 
         if (playerAnim.IsCrouching && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee))
             return;

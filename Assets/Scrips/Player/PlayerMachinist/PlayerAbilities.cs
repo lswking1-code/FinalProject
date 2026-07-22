@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerMovement))]
 [RequireComponent(typeof(Character))]
+[RequireComponent(typeof(PlayerAnim))]
 public class PlayerAbilities : MonoBehaviour
 {
     enum Ability1Phase { Idle, Pressing, Aiming }
@@ -24,6 +25,7 @@ public class PlayerAbilities : MonoBehaviour
     Ability1Phase phase = Ability1Phase.Idle;
     InputSystem_Actions actions;
     PlayerMovement playerMovement;
+    PlayerAnim playerAnim;
     Character character;
     GameObject activeRobot;
 
@@ -33,11 +35,13 @@ public class PlayerAbilities : MonoBehaviour
     float aimFacing;
     float currentAimOffset;
     Transform generatePointParent;
+    bool dispatchStartedThisPress;
 
     void Awake()
     {
         actions = new InputSystem_Actions();
         playerMovement = GetComponent<PlayerMovement>();
+        playerAnim = GetComponent<PlayerAnim>();
         character = GetComponent<Character>();
     }
 
@@ -50,6 +54,7 @@ public class PlayerAbilities : MonoBehaviour
         else if (phase == Ability1Phase.Pressing)
             phase = Ability1Phase.Idle;
 
+        EndPlayerDispatch();
         actions.Player.Disable();
     }
 
@@ -76,6 +81,7 @@ public class PlayerAbilities : MonoBehaviour
                     if (HasActiveRobot())
                     {
                         DestroyActiveRobot();
+                        EndPlayerDispatch();
                         phase = Ability1Phase.Idle;
                     }
                     else
@@ -88,7 +94,17 @@ public class PlayerAbilities : MonoBehaviour
                 {
                     if (Time.time - pressTime < longPressThreshold
                         && !HasActiveRobot() && CanSpawnRobot())
+                    {
                         SpawnRobot(robotGeneratePoint.position);
+                        // 短按：intro 播完（或已定格）后结束召唤动画
+                        if (dispatchStartedThisPress)
+                            playerAnim.SetDispatchAutoEnd(true);
+                        dispatchStartedThisPress = false;
+                    }
+                    else
+                    {
+                        EndPlayerDispatch();
+                    }
 
                     phase = Ability1Phase.Idle;
                 }
@@ -177,6 +193,10 @@ public class PlayerAbilities : MonoBehaviour
         phase = Ability1Phase.Pressing;
         pressTime = Time.time;
         defaultLocalPos = robotGeneratePoint.localPosition;
+        dispatchStartedThisPress = false;
+
+        if (!HasActiveRobot() && CanSpawnRobot() && playerAnim.BeginDispatch())
+            dispatchStartedThisPress = true;
     }
 
     void EnterAimingMode()
@@ -190,6 +210,14 @@ public class PlayerAbilities : MonoBehaviour
 
         if (positionPreview != null)
             positionPreview.SetActive(true);
+
+        if (dispatchStartedThisPress)
+            playerAnim.SetDispatchHold(true);
+        else if (!HasActiveRobot() && CanSpawnRobot() && playerAnim.BeginDispatch())
+        {
+            dispatchStartedThisPress = true;
+            playerAnim.SetDispatchHold(true);
+        }
     }
 
     void UpdateAimingDrift()
@@ -212,6 +240,17 @@ public class PlayerAbilities : MonoBehaviour
         robotGeneratePoint.localPosition = defaultLocalPos;
         generatePointParent = null;
         phase = Ability1Phase.Idle;
+        EndPlayerDispatch();
+    }
+
+    void EndPlayerDispatch()
+    {
+        if (!dispatchStartedThisPress && !playerAnim.IsDispatching)
+            return;
+
+        playerAnim.SetDispatchHold(false);
+        playerAnim.EndDispatch();
+        dispatchStartedThisPress = false;
     }
 
     void SpawnRobot(Vector3 worldPos)

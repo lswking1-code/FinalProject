@@ -334,11 +334,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a132eb186d4e02408a7fb88381037dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyPrefabs:
-  - {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-  pickMode: 0
-  waveCount: 1
-  spawnCountPerWave: 1
+  waves:
+  - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+    count: 2
   maxTotalSpawns: 0
   spawnInterval: 3
   initialDelay: 0

@@ -15,6 +15,7 @@ public class AllyRobot : MonoBehaviour
     // ──────────────────────────────────────────────
     enum AllyState
     {
+        Spawning,
         Idle,
         Chase,
         Attack,
@@ -72,6 +73,8 @@ public class AllyRobot : MonoBehaviour
     public string dashLoopStateName = "DashAttack_loop";
     [Tooltip("冲刺进行中 Bool 参数名（Animator 兜底退出用）")]
     public string dashActiveBoolName = "dashActive";
+    [Tooltip("生成动画 Animator 状态名")]
+    public string dispatchStateName = "Robot_Dispatch";
 
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
@@ -120,6 +123,7 @@ public class AllyRobot : MonoBehaviour
     bool comboDashWindupAnimSeen;
     float dashTimer;
     bool pendingRetarget;
+    bool dispatchAnimSeen;
 
     // ──────────────────────────────────────────────
     //  Unity 生命周期
@@ -139,7 +143,7 @@ public class AllyRobot : MonoBehaviour
         spawnPoint = transform.position;
         attackTimer = 0f;
         FaceRight();
-        SwitchState(AllyState.Idle);
+        SwitchState(AllyState.Spawning);
     }
 
     void OnEnable()
@@ -170,6 +174,7 @@ public class AllyRobot : MonoBehaviour
 
         switch (currentState)
         {
+            case AllyState.Spawning:         UpdateSpawning();         break;
             case AllyState.Idle:             UpdateIdle();             break;
             case AllyState.Chase:            UpdateChase();            break;
             case AllyState.Attack:           UpdateAttack();           break;
@@ -194,6 +199,7 @@ public class AllyRobot : MonoBehaviour
             case AllyState.ComboDashing:
                 MoveTowardTargetDash();
                 break;
+            case AllyState.Spawning:
             case AllyState.Pulling:
             case AllyState.ComboAttacking:
             case AllyState.ComboDashWindup:
@@ -217,7 +223,7 @@ public class AllyRobot : MonoBehaviour
     /// </summary>
     public void RequestRetarget()
     {
-        if (IsPulling || IsBusyWithCombo)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning)
         {
             pendingRetarget = true;
             return;
@@ -246,6 +252,9 @@ public class AllyRobot : MonoBehaviour
     public bool TryStartPull()
     {
         if (IsPulling || pullCooldownTimer > 0f)
+            return false;
+
+        if (currentState == AllyState.Spawning)
             return false;
 
         if (IsBusyWithCombo)
@@ -285,7 +294,7 @@ public class AllyRobot : MonoBehaviour
 
     public void ComboAttack()
     {
-        if (IsPulling || IsBusyWithCombo)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning)
             return;
 
         if (!TryAcquireTarget(out Transform target))
@@ -437,6 +446,16 @@ public class AllyRobot : MonoBehaviour
     {
         switch (state)
         {
+            case AllyState.Spawning:
+                SetDashActive(false);
+                if (anim != null)
+                {
+                    anim.SetBool(walkBoolName, false);
+                    anim.Play(dispatchStateName, 0, 0f);
+                }
+                StopMoving();
+                dispatchAnimSeen = false;
+                break;
             case AllyState.Idle:
                 SetDashActive(false);
                 anim.SetBool(walkBoolName, false);
@@ -550,6 +569,31 @@ public class AllyRobot : MonoBehaviour
     // ──────────────────────────────────────────────
     //  各状态 Update 逻辑
     // ──────────────────────────────────────────────
+
+    void UpdateSpawning()
+    {
+        if (anim == null)
+        {
+            SwitchState(AllyState.Idle);
+            return;
+        }
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.IsName(dispatchStateName))
+        {
+            dispatchAnimSeen = true;
+            if (info.normalizedTime < 1f)
+                return;
+        }
+        else if (!dispatchAnimSeen)
+        {
+            // 等待 Animator 进入 Dispatch 状态
+            return;
+        }
+
+        anim.Play("Idle", 0, 0f);
+        SwitchState(AllyState.Idle);
+    }
 
     void UpdateIdle()
     {
