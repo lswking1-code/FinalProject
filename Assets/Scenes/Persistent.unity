@@ -1208,13 +1208,37 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.data[2].weaponId
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.data[2].burstCount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.data[2].spreadOffset
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.data[2].burstInterval
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1694693321125183778, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: fireConfigs.Array.data[2].projectilePrefab
+      value: 
+      objectReference: {fileID: 7954760529879662823, guid: 61317f307c30fb84998130aa21d7163b, type: 3}
     - target: {fileID: 2800417885547717695, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.5
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 3480843724505779087, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3670684932593068974, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_Name
@@ -1226,7 +1250,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4400902295563859580, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4400902295563859580, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1234,7 +1258,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8590570490092612770, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4
+      value: 3.279
       objectReference: {fileID: 0}
     - target: {fileID: 9123456789012345678, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: 'weapons.Array.data[4]'

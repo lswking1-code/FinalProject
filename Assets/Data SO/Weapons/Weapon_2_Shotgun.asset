@@ -14,35 +14,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponId: 2
   displayName: "\u9730\u5F39\u67AA"
-  enabledInCycle: 0
-  idle: {fileID: 0}
-  run: {fileID: 0}
-  jump: {fileID: 0}
-  fall: {fileID: 0}
-  leap: {fileID: 0}
-  leapAir: {fileID: 0}
-  lookUpStart: {fileID: 0}
-  lookUp: {fileID: 0}
-  lookUpEnd: {fileID: 0}
-  lookDownStart: {fileID: 0}
-  lookDown: {fileID: 0}
-  lookDownEnd: {fileID: 0}
+  enabledInCycle: 1
+  idle: {fileID: 7400000, guid: 3e1cc379dba957a4db37ba1b5caef66f, type: 2}
+  run: {fileID: 7400000, guid: 1ec0e2f0c31b5ca4fbcb451eeaf108f0, type: 2}
+  jump: {fileID: 7400000, guid: 20a7dbb7a5f8a1b44927ee750c9c0303, type: 2}
+  fall: {fileID: 7400000, guid: cdeae823299979642b1cf345c97a5aad, type: 2}
+  leap: {fileID: 7400000, guid: 20a7dbb7a5f8a1b44927ee750c9c0303, type: 2}
+  leapAir: {fileID: 7400000, guid: 908d2be940759c745b68ca182bb46fdf, type: 2}
+  lookUpStart: {fileID: 7400000, guid: 5aef04406c3129649b0e687aceff941a, type: 2}
+  lookUp: {fileID: 7400000, guid: 38f1bb09ae885444d98a6eb613970eca, type: 2}
+  lookUpEnd: {fileID: 7400000, guid: 9c73a5c1023115b48861c970f815524c, type: 2}
+  lookDownStart: {fileID: 7400000, guid: a1a50675dc9271c479d5c89c3cc8064f, type: 2}
+  lookDown: {fileID: 7400000, guid: 5b4bd9423a4ed2b48bc04860cdc52350, type: 2}
+  lookDownEnd: {fileID: 7400000, guid: 85674975fe7ac80438a8da1d1d879d8d, type: 2}
   shoot: {fileID: 7400000, guid: 4de7f46d5237adf498846361418085ff, type: 2}
   lookUpShoot: {fileID: 7400000, guid: 43484c6b6c5a9364aabf0c828c8c6290, type: 2}
   lookDownShoot: {fileID: 7400000, guid: c92810859dbef7f4b98a6dc38448d6ba, type: 2}
-  melee: {fileID: 0}
-  airMelee: {fileID: 0}
-  throwClip: {fileID: 0}
-  airThrow: {fileID: 0}
-  weaponSwitch: {fileID: 0}
-  crouch: {fileID: 0}
-  crouchStart: {fileID: 0}
-  crouchMove: {fileID: 0}
-  crouchTurn: {fileID: 0}
+  melee: {fileID: 7400000, guid: afebf20102ce9a646aef62c259698800, type: 2}
+  airMelee: {fileID: 7400000, guid: afebf20102ce9a646aef62c259698800, type: 2}
+  throwClip: {fileID: 7400000, guid: fbae819e7fb2e5043904e29467d645e2, type: 2}
+  airThrow: {fileID: 7400000, guid: fbae819e7fb2e5043904e29467d645e2, type: 2}
+  weaponSwitch: {fileID: 7400000, guid: f2e6165edb823934fbec3db98b7fed17, type: 2}
+  crouch: {fileID: 7400000, guid: a747cc98bbffb9b4a84460a2c7814d1a, type: 2}
+  crouchStart: {fileID: 7400000, guid: 64382ab14834c0a42820dd0bdb84eee7, type: 2}
+  crouchMove: {fileID: 7400000, guid: 155d6ded78dbc7c44a6fca9f84960ddc, type: 2}
+  crouchTurn: {fileID: 7400000, guid: f1939d0ce50936a438fa8b0d1d4864a7, type: 2}
   crouchShoot: {fileID: 7400000, guid: 06b0fe7e90f1b0547beb7b5e0470d67c, type: 2}
-  crouchMelee: {fileID: 0}
-  crouchThrow: {fileID: 0}
-  crouchWeaponSwitch: {fileID: 0}
-  land: {fileID: 0}
-  turn: {fileID: 0}
-  die: {fileID: 0}
+  crouchMelee: {fileID: 7400000, guid: a4ce52c64709abe4d892596ee0e1e0b8, type: 2}
+  crouchThrow: {fileID: 7400000, guid: 8ebb156f20e64a64b8add26c0d82ccff, type: 2}
+  crouchWeaponSwitch: {fileID: 7400000, guid: 0a658730034857d41b331a57f6188a99, type: 2}
+  land: {fileID: 7400000, guid: 822dc58309289004da2b0c72aee206d7, type: 2}
+  turn: {fileID: 7400000, guid: 59f4e5c05cddff04e9bc2f33948280c1, type: 2}
+  die: {fileID: 7400000, guid: 34e275a9f70ea4848ae16a369f0ad47b, type: 2}

@@ -19,6 +19,8 @@ public class WeaponFireConfig
     public int weaponId;
     [Tooltip("需带 IPlayerAmmo 组件")]
     public GameObject projectilePrefab;
+    [Tooltip("两次开火之间的最小间隔（秒）；0 表示不限制。连发整段算一次开火")]
+    public float fireInterval = 0f;
     [Tooltip("单次按下连发数；1 为单发")]
     public int burstCount = 1;
     [Tooltip("连发间隔（秒）")]
@@ -50,6 +52,7 @@ public class PlayerShooting : MonoBehaviour
 
     Coroutine burstRoutine;
     float lastSpreadOffset;
+    float nextFireTime;
 
     void Awake()
     {
@@ -88,14 +91,21 @@ public class PlayerShooting : MonoBehaviour
                 && playerMelee.TryMelee())
                 return;
 
+            WeaponFireConfig config = ResolveFireConfig();
+            float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
+            if (fireInterval > 0f && Time.time < nextFireTime)
+                return;
+
             if (playerAnim.TryPlayShootAnim())
-                BeginFire();
+            {
+                nextFireTime = Time.time + fireInterval;
+                BeginFire(config);
+            }
         }
     }
 
-    void BeginFire()
+    void BeginFire(WeaponFireConfig config)
     {
-        WeaponFireConfig config = ResolveFireConfig();
         int burstCount = config != null ? Mathf.Max(1, config.burstCount) : 1;
         float burstInterval = config != null ? Mathf.Max(0f, config.burstInterval) : 0.06f;
         float spreadOffset = config != null ? Mathf.Max(0f, config.spreadOffset) : 0f;

@@ -300,14 +300,22 @@ MonoBehaviour:
   fireConfigs:
   - weaponId: 0
     projectilePrefab: {fileID: 7954760529879662823, guid: f3a4b5c6d7e8490123456789012cdef0, type: 3}
+    fireInterval: 0.2
     burstCount: 1
     burstInterval: 0.06
     spreadOffset: 0
   - weaponId: 1
     projectilePrefab: {fileID: 7954760529879662823, guid: 4eb6d478aed454746ad29fb2913761e9, type: 3}
+    fireInterval: 0.25
     burstCount: 3
     burstInterval: 0.06
     spreadOffset: 0.3
+  - weaponId: 2
+    projectilePrefab: {fileID: 7954760529879662823, guid: 61317f307c30fb84998130aa21d7163b, type: 3}
+    fireInterval: 0.5
+    burstCount: 1
+    burstInterval: 0.06
+    spreadOffset: 0
   forwardPoint: {fileID: 6318182655831269073}
   crouchPoint: {fileID: 2188704370345487515}
   upPoint: {fileID: 1626609954634799351}
@@ -319,6 +327,11 @@ MonoBehaviour:
     upPoint: {fileID: 1626609954634799351}
     downPoint: {fileID: 1502459818205054026}
   - weaponId: 1
+    forwardPoint: {fileID: 4400902295563859580}
+    crouchPoint: {fileID: 3480843724505779087}
+    upPoint: {fileID: 8590570490092612770}
+    downPoint: {fileID: 2800417885547717695}
+  - weaponId: 2
     forwardPoint: {fileID: 4400902295563859580}
     crouchPoint: {fileID: 3480843724505779087}
     upPoint: {fileID: 8590570490092612770}
@@ -493,7 +506,7 @@ MonoBehaviour:
   weapons:
   - {fileID: 11400000, guid: a0110000000000000000000000000001, type: 2}
   - {fileID: 11400000, guid: a0110000000000000000000000000002, type: 2}
-  - {fileID: 11400000, guid: 24d8534cd713e8342b7ad59f2e4b1be2, type: 2}
+  - {fileID: 11400000, guid: 8965dbb283114584aab5eb0c4389eaae, type: 2}
   - {fileID: 11400000, guid: 05d31057cd564da4d86d9bf71916fc13, type: 2}
   - {fileID: 11400000, guid: a6820875c5ce8ed488ecef60de9e9876, type: 2}
   initialWeaponId: 0
