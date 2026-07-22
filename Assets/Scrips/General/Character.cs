@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
+public enum AmmoType { S, M, L }
+
 public class Character : MonoBehaviour,ISaveable
 {
     [Header("事件监听")]
@@ -19,6 +21,14 @@ public class Character : MonoBehaviour,ISaveable
     public float AbilityPower;// 能力值
     public float AbilityPowerRecoverSpeed;
     [HideInInspector] public bool pauseAbilityPowerRecover;
+
+    [Header("弹药数量")]
+    public int BulletS = 0;
+    public int BulletM = 0;
+    public int BulletL = 0;
+    public int maxBulletS = 0;
+    public int maxBulletM = 0;
+    public int maxBulletL = 0;
 
     [Header("受伤无敌")]
     public float invulnerableDuration;
@@ -148,6 +158,55 @@ public class Character : MonoBehaviour,ISaveable
         {
             invulnerable = true;
             invulnerableCounter = invulnerableDuration;
+        }
+    }
+
+    public void AddAmmo(AmmoType type, int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        switch (type)
+        {
+            case AmmoType.S:
+                BulletS = Mathf.Min(BulletS + amount, maxBulletS);
+                break;
+            case AmmoType.M:
+                BulletM = Mathf.Min(BulletM + amount, maxBulletM);
+                break;
+            case AmmoType.L:
+                BulletL = Mathf.Min(BulletL + amount, maxBulletL);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// 尝试消耗弹药。数量不足时返回 false 且不扣减。
+    /// </summary>
+    public bool TrySpendAmmo(AmmoType type, int amount)
+    {
+        if (amount <= 0)
+            return true;
+
+        switch (type)
+        {
+            case AmmoType.S:
+                if (BulletS < amount)
+                    return false;
+                BulletS -= amount;
+                return true;
+            case AmmoType.M:
+                if (BulletM < amount)
+                    return false;
+                BulletM -= amount;
+                return true;
+            case AmmoType.L:
+                if (BulletL < amount)
+                    return false;
+                BulletL -= amount;
+                return true;
+            default:
+                return false;
         }
     }
 
