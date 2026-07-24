@@ -162,22 +162,33 @@ public class Character : MonoBehaviour,ISaveable
         }
     }
 
-    public void AddAmmo(AmmoType type, int amount)
+    /// <summary>
+    /// 增加弹药。已达上限或 amount 无效时返回 false。
+    /// </summary>
+    public bool AddAmmo(AmmoType type, int amount)
     {
         if (amount <= 0)
-            return;
+            return false;
 
         switch (type)
         {
             case AmmoType.S:
+                if (BulletS >= maxBulletS)
+                    return false;
                 BulletS = Mathf.Min(BulletS + amount, maxBulletS);
-                break;
+                return true;
             case AmmoType.M:
+                if (BulletM >= maxBulletM)
+                    return false;
                 BulletM = Mathf.Min(BulletM + amount, maxBulletM);
-                break;
+                return true;
             case AmmoType.L:
+                if (BulletL >= maxBulletL)
+                    return false;
                 BulletL = Mathf.Min(BulletL + amount, maxBulletL);
-                break;
+                return true;
+            default:
+                return false;
         }
     }
 
