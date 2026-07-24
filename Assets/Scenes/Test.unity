@@ -335,9 +335,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waves:
-  - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+  - enemies:
+    - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      count: 2
+      spawnPoints:
+      - {fileID: 516952243}
+    enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 2
-  maxTotalSpawns: 0
+    spawnPoints:
+    - {fileID: 516952243}
+    intraWaveInterval: 2
+    delayAfterWave: 5
+    hpScale: 1
+    speedScale: 1
+  maxTotalSpawns: 5
   spawnInterval: 3
   initialDelay: 0
   spawnPoints:

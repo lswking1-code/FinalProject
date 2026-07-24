@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人：距离判断优先，GetClose / Shot / Move 三状态循环，带动态 Action 概率。
+/// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot 循环，带动态 Action 概率。
+/// 射击类结束后进入 Reload 冷却，再重新选择行为。
 /// </summary>
 public class RangedEnemy : Enemy
 {
@@ -11,17 +13,25 @@ public class RangedEnemy : Enemy
     public float shootRange = 5f;
     public float actionDuration = 3f;
     public float fireInterval = 0.5f;
+    public float reloadDuration = 1f;
     public EnemyProjectile projectilePrefab;
     public Transform firePoint;
 
     [Header("行为权重（初始）")]
-    [Tooltip("射击权重，与移动权重按比例决定初始触发概率")]
+    [Tooltip("射击权重")]
     [Min(0f)] public float shotWeight = 0.7f;
-    [Tooltip("移动权重，与射击权重按比例决定初始触发概率")]
+    [Tooltip("移动权重")]
     [Min(0f)] public float moveWeight = 0.3f;
+    [Tooltip("蹲伏权重（需开启蹲伏能力）")]
+    [Min(0f)] public float crouchWeight = 0.2f;
+    [Tooltip("蹲射权重（需开启蹲伏能力）")]
+    [Min(0f)] public float crouchShootWeight = 0.3f;
 
-    [HideInInspector] public float shotProbability;
-    [HideInInspector] public float moveProbability;
+    [Header("精英能力")]
+    [Tooltip("开启后，Crouch / CrouchShoot 才会进入权重掷骰")]
+    public bool enableCrouchActions;
+
+    [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
 
     protected override void Awake()
@@ -30,6 +40,9 @@ public class RangedEnemy : Enemy
         getCloseState = new RangedGetCloseState();
         shotState = new RangedShotState();
         moveState = new RangedMoveState();
+        crouchState = new RangedCrouchState();
+        crouchShootState = new RangedCrouchShootState();
+        reloadState = new RangedReloadState();
 
         if (normalSpeed <= 0f)
             normalSpeed = 2f;
@@ -64,16 +77,33 @@ public class RangedEnemy : Enemy
 
     void ResetActionProbabilities()
     {
-        float total = shotWeight + moveWeight;
+        actionProbabilities.Clear();
+
+        var weights = new List<(EnemyAction action, float weight)>
+        {
+            (EnemyAction.Shot, shotWeight),
+            (EnemyAction.Move, moveWeight)
+        };
+
+        if (enableCrouchActions)
+        {
+            weights.Add((EnemyAction.Crouch, crouchWeight));
+            weights.Add((EnemyAction.CrouchShoot, crouchShootWeight));
+        }
+
+        float total = 0f;
+        foreach (var (_, weight) in weights)
+            total += Mathf.Max(0f, weight);
+
         if (total <= 0f)
         {
-            shotProbability = 0.5f;
-            moveProbability = 0.5f;
+            actionProbabilities[EnemyAction.Shot] = 0.5f;
+            actionProbabilities[EnemyAction.Move] = 0.5f;
             return;
         }
 
-        shotProbability = shotWeight / total;
-        moveProbability = moveWeight / total;
+        foreach (var (action, weight) in weights)
+            actionProbabilities[action] = Mathf.Max(0f, weight) / total;
     }
 
     protected override bool ShouldRunTimeCounter() => false;
@@ -100,32 +130,66 @@ public class RangedEnemy : Enemy
 
     void RollAndEnterAction()
     {
-        var next = Random.value < shotProbability ? NPCState.Shot : NPCState.Move;
-        SwitchState(next);
+        if (actionProbabilities == null || actionProbabilities.Count == 0)
+            ResetActionProbabilities();
+
+        float roll = Random.value;
+        float cumulative = 0f;
+        EnemyAction selected = EnemyAction.Move;
+
+        foreach (var pair in actionProbabilities)
+        {
+            selected = pair.Key;
+            cumulative += pair.Value;
+            if (roll <= cumulative)
+                break;
+        }
+
+        SwitchState(ActionToState(selected));
     }
 
+    static NPCState ActionToState(EnemyAction action) => action switch
+    {
+        EnemyAction.Shot => NPCState.Shot,
+        EnemyAction.Crouch => NPCState.Crouch,
+        EnemyAction.CrouchShoot => NPCState.CrouchShoot,
+        _ => NPCState.Move
+    };
+
     /// <summary>
-    /// 进入 Shot / Move 时更新下次触发概率
+    /// 进入权重 Action 时更新下次触发概率
     /// </summary>
     public void OnActionEntered(EnemyAction action)
     {
         if (lastAction.HasValue && lastAction.Value == action)
         {
-            if (action == EnemyAction.Shot)
+            if (actionProbabilities.TryGetValue(action, out float current))
             {
-                shotProbability = Mathf.Max(0f, shotProbability - ProbabilityStep);
-                moveProbability = 1f - shotProbability;
-            }
-            else
-            {
-                moveProbability = Mathf.Max(0f, moveProbability - ProbabilityStep);
-                shotProbability = 1f - moveProbability;
+                actionProbabilities[action] = Mathf.Max(0f, current - ProbabilityStep);
+                NormalizeProbabilities();
             }
         }
         else
             ResetActionProbabilities();
 
         lastAction = action;
+    }
+
+    void NormalizeProbabilities()
+    {
+        float total = 0f;
+        foreach (var value in actionProbabilities.Values)
+            total += value;
+
+        if (total <= 0f)
+        {
+            ResetActionProbabilities();
+            return;
+        }
+
+        var keys = new List<EnemyAction>(actionProbabilities.Keys);
+        foreach (var key in keys)
+            actionProbabilities[key] /= total;
     }
 
     /// <summary>

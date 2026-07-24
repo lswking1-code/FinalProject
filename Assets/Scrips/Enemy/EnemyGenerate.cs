@@ -1,38 +1,72 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// 单波刷怪配置：指定本波敌人种类与数量。
+/// 波内一种敌人：预制体 + 数量 + 可选专用刷怪点。
+/// </summary>
+[System.Serializable]
+public class EnemyWaveEntry
+{
+    [Tooltip("敌人预制体")]
+    public GameObject enemyPrefab;
+    [Tooltip("本条目刷出数量")]
+    [Min(0)] public int count = 1;
+    [Tooltip("本种敌人专用刷怪点；为空则回退到本波 spawnPoints，再空则用组件级点")]
+    public Transform[] spawnPoints;
+}
+
+/// <summary>
+/// 单波刷怪配置：可包含多种敌人，共享本波刷怪点与节奏。
 /// </summary>
 [System.Serializable]
 public class EnemyWaveConfig
 {
-    [Tooltip("本波刷出的敌人预制体")]
-    public GameObject enemyPrefab;
-    [Tooltip("本波刷出数量")]
-    [Min(0)] public int count = 2;
+    [Tooltip("本波敌人列表（可多种）；按列表顺序依次刷出")]
+    public EnemyWaveEntry[] enemies;
+
+    [Tooltip("【兼容旧配置】单敌人预制体；enemies 为空时使用")]
+    [HideInInspector] public GameObject enemyPrefab;
+    [Tooltip("【兼容旧配置】单敌人数量；enemies 为空时使用")]
+    [HideInInspector] public int count = 2;
+
+    [Tooltip("本波默认刷怪点；条目未配专用点时使用，再空则用组件级 spawnPoints")]
+    public Transform[] spawnPoints;
+
+    [Tooltip("波内相邻两个敌人的间隔（秒）；0 表示本波瞬间刷完")]
+    [Min(0f)] public float intraWaveInterval;
+
+    [Tooltip("本波结束后等待（秒）；<=0 时回退组件级 spawnInterval")]
+    public float delayAfterWave;
+
+    [Tooltip("生成后血量倍率（作用于 Character.maxHealth / currentHealth）")]
+    public float hpScale = 1f;
+
+    [Tooltip("生成后移速倍率（作用于 Enemy.normalSpeed / chaseSpeed / currentSpeed）")]
+    public float speedScale = 1f;
 }
 
 /// <summary>
-/// 按波次列表刷怪：每波可指定敌人种类与数量，支持总刷怪上限。
+/// 按波次列表刷怪：每波可指定多种敌人、数量、刷怪点与节奏，支持总刷怪上限。
+/// 遭遇战：spawnOnStart=false，由 EncounterZone.OnEncounterStarted 调用 StartSpawning。
 /// </summary>
 public class EnemyGenerate : MonoBehaviour
 {
     [Header("波次列表")]
-    [Tooltip("按顺序刷怪；每波指定一种敌人与数量。prefab 为空或 count≤0 的波会跳过")]
+    [Tooltip("按顺序刷怪；每波可配置多种敌人。无有效条目的波会跳过")]
     [SerializeField] EnemyWaveConfig[] waves;
 
     [Header("数量与间隔")]
-    [Tooltip("总刷怪上限；0 表示不额外限制（实际总数 = 各波 count 之和）")]
+    [Tooltip("总刷怪上限；0 表示不额外限制（实际总数 = 各波敌人数量之和）")]
     [SerializeField] int maxTotalSpawns;
-    [Tooltip("相邻两波之间的等待时间（秒）")]
+    [Tooltip("相邻两波之间的默认等待时间（秒）；波的 delayAfterWave<=0 时使用此值")]
     [SerializeField] float spawnInterval = 3f;
     [Tooltip("开始刷怪前的首次延迟（秒）")]
     [SerializeField] float initialDelay;
 
     [Header("生成点")]
-    [Tooltip("刷怪位置列表；为空则在本物体位置生成。每波内按索引循环使用")]
+    [Tooltip("默认刷怪位置列表；波未配置专用点时使用。为空则在本物体位置生成")]
     [SerializeField] Transform[] spawnPoints;
 
     [Header("遭遇战（可选）")]
@@ -64,6 +98,45 @@ public class EnemyGenerate : MonoBehaviour
     }
 
     void OnDisable() => StopSpawning();
+
+    void OnValidate()
+    {
+        if (waves == null)
+            return;
+
+        for (int i = 0; i < waves.Length; i++)
+        {
+            var wave = waves[i];
+            if (wave == null)
+                continue;
+
+            bool hasEnemies = false;
+            if (wave.enemies != null)
+            {
+                for (int e = 0; e < wave.enemies.Length; e++)
+                {
+                    if (wave.enemies[e] != null && wave.enemies[e].enemyPrefab != null)
+                    {
+                        hasEnemies = true;
+                        break;
+                    }
+                }
+            }
+
+            // 把旧版单 prefab/count 迁到 enemies，便于在 Inspector 中继续编辑
+            if (!hasEnemies && wave.enemyPrefab != null && wave.count > 0)
+            {
+                wave.enemies = new[]
+                {
+                    new EnemyWaveEntry
+                    {
+                        enemyPrefab = wave.enemyPrefab,
+                        count = wave.count
+                    }
+                };
+            }
+        }
+    }
 
     public void StartSpawning()
     {
@@ -108,36 +181,69 @@ public class EnemyGenerate : MonoBehaviour
             var wave = waves[waveIndex];
             if (!IsValidWave(wave))
             {
-                if (waveIndex < waveLen - 1 && spawnInterval > 0f)
-                    yield return new WaitForSeconds(spawnInterval);
+                yield return WaitAfterWave(wave, waveIndex, waveLen);
                 continue;
             }
 
-            int countThisWave = Mathf.Min(wave.count, remaining);
-            if (countThisWave <= 0)
-                break;
-
-            SpawnWave(wave, countThisWave);
+            yield return SpawnWaveRoutine(wave, remaining);
             OnWaveSpawned?.Invoke();
 
             if (totalSpawned >= totalLimit)
                 break;
 
-            if (waveIndex < waveLen - 1 && spawnInterval > 0f)
-                yield return new WaitForSeconds(spawnInterval);
+            yield return WaitAfterWave(wave, waveIndex, waveLen);
         }
 
         spawnRoutine = null;
         OnSpawningCompleted?.Invoke();
     }
 
-    void SpawnWave(EnemyWaveConfig wave, int count)
+    IEnumerator SpawnWaveRoutine(EnemyWaveConfig wave, int remainingBudget)
     {
-        for (int i = 0; i < count; i++)
-            SpawnEnemyAt(wave.enemyPrefab, GetSpawnPosition(i));
+        List<EnemyWaveEntry> entries = ResolveEntries(wave);
+        int spawnedInWave = 0;
+        int totalToSpawn = 0;
+        for (int i = 0; i < entries.Count; i++)
+            totalToSpawn += entries[i].count;
+        totalToSpawn = Mathf.Min(totalToSpawn, remainingBudget);
+
+        for (int e = 0; e < entries.Count; e++)
+        {
+            var entry = entries[e];
+            int countThisEntry = Mathf.Min(entry.count, remainingBudget - spawnedInWave);
+            if (countThisEntry <= 0)
+                break;
+
+            for (int i = 0; i < countThisEntry; i++)
+            {
+                SpawnEnemyAt(entry.enemyPrefab, wave, GetSpawnPosition(wave, entry, i));
+                spawnedInWave++;
+
+                bool moreInWave = spawnedInWave < totalToSpawn;
+                if (wave.intraWaveInterval > 0f && moreInWave)
+                    yield return new WaitForSeconds(wave.intraWaveInterval);
+            }
+        }
     }
 
-    void SpawnEnemyAt(GameObject prefab, Vector3 position)
+    IEnumerator WaitAfterWave(EnemyWaveConfig wave, int waveIndex, int waveLen)
+    {
+        if (waveIndex >= waveLen - 1)
+            yield break;
+
+        float delay = GetDelayAfterWave(wave);
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
+    }
+
+    float GetDelayAfterWave(EnemyWaveConfig wave)
+    {
+        if (wave != null && wave.delayAfterWave > 0f)
+            return wave.delayAfterWave;
+        return spawnInterval;
+    }
+
+    void SpawnEnemyAt(GameObject prefab, EnemyWaveConfig wave, Vector3 position)
     {
         if (prefab == null)
             return;
@@ -145,13 +251,84 @@ public class EnemyGenerate : MonoBehaviour
         var instance = Instantiate(prefab, position, Quaternion.identity);
         totalSpawned++;
 
+        ApplyScales(instance, wave);
+
         if (encounterZone != null)
             encounterZone.RegisterEnemy(instance);
     }
 
+    static void ApplyScales(GameObject instance, EnemyWaveConfig wave)
+    {
+        if (instance == null || wave == null)
+            return;
+
+        float hpScale = wave.hpScale;
+        if (!Mathf.Approximately(hpScale, 1f) && hpScale > 0f)
+        {
+            var character = instance.GetComponent<Character>();
+            if (character != null)
+            {
+                character.maxHealth *= hpScale;
+                character.currentHealth = character.maxHealth;
+            }
+        }
+
+        float speedScale = wave.speedScale;
+        if (!Mathf.Approximately(speedScale, 1f) && speedScale > 0f)
+        {
+            var enemy = instance.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.normalSpeed *= speedScale;
+                enemy.chaseSpeed *= speedScale;
+                enemy.currentSpeed *= speedScale;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 解析本波敌人条目；优先用 enemies，为空则回退旧版单 prefab/count。
+    /// </summary>
+    static List<EnemyWaveEntry> ResolveEntries(EnemyWaveConfig wave)
+    {
+        var result = new List<EnemyWaveEntry>();
+        if (wave == null)
+            return result;
+
+        if (wave.enemies != null)
+        {
+            for (int i = 0; i < wave.enemies.Length; i++)
+            {
+                var entry = wave.enemies[i];
+                if (entry != null && entry.enemyPrefab != null && entry.count > 0)
+                    result.Add(entry);
+            }
+        }
+
+        if (result.Count == 0 && wave.enemyPrefab != null && wave.count > 0)
+        {
+            result.Add(new EnemyWaveEntry
+            {
+                enemyPrefab = wave.enemyPrefab,
+                count = wave.count
+            });
+        }
+
+        return result;
+    }
+
+    static int GetWaveTotalCount(EnemyWaveConfig wave)
+    {
+        var entries = ResolveEntries(wave);
+        int total = 0;
+        for (int i = 0; i < entries.Count; i++)
+            total += entries[i].count;
+        return total;
+    }
+
     static bool IsValidWave(EnemyWaveConfig wave)
     {
-        return wave != null && wave.enemyPrefab != null && wave.count > 0;
+        return GetWaveTotalCount(wave) > 0;
     }
 
     bool HasAnyValidWave()
@@ -175,10 +352,7 @@ public class EnemyGenerate : MonoBehaviour
 
         int total = 0;
         for (int i = 0; i < waves.Length; i++)
-        {
-            if (IsValidWave(waves[i]))
-                total += waves[i].count;
-        }
+            total += GetWaveTotalCount(waves[i]);
 
         return total;
     }
@@ -192,13 +366,31 @@ public class EnemyGenerate : MonoBehaviour
         return Mathf.Min(fromWaves, maxTotalSpawns);
     }
 
-    Vector3 GetSpawnPosition(int index)
+    Vector3 GetSpawnPosition(EnemyWaveConfig wave, EnemyWaveEntry entry, int indexInEntry)
     {
-        if (spawnPoints == null || spawnPoints.Length == 0)
+        Transform[] points = ResolveSpawnPoints(wave, entry);
+        if (points == null || points.Length == 0)
             return transform.position;
 
-        var point = spawnPoints[index % spawnPoints.Length];
+        var point = points[indexInEntry % points.Length];
         return point != null ? point.position : transform.position;
+    }
+
+    /// <summary>
+    /// 优先级：条目专用点 → 本波点 → 组件级点。
+    /// </summary>
+    Transform[] ResolveSpawnPoints(EnemyWaveConfig wave, EnemyWaveEntry entry)
+    {
+        if (entry != null && entry.spawnPoints != null && entry.spawnPoints.Length > 0)
+            return entry.spawnPoints;
+
+        if (wave != null && wave.spawnPoints != null && wave.spawnPoints.Length > 0)
+            return wave.spawnPoints;
+
+        if (spawnPoints != null && spawnPoints.Length > 0)
+            return spawnPoints;
+
+        return null;
     }
 
     void OnDrawGizmosSelected()
@@ -207,14 +399,56 @@ public class EnemyGenerate : MonoBehaviour
         if (spawnPoints == null || spawnPoints.Length == 0)
         {
             Gizmos.DrawWireSphere(transform.position, 0.3f);
-            return;
+        }
+        else
+        {
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                if (spawnPoints[i] == null)
+                    continue;
+                Gizmos.DrawWireSphere(spawnPoints[i].position, 0.3f);
+            }
         }
 
-        for (int i = 0; i < spawnPoints.Length; i++)
+        if (waves == null)
+            return;
+
+        for (int w = 0; w < waves.Length; w++)
         {
-            if (spawnPoints[i] == null)
+            var wave = waves[w];
+            if (wave == null)
                 continue;
-            Gizmos.DrawWireSphere(spawnPoints[i].position, 0.3f);
+
+            Color waveColor = Color.HSVToRGB((w * 0.17f) % 1f, 0.75f, 1f);
+
+            if (wave.spawnPoints != null)
+            {
+                Gizmos.color = waveColor;
+                for (int i = 0; i < wave.spawnPoints.Length; i++)
+                {
+                    if (wave.spawnPoints[i] == null)
+                        continue;
+                    Gizmos.DrawWireSphere(wave.spawnPoints[i].position, 0.25f);
+                }
+            }
+
+            if (wave.enemies == null)
+                continue;
+
+            for (int e = 0; e < wave.enemies.Length; e++)
+            {
+                var entry = wave.enemies[e];
+                if (entry == null || entry.spawnPoints == null)
+                    continue;
+
+                Gizmos.color = Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
+                for (int i = 0; i < entry.spawnPoints.Length; i++)
+                {
+                    if (entry.spawnPoints[i] == null)
+                        continue;
+                    Gizmos.DrawWireSphere(entry.spawnPoints[i].position, 0.2f);
+                }
+            }
         }
     }
 }

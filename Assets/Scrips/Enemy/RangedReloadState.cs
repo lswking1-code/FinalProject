@@ -1,13 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人射击状态：持续 actionDuration 秒，按 fireInterval 发射子弹。
+/// 远程敌人换弹冷却：射击类行为结束后进入，结束后再重新选择行为。
 /// </summary>
-public class RangedShotState : BaseState
+public class RangedReloadState : BaseState
 {
     RangedEnemy rangedEnemy;
-    float actionTimer;
-    float fireTimer;
+    float reloadTimer;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -17,14 +16,13 @@ public class RangedShotState : BaseState
         if (rangedEnemy == null)
             return;
 
-        rangedEnemy.OnActionEntered(EnemyAction.Shot);
         rangedEnemy.FacePlayer();
+        reloadTimer = rangedEnemy.reloadDuration;
 
-        actionTimer = rangedEnemy.actionDuration;
-        fireTimer = 0f;
-
-        currentEnemy.anim.SetBool("shoot", true);
-        rangedEnemy.FireProjectile();
+        currentEnemy.anim.SetBool("shoot", false);
+        currentEnemy.anim.SetBool("crouch", false);
+        currentEnemy.anim.SetBool("walk", false);
+        currentEnemy.anim.SetBool("reload", true);
     }
 
     public override void LogicUpdate()
@@ -32,17 +30,10 @@ public class RangedShotState : BaseState
         if (rangedEnemy == null || currentEnemy.isDead)
             return;
 
-        actionTimer -= Time.deltaTime;
-        fireTimer -= Time.deltaTime;
+        reloadTimer -= Time.deltaTime;
 
-        if (fireTimer <= 0f)
-        {
-            rangedEnemy.FireProjectile();
-            fireTimer = rangedEnemy.fireInterval;
-        }
-
-        if (actionTimer <= 0f)
-            rangedEnemy.SwitchState(NPCState.Reload);
+        if (reloadTimer <= 0f)
+            rangedEnemy.EvaluateCycle();
     }
 
     public override void PhysicsUpdate()
@@ -57,6 +48,6 @@ public class RangedShotState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("shoot", false);
+        currentEnemy.anim.SetBool("reload", false);
     }
 }

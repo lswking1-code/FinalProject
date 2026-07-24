@@ -1,9 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人射击状态：持续 actionDuration 秒，按 fireInterval 发射子弹。
+/// 远程敌人蹲射状态：蹲姿持续射击，结束后进入 Reload 冷却。
 /// </summary>
-public class RangedShotState : BaseState
+public class RangedCrouchShootState : BaseState
 {
     RangedEnemy rangedEnemy;
     float actionTimer;
@@ -17,12 +17,13 @@ public class RangedShotState : BaseState
         if (rangedEnemy == null)
             return;
 
-        rangedEnemy.OnActionEntered(EnemyAction.Shot);
+        rangedEnemy.OnActionEntered(EnemyAction.CrouchShoot);
         rangedEnemy.FacePlayer();
 
         actionTimer = rangedEnemy.actionDuration;
         fireTimer = 0f;
 
+        currentEnemy.anim.SetBool("crouch", true);
         currentEnemy.anim.SetBool("shoot", true);
         rangedEnemy.FireProjectile();
     }
@@ -58,5 +59,6 @@ public class RangedShotState : BaseState
     public override void OnExit()
     {
         currentEnemy.anim.SetBool("shoot", false);
+        currentEnemy.anim.SetBool("crouch", false);
     }
 }

@@ -1,13 +1,12 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人射击状态：持续 actionDuration 秒，按 fireInterval 发射子弹。
+/// 远程敌人蹲伏状态：站桩 actionDuration 秒，不射击，结束后重新选择行为。
 /// </summary>
-public class RangedShotState : BaseState
+public class RangedCrouchState : BaseState
 {
     RangedEnemy rangedEnemy;
     float actionTimer;
-    float fireTimer;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -17,14 +16,10 @@ public class RangedShotState : BaseState
         if (rangedEnemy == null)
             return;
 
-        rangedEnemy.OnActionEntered(EnemyAction.Shot);
+        rangedEnemy.OnActionEntered(EnemyAction.Crouch);
         rangedEnemy.FacePlayer();
-
         actionTimer = rangedEnemy.actionDuration;
-        fireTimer = 0f;
-
-        currentEnemy.anim.SetBool("shoot", true);
-        rangedEnemy.FireProjectile();
+        currentEnemy.anim.SetBool("crouch", true);
     }
 
     public override void LogicUpdate()
@@ -33,16 +28,9 @@ public class RangedShotState : BaseState
             return;
 
         actionTimer -= Time.deltaTime;
-        fireTimer -= Time.deltaTime;
-
-        if (fireTimer <= 0f)
-        {
-            rangedEnemy.FireProjectile();
-            fireTimer = rangedEnemy.fireInterval;
-        }
 
         if (actionTimer <= 0f)
-            rangedEnemy.SwitchState(NPCState.Reload);
+            rangedEnemy.EvaluateCycle();
     }
 
     public override void PhysicsUpdate()
@@ -57,6 +45,6 @@ public class RangedShotState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("shoot", false);
+        currentEnemy.anim.SetBool("crouch", false);
     }
 }

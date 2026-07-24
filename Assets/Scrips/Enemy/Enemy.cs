@@ -22,6 +22,15 @@ public class Enemy : MonoBehaviour
     public float hurtForce;
     public Transform attacker;
 
+    [Header("受击反馈")]
+    [Tooltip("硬直时长（闪红 + 抖动）")]
+    public float hurtDuration = 0.35f;
+    [Tooltip("闪红切换间隔")]
+    public float hurtFlashInterval = 0.05f;
+    public Color hurtFlashColor = new Color(1f, 0.25f, 0.25f, 1f);
+    [Tooltip("精灵局部抖动幅度")]
+    public float hurtShakeIntensity = 0.08f;
+
     [Header("检测")]
     public Vector2 centerOffset;
     public Vector2 checkSize;
@@ -48,6 +57,14 @@ public class Enemy : MonoBehaviour
     protected BaseState getCloseState;
     protected BaseState shotState;
     protected BaseState moveState;
+    protected BaseState crouchState;
+    protected BaseState crouchShootState;
+    protected BaseState reloadState;
+
+    SpriteRenderer spriteRenderer;
+    Color spriteOriginalColor = Color.white;
+    Vector3 spriteOriginalLocalPos;
+    Coroutine hurtRoutine;
 
     public Rigidbody2D Rb => rb;
 
@@ -56,11 +73,22 @@ public class Enemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        CacheSpriteRenderer();
 
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         currentSpeed = normalSpeed;
 
         EnsurePlayerReference();
+    }
+
+    void CacheSpriteRenderer()
+    {
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (spriteRenderer == null)
+            return;
+
+        spriteOriginalColor = spriteRenderer.color;
+        spriteOriginalLocalPos = spriteRenderer.transform.localPosition;
     }
 
     /// <summary>
@@ -190,6 +218,9 @@ public class Enemy : MonoBehaviour
             NPCState.GetClose => getCloseState,
             NPCState.Shot => shotState,
             NPCState.Move => moveState,
+            NPCState.Crouch => crouchState,
+            NPCState.CrouchShoot => crouchShootState,
+            NPCState.Reload => reloadState,
             _ => null
         };
 
@@ -204,7 +235,7 @@ public class Enemy : MonoBehaviour
     #region 事件执行方法
 
     /// <summary>
-    /// 受到伤害时调用，转向攻击者并触发击退
+    /// 受到伤害时调用，转向攻击者并触发击退、闪红与抖动硬直
     /// </summary>
     public void OnTakeDamage(Transform attackTrans)
     {
@@ -220,34 +251,73 @@ public class Enemy : MonoBehaviour
 
         Vector2 dir = new Vector2(transform.position.x - attacker.position.x, 0).normalized;
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-        StartCoroutine(OnHurt(dir));
+
+        if (hurtRoutine != null)
+            StopCoroutine(hurtRoutine);
+        RestoreHurtVisuals();
+        hurtRoutine = StartCoroutine(OnHurt(dir));
     }
 
     /// <summary>
-    /// 受伤击退协程，短暂禁用移动后恢复
+    /// 受伤硬直：击退 + 闪红 + 精灵抖动，结束后恢复
     /// </summary>
     private IEnumerator OnHurt(Vector2 dir)
     {
-        if (rb.bodyType == RigidbodyType2D.Kinematic)
+        float duration = Mathf.Max(0.05f, hurtDuration);
+        float elapsed = 0f;
+        float flashTimer = 0f;
+        bool flashOn = true;
+        bool appliedImpulse = false;
+
+        if (spriteRenderer != null)
+            spriteRenderer.color = hurtFlashColor;
+
+        while (elapsed < duration)
         {
-            const float duration = 0.45f;
-            float elapsed = 0f;
-            while (elapsed < duration)
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            flashTimer += dt;
+
+            if (spriteRenderer != null && flashTimer >= hurtFlashInterval)
             {
-                transform.position += (Vector3)(dir * (hurtForce * Time.fixedDeltaTime / duration));
+                flashTimer = 0f;
+                flashOn = !flashOn;
+                spriteRenderer.color = flashOn ? hurtFlashColor : spriteOriginalColor;
+            }
+
+            if (spriteRenderer != null && hurtShakeIntensity > 0f)
+            {
+                Vector2 offset = Random.insideUnitCircle * hurtShakeIntensity;
+                spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
+            }
+
+            if (rb.bodyType == RigidbodyType2D.Kinematic)
+            {
+                transform.position += (Vector3)(dir * (hurtForce * dt / duration));
                 if (rb.simulated)
                     rb.MovePosition(transform.position);
-                elapsed += Time.fixedDeltaTime;
-                yield return new WaitForFixedUpdate();
             }
-        }
-        else
-        {
-            rb.AddForce(dir * hurtForce, ForceMode2D.Impulse);
-            yield return new WaitForSeconds(0.45f);
+            else if (!appliedImpulse)
+            {
+                rb.AddForce(dir * hurtForce, ForceMode2D.Impulse);
+                appliedImpulse = true;
+            }
+
+            yield return null;
         }
 
+        RestoreHurtVisuals();
         isHurt = false;
+        hurtRoutine = null;
+    }
+
+    void RestoreHurtVisuals()
+    {
+        if (spriteRenderer == null)
+            return;
+
+        spriteRenderer.color = spriteOriginalColor;
+        spriteRenderer.transform.localPosition = spriteOriginalLocalPos;
     }
 
     /// <summary>
@@ -258,6 +328,14 @@ public class Enemy : MonoBehaviour
         gameObject.layer = 2;
         anim.SetBool("dead", true);
         isDead = true;
+
+        if (hurtRoutine != null)
+        {
+            StopCoroutine(hurtRoutine);
+            hurtRoutine = null;
+        }
+        RestoreHurtVisuals();
+        isHurt = false;
     }
 
     /// <summary>
