@@ -1169,7 +1169,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public void ApplyWeaponDefinition(WeaponDefinition def)
     {
-        if (def == null || !def.IsPoseComplete)
+        if (def == null)
             return;
 
         EnsureOverrideControllers();
@@ -1186,7 +1186,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
 
     public bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
     {
-        if (def == null || !def.IsPoseComplete || isDead)
+        if (def == null || isDead)
             return false;
 
         if (isSwitchingWeapon)

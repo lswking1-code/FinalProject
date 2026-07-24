@@ -451,6 +451,7 @@ GameObject:
   - component: {fileID: 5817356231846119991}
   - component: {fileID: 3614759619717667695}
   - component: {fileID: 7077185591638236879}
+  - component: {fileID: 4026055720398135146}
   - component: {fileID: 8901234567890123460}
   - component: {fileID: 8012345678901234521}
   m_Layer: 9
@@ -609,7 +610,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalProjectilePrefab: {fileID: 340545589965268769, guid: caa09d0d5f4a56b4a8b464526f859919, type: 3}
   comboProjectilePrefab: {fileID: -5845897735575499202, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
-  chargeProjectilePrefab: {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
+  chargeProjectilePrefabs:
+  - {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
+  - {fileID: 7600983243370080879, guid: 672b1f9534775ab43a1b6588856da6d0, type: 3}
+  - {fileID: 7600983243370080879, guid: 18eda76bc59e3b341a864de81666d3b6, type: 3}
+  - {fileID: 7600983243370080879, guid: 43dfbeace51ec814a8331affdb3bd200, type: 3}
   forwardPoint: {fileID: 2800590082269034882}
   crouchPoint: {fileID: 8591273858336282524}
   upPoint: {fileID: 3562070384078571298}
@@ -620,6 +625,7 @@ MonoBehaviour:
   normalFireDelay: 0
   comboFireDelay: 0.15
   chargeHoldThreshold: 0.3
+  chargeAmmoCosts: 00000000140000000a00000005000000
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
 --- !u!114 &1287484504928434920
 MonoBehaviour:
@@ -705,6 +711,12 @@ MonoBehaviour:
   AbilityPower: 100
   AbilityPowerRecoverSpeed: 10
   pauseAbilityPowerRecover: 0
+  BulletS: 200
+  BulletM: 100
+  BulletL: 50
+  maxBulletS: 200
+  maxBulletM: 100
+  maxBulletL: 50
   invulnerableDuration: 0.4
   invulnerable: 0
   OnHealthChange:
@@ -728,6 +740,26 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &4026055720398135146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6572320002224097586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3d4e5f6a7b8490011ccddeeff223344, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weapons:
+  - {fileID: 11400000, guid: 3a2be8b995410884f98b2456d93ce276, type: 2}
+  - {fileID: 11400000, guid: c3a37ccf6c277fb4994d7be1a6dc75e9, type: 2}
+  - {fileID: 11400000, guid: 25eec1c1e0c2499458cbb5132dba1f99, type: 2}
+  - {fileID: 11400000, guid: 44d5c469625132343abcda2d146ba93b, type: 2}
+  initialWeaponId: 0
+  holdToInitialDuration: 0.4
+  currentWeaponId: 0
 --- !u!114 &8901234567890123460
 MonoBehaviour:
   m_ObjectHideFlags: 0

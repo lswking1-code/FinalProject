@@ -435,6 +435,12 @@ MonoBehaviour:
   AbilityPower: 100
   AbilityPowerRecoverSpeed: 10
   pauseAbilityPowerRecover: 0
+  BulletS: 0
+  BulletM: 0
+  BulletL: 0
+  maxBulletS: 0
+  maxBulletM: 0
+  maxBulletL: 0
   invulnerableDuration: 0.4
   invulnerable: 0
   OnHealthChange:
@@ -511,6 +517,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a6820875c5ce8ed488ecef60de9e9876, type: 2}
   initialWeaponId: 0
   holdToInitialDuration: 0.4
+  currentWeaponId: 0
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class UIManage : MonoBehaviour
 {
     public PlayerStatBar playerStatBar;
+    public BulletUI bulletUI;
     [Header("事件监听")]
     public CharacterEventSO healthEvent;
     public SceneLoadEventSO unloadedSceneEvent;
@@ -142,6 +143,8 @@ public class UIManage : MonoBehaviour
         playerStatBar.gameObject.SetActive(!isMenu);
         abilities.SetActive(!isMenu);
         collection.SetActive(!isMenu);
+        if (bulletUI != null)
+            bulletUI.gameObject.SetActive(!isMenu);
     }
 
     private void OnHealthEvent(Character character)
@@ -151,6 +154,7 @@ public class UIManage : MonoBehaviour
 
         playerStatBar.OnPowerChange(character);
         playerStatBar.OnAPChange(character);
+        bulletUI?.OnCharacterChange(character);
     }
 
 }

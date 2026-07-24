@@ -52,6 +52,7 @@ public class Character : MonoBehaviour,ISaveable
     private void Start()
     {
         currentHealth = maxHealth;
+        NotifyStatsChanged();
     }
     private void NewGame()
     {

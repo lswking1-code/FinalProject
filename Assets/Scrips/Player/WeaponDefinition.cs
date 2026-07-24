@@ -6,7 +6,7 @@ public class WeaponDefinition : ScriptableObject
     [Header("基本")]
     public int weaponId;
     public string displayName;
-    [Tooltip("仅当姿态齐套时才会真正进入 Q/E 轮换")]
+    [Tooltip("勾选后可进入 Q/E 轮换；未填写的动画字段会沿用 Animator 基座 Clip")]
     public bool enabledInCycle = true;
 
     [Header("上半身 Locomotion")]
@@ -48,7 +48,10 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip turn;
     public AnimationClip die;
 
-    /// <summary>手枪(0)恒为齐套；其它枪须填满全部姿态字段。</summary>
+    /// <summary>
+    /// 是否全部姿态字段已填。仅供编辑器/排查；未填字段切枪时沿用 Animator 基座动画，不作为切枪门槛。
+    /// 手枪(0)恒为 true。
+    /// </summary>
     public bool IsPoseComplete
     {
         get
@@ -67,7 +70,7 @@ public class WeaponDefinition : ScriptableObject
         }
     }
 
-    public bool CanEnterCycle => enabledInCycle && IsPoseComplete;
+    public bool CanEnterCycle => enabledInCycle;
 
     /// <summary>
     /// 按基座 Clip 名解析替换 Clip。返回 null 表示保持原 Clip。

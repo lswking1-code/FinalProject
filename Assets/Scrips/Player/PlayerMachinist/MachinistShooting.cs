@@ -12,7 +12,8 @@ public class MachinistShooting : MonoBehaviour
     [Header("子弹")]
     [SerializeField] PlayerMNormalBullet normalProjectilePrefab;
     [SerializeField] PlayerMNormalBullet comboProjectilePrefab;
-    [SerializeField] PlayerMChargeBullet chargeProjectilePrefab;
+    [Tooltip("下标对应 WeaponId：0 不耗弹，1=BulletS，2=BulletM，3=BulletL")]
+    [SerializeField] PlayerMChargeBullet[] chargeProjectilePrefabs;
 
     [Header("发射点")]
     [SerializeField] Transform forwardPoint;
@@ -32,6 +33,8 @@ public class MachinistShooting : MonoBehaviour
 
     [Header("蓄力")]
     [SerializeField] float chargeHoldThreshold = 0.3f;
+    [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次蓄力消耗的 BulletS/M/L 数量")]
+    [SerializeField] int[] chargeAmmoCosts = { 0, 1, 1, 1 };
 
     [Header("事件")]
     [SerializeField] VoidEventSO robotComboEvent;
@@ -39,6 +42,7 @@ public class MachinistShooting : MonoBehaviour
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
     PlayerMovement playerMovement;
+    PlayerWeaponController weaponController;
     Character character;
 
     ShootPhase phase = ShootPhase.Idle;
@@ -60,6 +64,7 @@ public class MachinistShooting : MonoBehaviour
         actions = new InputSystem_Actions();
         playerAnim = GetComponent<PlayerAnim>();
         playerMovement = GetComponent<PlayerMovement>();
+        weaponController = GetComponent<PlayerWeaponController>();
         character = GetComponent<Character>();
     }
 
@@ -224,7 +229,51 @@ public class MachinistShooting : MonoBehaviour
         if (!playerAnim.ReleaseMachinistCharge())
             return;
 
-        FireCharge(fireDir, chargeProjectilePrefab);
+        FireCharge(fireDir, ResolveChargePrefab());
+    }
+
+    PlayerMChargeBullet ResolveChargePrefab()
+    {
+        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        if (weaponId < 0 || weaponId >= 4)
+            weaponId = 0;
+
+        PlayerMChargeBullet fallback = GetChargePrefab(0);
+
+        if (weaponId == 0)
+            return fallback;
+
+        PlayerMChargeBullet prefab = GetChargePrefab(weaponId);
+        if (prefab == null)
+            return fallback;
+
+        AmmoType ammoType = weaponId switch
+        {
+            1 => AmmoType.S,
+            2 => AmmoType.M,
+            3 => AmmoType.L,
+            _ => AmmoType.S,
+        };
+
+        int cost = GetChargeAmmoCost(weaponId);
+        if (character == null || !character.TrySpendAmmo(ammoType, cost))
+            return fallback;
+
+        return prefab;
+    }
+
+    int GetChargeAmmoCost(int weaponId)
+    {
+        if (chargeAmmoCosts == null || weaponId < 0 || weaponId >= chargeAmmoCosts.Length)
+            return 1;
+        return chargeAmmoCosts[weaponId];
+    }
+
+    PlayerMChargeBullet GetChargePrefab(int index)
+    {
+        if (chargeProjectilePrefabs == null || index < 0 || index >= chargeProjectilePrefabs.Length)
+            return null;
+        return chargeProjectilePrefabs[index];
     }
 
     void FireCharge(FireDir dir, PlayerMChargeBullet prefab)

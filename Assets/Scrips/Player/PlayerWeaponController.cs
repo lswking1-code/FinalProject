@@ -9,12 +9,12 @@ public class PlayerWeaponController : MonoBehaviour
     [SerializeField] WeaponDefinition[] weapons;
     [SerializeField] int initialWeaponId = 0;
     [SerializeField] float holdToInitialDuration = 0.4f;
+    [SerializeField] int currentWeaponId;
 
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
     PlayerMovement playerMovement;
 
-    int currentWeaponId;
     float prevHoldTime;
     float nextHoldTime;
     bool prevLongFired;
@@ -38,7 +38,7 @@ public class PlayerWeaponController : MonoBehaviour
     void Start()
     {
         var def = GetDefinition(currentWeaponId);
-        if (def != null && def.IsPoseComplete && playerAnim != null)
+        if (def != null && playerAnim != null)
             playerAnim.ApplyWeaponDefinition(def);
     }
 
@@ -121,7 +121,7 @@ public class PlayerWeaponController : MonoBehaviour
             return false;
 
         var def = GetDefinition(weaponId);
-        if (def == null || !def.IsPoseComplete)
+        if (def == null)
             return false;
 
         if (playerAnim == null)
@@ -147,6 +147,38 @@ public class PlayerWeaponController : MonoBehaviour
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 在 CanEnterCycle 武器列表中取环形前一位 / 后一位（与 Q/E 轮换同一过滤规则）。
+    /// </summary>
+    public bool TryGetCycleNeighbors(int weaponId, out int prevId, out int nextId)
+    {
+        prevId = weaponId;
+        nextId = weaponId;
+
+        if (weapons == null || weapons.Length == 0)
+            return false;
+
+        var cycleIds = new System.Collections.Generic.List<int>(weapons.Length);
+        for (int i = 0; i < weapons.Length; i++)
+        {
+            var def = weapons[i];
+            if (def != null && def.CanEnterCycle)
+                cycleIds.Add(def.weaponId);
+        }
+
+        if (cycleIds.Count == 0)
+            return false;
+
+        int index = cycleIds.IndexOf(weaponId);
+        if (index < 0)
+            return false;
+
+        int count = cycleIds.Count;
+        prevId = cycleIds[(index - 1 + count) % count];
+        nextId = cycleIds[(index + 1) % count];
+        return true;
     }
 
     int FindIndexByWeaponId(int weaponId)

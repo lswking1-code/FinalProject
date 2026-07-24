@@ -103,11 +103,11 @@ public static class WeaponDefinitionSetup
         if (created || forceFill)
             fill(def);
 
-        // 手枪恒启用；其它仅姿态齐套且调用方允许时启用
+        // 手枪恒启用；其它按调用方传入的 enabledInCycle（未填 Clip 会沿用基座动画）
         if (id == 0)
             def.enabledInCycle = true;
         else if (forceFill || created)
-            def.enabledInCycle = enabledInCycle && def.IsPoseComplete;
+            def.enabledInCycle = enabledInCycle;
 
         EditorUtility.SetDirty(def);
         return def;
