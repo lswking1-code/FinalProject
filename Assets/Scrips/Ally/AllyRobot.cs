@@ -94,10 +94,14 @@ public class AllyRobot : MonoBehaviour
     public float pullMaxRange = 15f;
     [Tooltip("每次拖拽后的冷却（秒）")]
     public float pullCooldown = 1f;
-    [Tooltip("单次牵引消耗的 AbilityPower")]
-    public float pullAbilityPowerCost = 5f;
 
     public bool IsPulling => currentState == AllyState.Pulling;
+    public float PullCooldown => Mathf.Max(0f, pullCooldown);
+    public float PullCooldownRemaining => Mathf.Max(0f, pullCooldownTimer);
+    public float PullCooldownNormalized =>
+        PullCooldown > 0f
+            ? Mathf.Clamp01(PullCooldownRemaining / PullCooldown)
+            : 0f;
 
     bool IsBusyWithCombo =>
         currentState == AllyState.ComboAttacking
@@ -170,7 +174,7 @@ public class AllyRobot : MonoBehaviour
     void Update()
     {
         attackTimer -= Time.deltaTime;
-        pullCooldownTimer -= Time.deltaTime;
+        pullCooldownTimer = Mathf.Max(0f, pullCooldownTimer - Time.deltaTime);
 
         switch (currentState)
         {
@@ -260,13 +264,10 @@ public class AllyRobot : MonoBehaviour
         if (IsBusyWithCombo)
             return false;
 
-        if (owner == null || ownerMovement == null || ownerCharacter == null || ownerRb == null)
+        if (owner == null || ownerMovement == null || ownerRb == null)
             return false;
 
         if (ownerMovement.IsActionLocked)
-            return false;
-
-        if (ownerCharacter.AbilityPower < pullAbilityPowerCost)
             return false;
 
         if (pullMaxRange > 0f
@@ -277,8 +278,6 @@ public class AllyRobot : MonoBehaviour
         if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
             return false;
 
-        ownerCharacter.DrainAbilityPower(pullAbilityPowerCost);
-
         FaceTarget(owner.position);
         anim.SetTrigger(pullTriggerName);
 
@@ -288,7 +287,7 @@ public class AllyRobot : MonoBehaviour
             BeginPullWithoutVisual();
 
         SwitchState(AllyState.Pulling);
-        pullCooldownTimer = pullCooldown;
+        pullCooldownTimer = PullCooldown;
         return true;
     }
 

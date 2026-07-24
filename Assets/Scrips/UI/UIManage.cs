@@ -9,6 +9,7 @@ public class UIManage : MonoBehaviour
 {
     public PlayerStatBar playerStatBar;
     public BulletUI bulletUI;
+    public PullCooldownUI pullCooldownUI;
     [Header("事件监听")]
     public CharacterEventSO healthEvent;
     public SceneLoadEventSO unloadedSceneEvent;
@@ -145,6 +146,8 @@ public class UIManage : MonoBehaviour
         collection.SetActive(!isMenu);
         if (bulletUI != null)
             bulletUI.gameObject.SetActive(!isMenu);
+        if (pullCooldownUI != null)
+            pullCooldownUI.gameObject.SetActive(!isMenu);
     }
 
     private void OnHealthEvent(Character character)

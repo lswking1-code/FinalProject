@@ -13,6 +13,7 @@ public class BulletUI : MonoBehaviour
     }
 
     [SerializeField] GameObject normalGun;
+    [SerializeField] GameObject normalGunNumber;
     [SerializeField] GameObject bulletSlot;
     [SerializeField] Image bulletSlot1;
     [SerializeField] Image bulletSlot2;
@@ -53,12 +54,14 @@ public class BulletUI : MonoBehaviour
         if (weaponId == 0)
         {
             SetActive(normalGun, true);
+            SetActive(normalGunNumber, true);
             SetActive(bulletSlot, false);
             SetActive(bulletNumber != null ? bulletNumber.gameObject : null, false);
             return;
         }
 
         SetActive(normalGun, false);
+        SetActive(normalGunNumber, false);
         SetActive(bulletSlot, true);
         SetActive(bulletNumber != null ? bulletNumber.gameObject : null, true);
 

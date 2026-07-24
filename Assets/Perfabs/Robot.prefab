@@ -635,15 +635,15 @@ MonoBehaviour:
   dashStartStateName: DashAttack_start
   dashLoopStateName: DashAttack_loop
   dashActiveBoolName: dashActive
+  dispatchStateName: Robot_Dispatch
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
-  pullExtendSpeed: 50
-  pullSpeed: 15
+  pullExtendSpeed: 80
+  pullSpeed: 30
   pullArriveThreshold: 0.1
   pullLandingDistanceX: 0.8
   pullLandingYOffset: 0
   pullMaxRange: 40
-  pullCooldown: 1
-  pullAbilityPowerCost: 10
+  pullCooldown: 8
 --- !u!1 &6250385081535608555
 GameObject:
   m_ObjectHideFlags: 0

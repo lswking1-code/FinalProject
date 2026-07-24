@@ -28,6 +28,13 @@ public class PlayerAbilities : MonoBehaviour
     PlayerAnim playerAnim;
     Character character;
     GameObject activeRobot;
+    AllyRobot activeRobotController;
+
+    public bool HasRobot => HasActiveRobot();
+    public float PullCooldownNormalized =>
+        activeRobotController != null
+            ? activeRobotController.PullCooldownNormalized
+            : 0f;
 
     float pressTime;
     Vector3 defaultLocalPos;
@@ -134,7 +141,7 @@ public class PlayerAbilities : MonoBehaviour
         if (!actions.Player.Ability2.WasPressedThisFrame() || !HasActiveRobot())
             return;
 
-        activeRobot.GetComponent<AllyRobot>()?.TryStartPull();
+        activeRobotController?.TryStartPull();
     }
 
     bool HasActiveRobot() => activeRobot != null;
@@ -166,12 +173,14 @@ public class PlayerAbilities : MonoBehaviour
     void OnRobotSpawned(GameObject robot)
     {
         activeRobot = robot;
+        activeRobotController = robot.GetComponent<AllyRobot>();
         character.pauseAbilityPowerRecover = true;
     }
 
     void OnRobotRemoved()
     {
         activeRobot = null;
+        activeRobotController = null;
         if (character != null)
             character.pauseAbilityPowerRecover = false;
     }
