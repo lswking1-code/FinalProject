@@ -65,6 +65,10 @@ public class AllyRobot : MonoBehaviour
     public string pullTriggerName = "pull";
     [Tooltip("连击协同攻击 Trigger 参数名")]
     public string comboAttackTriggerName = "comboAttack";
+    [Tooltip("冲刺终结攻击 Trigger 参数名")]
+    public string dashAttackTriggerName = "dashAttack";
+    [Tooltip("冲刺终结攻击 Animator 状态名（用于检测动画结束）")]
+    public string dashAttackStateName = "DashAttack";
     [Tooltip("Combo 冲锋起步 Trigger 参数名")]
     public string dashStartTriggerName = "dashStart";
     [Tooltip("Combo 冲锋起步 Animator 状态名（用于检测动画结束）")]
@@ -321,6 +325,22 @@ public class AllyRobot : MonoBehaviour
 
         if (anim != null)
             anim.SetTrigger(comboAttackTriggerName);
+
+        attackTimer = attackCooldown;
+        SwitchState(AllyState.ComboAttacking);
+    }
+
+    void BeginDashAttack()
+    {
+        StopMoving();
+        if (anim != null)
+            anim.SetBool(walkBoolName, false);
+
+        if (IsValidCombatTarget(currentTarget))
+            FaceTarget(currentTarget.position);
+
+        if (anim != null)
+            anim.SetTrigger(dashAttackTriggerName);
 
         attackTimer = attackCooldown;
         SwitchState(AllyState.ComboAttacking);
@@ -697,11 +717,11 @@ public class AllyRobot : MonoBehaviour
         }
 
         var info = anim.GetCurrentAnimatorStateInfo(0);
-        bool inCombo = info.IsName("ComboAttack");
-        if (inCombo)
+        bool inFinisher = info.IsName("ComboAttack") || info.IsName(dashAttackStateName);
+        if (inFinisher)
             comboAttackAnimSeen = true;
 
-        if (comboAttackAnimSeen && (!inCombo || info.normalizedTime >= 1f))
+        if (comboAttackAnimSeen && (!inFinisher || info.normalizedTime >= 1f))
             ResumeStateAfterCombo();
     }
 
@@ -748,7 +768,7 @@ public class AllyRobot : MonoBehaviour
 
         if (IsInAttackRange(currentTarget))
         {
-            BeginComboAttack();
+            BeginDashAttack();
             return;
         }
 
@@ -786,7 +806,7 @@ public class AllyRobot : MonoBehaviour
         if (IsInAttackRange(currentTarget))
         {
             StopMoving();
-            BeginComboAttack();
+            BeginDashAttack();
         }
     }
 
