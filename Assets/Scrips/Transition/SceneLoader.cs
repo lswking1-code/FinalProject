@@ -66,7 +66,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
     private void Start()
     {
         if (developMode)
+        {
+            // 首次加载无旧场景可卸载，补发一次供 UIManage 打开 HUD
+            unloadedSceneEvent.RaiseLoadRequestEvent(testScene, testPosition, true);
             loadEventSO.RaiseLoadRequestEvent(testScene, testPosition, true);
+        }
         else
             loadEventSO.RaiseLoadRequestEvent(menuScene, menuPosition, true);
     }
