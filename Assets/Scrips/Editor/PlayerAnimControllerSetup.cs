@@ -215,7 +215,11 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookDownExComboClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_EXcombo_shoot.anim";
     const string MachinistCrouchExComboClipPath = "Assets/Animations/Machinist/EXShoot/crouch_EXcombo_shoot.anim";
     const string MachinistChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/charge_shoot.anim";
+    const string MachinistLookUpChargeStartClipPath = "Assets/Animations/Machinist/EXShoot/lookup_charge_start.anim";
+    const string MachinistLookUpChargeLoopClipPath = "Assets/Animations/Machinist/EXShoot/lookup_charge_loop.anim";
     const string MachinistLookUpChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/lookup_charge_shoot.anim";
+    const string MachinistLookDownChargeStartClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_charge_start.anim";
+    const string MachinistLookDownChargeLoopClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_charge_loop.anim";
     const string MachinistLookDownChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_charge_shoot.anim";
     const string MachinistCrouchChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/crouch_charge_shoot.anim";
     const string MachinistCrouchShootClipPath = "Assets/Arts/Metal Slug/crouch_shoot.anim";
@@ -275,12 +279,11 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, ShootClipPath, new Vector3(1050f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, ShootClipPath, new Vector3(1200f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistChargeShootClipPath, new Vector3(1350f, 0f, 0f));
-        // 方向蓄力 Start/Loop：空占位（后续补剪辑）；Shoot 挂已有 charge_shoot
-        changed |= EnsureMachinistState(sm, states, LookUpChargeStartStateName, null, new Vector3(1050f, 120f, 0f));
-        changed |= EnsureMachinistState(sm, states, LookUpChargeLoopStateName, null, new Vector3(1200f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeStartStateName, MachinistLookUpChargeStartClipPath, new Vector3(1050f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeLoopStateName, MachinistLookUpChargeLoopClipPath, new Vector3(1200f, 120f, 0f));
         changed |= EnsureMachinistState(sm, states, LookUpChargeShootStateName, MachinistLookUpChargeShootClipPath, new Vector3(1350f, 120f, 0f));
-        changed |= EnsureMachinistState(sm, states, LookDownChargeStartStateName, null, new Vector3(1050f, -120f, 0f));
-        changed |= EnsureMachinistState(sm, states, LookDownChargeLoopStateName, null, new Vector3(1200f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeStartStateName, MachinistLookDownChargeStartClipPath, new Vector3(1050f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeLoopStateName, MachinistLookDownChargeLoopClipPath, new Vector3(1200f, -120f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownChargeShootStateName, MachinistLookDownChargeShootClipPath, new Vector3(1350f, -120f, 0f));
 
         states = BuildStateMap(sm);

@@ -1,0 +1,530 @@
+fileFormatVersion: 2
+guid: 3e4df844529d443488fdacce82d52c55
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 667557653908011982
+    second: PlayerM_DownShoot2_0
+  - first:
+      213: 750057619037207599
+    second: PlayerM_DownShoot2_1
+  - first:
+      213: 1552668684169284124
+    second: PlayerM_DownShoot2_2
+  - first:
+      213: -8799254246705008553
+    second: PlayerM_DownShoot2_3
+  - first:
+      213: -2945886532477993733
+    second: PlayerM_DownShoot2_4
+  - first:
+      213: -5396206793280776213
+    second: PlayerM_DownShoot2_5
+  - first:
+      213: 42184954787214018
+    second: PlayerM_DownShoot2_6
+  - first:
+      213: -9049454482487870280
+    second: PlayerM_DownShoot2_7
+  - first:
+      213: 4020299341782461864
+    second: PlayerM_DownShoot2_8
+  - first:
+      213: 926719300215895016
+    second: PlayerM_DownShoot2_9
+  - first:
+      213: -6405628995208261124
+    second: PlayerM_DownShoot2_10
+  - first:
+      213: 2496084103409882180
+    second: PlayerM_DownShoot2_11
+  - first:
+      213: 676543426708513563
+    second: PlayerM_DownShoot2_12
+  - first:
+      213: -5142422561499288517
+    second: PlayerM_DownShoot2_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 192
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ecbb74c3624a34900800000000000000
+      internalID: 667557653908011982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_1
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 192
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2cb9c73e6db86a00800000000000000
+      internalID: 750057619037207599
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_2
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 192
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1a88cd11ff2c8510800000000000000
+      internalID: 1552668684169284124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_3
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 128
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 750fcc012e4c2e580800000000000000
+      internalID: -8799254246705008553
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_4
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 128
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bfcba038ecb1e17d0800000000000000
+      internalID: -2945886532477993733
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_5
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 128
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be713f70382dc15b0800000000000000
+      internalID: -5396206793280776213
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_6
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 128
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c235fc2efed59000800000000000000
+      internalID: 42184954787214018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_7
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 64
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bc7e302811e96280800000000000000
+      internalID: -9049454482487870280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_8
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 64
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ad2ead63f8fac730800000000000000
+      internalID: 4020299341782461864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_9
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 64
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e3fdd72b4e5cdc00800000000000000
+      internalID: 926719300215895016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_10
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 0
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cf15ba90e52aa17a0800000000000000
+      internalID: -6405628995208261124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_11
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 0
+        width: 29
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4827586, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 444de39644fd3a220800000000000000
+      internalID: 2496084103409882180
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_12
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 0
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b13261089a0936900800000000000000
+      internalID: 676543426708513563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_13
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 0
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3c61e01de172a8b0800000000000000
+      internalID: -5142422561499288517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_DownShoot2_14
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 195
+        width: 30
+        height: 50
+      alignment: 9
+      pivot: {x: 0.4666667, y: 0.56}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c5f9c652f569094b9c064a04143772d
+      internalID: -93339551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 4c0374d95485de349970a328a19eca3c
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      PlayerM_DownShoot2_0: 667557653908011982
+      PlayerM_DownShoot2_1: 750057619037207599
+      PlayerM_DownShoot2_10: -6405628995208261124
+      PlayerM_DownShoot2_11: 2496084103409882180
+      PlayerM_DownShoot2_12: 676543426708513563
+      PlayerM_DownShoot2_13: -5142422561499288517
+      PlayerM_DownShoot2_14: -93339551
+      PlayerM_DownShoot2_2: 1552668684169284124
+      PlayerM_DownShoot2_3: -8799254246705008553
+      PlayerM_DownShoot2_4: -2945886532477993733
+      PlayerM_DownShoot2_5: -5396206793280776213
+      PlayerM_DownShoot2_6: 42184954787214018
+      PlayerM_DownShoot2_7: -9049454482487870280
+      PlayerM_DownShoot2_8: 4020299341782461864
+      PlayerM_DownShoot2_9: 926719300215895016
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
