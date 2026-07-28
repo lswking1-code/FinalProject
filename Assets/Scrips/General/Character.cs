@@ -145,22 +145,33 @@ public class Character : MonoBehaviour,ISaveable
         invulnerableCounter = 0f;
     }
 
-    /// <summary>
-    /// 触发受伤后的短暂无敌
-    /// </summary>
     public void HealthRecover(float HP)
     {
         currentHealth += HP;
         NotifyStatsChanged();
     }
-    private void triggerInvulnerable()
+
+    /// <summary>
+    /// 触发短暂无敌。duration &lt; 0 时使用 invulnerableDuration；已在无敌中则取剩余时间与新时长的较大值。
+    /// </summary>
+    public void TriggerInvulnerable(float duration = -1f)
     {
+        float applyDuration = duration < 0f ? invulnerableDuration : duration;
+        if (applyDuration <= 0f)
+            return;
+
         if (!invulnerable)
         {
             invulnerable = true;
-            invulnerableCounter = invulnerableDuration;
+            invulnerableCounter = applyDuration;
+        }
+        else
+        {
+            invulnerableCounter = Mathf.Max(invulnerableCounter, applyDuration);
         }
     }
+
+    private void triggerInvulnerable() => TriggerInvulnerable();
 
     /// <summary>
     /// 增加弹药。已达上限或 amount 无效时返回 false。

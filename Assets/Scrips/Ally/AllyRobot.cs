@@ -98,6 +98,8 @@ public class AllyRobot : MonoBehaviour
     public float pullMaxRange = 15f;
     [Tooltip("每次拖拽后的冷却（秒）")]
     public float pullCooldown = 1f;
+    [Tooltip("牵引结束后玩家无敌残留时长（秒）")]
+    public float pullInvulnerableLinger = 0.5f;
 
     public bool IsPulling => currentState == AllyState.Pulling;
     public float PullCooldown => Mathf.Max(0f, pullCooldown);
@@ -439,7 +441,11 @@ public class AllyRobot : MonoBehaviour
     void EndPull()
     {
         if (ownerCharacter != null)
+        {
             ownerCharacter.SetForcedInvulnerable(false);
+            if (pullInvulnerableLinger > 0f)
+                ownerCharacter.TriggerInvulnerable(pullInvulnerableLinger);
+        }
 
         if (ownerMovement != null && ownerMovement.IsActionLocked)
             ownerMovement.EndExternalControl();
