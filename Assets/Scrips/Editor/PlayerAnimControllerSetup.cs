@@ -28,6 +28,7 @@ public static class PlayerAnimControllerSetup
     const string LookUpEndClipPath = "Assets/Arts/Metal Slug/lookup_end.anim";
     const string LookDownEndClipPath = "Assets/Arts/Metal Slug/lookdown_end.anim";
     const string FullBodyPath = "Assets/Animation/fullbody.controller";
+    const string MeleeFullBodyPath = "Assets/Animation/meleeFullBody.controller";
     const string CrouchShootClipPath = "Assets/Arts/Metal Slug/crouch_shoot.anim";
     const string ThrowClipPath = "Assets/Arts/Metal Slug/throw.anim";
     const string AirThrowClipPath = "Assets/Arts/Metal Slug/air_throw.anim";
@@ -165,6 +166,111 @@ public static class PlayerAnimControllerSetup
             AssetDatabase.SaveAssets();
             Debug.Log("已为 up.controller 配置 Look 射击的 Shoot Trigger 过渡。");
         }
+    }
+
+    [MenuItem("Lost Division/Create Melee Full Body Animator Controller")]
+    public static void CreateMeleeFullBodyAnimatorController()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(MeleeFullBodyPath);
+        if (existing != null)
+        {
+            if (!EditorUtility.DisplayDialog(
+                    "Melee Full Body Controller",
+                    "已存在 meleeFullBody.controller，是否重新生成（会覆盖状态与过渡，剪辑仍为空）？",
+                    "重新生成",
+                    "取消"))
+                return;
+
+            AssetDatabase.DeleteAsset(MeleeFullBodyPath);
+        }
+
+        var controller = AnimatorController.CreateAnimatorControllerAtPath(MeleeFullBodyPath);
+        var sm = controller.layers[0].stateMachine;
+
+        controller.AddParameter("AirPhase", AnimatorControllerParameterType.Int);
+        controller.AddParameter("IsRun", AnimatorControllerParameterType.Bool);
+
+        string[] locomotion = { "Idle", "Run", "Jump", "Fall", "Leap", "LeapAir" };
+        string[] oneShots =
+        {
+            "Land", "Turn", "CrouchStart", "Crouch", "CrouchTurn", "CrouchMove",
+            "Melee", "AirMelee", "CrouchMelee", "Die",
+        };
+
+        var states = new Dictionary<string, AnimatorState>();
+        float x = 350f;
+        float y = 70f;
+        foreach (var name in locomotion)
+        {
+            var state = sm.AddState(name, new Vector3(x, y, 0f));
+            state.motion = null;
+            state.writeDefaultValues = false;
+            states[name] = state;
+            y += 90f;
+        }
+
+        x = 750f;
+        y = -110f;
+        foreach (var name in oneShots)
+        {
+            var state = sm.AddState(name, new Vector3(x, y, 0f));
+            state.motion = null;
+            state.writeDefaultValues = true;
+            states[name] = state;
+            y += 70f;
+        }
+
+        sm.defaultState = states["Idle"];
+
+        AddBoolTransition(states["Idle"], states["Run"], "IsRun", true, 0.25f);
+        AddBoolTransition(states["Run"], states["Idle"], "IsRun", false, 0.25f);
+
+        AddAirPhaseAnyState(sm, states["Idle"], 0);
+        AddAirPhaseAnyState(sm, states["Jump"], 1);
+        AddAirPhaseAnyState(sm, states["Fall"], 2);
+        AddAirPhaseAnyState(sm, states["Leap"], 3);
+        AddAirPhaseAnyState(sm, states["LeapAir"], 4);
+
+        var crouchStartToCrouch = states["CrouchStart"].AddTransition(states["Crouch"]);
+        crouchStartToCrouch.hasExitTime = true;
+        crouchStartToCrouch.exitTime = 0.85f;
+        crouchStartToCrouch.duration = 0.1f;
+        crouchStartToCrouch.hasFixedDuration = true;
+
+        AddBoolTransition(states["Crouch"], states["CrouchMove"], "IsRun", true, 0.25f);
+        AddBoolTransition(states["CrouchMove"], states["Crouch"], "IsRun", false, 0.25f);
+
+        EditorUtility.SetDirty(controller);
+        AssetDatabase.SaveAssets();
+        Debug.Log($"已创建 {MeleeFullBodyPath}（状态齐全、剪辑为空）。请赋给 PlayerFullBodyAnim.bodyAnimator。");
+    }
+
+    static void AddBoolTransition(
+        AnimatorState source,
+        AnimatorState dest,
+        string param,
+        bool value,
+        float duration)
+    {
+        var t = source.AddTransition(dest);
+        t.hasExitTime = false;
+        t.duration = duration;
+        t.hasFixedDuration = true;
+        t.canTransitionToSelf = false;
+        t.AddCondition(value ? AnimatorConditionMode.If : AnimatorConditionMode.IfNot, 0f, param);
+    }
+
+    static void AddAirPhaseAnyState(AnimatorStateMachine sm, AnimatorState dest, int phase)
+    {
+        var t = sm.AddAnyStateTransition(dest);
+        t.hasExitTime = false;
+        t.duration = 0.25f;
+        t.hasFixedDuration = true;
+        t.canTransitionToSelf = false;
+        t.AddCondition(AnimatorConditionMode.Equals, phase, "AirPhase");
     }
 
     [MenuItem("Lost Division/Ensure Shoot Animator States")]

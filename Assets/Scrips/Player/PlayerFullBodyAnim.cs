@@ -2,7 +2,8 @@ using UnityEngine;
 
 /// <summary>
 /// 单 Animator 全身动画（近战角色）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
-/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, Melee, AirMelee, CrouchMelee, Die。
+/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove, Melee, AirMelee, CrouchMelee, Die。
+/// 推荐 AnimatorController：<c>Assets/Animation/meleeFullBody.controller</c>。
 /// Prefab：只挂本组件，勿与 <see cref="PlayerAnim"/> 同挂；配合 <see cref="MeleeAttackInput"/> 而非 PlayerShooting。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
