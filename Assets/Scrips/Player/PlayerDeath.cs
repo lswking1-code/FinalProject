@@ -1,7 +1,6 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Character))]
-[RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerDeath : MonoBehaviour
 {
@@ -11,7 +10,7 @@ public class PlayerDeath : MonoBehaviour
     [SerializeField] VoidEventSO newGameEvent;
 
     Character character;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
 
     bool deathHandled;
@@ -22,7 +21,7 @@ public class PlayerDeath : MonoBehaviour
     void Awake()
     {
         character = GetComponent<Character>();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
     }
 

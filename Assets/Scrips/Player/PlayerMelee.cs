@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [DefaultExecutionOrder(99)]
-[RequireComponent(typeof(PlayerAnim))]
+[RequireComponent(typeof(PlayerAnimBase))]
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerMelee : MonoBehaviour
 {
@@ -13,13 +13,13 @@ public class PlayerMelee : MonoBehaviour
     [SerializeField] GameObject meleeHitbox;
     [SerializeField] MeleeDetectZone detectZone;
 
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
     Attack attack;
 
     void Awake()
     {
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
 
         if (meleeHitbox != null)

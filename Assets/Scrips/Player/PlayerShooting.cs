@@ -44,7 +44,7 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] WeaponFirePointSet[] firePointSets;
 
     InputSystem_Actions actions;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
     PlayerMelee playerMelee;
     PlayerWeaponController weaponController;
@@ -57,7 +57,7 @@ public class PlayerShooting : MonoBehaviour
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
         playerMelee = GetComponent<PlayerMelee>();
         weaponController = GetComponent<PlayerWeaponController>();

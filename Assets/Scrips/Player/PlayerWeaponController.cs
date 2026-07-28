@@ -12,7 +12,7 @@ public class PlayerWeaponController : MonoBehaviour
     [SerializeField] int currentWeaponId;
 
     InputSystem_Actions actions;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
 
     float prevHoldTime;
@@ -30,7 +30,7 @@ public class PlayerWeaponController : MonoBehaviour
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
         currentWeaponId = initialWeaponId;
     }

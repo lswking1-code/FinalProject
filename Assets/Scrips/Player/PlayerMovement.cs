@@ -3,9 +3,8 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
-[RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(DataDefination))]
-public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/动画在 Update，物理在 FixedUpdate
+public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/动画在 Update，物理在 FixedUpdate；需挂 PlayerAnim 或 PlayerFullBodyAnim
 {
     const string FacingKeySuffix = "facing";
 
@@ -22,7 +21,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
     PlatformDropThrough platformDropThrough;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     InputSystem_Actions actions;
     CapsuleCollider2D capsuleCollider;
     Vector2 standingColliderSize;
@@ -74,7 +73,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
         platformDropThrough = GetComponent<PlatformDropThrough>();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
+        if (playerAnim == null)
+            Debug.LogError("PlayerMovement 需要 PlayerAnim 或 PlayerFullBodyAnim 组件。", this);
         capsuleCollider = GetComponent<CapsuleCollider2D>();
         if (capsuleCollider != null)
         {
@@ -335,7 +336,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             }
 
             // 起跳后 coyote 期间 isGround 仍为 true；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
-            if (playerAnim.CurrentAirPhase != PlayerAnim.AirPhaseType.Ground)
+            if (playerAnim.CurrentAirPhase != PlayerAnimBase.AirPhaseType.Ground)
                 return;
             if (rb.linearVelocity.y > 0.05f)
                 return;

@@ -15,17 +15,8 @@ public enum MachinistChargeAim
 }
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参数驱动；上半身 locomotion 由 Play 驱动，蹲姿/着陆/转身走 FullBody 层
+public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase 参数驱动；上半身 locomotion 由 Play 驱动，蹲姿/着陆/转身走 FullBody 层
 {
-    public enum AirPhaseType // 空中阶段，同步到上下半身 Animator 的 AirPhase 参数
-    {
-        Ground = 0,
-        Jump = 1,    // 原地起跳上升
-        Fall = 2,    // 下落（含走出平台）
-        Leap = 3,    // 带水平速度起跳上升
-        LeapAir = 4, // 带水平速度起跳后的下落
-    }
-
     enum AirTrack // 起跳类型，区分 Jump / Leap 轨道
     {
         None,
@@ -162,25 +153,25 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool pendingLookUpReleaseAfterCombo;
     bool pendingLookDownReleaseAfterCombo;
 
-    public bool IsCrouching => isCrouching;
-    public bool IsShooting => isShooting;
-    public bool IsCharging => isCharging;
-    public bool IsDispatching => isDispatching;
-    public MachinistChargeAim ActiveChargeAim => activeChargeAim;
-    public bool IsPlayingMachinistComboShoot =>
+    public override bool IsCrouching => isCrouching;
+    public override bool IsShooting => isShooting;
+    public override bool IsCharging => isCharging;
+    public override bool IsDispatching => isDispatching;
+    public override MachinistChargeAim ActiveChargeAim => activeChargeAim;
+    public override bool IsPlayingMachinistComboShoot =>
         isShooting && IsMachinistComboShootState(activeShootStateName);
-    public bool IsThrowing => isThrowing;
-    public bool IsMelee => isMelee;
-    public bool IsSwitchingWeapon => isSwitchingWeapon;
-    public bool IsDead => isDead;
-    public bool IsLookingUp => isLookingUp || isEndingLookUp;
-    public bool IsLookingDown => isLookingDown || isEndingLookDown;
-    public AirPhaseType CurrentAirPhase => airPhase;
-    public bool IsInFullBody => displayMode == BodyDisplayMode.FullBody;
-    public string CurrentFullBodyState => activeFullBodyState;
-    public bool IsPlayingLand =>
+    public override bool IsThrowing => isThrowing;
+    public override bool IsMelee => isMelee;
+    public override bool IsSwitchingWeapon => isSwitchingWeapon;
+    public override bool IsDead => isDead;
+    public override bool IsLookingUp => isLookingUp || isEndingLookUp;
+    public override bool IsLookingDown => isLookingDown || isEndingLookDown;
+    public override AirPhaseType CurrentAirPhase => airPhase;
+    public override bool IsInFullBody => displayMode == BodyDisplayMode.FullBody;
+    public override string CurrentFullBodyState => activeFullBodyState;
+    public override bool IsPlayingLand =>
         displayMode == BodyDisplayMode.FullBody && activeFullBodyState == LandStateName;
-    public bool IsTurning =>
+    public override bool IsTurning =>
         activeFullBodyState == TurnStateName || activeFullBodyState == CrouchTurnStateName;
 
     void Awake()
@@ -211,13 +202,13 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         jumpInvokedThisFrame = false;
     }
 
-    public void UpdateAirState(bool grounded) // PlayerMovement 传入地面检测结果
+    public override void UpdateAirState(bool grounded) // PlayerMovement 传入地面检测结果
     {
         float velocityY = rb != null ? rb.linearVelocity.y : 0f;
         UpdateAirState(grounded, velocityY);
     }
 
-    public void UpdateAirState(bool grounded, float velocityY) // 推进空中阶段并同步 Animator；蹲姿/全身层期间暂停；grounded 地面检测结果，velocityY 竖直速度
+    public override void UpdateAirState(bool grounded, float velocityY) // 推进空中阶段并同步 Animator；蹲姿/全身层期间暂停；grounded 地面检测结果，velocityY 竖直速度
     {
         if (isDead)
             return;
@@ -260,7 +251,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         airStateInitialized = true;
     }
 
-    public void PlayJumpAnim(bool hasHorizontalInput) // 有水平输入走 Leap，否则 Jump；蹲姿起跳先退出 FullBody
+    public override void PlayJumpAnim(bool hasHorizontalInput) // 有水平输入走 Leap，否则 Jump；蹲姿起跳先退出 FullBody
     {
         InterruptLand();
         InterruptTurn();
@@ -286,7 +277,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         SyncSplitAnimators();
     }
 
-    public bool PlayTurnAnim() // 地面站立转身，进入全身 Turn 状态
+    public override bool PlayTurnAnim() // 地面站立转身，进入全身 Turn 状态
     {
         if (isCrouching || displayMode == BodyDisplayMode.FullBody || isDispatching)
             return false;
@@ -297,7 +288,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool PlayCrouchTurnAnim() // 蹲伏转身，保持全身层
+    public override bool PlayCrouchTurnAnim() // 蹲伏转身，保持全身层
     {
         if (!isCrouching || crouchAnimator == null || isDispatching)
             return false;
@@ -311,7 +302,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool TryPlayRunStopLand() // 站立地面跑动急停：松键边沿播全身 Land
+    public override bool TryPlayRunStopLand() // 站立地面跑动急停：松键边沿播全身 Land
     {
         if (!isRunning || isCrouching || IsTurning || IsUpperLookActive() || IsPlayingLand)
             return false;
@@ -323,7 +314,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
+    public override void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
     {
         isRunning = false;
 
@@ -338,7 +329,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             SyncSplitAnimators();
     }
 
-    public void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
+    public override void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
         // 蓄力中禁止跑动动画（站立下半身 / 蹲姿全身）
         if (isCharging)
@@ -371,7 +362,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             SyncSplitAnimators();
     }
 
-    public void PlayCrouchAnim() // 进入蹲姿，播 CrouchStart，需手动站起退出
+    public override void PlayCrouchAnim() // 进入蹲姿，播 CrouchStart，需手动站起退出
     {
         if (isCrouching)
             return;
@@ -392,7 +383,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         EnterFullBody(CrouchStartStateName, autoExitOnComplete: false);
     }
 
-    public void PlayStandAnim() // 站起，恢复 Split 层
+    public override void PlayStandAnim() // 站起，恢复 Split 层
     {
         if (!isCrouching)
             return;
@@ -419,7 +410,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         RestoreUpperLocomotion();
     }
 
-    public bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
+    public override bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
         if (isSwitchingWeapon)
             return false;
@@ -498,7 +489,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool TryPlayMachinistShootAnim(MachinistShootKind kind)
+    public override bool TryPlayMachinistShootAnim(MachinistShootKind kind)
     {
         if (isSwitchingWeapon)
             return false;
@@ -602,7 +593,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void InterruptMachinistComboShootFromInput()
+    public override void InterruptMachinistComboShootFromInput()
     {
         if (!IsPlayingMachinistComboShoot)
             return;
@@ -659,7 +650,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
     bool IsPlayingLookMachinistComboShoot() =>
         isShooting && IsLookMachinistComboShootState(activeShootStateName);
 
-    public bool BeginMachinistCharge()
+    public override bool BeginMachinistCharge()
     {
         if (isSwitchingWeapon)
             return false;
@@ -713,7 +704,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void SetChargeAim(MachinistChargeAim aim)
+    public override void SetChargeAim(MachinistChargeAim aim)
     {
         if (!isCharging)
             return;
@@ -724,7 +715,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         ApplyChargeAim(aim, playStart: true);
     }
 
-    public void SyncChargeAimFromInput(bool wantLookUp, bool wantLookDown, bool wantCrouch)
+    public override void SyncChargeAimFromInput(bool wantLookUp, bool wantLookDown, bool wantCrouch)
     {
         if (!isCharging)
             return;
@@ -840,7 +831,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         InvalidateUpperLocomotionCache();
     }
 
-    public bool ReleaseMachinistCharge()
+    public override bool ReleaseMachinistCharge()
     {
         if (!isCharging || activeChargeAnimator == null)
             return false;
@@ -879,7 +870,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         activeChargeAim = MachinistChargeAim.Forward;
     }
 
-    public bool BeginDispatch()
+    public override bool BeginDispatch()
     {
         if (isDead || isSwitchingWeapon)
             return false;
@@ -946,7 +937,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void SetDispatchHold(bool hold)
+    public override void SetDispatchHold(bool hold)
     {
         if (!isDispatching)
             return;
@@ -960,7 +951,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             TryEnterDispatchLoop();
     }
 
-    public void SetDispatchAutoEnd(bool autoEnd)
+    public override void SetDispatchAutoEnd(bool autoEnd)
     {
         if (!isDispatching)
             return;
@@ -981,7 +972,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             EndDispatch();
     }
 
-    public void EndDispatch()
+    public override void EndDispatch()
     {
         if (!isDispatching)
             return;
@@ -1051,7 +1042,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         // Pressing 阶段 intro 已结束：定格末帧，等短按松开 AutoEnd 或长按 Hold→loop
     }
 
-    public bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
+    public override bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
         if (isSwitchingWeapon)
             return false;
@@ -1109,7 +1100,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
+    public override bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
         if (isSwitchingWeapon)
             return false;
@@ -1167,7 +1158,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void ApplyWeaponDefinition(WeaponDefinition def)
+    public override void ApplyWeaponDefinition(WeaponDefinition def)
     {
         if (def == null)
             return;
@@ -1184,7 +1175,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         InvalidateUpperLocomotionCache();
     }
 
-    public bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
+    public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
     {
         if (def == null || isDead)
             return false;
@@ -1246,7 +1237,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool TryGetMeleeAnimProgress(out float normalizedTime)
+    public override bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;
         if (!isMelee || activeMeleeAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
@@ -1260,7 +1251,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void PlayDieAnim()
+    public override void PlayDieAnim()
     {
         isDead = true;
         isCrouching = false;
@@ -1282,7 +1273,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         EnterFullBody(DieStateName, autoExitOnComplete: false);
     }
 
-    public bool TryGetDieAnimProgress(out float normalizedTime)
+    public override bool TryGetDieAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;
         if (!isDead || crouchAnimator == null)
@@ -1296,7 +1287,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public void ResetFromDeath()
+    public override void ResetFromDeath()
     {
         isDead = false;
         activeFullBodyState = null;
@@ -1305,7 +1296,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         RestoreUpperLocomotion();
     }
 
-    public void SetLookUp(bool active)
+    public override void SetLookUp(bool active)
     {
         if (isCharging)
             return;
@@ -1351,7 +1342,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         }
     }
 
-    public void SetLookDown(bool active)
+    public override void SetLookDown(bool active)
     {
         if (isCharging)
             return;
@@ -1552,7 +1543,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         SyncSplitAnimators();
     }
 
-    public void EnterFullBody(string stateName, bool autoExitOnComplete) // 切全身层并从头播放指定状态
+    public override void EnterFullBody(string stateName, bool autoExitOnComplete) // 切全身层并从头播放指定状态
     {
         CancelUpperShootForFullBody();
         ClearLookState();
@@ -1572,7 +1563,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
             crouchAnimator.Play(stateName, 0, 0f);
     }
 
-    public void ExitFullBody() // 恢复 Split 层并同步参数
+    public override void ExitFullBody() // 恢复 Split 层并同步参数
     {
         displayMode = BodyDisplayMode.Split;
         activeFullBodyState = null;
@@ -1660,7 +1651,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return false;
     }
 
-    public void OnFullBodyAnimationFinished() // Animation Event：全身动作结束，触发 autoExit
+    public override void OnFullBodyAnimationFinished() // Animation Event：全身动作结束，触发 autoExit
     {
         if (!fullBodyAutoExit || string.IsNullOrEmpty(activeFullBodyState))
             return;
@@ -1677,7 +1668,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         CompleteAutoFullBodyExit();
     }
 
-    public void OnLandAnimationFinished() => OnFullBodyAnimationFinished(); // 兼容旧事件名
+    public override void OnLandAnimationFinished() => OnFullBodyAnimationFinished(); // 兼容旧事件名
 
     void EnterFullBodyLand() // 空中落地或地面急停播 Land，结束后回地面 Split
     {
@@ -1688,7 +1679,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         EnterFullBody(LandStateName, autoExitOnComplete: true);
     }
 
-    public bool InterruptLand() // 下半身有输入时立刻退出 Land，返回是否打断了 Land
+    public override bool InterruptLand() // 下半身有输入时立刻退出 Land，返回是否打断了 Land
     {
         if (!IsPlayingLand)
             return false;
@@ -1697,7 +1688,7 @@ public class PlayerAnim : MonoBehaviour // 玩家动画：下半身 AirPhase 参
         return true;
     }
 
-    public bool InterruptTurn() // 起跳/移动打断转身
+    public override bool InterruptTurn() // 起跳/移动打断转身
     {
         if (!IsTurning)
             return false;

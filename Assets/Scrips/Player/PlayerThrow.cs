@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(100)]
-[RequireComponent(typeof(PlayerAnim))]
+[RequireComponent(typeof(PlayerAnimBase))]
 [RequireComponent(typeof(PlayerMovement))]
 public class PlayerThrow : MonoBehaviour
 {
@@ -11,7 +11,7 @@ public class PlayerThrow : MonoBehaviour
     [SerializeField] Transform crouchThrowPoint;
 
     InputSystem_Actions actions;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
     Collider2D playerCollider;
     Rigidbody2D playerRb;
@@ -19,7 +19,7 @@ public class PlayerThrow : MonoBehaviour
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
         playerCollider = GetComponent<Collider2D>();
         playerRb = GetComponent<Rigidbody2D>();

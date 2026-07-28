@@ -28,7 +28,7 @@ public class PlatformDropThrough : MonoBehaviour
 
     PhysicsCheck physicsCheck;
     PlayerMovement playerMovement;
-    PlayerAnim playerAnim;
+    PlayerAnimBase playerAnim;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
 
@@ -46,7 +46,7 @@ public class PlatformDropThrough : MonoBehaviour
     {
         physicsCheck = GetComponent<PhysicsCheck>();
         playerMovement = GetComponent<PlayerMovement>();
-        playerAnim = GetComponent<PlayerAnim>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 

@@ -147,7 +147,7 @@ public class MachinistShooting : MonoBehaviour
     {
         if (playerAnim.IsCrouching)
             return ComboStance.Crouch;
-        if (playerAnim.CurrentAirPhase != PlayerAnim.AirPhaseType.Ground)
+        if (playerAnim.CurrentAirPhase != PlayerAnimBase.AirPhaseType.Ground)
             return ComboStance.Air;
         return ComboStance.Ground;
     }
