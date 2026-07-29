@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 30
+  damage: 60
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -261,7 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 30
+  damage: 35
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -701,7 +701,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 30
+  damage: 60
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -942,6 +942,7 @@ MonoBehaviour:
   arriveThreshold: 0.15
   detectRangeX: 14.5
   attackDistance: 2.2
+  dashDecideDistance: 4.5
   attackCooldown: 1
   maxChaseRange: 16
   anim: {fileID: 2370199281924299456}
@@ -964,6 +965,7 @@ MonoBehaviour:
   pullLandingYOffset: 0
   pullMaxRange: 40
   pullCooldown: 8
+  pullInvulnerableLinger: 0.5
 --- !u!1 &6250385081535608555
 GameObject:
   m_ObjectHideFlags: 0

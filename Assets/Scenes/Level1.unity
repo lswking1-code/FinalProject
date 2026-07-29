@@ -2653,7 +2653,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1191447930
 Transform:
   m_ObjectHideFlags: 0
@@ -2883,6 +2883,63 @@ PrefabInstance:
     - target: {fileID: 8601159937776506679, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
       propertyPath: m_Name
       value: BulletBoxS
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+--- !u!1001 &1895445550
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.83
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -2.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8374545643720871535, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8601159937776506679, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+      propertyPath: m_Name
+      value: BulletBoxS (1)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3241,4 +3298,5 @@ SceneRoots:
   - {fileID: 1215786184}
   - {fileID: 37322034}
   - {fileID: 1403104590}
+  - {fileID: 1895445550}
   - {fileID: 803170596}

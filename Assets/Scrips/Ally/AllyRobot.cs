@@ -47,6 +47,8 @@ public class AllyRobot : MonoBehaviour
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
+    [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出此距离则冲刺，否则直接近战连击")]
+    public float dashDecideDistance = 2.5f;
     [Tooltip("每次攻击之间的冷却时间（秒）")]
     public float attackCooldown = 1.5f;
 
@@ -307,7 +309,7 @@ public class AllyRobot : MonoBehaviour
 
         currentTarget = target;
 
-        if (IsInAttackRange(currentTarget))
+        if (IsWithinDashDecideRange(currentTarget))
         {
             BeginComboAttack();
             return;
@@ -532,6 +534,8 @@ public class AllyRobot : MonoBehaviour
     }
 
     bool IsInAttackRange(Transform target) => GetDistXTo(target) <= attackDistance;
+
+    bool IsWithinDashDecideRange(Transform target) => GetDistXTo(target) <= dashDecideDistance;
 
     /// <summary>
     /// 目标仍存在、处于激活状态，且未进入死亡流程。
@@ -963,6 +967,9 @@ public class AllyRobot : MonoBehaviour
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackDistance);
+
+        Gizmos.color = new Color(1f, 0.5f, 0f, 1f);
+        Gizmos.DrawWireSphere(transform.position, dashDecideDistance);
 
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(origin, maxChaseRange);

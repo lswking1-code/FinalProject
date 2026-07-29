@@ -68,6 +68,21 @@ public class SpecialMagazine : MonoBehaviour
     }
 
     /// <summary>
+    /// 只读窥视队首，不出队。弹夹为空时返回 false。
+    /// </summary>
+    public bool TryPeek(out SpecialAmmoType type)
+    {
+        if (rounds.Count == 0)
+        {
+            type = default;
+            return false;
+        }
+
+        type = rounds.Peek();
+        return true;
+    }
+
+    /// <summary>
     /// 只读枚举当前队列（从前到后，即先消耗的在前）。
     /// </summary>
     public IEnumerable<SpecialAmmoType> EnumerateRounds() => rounds;

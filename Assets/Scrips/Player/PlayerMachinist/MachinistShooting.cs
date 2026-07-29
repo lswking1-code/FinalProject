@@ -15,6 +15,10 @@ public class MachinistShooting : MonoBehaviour
     [SerializeField] PlayerMNormalBullet comboProjectilePrefab;
     [Tooltip("下标对应 WeaponId：0 不耗弹，1=BulletS，2=BulletM，3=BulletL")]
     [SerializeField] PlayerMChargeBullet[] chargeProjectilePrefabs;
+    [Header("特殊弹子弹")]
+    [SerializeField] GameObject specialProjectilePrefabS;
+    [SerializeField] GameObject specialProjectilePrefabM;
+    [SerializeField] GameObject specialProjectilePrefabL;
 
     [Header("发射点")]
     [SerializeField] Transform forwardPoint;
@@ -175,16 +179,27 @@ public class MachinistShooting : MonoBehaviour
         if (IsComboExpired())
             comboCount = 0;
 
-        bool isFinisherNext = comboCount + 1 >= comboFinisherCount;
+        bool forceComboFromSpecialS =
+            specialMagazine != null
+            && specialMagazine.TryPeek(out SpecialAmmoType peek)
+            && peek == SpecialAmmoType.S;
+
+        bool isFinisherNext = forceComboFromSpecialS
+            || comboCount + 1 >= comboFinisherCount;
         if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
             return;
 
-        comboCount++;
-        var kind = comboCount >= comboFinisherCount ? MachinistShootKind.Combo : MachinistShootKind.Normal;
+        if (!forceComboFromSpecialS)
+            comboCount++;
+
+        var kind = forceComboFromSpecialS || comboCount >= comboFinisherCount
+            ? MachinistShootKind.Combo
+            : MachinistShootKind.Normal;
 
         if (!playerAnim.TryPlayMachinistShootAnim(kind))
         {
-            comboCount--;
+            if (!forceComboFromSpecialS)
+                comboCount--;
             return;
         }
 
@@ -194,7 +209,7 @@ public class MachinistShooting : MonoBehaviour
         float delay = isCombo ? comboFireDelay : normalFireDelay;
         ScheduleFire(ResolveFireDir(), prefab, delay, isCombo);
 
-        if (isCombo)
+        if (isCombo && !forceComboFromSpecialS)
             comboCount = 0;
     }
 
@@ -310,31 +325,48 @@ public class MachinistShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, PlayerMNormalBullet prefab, bool raiseComboEvent = false)
+    void Fire(FireDir dir, PlayerMNormalBullet fallbackPrefab, bool raiseComboEvent = false)
     {
-        if (prefab == null)
+        if (fallbackPrefab == null)
             return;
 
+        GameObject prefabGo = fallbackPrefab.gameObject;
+
         if (specialMagazine != null && specialMagazine.TryConsume(out SpecialAmmoType specialType))
-            ApplySpecialAmmoEffect(specialType, dir);
+        {
+            GameObject specialGo = ResolveSpecialPrefab(specialType);
+            if (specialGo != null && specialGo.GetComponent<IPlayerAmmo>() != null)
+                prefabGo = specialGo;
+            else
+                Debug.LogWarning(
+                    $"MachinistShooting: 特殊弹 {specialType} 的 Prefab 未配置或缺少 IPlayerAmmo，回退普通/连击弹。",
+                    this);
+        }
 
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
-        var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        IPlayerAmmo ammo = projectile;
+        var instance = Instantiate(prefabGo, point.position, Quaternion.identity);
+        var ammo = instance.GetComponent<IPlayerAmmo>();
+        if (ammo == null)
+        {
+            Debug.LogError($"Projectile prefab '{prefabGo.name}' is missing IPlayerAmmo.", prefabGo);
+            Destroy(instance);
+            return;
+        }
+
         ammo.Init(dir, faceY, character);
 
         if (raiseComboEvent)
             robotComboEvent?.RaiseEvent();
     }
 
-    /// <summary>
-    /// 点射消耗特殊弹时的效果钩子；具体效果后续补充。
-    /// </summary>
-    void ApplySpecialAmmoEffect(SpecialAmmoType type, FireDir dir)
+    GameObject ResolveSpecialPrefab(SpecialAmmoType type) => type switch
     {
-        // TODO: 按 SpecialAmmoType 触发对应特殊效果
-    }
+        SpecialAmmoType.S => specialProjectilePrefabS,
+        SpecialAmmoType.M => specialProjectilePrefabM,
+        SpecialAmmoType.L => specialProjectilePrefabL,
+        _ => null,
+    };
 
     Transform GetFirePoint(FireDir dir) => dir switch
     {
