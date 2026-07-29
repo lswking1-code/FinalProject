@@ -331,7 +331,13 @@ MonoBehaviour:
   AbilityPower: 0
   AbilityPowerRecoverSpeed: 0
   pauseAbilityPowerRecover: 0
-  invulnerableDuration: 0.4
+  BulletS: 0
+  BulletM: 0
+  BulletL: 0
+  maxBulletS: 0
+  maxBulletM: 0
+  maxBulletL: 0
+  invulnerableDuration: 0.1
   invulnerable: 0
   OnHealthChange:
     m_PersistentCalls:
