@@ -329,11 +329,13 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookDownChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_charge_shoot.anim";
     const string MachinistCrouchChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/crouch_charge_shoot.anim";
     const string MachinistCrouchShootClipPath = "Assets/Arts/Metal Slug/crouch_shoot.anim";
+    const string MachinistLoadBulletClipPath = "Assets/Animations/Machinist/M_LoadBullet.anim";
 
     const string ComboShootStateName = "ComboShoot";
     const string LookUpComboShootStateName = "LookUpComboShoot";
     const string LookDownComboShootStateName = "LookDownComboShoot";
     const string CrouchComboShootStateName = "CrouchComboShoot";
+    const string LoadBulletStateName = "LoadBullet";
     const string CrouchStateName = "Crouch";
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
@@ -391,6 +393,7 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureMachinistState(sm, states, LookDownChargeStartStateName, MachinistLookDownChargeStartClipPath, new Vector3(1050f, -120f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownChargeLoopStateName, MachinistLookDownChargeLoopClipPath, new Vector3(1200f, -120f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownChargeShootStateName, MachinistLookDownChargeShootClipPath, new Vector3(1350f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LoadBulletStateName, MachinistLoadBulletClipPath, new Vector3(900f, 200f, 0f));
 
         states = BuildStateMap(sm);
         changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
@@ -446,6 +449,7 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, MachinistCrouchShootClipPath, new Vector3(900f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, MachinistCrouchShootClipPath, new Vector3(1050f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));
+        changed |= EnsureMachinistState(sm, states, LoadBulletStateName, MachinistLoadBulletClipPath, new Vector3(870f, 100f, 0f));
 
         states = BuildStateMap(sm);
         changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);

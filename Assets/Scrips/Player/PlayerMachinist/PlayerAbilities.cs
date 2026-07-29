@@ -4,9 +4,10 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(PlayerMovement))]
 [RequireComponent(typeof(Character))]
 [RequireComponent(typeof(PlayerAnim))]
+[RequireComponent(typeof(SpecialMagazine))]
 public class PlayerAbilities : MonoBehaviour
 {
-    enum Ability1Phase { Idle, Pressing, Aiming }
+    enum RobotAbilityPhase { Idle, Pressing, Aiming }
 
     [Header("Robot 生成")]
     [SerializeField] Transform robotGeneratePoint;
@@ -22,11 +23,19 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] float robotDrainRate = 5f;
     [SerializeField] float minAbilityPowerToSpawn = 1f;
 
-    Ability1Phase phase = Ability1Phase.Idle;
+    [Header("特殊弹装填")]
+    [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次装填消耗的 BulletS/M/L 数量")]
+    [SerializeField] int[] reloadAmmoCosts = { 0, 10, 5, 3 };
+    [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次装填装入的特殊弹数量")]
+    [SerializeField] int[] reloadLoadCounts = { 0, 1, 2, 3 };
+
+    RobotAbilityPhase phase = RobotAbilityPhase.Idle;
     InputSystem_Actions actions;
     PlayerMovement playerMovement;
     PlayerAnim playerAnim;
     Character character;
+    PlayerWeaponController weaponController;
+    SpecialMagazine specialMagazine;
     GameObject activeRobot;
     AllyRobot activeRobotController;
 
@@ -50,16 +59,18 @@ public class PlayerAbilities : MonoBehaviour
         playerMovement = GetComponent<PlayerMovement>();
         playerAnim = GetComponent<PlayerAnim>();
         character = GetComponent<Character>();
+        weaponController = GetComponent<PlayerWeaponController>();
+        specialMagazine = GetComponent<SpecialMagazine>();
     }
 
     void OnEnable() => actions.Player.Enable();
 
     void OnDisable()
     {
-        if (phase == Ability1Phase.Aiming)
+        if (phase == RobotAbilityPhase.Aiming)
             ExitAimingMode();
-        else if (phase == Ability1Phase.Pressing)
-            phase = Ability1Phase.Idle;
+        else if (phase == RobotAbilityPhase.Pressing)
+            phase = RobotAbilityPhase.Idle;
 
         EndPlayerDispatch();
         actions.Player.Disable();
@@ -73,23 +84,24 @@ public class PlayerAbilities : MonoBehaviour
             return;
 
         UpdateRobotDrain();
+        UpdateAbility1();
 
         switch (phase)
         {
-            case Ability1Phase.Idle:
-                if (actions.Player.Ability1.WasPressedThisFrame())
+            case RobotAbilityPhase.Idle:
+                if (actions.Player.Ability2.WasPressedThisFrame())
                     BeginPress();
                 break;
 
-            case Ability1Phase.Pressing:
-                if (actions.Player.Ability1.IsPressed()
+            case RobotAbilityPhase.Pressing:
+                if (actions.Player.Ability2.IsPressed()
                     && Time.time - pressTime >= longPressThreshold)
                 {
                     if (HasActiveRobot())
                     {
                         DestroyActiveRobot();
                         EndPlayerDispatch();
-                        phase = Ability1Phase.Idle;
+                        phase = RobotAbilityPhase.Idle;
                     }
                     else
                     {
@@ -97,30 +109,41 @@ public class PlayerAbilities : MonoBehaviour
                     }
                 }
 
-                if (actions.Player.Ability1.WasReleasedThisFrame())
+                if (actions.Player.Ability2.WasReleasedThisFrame())
                 {
-                    if (Time.time - pressTime < longPressThreshold
-                        && !HasActiveRobot() && CanSpawnRobot())
+                    if (Time.time - pressTime < longPressThreshold)
                     {
-                        SpawnRobot(robotGeneratePoint.position);
-                        // 短按：intro 播完（或已定格）后结束召唤动画
-                        if (dispatchStartedThisPress)
-                            playerAnim.SetDispatchAutoEnd(true);
-                        dispatchStartedThisPress = false;
+                        if (!HasActiveRobot() && CanSpawnRobot())
+                        {
+                            SpawnRobot(robotGeneratePoint.position);
+                            // 短按：intro 播完（或已定格）后结束召唤动画
+                            if (dispatchStartedThisPress)
+                                playerAnim.SetDispatchAutoEnd(true);
+                            dispatchStartedThisPress = false;
+                        }
+                        else if (HasActiveRobot())
+                        {
+                            activeRobotController?.TryStartPull();
+                            EndPlayerDispatch();
+                        }
+                        else
+                        {
+                            EndPlayerDispatch();
+                        }
                     }
                     else
                     {
                         EndPlayerDispatch();
                     }
 
-                    phase = Ability1Phase.Idle;
+                    phase = RobotAbilityPhase.Idle;
                 }
                 break;
 
-            case Ability1Phase.Aiming:
+            case RobotAbilityPhase.Aiming:
                 UpdateAimingDrift();
 
-                if (actions.Player.Ability1.WasReleasedThisFrame())
+                if (actions.Player.Ability2.WasReleasedThisFrame())
                 {
                     if (CanSpawnRobot())
                         SpawnRobot(robotGeneratePoint.position);
@@ -129,19 +152,26 @@ public class PlayerAbilities : MonoBehaviour
                 }
                 break;
         }
-
-        UpdateAbility2();
     }
 
-    void UpdateAbility2()
+    /// <summary>
+    /// Ability1：特殊弹装填（不依赖机器人）。
+    /// </summary>
+    void UpdateAbility1()
     {
-        if (playerMovement.IsActionLocked || phase != Ability1Phase.Idle)
+        if (playerMovement.IsActionLocked || phase != RobotAbilityPhase.Idle)
             return;
 
-        if (!actions.Player.Ability2.WasPressedThisFrame() || !HasActiveRobot())
+        if (playerAnim.IsPlayingLoadBullet || playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsDispatching)
             return;
 
-        activeRobotController?.TryStartPull();
+        if (!actions.Player.Ability1.WasPressedThisFrame())
+            return;
+
+        if (!TryConvertAmmoToSpecial())
+            return;
+
+        playerAnim.TryPlayLoadBulletAnim();
     }
 
     bool HasActiveRobot() => activeRobot != null;
@@ -199,7 +229,7 @@ public class PlayerAbilities : MonoBehaviour
         if (playerMovement.IsActionLocked)
             return;
 
-        phase = Ability1Phase.Pressing;
+        phase = RobotAbilityPhase.Pressing;
         pressTime = Time.time;
         defaultLocalPos = robotGeneratePoint.localPosition;
         dispatchStartedThisPress = false;
@@ -210,7 +240,7 @@ public class PlayerAbilities : MonoBehaviour
 
     void EnterAimingMode()
     {
-        phase = Ability1Phase.Aiming;
+        phase = RobotAbilityPhase.Aiming;
         aimOriginWorldPos = robotGeneratePoint.position;
         aimFacing = playerMovement.FaceDirection;
         currentAimOffset = 0f;
@@ -248,7 +278,7 @@ public class PlayerAbilities : MonoBehaviour
 
         robotGeneratePoint.localPosition = defaultLocalPos;
         generatePointParent = null;
-        phase = Ability1Phase.Idle;
+        phase = RobotAbilityPhase.Idle;
         EndPlayerDispatch();
     }
 
@@ -276,5 +306,69 @@ public class PlayerAbilities : MonoBehaviour
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
         robot.GetComponent<AllyRobot>()?.Initialize(transform);
         OnRobotSpawned(robot);
+    }
+
+    /// <summary>
+    /// 短按 Ability1：消耗当前 WeaponID 对应普通弹，装入特殊弹。
+    /// 超容或弹药不足时整次取消。不依赖机器人是否存在。
+    /// </summary>
+    bool TryConvertAmmoToSpecial()
+    {
+        if (specialMagazine == null || character == null || weaponController == null)
+            return false;
+
+        int weaponId = weaponController.CurrentWeaponId;
+        if (weaponId < 1 || weaponId > 3)
+            return false;
+
+        int cost = GetReloadAmmoCost(weaponId);
+        int loadCount = GetReloadLoadCount(weaponId);
+        if (loadCount <= 0)
+            return false;
+
+        if (specialMagazine.Count + loadCount > specialMagazine.Capacity)
+            return false;
+
+        AmmoType ammoType = weaponId switch
+        {
+            1 => AmmoType.S,
+            2 => AmmoType.M,
+            3 => AmmoType.L,
+            _ => AmmoType.S,
+        };
+
+        SpecialAmmoType specialType = weaponId switch
+        {
+            1 => SpecialAmmoType.S,
+            2 => SpecialAmmoType.M,
+            3 => SpecialAmmoType.L,
+            _ => SpecialAmmoType.S,
+        };
+
+        if (!character.TrySpendAmmo(ammoType, cost))
+            return false;
+
+        if (!specialMagazine.TryLoad(specialType, loadCount))
+        {
+            // 理论上容量已预检，不应失败；若失败则退回已扣弹药以保持原子性。
+            character.AddAmmo(ammoType, cost);
+            return false;
+        }
+
+        return true;
+    }
+
+    int GetReloadAmmoCost(int weaponId)
+    {
+        if (reloadAmmoCosts == null || weaponId < 0 || weaponId >= reloadAmmoCosts.Length)
+            return 0;
+        return reloadAmmoCosts[weaponId];
+    }
+
+    int GetReloadLoadCount(int weaponId)
+    {
+        if (reloadLoadCounts == null || weaponId < 0 || weaponId >= reloadLoadCounts.Length)
+            return 0;
+        return reloadLoadCounts[weaponId];
     }
 }

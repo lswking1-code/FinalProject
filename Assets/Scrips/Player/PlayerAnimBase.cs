@@ -21,6 +21,7 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsDispatching => false;
     public virtual MachinistChargeAim ActiveChargeAim => MachinistChargeAim.Forward;
     public virtual bool IsPlayingMachinistComboShoot => false;
+    public virtual bool IsPlayingLoadBullet => false;
     public virtual bool IsThrowing => false;
     public virtual bool IsMelee => false;
     public virtual bool IsSwitchingWeapon => false;
@@ -58,6 +59,8 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool TryPlayMachinistShootAnim(MachinistShootKind kind) => false;
 
     public virtual void InterruptMachinistComboShootFromInput() { }
+
+    public virtual bool TryPlayLoadBulletAnim() => false;
 
     public virtual bool BeginMachinistCharge() => false;
 

@@ -1,22 +1,25 @@
 fileFormatVersion: 2
-guid: a6fa22f6e92b7ae46ba1aec79abb1366
+guid: 1c03c1546b4991046b6784fa807e8485
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3986821755378649615
-    second: PlayerM_Reload2_0
+      213: -7785883701504727134
+    second: PlayerM_Reload3_0
   - first:
-      213: 73061343177996073
-    second: PlayerM_Reload2_1
+      213: 1816458126086030961
+    second: PlayerM_Reload3_1
   - first:
-      213: -554188877714471842
-    second: PlayerM_Reload2_2
+      213: 6584384978729119791
+    second: PlayerM_Reload3_2
   - first:
-      213: 5875128073450464059
-    second: PlayerM_Reload2_3
+      213: -5888957317341001564
+    second: PlayerM_Reload3_3
   - first:
-      213: 8822761863045693302
-    second: PlayerM_Reload2_4
+      213: -6167688032461301708
+    second: PlayerM_Reload3_4
+  - first:
+      213: 642106428598676427
+    second: PlayerM_Reload3_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -138,133 +141,133 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_Reload2_0
+      name: PlayerM_Reload3_0
       rect:
         serializedVersion: 2
-        x: 19
-        y: 86
-        width: 40
+        x: 17
+        y: 205
+        width: 35
         height: 30
       alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      pivot: {x: 0.4857143, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1f53bdf8cb6fba8c0800000000000000
-      internalID: -3986821755378649615
+      spriteID: 2a7ae4d560cf2f390800000000000000
+      internalID: -7785883701504727134
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_Reload2_1
+      name: PlayerM_Reload3_1
       rect:
         serializedVersion: 2
-        x: 82
-        y: 86
-        width: 40
+        x: 81
+        y: 205
+        width: 35
         height: 30
       alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      pivot: {x: 0.4857143, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 927ffee87e0930100800000000000000
-      internalID: 73061343177996073
+      spriteID: 176cabaaa0b553910800000000000000
+      internalID: 1816458126086030961
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_Reload2_2
+      name: PlayerM_Reload3_2
       rect:
         serializedVersion: 2
-        x: 146
-        y: 86
-        width: 40
+        x: 145
+        y: 205
+        width: 35
         height: 30
       alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      pivot: {x: 0.4857143, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e544b55e6202f48f0800000000000000
-      internalID: -554188877714471842
+      spriteID: f203199a04f606b50800000000000000
+      internalID: 6584384978729119791
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_Reload2_3
+      name: PlayerM_Reload3_3
       rect:
         serializedVersion: 2
-        x: 210
-        y: 86
-        width: 40
+        x: 209
+        y: 205
+        width: 35
         height: 30
       alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      pivot: {x: 0.4857143, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b33a0f3ead5a88150800000000000000
-      internalID: 5875128073450464059
+      spriteID: 4a8c37a5588364ea0800000000000000
+      internalID: -5888957317341001564
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_Reload2_4
+      name: PlayerM_Reload3_4
       rect:
         serializedVersion: 2
-        x: 19
-        y: 22
-        width: 40
+        x: 17
+        y: 141
+        width: 35
         height: 30
       alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      pivot: {x: 0.4857143, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 67fb3b06b2fb07a70800000000000000
-      internalID: 8822761863045693302
+      spriteID: 43857bb8968f76aa0800000000000000
+      internalID: -6167688032461301708
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_Reload2_5
+      name: PlayerM_Reload3_5
       rect:
         serializedVersion: 2
-        x: 82
-        y: 23
-        width: 40
+        x: 83
+        y: 140
+        width: 25
         height: 30
-      alignment: 9
-      pivot: {x: 0.35, y: 0.26666668}
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 8c5346363d344a84fb22771179da1f19
-      internalID: -891607017
+      spriteID: bcb6e90156839e800800000000000000
+      internalID: 642106428598676427
       vertices: []
       indices: 
       edges: []
@@ -273,7 +276,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 14a426aedb19e754ab206e09637ecf93
+    spriteID: 28a857166ffe3944bb468a563d6537db
     internalID: 0
     vertices: []
     indices: 
@@ -283,12 +286,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_Reload2_0: -3986821755378649615
-      PlayerM_Reload2_1: 73061343177996073
-      PlayerM_Reload2_2: -554188877714471842
-      PlayerM_Reload2_3: 5875128073450464059
-      PlayerM_Reload2_4: 8822761863045693302
-      PlayerM_Reload2_5: -891607017
+      PlayerM_Reload3_0: -7785883701504727134
+      PlayerM_Reload3_1: 1816458126086030961
+      PlayerM_Reload3_2: 6584384978729119791
+      PlayerM_Reload3_3: -5888957317341001564
+      PlayerM_Reload3_4: -6167688032461301708
+      PlayerM_Reload3_5: 642106428598676427
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

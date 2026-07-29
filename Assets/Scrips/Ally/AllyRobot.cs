@@ -83,7 +83,7 @@ public class AllyRobot : MonoBehaviour
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
 
-    [Header("牵引召回 (Ability2)")]
+    [Header("牵引召回 (Ability2 短按)")]
     [Tooltip("钩爪伸出速度（单位/秒）")]
     public float pullExtendSpeed = 12f;
     [Tooltip("钩爪收回 / 拖拽速度（单位/秒）")]

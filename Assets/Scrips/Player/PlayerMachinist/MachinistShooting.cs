@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 [DefaultExecutionOrder(100)]
 [RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(PlayerMovement))]
+[RequireComponent(typeof(SpecialMagazine))]
 public class MachinistShooting : MonoBehaviour
 {
     enum ShootPhase { Idle, Pressing, Charging }
@@ -44,6 +45,7 @@ public class MachinistShooting : MonoBehaviour
     PlayerMovement playerMovement;
     PlayerWeaponController weaponController;
     Character character;
+    SpecialMagazine specialMagazine;
 
     ShootPhase phase = ShootPhase.Idle;
     float pressTime;
@@ -66,6 +68,7 @@ public class MachinistShooting : MonoBehaviour
         playerMovement = GetComponent<PlayerMovement>();
         weaponController = GetComponent<PlayerWeaponController>();
         character = GetComponent<Character>();
+        specialMagazine = GetComponent<SpecialMagazine>();
     }
 
     void OnEnable() => actions.Player.Enable();
@@ -79,13 +82,13 @@ public class MachinistShooting : MonoBehaviour
         TrySpawnPendingProjectile();
         TryResetComboOnStanceChange();
 
-        if (playerMovement.IsActionLocked || playerAnim.IsDispatching)
+        if (playerMovement.IsActionLocked || playerAnim.IsDispatching || playerAnim.IsPlayingLoadBullet)
             return;
 
         switch (phase)
         {
             case ShootPhase.Idle:
-                if (playerAnim.IsPlayingMachinistComboShoot)
+                if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingLoadBullet)
                     break;
 
                 if (actions.Player.Attack.WasPressedThisFrame())
@@ -312,6 +315,9 @@ public class MachinistShooting : MonoBehaviour
         if (prefab == null)
             return;
 
+        if (specialMagazine != null && specialMagazine.TryConsume(out SpecialAmmoType specialType))
+            ApplySpecialAmmoEffect(specialType, dir);
+
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
@@ -320,6 +326,14 @@ public class MachinistShooting : MonoBehaviour
 
         if (raiseComboEvent)
             robotComboEvent?.RaiseEvent();
+    }
+
+    /// <summary>
+    /// 点射消耗特殊弹时的效果钩子；具体效果后续补充。
+    /// </summary>
+    void ApplySpecialAmmoEffect(SpecialAmmoType type, FireDir dir)
+    {
+        // TODO: 按 SpecialAmmoType 触发对应特殊效果
     }
 
     Transform GetFirePoint(FireDir dir) => dir switch

@@ -446,13 +446,14 @@ GameObject:
   - component: {fileID: 1601302277938640739}
   - component: {fileID: 9108432397279034129}
   - component: {fileID: 7903566767189351328}
-  - component: {fileID: 6015605214791950623}
+  - component: {fileID: 8901234567890123460}
   - component: {fileID: 1287484504928434920}
   - component: {fileID: 5817356231846119991}
-  - component: {fileID: 3614759619717667695}
   - component: {fileID: 7077185591638236879}
+  - component: {fileID: 6015605214791950623}
+  - component: {fileID: 3614759619717667695}
+  - component: {fileID: 5182937465019283746}
   - component: {fileID: 4026055720398135146}
-  - component: {fileID: 8901234567890123460}
   - component: {fileID: 8012345678901234521}
   m_Layer: 9
   m_Name: PlayerMachinist
@@ -596,7 +597,7 @@ CapsuleCollider2D:
   m_Offset: {x: 0.24296343, y: 1.0128961}
   m_Size: {x: 1.0814741, y: 2.3401165}
   m_Direction: 0
---- !u!114 &6015605214791950623
+--- !u!114 &8901234567890123460
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -605,28 +606,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 6572320002224097586}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 828134a9a29463547a28e52cf1aa25f9, type: 3}
+  m_Script: {fileID: 11500000, guid: e8f4a2b13c5d4970a6e1f2d3c4b5a678, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalProjectilePrefab: {fileID: 340545589965268769, guid: caa09d0d5f4a56b4a8b464526f859919, type: 3}
-  comboProjectilePrefab: {fileID: -5845897735575499202, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
-  chargeProjectilePrefabs:
-  - {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
-  - {fileID: 7600983243370080879, guid: 672b1f9534775ab43a1b6588856da6d0, type: 3}
-  - {fileID: 7600983243370080879, guid: 18eda76bc59e3b341a864de81666d3b6, type: 3}
-  - {fileID: 7600983243370080879, guid: 43dfbeace51ec814a8331affdb3bd200, type: 3}
-  forwardPoint: {fileID: 2800590082269034882}
-  crouchPoint: {fileID: 8591273858336282524}
-  upPoint: {fileID: 3562070384078571298}
-  downPoint: {fileID: 1124422903828144628}
-  comboFinisherCount: 4
-  comboResetWindow: 0.8
-  normalFireInterval: 0.17
-  normalFireDelay: 0
-  comboFireDelay: 0.15
-  chargeHoldThreshold: 0.3
-  chargeAmmoCosts: 00000000140000000a00000005000000
-  robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
+  gameOverEvent: {fileID: 11400000, guid: 32e2bd9bedf493549ab65b9166ed307f, type: 2}
+  loadDataEvent: {fileID: 11400000, guid: d053ac14c824369478dc3b9df1c43169, type: 2}
+  newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
 --- !u!114 &1287484504928434920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -668,26 +653,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   persistentType: 0
   ID: b8f7a6e5-d4c3-4b2a-9f8e-7d6c5b4a3921
---- !u!114 &3614759619717667695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6572320002224097586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 771ca9c713438db47bdf2597c339b927, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  robotGeneratePoint: {fileID: 4683972848920230760}
-  robotPrefab: {fileID: 5818673389914477433, guid: fd85b8cfeb5b34342ba7993ef17a33ca, type: 3}
-  positionPreview: {fileID: 4602526496284074832}
-  longPressThreshold: 0.5
-  previewMoveSpeed: 3
-  maxPreviewDistance: 5
-  robotDrainRate: 5
-  minAbilityPowerToSpawn: 1
 --- !u!114 &7077185591638236879
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -740,6 +705,73 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &6015605214791950623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6572320002224097586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 828134a9a29463547a28e52cf1aa25f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalProjectilePrefab: {fileID: 340545589965268769, guid: caa09d0d5f4a56b4a8b464526f859919, type: 3}
+  comboProjectilePrefab: {fileID: -5845897735575499202, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
+  chargeProjectilePrefabs:
+  - {fileID: 7600983243370080879, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
+  - {fileID: 7600983243370080879, guid: 672b1f9534775ab43a1b6588856da6d0, type: 3}
+  - {fileID: 7600983243370080879, guid: 18eda76bc59e3b341a864de81666d3b6, type: 3}
+  - {fileID: 7600983243370080879, guid: 43dfbeace51ec814a8331affdb3bd200, type: 3}
+  forwardPoint: {fileID: 2800590082269034882}
+  crouchPoint: {fileID: 8591273858336282524}
+  upPoint: {fileID: 3562070384078571298}
+  downPoint: {fileID: 1124422903828144628}
+  comboFinisherCount: 4
+  comboResetWindow: 0.8
+  normalFireInterval: 0.17
+  normalFireDelay: 0
+  comboFireDelay: 0.15
+  chargeHoldThreshold: 0.3
+  chargeAmmoCosts: 00000000140000000a00000005000000
+  robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
+--- !u!114 &3614759619717667695
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6572320002224097586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 771ca9c713438db47bdf2597c339b927, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  robotGeneratePoint: {fileID: 4683972848920230760}
+  robotPrefab: {fileID: 5818673389914477433, guid: fd85b8cfeb5b34342ba7993ef17a33ca, type: 3}
+  positionPreview: {fileID: 4602526496284074832}
+  longPressThreshold: 0.5
+  previewMoveSpeed: 3
+  maxPreviewDistance: 5
+  robotDrainRate: 5
+  minAbilityPowerToSpawn: 1
+  reloadAmmoCosts: 00000000140000000a00000005000000
+  reloadLoadCounts: 00000000050000000300000001000000
+--- !u!114 &5182937465019283746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6572320002224097586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478091a2b3c4d5e6f708, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  capacity: 7
+  debugRounds: 
 --- !u!114 &4026055720398135146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -760,21 +792,6 @@ MonoBehaviour:
   initialWeaponId: 0
   holdToInitialDuration: 0.4
   currentWeaponId: 0
---- !u!114 &8901234567890123460
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6572320002224097586}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8f4a2b13c5d4970a6e1f2d3c4b5a678, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameOverEvent: {fileID: 11400000, guid: 32e2bd9bedf493549ab65b9166ed307f, type: 2}
-  loadDataEvent: {fileID: 11400000, guid: d053ac14c824369478dc3b9df1c43169, type: 2}
-  newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
 --- !u!114 &8012345678901234521
 MonoBehaviour:
   m_ObjectHideFlags: 0

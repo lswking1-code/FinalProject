@@ -49,6 +49,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string LookUpComboShootStateName = "LookUpComboShoot";
     const string LookDownComboShootStateName = "LookDownComboShoot";
     const string CrouchComboShootStateName = "CrouchComboShoot";
+    const string LoadBulletStateName = "LoadBullet";
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
     const string ChargeShootStateName = "ChargeShoot";
@@ -150,6 +151,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     RuntimeAnimatorController crouchBaseController;
     float comboShootPinnedNormalized;
     bool comboShootInputInterrupted;
+    float loadBulletPinnedNormalized;
     bool pendingLookUpReleaseAfterCombo;
     bool pendingLookDownReleaseAfterCombo;
 
@@ -160,6 +162,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override MachinistChargeAim ActiveChargeAim => activeChargeAim;
     public override bool IsPlayingMachinistComboShoot =>
         isShooting && IsMachinistComboShootState(activeShootStateName);
+    public override bool IsPlayingLoadBullet =>
+        isShooting && activeShootStateName == LoadBulletStateName;
     public override bool IsThrowing => isThrowing;
     public override bool IsMelee => isMelee;
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
@@ -415,6 +419,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isSwitchingWeapon)
             return false;
 
+        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
+            return false;
+
         if (isMelee)
             CompleteMelee();
 
@@ -498,6 +505,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return false;
 
         if (IsPlayingMachinistComboShoot)
+            return false;
+
+        if (IsPlayingLoadBullet)
             return false;
 
         if (isCharging)
@@ -602,6 +612,67 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         CompleteShoot();
     }
 
+    /// <summary>
+    /// 上半身装弹动画（蹲姿时走全身层同名状态）。播完前不可被射击等打断，逻辑同连击 pin。
+    /// </summary>
+    public override bool TryPlayLoadBulletAnim()
+    {
+        if (isSwitchingWeapon || isDispatching || isDead)
+            return false;
+
+        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
+            return false;
+
+        if (isCharging)
+            CancelMachinistCharge();
+
+        if (isMelee)
+            CompleteMelee();
+
+        if (isThrowing)
+            CompleteThrow();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (activeFullBodyState == TurnStateName)
+            InterruptTurn();
+        else if (activeFullBodyState == CrouchTurnStateName)
+        {
+            activeFullBodyState = null;
+            fullBodyAutoExit = false;
+            ResetFullBodyParams();
+        }
+
+        Animator animator;
+        if (isCrouching)
+        {
+            if (crouchAnimator == null)
+                return false;
+            upperShootUsesAnimatorParam = false;
+            animator = crouchAnimator;
+        }
+        else
+        {
+            if (upperAnimator == null)
+                return false;
+            upperShootUsesAnimatorParam = false;
+            ClearLookStateForHorizontalShoot();
+            BlockUpperAirPhaseForHorizontalShoot();
+            animator = upperAnimator;
+        }
+
+        isShooting = true;
+        activeShootStateName = LoadBulletStateName;
+        activeShootAnimator = animator;
+        loadBulletPinnedNormalized = 0f;
+
+        animator.Play(LoadBulletStateName, 0, 0f);
+        if (!isCrouching)
+            ResetUpperShootTrigger();
+
+        return true;
+    }
+
     static bool IsMachinistComboShootState(string stateName) =>
         stateName == ComboShootStateName
         || stateName == LookUpComboShootStateName
@@ -656,6 +727,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return false;
 
         if (isDispatching)
+            return false;
+
+        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
             return false;
 
         if (isCharging)
@@ -875,6 +949,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isDead || isSwitchingWeapon)
             return false;
 
+        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
+            return false;
+
         if (isDispatching)
             return true;
 
@@ -1050,6 +1127,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isDispatching)
             return false;
 
+        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
+            return false;
+
         if (isMelee)
             CompleteMelee();
 
@@ -1106,6 +1186,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return false;
 
         if (isDispatching)
+            return false;
+
+        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
             return false;
 
         if (isShooting)
@@ -1178,6 +1261,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
     {
         if (def == null || isDead)
+            return false;
+
+        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
             return false;
 
         if (isSwitchingWeapon)
@@ -1607,6 +1693,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         upperShootUsesAnimatorParam = false;
         comboShootPinnedNormalized = 0f;
         comboShootInputInterrupted = false;
+        loadBulletPinnedNormalized = 0f;
         pendingLookUpReleaseAfterCombo = false;
         pendingLookDownReleaseAfterCombo = false;
 
@@ -1673,7 +1760,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     void EnterFullBodyLand() // 空中落地或地面急停播 Land，结束后回地面 Split
     {
         // 空中最终连击未播完就落地：直接结束，避免回到 Split 后被 pin 逻辑在地面重播
-        if (IsPlayingMachinistComboShoot)
+        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
             CompleteShoot();
 
         EnterFullBody(LandStateName, autoExitOnComplete: true);
@@ -2162,6 +2249,22 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
         }
 
+        if (activeShootStateName == LoadBulletStateName)
+        {
+            if (info.IsName(activeShootStateName))
+            {
+                loadBulletPinnedNormalized = info.normalizedTime;
+                if (info.normalizedTime < 1f)
+                    return;
+
+                CompleteShoot();
+                return;
+            }
+
+            activeShootAnimator.Play(activeShootStateName, 0, loadBulletPinnedNormalized);
+            return;
+        }
+
         if (!info.IsName(activeShootStateName))
         {
             if (IsNaturalShootExitState(info, activeShootStateName))
@@ -2355,6 +2458,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeShootAnimator = null;
         comboShootPinnedNormalized = 0f;
         comboShootInputInterrupted = false;
+        loadBulletPinnedNormalized = 0f;
         ResetUpperShootTrigger();
 
         if (isCrouching)
