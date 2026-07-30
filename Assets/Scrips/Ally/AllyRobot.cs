@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -51,6 +53,14 @@ public class AllyRobot : MonoBehaviour
     public float dashDecideDistance = 2.5f;
     [Tooltip("每次攻击之间的冷却时间（秒）")]
     public float attackCooldown = 1.5f;
+
+    [Header("贯穿激光（持续弹触发）")]
+    [SerializeField] int laserDamage = 10;
+    [SerializeField] float laserRange = 10f;
+    [SerializeField] float laserVisualDuration = 0.12f;
+    [SerializeField] float laserWidth = 0.08f;
+    [SerializeField] Color laserColor = new Color(0.3f, 1f, 1f, 1f);
+    [SerializeField] LayerMask laserHitMask = ~0;
 
     [Header("最大追踪范围")]
     [Tooltip("以生成点为圆心，超过此距离强制返回")]
@@ -136,6 +146,9 @@ public class AllyRobot : MonoBehaviour
     float dashTimer;
     bool pendingRetarget;
     bool dispatchAnimSeen;
+    LineRenderer laserLine;
+    Coroutine laserVisualRoutine;
+    Attack laserAttackSource;
 
     // ──────────────────────────────────────────────
     //  Unity 生命周期
@@ -172,6 +185,9 @@ public class AllyRobot : MonoBehaviour
 
     void OnDestroy()
     {
+        if (laserVisualRoutine != null)
+            StopCoroutine(laserVisualRoutine);
+
         if (IsPulling)
         {
             pullVisual?.Cancel();
@@ -316,6 +332,137 @@ public class AllyRobot : MonoBehaviour
         }
 
         BeginComboDashWindup();
+    }
+
+    /// <summary>
+    /// 持续弹击中时触发：瞬时满长贯穿激光，有目标可斜向，无目标水平朝向面向。
+    /// </summary>
+    public bool TryFirePierceLaser()
+    {
+        if (currentState == AllyState.Spawning || IsPulling)
+            return false;
+
+        Transform aimTarget = null;
+        if (IsValidCombatTarget(currentTarget))
+            aimTarget = currentTarget;
+        else if (TryAcquireTarget(out Transform acquired))
+        {
+            currentTarget = acquired;
+            aimTarget = acquired;
+        }
+
+        Vector2 origin = transform.position;
+        Vector2 dir;
+        if (aimTarget != null)
+        {
+            FaceTarget(aimTarget.position);
+            dir = (Vector2)aimTarget.position - origin;
+            if (dir.sqrMagnitude < 0.0001f)
+            {
+                float face = Mathf.Sign(transform.localScale.x);
+                if (Mathf.Approximately(face, 0f))
+                    face = 1f;
+                dir = new Vector2(face, 0f);
+            }
+            else
+            {
+                dir.Normalize();
+            }
+        }
+        else
+        {
+            float face = Mathf.Sign(transform.localScale.x);
+            if (Mathf.Approximately(face, 0f))
+                face = 1f;
+            dir = new Vector2(face, 0f);
+        }
+
+        ApplyPierceLaserDamage(origin, dir);
+        ShowPierceLaserVisual(origin, origin + dir * laserRange);
+        return true;
+    }
+
+    void ApplyPierceLaserDamage(Vector2 origin, Vector2 dir)
+    {
+        EnsureLaserAttackSource();
+        laserAttackSource.damage = laserDamage;
+        laserAttackSource.attackType = AttackType.Melee;
+
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, dir, laserRange, laserHitMask);
+        var damaged = new HashSet<Character>();
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D col = hits[i].collider;
+            if (col == null)
+                continue;
+
+            Transform hitTf = col.transform;
+            if (hitTf == transform || hitTf.IsChildOf(transform))
+                continue;
+
+            Character character = col.GetComponentInParent<Character>();
+            if (character == null || damaged.Contains(character))
+                continue;
+            if (character == ownerCharacter)
+                continue;
+            if (col.GetComponentInParent<Enemy>() == null)
+                continue;
+
+            damaged.Add(character);
+            character.TakeDamage(laserAttackSource);
+        }
+    }
+
+    void EnsureLaserAttackSource()
+    {
+        if (laserAttackSource != null)
+            return;
+
+        var go = new GameObject("PierceLaserAttack");
+        go.transform.SetParent(transform, false);
+        laserAttackSource = go.AddComponent<Attack>();
+        laserAttackSource.attackType = AttackType.Melee;
+        laserAttackSource.ignoreTag = "Player";
+    }
+
+    void ShowPierceLaserVisual(Vector2 start, Vector2 end)
+    {
+        EnsureLaserLineRenderer();
+        laserLine.enabled = true;
+        laserLine.SetPosition(0, start);
+        laserLine.SetPosition(1, end);
+
+        if (laserVisualRoutine != null)
+            StopCoroutine(laserVisualRoutine);
+        laserVisualRoutine = StartCoroutine(HidePierceLaserVisualAfterDelay());
+    }
+
+    void EnsureLaserLineRenderer()
+    {
+        if (laserLine != null)
+            return;
+
+        laserLine = gameObject.AddComponent<LineRenderer>();
+        laserLine.positionCount = 2;
+        laserLine.useWorldSpace = true;
+        laserLine.numCapVertices = 2;
+        laserLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        laserLine.receiveShadows = false;
+        laserLine.material = new Material(Shader.Find("Sprites/Default"));
+        laserLine.startWidth = laserWidth;
+        laserLine.endWidth = laserWidth;
+        laserLine.startColor = laserColor;
+        laserLine.endColor = laserColor;
+        laserLine.enabled = false;
+    }
+
+    IEnumerator HidePierceLaserVisualAfterDelay()
+    {
+        yield return new WaitForSeconds(laserVisualDuration);
+        if (laserLine != null)
+            laserLine.enabled = false;
+        laserVisualRoutine = null;
     }
 
     void BeginComboAttack()

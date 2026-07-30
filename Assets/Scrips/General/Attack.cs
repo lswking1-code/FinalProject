@@ -33,14 +33,19 @@ public class Attack : MonoBehaviour
             return;
 
         var target = collision.GetComponentInParent<Character>();
-        if (target == null || hitTargets.Contains(target))
+        if (target == null)
             return;
-        if (attackRate > 0f && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
+
+        bool useRateLimit = attackRate > 0f;
+        if (!useRateLimit && hitTargets.Contains(target))
+            return;
+        if (useRateLimit && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
             return;
 
         target.TakeDamage(this);
-        hitTargets.Add(target);
-        if (attackRate > 0f)
+        if (!useRateLimit)
+            hitTargets.Add(target);
+        if (useRateLimit)
             nextHitTime[target] = Time.time + 1f / attackRate;
 
         if (attackType == AttackType.Projectile)

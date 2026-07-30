@@ -944,6 +944,14 @@ MonoBehaviour:
   attackDistance: 2.2
   dashDecideDistance: 4.5
   attackCooldown: 1
+  laserDamage: 30
+  laserRange: 30
+  laserVisualDuration: 0.5
+  laserWidth: 1.5
+  laserColor: {r: 0.3, g: 1, b: 1, a: 1}
+  laserHitMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   maxChaseRange: 16
   anim: {fileID: 2370199281924299456}
   walkBoolName: walk
