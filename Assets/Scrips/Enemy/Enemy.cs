@@ -60,6 +60,7 @@ public class Enemy : MonoBehaviour
     protected BaseState crouchState;
     protected BaseState crouchShootState;
     protected BaseState reloadState;
+    protected BaseState jumpState;
 
     SpriteRenderer spriteRenderer;
     Color spriteOriginalColor = Color.white;
@@ -221,6 +222,7 @@ public class Enemy : MonoBehaviour
             NPCState.Crouch => crouchState,
             NPCState.CrouchShoot => crouchShootState,
             NPCState.Reload => reloadState,
+            NPCState.Jump => jumpState,
             _ => null
         };
 

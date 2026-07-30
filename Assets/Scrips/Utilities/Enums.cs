@@ -9,7 +9,8 @@ public enum NPCState
     Move,        // 随机移动
     Crouch,      // 蹲伏
     CrouchShoot, // 蹲射
-    Reload       // 换弹冷却
+    Reload,      // 换弹冷却
+    Jump         // 跃起（精英能力）
 }
 
 /// <summary>敌人 Action 类型，用于概率记录（Reload 不参与权重）</summary>
@@ -18,7 +19,8 @@ public enum EnemyAction
     Shot,
     Move,
     Crouch,
-    CrouchShoot
+    CrouchShoot,
+    Jump
 }
 
 /// <summary>场景类型</summary>

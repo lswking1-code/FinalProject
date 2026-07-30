@@ -70,6 +70,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string AirMeleeStateName = "AirMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string DieStateName = "Die";
+    const string RollStateName = "Roll";
     const string WeaponSwitchStateName = "WeaponSwitch";
     const string CrouchWeaponSwitchStateName = "CrouchWeaponSwitch";
     const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
@@ -119,6 +120,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isMelee;
     bool isSwitchingWeapon;
     bool isDead;
+    bool isRolling;
+    bool rollPoseActive;
+    Vector3 fullBodyRestLocalPos;
     bool isLookingUp;
     bool isLookingDown;
     bool isEndingLookUp;
@@ -177,6 +181,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         displayMode == BodyDisplayMode.FullBody && activeFullBodyState == LandStateName;
     public override bool IsTurning =>
         activeFullBodyState == TurnStateName || activeFullBodyState == CrouchTurnStateName;
+    public override bool IsRolling =>
+        isRolling || (displayMode == BodyDisplayMode.FullBody && activeFullBodyState == RollStateName);
 
     void Awake()
     {
@@ -416,7 +422,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
-        if (isSwitchingWeapon)
+        if (isSwitchingWeapon || isRolling)
             return false;
 
         if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
@@ -1121,7 +1127,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
-        if (isSwitchingWeapon)
+        if (isSwitchingWeapon || isRolling)
             return false;
 
         if (isDispatching)
@@ -1182,7 +1188,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
-        if (isSwitchingWeapon)
+        if (isSwitchingWeapon || isRolling)
             return false;
 
         if (isDispatching)
@@ -1260,7 +1266,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
     {
-        if (def == null || isDead)
+        if (def == null || isDead || isRolling)
             return false;
 
         if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
@@ -1340,6 +1346,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override void PlayDieAnim()
     {
         isDead = true;
+        isRolling = false;
+        ResetRollRotation();
         isCrouching = false;
         isRunning = false;
         isShooting = false;
@@ -1376,6 +1384,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override void ResetFromDeath()
     {
         isDead = false;
+        isRolling = false;
+        ResetRollRotation();
         activeFullBodyState = null;
         fullBodyAutoExit = false;
         ExitFullBody();
@@ -1654,6 +1664,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         displayMode = BodyDisplayMode.Split;
         activeFullBodyState = null;
         fullBodyAutoExit = false;
+        isRolling = false;
+        ResetRollRotation();
 
         if (crouchBody != null)
             crouchBody.SetActive(false);
@@ -1786,6 +1798,115 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             CompleteAutoFullBodyExit();
 
         return true;
+    }
+
+    public override bool TryPlayRollAnim()
+    {
+        if (isDead || isRolling)
+            return false;
+
+        if (isDispatching || isSwitchingWeapon)
+            return false;
+
+        if (isMelee)
+            CompleteMelee();
+        if (isThrowing)
+            CompleteThrow();
+        if (isShooting)
+            CompleteShoot();
+        if (isCharging)
+            CancelMachinistCharge();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (IsTurning)
+            InterruptTurn();
+
+        if (isCrouching)
+            PlayStandAnim();
+
+        ClearLookState();
+        EnterFullBody(RollStateName, autoExitOnComplete: false);
+        if (crouchAnimator != null)
+            crouchAnimator.Update(0f); // 立刻切到 roll 精灵，再按真实尺寸抬升旋转轴
+        BeginRollPose();
+        isRolling = true;
+        return true;
+    }
+
+    public override void EndRollAnim()
+    {
+        if (!isRolling && activeFullBodyState != RollStateName)
+            return;
+
+        isRolling = false;
+        ResetRollRotation();
+
+        if (displayMode == BodyDisplayMode.FullBody && activeFullBodyState == RollStateName)
+            ExitFullBody();
+    }
+
+    public override void SetRollRotation(float degreesZ)
+    {
+        if (crouchBody == null)
+            return;
+
+        crouchBody.transform.localRotation = Quaternion.Euler(0f, 0f, degreesZ);
+    }
+
+    public override void ResetRollRotation()
+    {
+        if (crouchBody == null)
+        {
+            rollPoseActive = false;
+            return;
+        }
+
+        crouchBody.transform.localRotation = Quaternion.identity;
+        if (rollPoseActive)
+        {
+            crouchBody.transform.localPosition = fullBodyRestLocalPos;
+            rollPoseActive = false;
+        }
+    }
+
+    /// <summary>
+    /// roll 切片 pivot 在中心，直接绕 FullBody 原点转会有一半扎进地。
+    /// 开始翻滚时把旋转中心抬到约半身高度，使翻滚圆贴地。
+    /// </summary>
+    void BeginRollPose()
+    {
+        if (crouchBody == null)
+            return;
+
+        if (!rollPoseActive)
+        {
+            fullBodyRestLocalPos = crouchBody.transform.localPosition;
+            rollPoseActive = true;
+        }
+
+        float lift = EstimateRollPivotLift();
+        Vector3 pos = fullBodyRestLocalPos;
+        pos.y += lift;
+        crouchBody.transform.localPosition = pos;
+        crouchBody.transform.localRotation = Quaternion.identity;
+    }
+
+    float EstimateRollPivotLift()
+    {
+        var sr = crouchBody != null ? crouchBody.GetComponent<SpriteRenderer>() : null;
+        if (sr == null || sr.sprite == null)
+            return 0.6f;
+
+        // sprite.bounds 为本地尺寸；再乘 FullBody 本地缩放
+        Vector3 extents = sr.sprite.bounds.extents;
+        float scaleY = Mathf.Abs(crouchBody.transform.localScale.y);
+        float scaleX = Mathf.Abs(crouchBody.transform.localScale.x);
+        // 用外接圆半径，避免 45° 时边角穿地
+        float radius = Mathf.Sqrt(
+            extents.x * extents.x * scaleX * scaleX +
+            extents.y * extents.y * scaleY * scaleY);
+        return radius;
     }
 
     void TryAutoExitCrouchTurn() // 蹲伏转身结束，回 Crouch 循环
@@ -2204,6 +2325,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         displayMode = BodyDisplayMode.Split;
         activeFullBodyState = null;
         fullBodyAutoExit = false;
+        isRolling = false;
+        ResetRollRotation();
 
         if (crouchBody != null)
             crouchBody.SetActive(false);

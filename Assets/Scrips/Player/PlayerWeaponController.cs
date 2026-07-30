@@ -53,7 +53,7 @@ public class PlayerWeaponController : MonoBehaviour
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
-        if (playerAnim != null && (playerAnim.IsDead || playerAnim.IsSwitchingWeapon))
+        if (playerAnim != null && (playerAnim.IsDead || playerAnim.IsSwitchingWeapon || playerAnim.IsRolling))
             return;
 
         HandleWeaponInput(actions.Player.Previous, ref prevWasPressed, ref prevHoldTime, ref prevLongFired, -1);

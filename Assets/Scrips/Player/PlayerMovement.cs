@@ -116,7 +116,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void Update()
     {
-        if (!IsActionLocked)
+        if (!IsActionLocked && !playerAnim.IsRolling)
         {
             ReadInput();
             TryInterruptMachinistComboShoot();
@@ -124,6 +124,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             TryTurn();
             SyncAnimation(); // 先推进空中/落地，再处理蹲姿，才能同帧打断 Land
             HandleCrouch();
+        }
+        else if (!IsActionLocked && playerAnim.IsRolling)
+        {
+            // 翻滚中仍刷新地面检测，结束时空气阶段才能正确衔接
+            moveInput = Vector2.zero;
+            jumpPressed = false;
         }
 
         ApplyCrouchCollider(playerAnim.IsCrouching);
@@ -145,6 +151,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         physicsCheck.Check();
         UpdateSlopeGravity();
+
+        if (playerAnim.IsRolling)
+        {
+            jumpBufferCounter = 0f;
+            return;
+        }
 
         if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
             jumpBufferCounter = jumpBufferTime;

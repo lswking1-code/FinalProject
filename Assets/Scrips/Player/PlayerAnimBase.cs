@@ -33,6 +33,7 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual string CurrentFullBodyState => null;
     public virtual bool IsPlayingLand => false;
     public virtual bool IsTurning => false;
+    public virtual bool IsRolling => false;
 
     public virtual void UpdateAirState(bool grounded) { }
 
@@ -117,4 +118,12 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool InterruptLand() => false;
 
     public virtual bool InterruptTurn() => false;
+
+    public virtual bool TryPlayRollAnim() => false;
+
+    public virtual void EndRollAnim() { }
+
+    public virtual void SetRollRotation(float degreesZ) { }
+
+    public virtual void ResetRollRotation() { }
 }

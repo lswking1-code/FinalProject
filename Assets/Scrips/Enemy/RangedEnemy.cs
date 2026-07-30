@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot 循环，带动态 Action 概率。
-/// 射击类结束后进入 Reload 冷却，再重新选择行为。
+/// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot / Jump 循环，带动态 Action 概率。
+/// 射击类结束后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
 /// </summary>
 public class RangedEnemy : Enemy
 {
@@ -27,9 +27,14 @@ public class RangedEnemy : Enemy
     [Tooltip("蹲射权重（需开启蹲伏能力）")]
     [Min(0f)] public float crouchShootWeight = 0.3f;
 
+    [Tooltip("跃起权重（需开启跃起能力）")]
+    [Min(0f)] public float jumpWeight = 0.25f;
+
     [Header("精英能力")]
     [Tooltip("开启后，Crouch / CrouchShoot 才会进入权重掷骰")]
     public bool enableCrouchActions;
+    [Tooltip("开启后，Jump 才会进入权重掷骰（手雷精英等）")]
+    public bool enableJumpAction;
 
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
@@ -90,6 +95,9 @@ public class RangedEnemy : Enemy
             weights.Add((EnemyAction.Crouch, crouchWeight));
             weights.Add((EnemyAction.CrouchShoot, crouchShootWeight));
         }
+
+        if (enableJumpAction)
+            weights.Add((EnemyAction.Jump, jumpWeight));
 
         float total = 0f;
         foreach (var (_, weight) in weights)
@@ -153,6 +161,7 @@ public class RangedEnemy : Enemy
         EnemyAction.Shot => NPCState.Shot,
         EnemyAction.Crouch => NPCState.Crouch,
         EnemyAction.CrouchShoot => NPCState.CrouchShoot,
+        EnemyAction.Jump => NPCState.Jump,
         _ => NPCState.Move
     };
 

@@ -36,6 +36,9 @@ public class PlayerThrow : MonoBehaviour
         if (playerMovement.IsActionLocked)
             return;
 
+        if (playerAnim.IsRolling)
+            return;
+
         if (actions.Player.Throw.WasPressedThisFrame()
             && playerAnim.TryPlayThrowAnim())
             SpawnGrenade();

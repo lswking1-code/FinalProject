@@ -17,6 +17,8 @@ public class EnemyGrenade : MonoBehaviour
     [SerializeField] float rollSpeedReference = 12f;
     [SerializeField] float minRollAnimSpeed = 0.6f;
     [SerializeField] float maxRollAnimSpeed = 1.8f;
+    [Tooltip("空中视觉旋转角速度（度/秒），符号随水平飞行方向翻转")]
+    [SerializeField] float spinDegreesPerSecond = 720f;
     [Tooltip("命中该层时引爆（地面）")]
     [SerializeField] LayerMask groundLayer;
     [SerializeField] float groundSnapRayDistance = 1.5f;
@@ -24,6 +26,8 @@ public class EnemyGrenade : MonoBehaviour
     Rigidbody2D rb;
     CircleCollider2D grenadeCollider;
     Animator animator;
+    Transform visual;
+    float spinDir = 1f;
     bool hasExploded;
 
     void Awake()
@@ -31,6 +35,7 @@ public class EnemyGrenade : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         grenadeCollider = GetComponent<CircleCollider2D>();
         animator = GetComponent<Animator>();
+        visual = transform.Find("Sprite");
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
@@ -49,6 +54,8 @@ public class EnemyGrenade : MonoBehaviour
         float dir = Mathf.Sign(faceDir);
         if (dir == 0f)
             dir = 1f;
+
+        spinDir = dir;
 
         float rad = throwAngleDegrees * Mathf.Deg2Rad;
         float speed = Mathf.Max(0f, throwSpeed);
@@ -71,8 +78,11 @@ public class EnemyGrenade : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!hasExploded)
-            SyncRollAnimSpeed();
+        if (hasExploded)
+            return;
+
+        SyncRollAnimSpeed();
+        SpinVisual();
     }
 
     void SyncRollAnimSpeed()
@@ -84,6 +94,17 @@ public class EnemyGrenade : MonoBehaviour
             ? Mathf.Clamp01(Mathf.Abs(rb.linearVelocity.x) / rollSpeedReference)
             : 1f;
         animator.speed = Mathf.Lerp(minRollAnimSpeed, maxRollAnimSpeed, t);
+    }
+
+    void SpinVisual()
+    {
+        if (visual == null || spinDegreesPerSecond == 0f)
+            return;
+
+        float dir = Mathf.Abs(rb.linearVelocity.x) > 0.05f
+            ? Mathf.Sign(rb.linearVelocity.x)
+            : spinDir;
+        visual.Rotate(0f, 0f, -dir * spinDegreesPerSecond * Time.fixedDeltaTime);
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -98,7 +119,7 @@ public class EnemyGrenade : MonoBehaviour
         }
 
         if (IsGroundCollider(collision.collider))
-            Despawn();
+            Explode();
     }
 
     static bool IsPlayerCollider(Collider2D collider)
@@ -116,15 +137,6 @@ public class EnemyGrenade : MonoBehaviour
             return false;
 
         return (groundLayer.value & (1 << collider.gameObject.layer)) != 0;
-    }
-
-    void Despawn()
-    {
-        if (hasExploded)
-            return;
-
-        hasExploded = true;
-        Destroy(gameObject);
     }
 
     void Explode()

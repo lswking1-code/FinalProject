@@ -307,11 +307,16 @@ MonoBehaviour:
   moveWeight: 0.7
   crouchWeight: 0.2
   crouchShootWeight: 0.3
+  jumpWeight: 0.25
   enableCrouchActions: 0
+  enableJumpAction: 0
   grenadePrefab: {fileID: 2000000000000000006, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
   throwPoint: {fileID: 5507517411812069850}
   throwAngle: 75
   throwSpeed: 8
+  jumpHeight: 2.5
+  jumpHorizontalSpeed: 4
+  landDuration: 0.25
 --- !u!114 &7759382780292668202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -413,7 +418,7 @@ Animator:
   m_GameObject: {fileID: 8190837749373279148}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 4debe96efc05a4e48a99900473456408, type: 2}
+  m_Controller: {fileID: 9100000, guid: 2adb9448a7ffd32418a2a768d30439c0, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

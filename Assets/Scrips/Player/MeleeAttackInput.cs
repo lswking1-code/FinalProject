@@ -12,12 +12,14 @@ public class MeleeAttackInput : MonoBehaviour
 {
     PlayerMelee playerMelee;
     PlayerMovement playerMovement;
+    PlayerAnimBase playerAnim;
     InputSystem_Actions actions;
 
     void Awake()
     {
         playerMelee = GetComponent<PlayerMelee>();
         playerMovement = GetComponent<PlayerMovement>();
+        playerAnim = GetComponent<PlayerAnimBase>();
         actions = new InputSystem_Actions();
     }
 
@@ -30,6 +32,9 @@ public class MeleeAttackInput : MonoBehaviour
     void Update()
     {
         if (playerMovement.IsActionLocked)
+            return;
+
+        if (playerAnim != null && playerAnim.IsRolling)
             return;
 
         if (!actions.Player.Attack.WasPressedThisFrame())

@@ -79,6 +79,9 @@ public class PlayerShooting : MonoBehaviour
         if (playerMovement.IsActionLocked)
             return;
 
+        if (playerAnim != null && playerAnim.IsRolling)
+            return;
+
         if (playerAnim != null && playerAnim.IsSwitchingWeapon)
             return;
 
@@ -124,6 +127,9 @@ public class PlayerShooting : MonoBehaviour
         for (int i = 0; i < burstCount; i++)
         {
             if (playerMovement != null && playerMovement.IsActionLocked)
+                break;
+
+            if (playerAnim != null && playerAnim.IsRolling)
                 break;
 
             FireOnce(spreadOffset, config);

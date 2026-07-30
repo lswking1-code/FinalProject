@@ -307,7 +307,9 @@ MonoBehaviour:
   moveWeight: 0.7
   crouchWeight: 0.2
   crouchShootWeight: 0.3
-  enableCrouchActions: 0
+  jumpWeight: 0.25
+  enableCrouchActions: 1
+  enableJumpAction: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:
   m_ObjectHideFlags: 0
