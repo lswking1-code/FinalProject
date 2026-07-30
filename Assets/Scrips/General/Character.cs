@@ -152,6 +152,18 @@ public class Character : MonoBehaviour,ISaveable
     }
 
     /// <summary>
+    /// 回满血（死亡中不生效）。
+    /// </summary>
+    public void RestoreFullHealth()
+    {
+        if (isDead)
+            return;
+
+        currentHealth = maxHealth;
+        NotifyStatsChanged();
+    }
+
+    /// <summary>
     /// 触发短暂无敌。duration &lt; 0 时使用 invulnerableDuration；已在无敌中则取剩余时间与新时长的较大值。
     /// </summary>
     public void TriggerInvulnerable(float duration = -1f)

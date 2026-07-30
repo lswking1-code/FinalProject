@@ -37,6 +37,14 @@ public class Enemy : MonoBehaviour
     public float checkDistance;
     public LayerMask attackLayer;
 
+    [Header("巡逻站岗")]
+    [Tooltip("开启后原地 Idle，索敌范围内发现玩家才开战；玩家离开所属 Bounds 后脱战回位")]
+    public bool isPatrol;
+    [Tooltip("全向索敌半径")]
+    public float patrolDetectRange = 6f;
+    [Tooltip("回位抵达判定距离")]
+    public float returnArriveDistance = 0.15f;
+
     [Header("计时器")]
     public float waitTime;
     public float waitTimeCounter;
@@ -48,8 +56,14 @@ public class Enemy : MonoBehaviour
     public bool isHurt;
     public bool isDead;
     [HideInInspector] public bool isMarked;
+    [HideInInspector] public bool isAggro;
+    [HideInInspector] public bool isReturning;
 
     [HideInInspector] public Transform player;
+    [HideInInspector] public Vector3 homePosition;
+    [HideInInspector] public Collider2D homeBounds;
+
+    protected Character character;
 
     private BaseState currentState;
     protected BaseState patroState;
@@ -61,6 +75,7 @@ public class Enemy : MonoBehaviour
     protected BaseState crouchShootState;
     protected BaseState reloadState;
     protected BaseState jumpState;
+    protected BaseState returnState;
 
     SpriteRenderer spriteRenderer;
     Color spriteOriginalColor = Color.white;
@@ -74,12 +89,14 @@ public class Enemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        character = GetComponent<Character>();
         CacheSpriteRenderer();
 
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         currentSpeed = normalSpeed;
 
         EnsurePlayerReference();
+        CacheHome();
     }
 
     void CacheSpriteRenderer()
@@ -103,6 +120,130 @@ public class Enemy : MonoBehaviour
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
             player = playerObj.transform;
+    }
+
+    /// <summary>
+    /// 记录出生点，并绑定包含出生点的场景 Bounds。
+    /// </summary>
+    public void CacheHome()
+    {
+        homePosition = transform.position;
+        homeBounds = FindContainingBounds(homePosition);
+
+        if (isPatrol && homeBounds == null)
+            Debug.LogWarning($"[Enemy] {name}: isPatrol 开启但未找到包含出生点的 Bounds，Bounds 脱战将不会触发。", this);
+    }
+
+    static Collider2D FindContainingBounds(Vector3 worldPos)
+    {
+        var objs = GameObject.FindGameObjectsWithTag("Bounds");
+        if (objs == null || objs.Length == 0)
+            return null;
+
+        Vector2 point = worldPos;
+        Collider2D fallback = null;
+
+        foreach (var go in objs)
+        {
+            if (go == null || !go.activeInHierarchy)
+                continue;
+
+            var col = go.GetComponent<Collider2D>();
+            if (col == null || !col.enabled)
+                continue;
+
+            if (col.OverlapPoint(point))
+                return col;
+
+            if (fallback == null && col.bounds.Contains(point))
+                fallback = col;
+        }
+
+        return fallback;
+    }
+
+    /// <summary>
+    /// 玩家是否在全向索敌范围内。
+    /// </summary>
+    public bool IsPlayerInPatrolRange()
+    {
+        EnsurePlayerReference();
+        if (player == null || patrolDetectRange <= 0f)
+            return false;
+
+        return Vector2.Distance(transform.position, player.position) <= patrolDetectRange;
+    }
+
+    /// <summary>
+    /// 玩家是否仍在敌人所属 Bounds 内。未绑定 Bounds 时视为始终在内（不脱战）。
+    /// </summary>
+    public bool IsPlayerInsideHomeBounds()
+    {
+        if (homeBounds == null)
+            return true;
+
+        EnsurePlayerReference();
+        if (player == null)
+            return false;
+
+        Vector2 point = player.position;
+        if (homeBounds.OverlapPoint(point))
+            return true;
+
+        return homeBounds.bounds.Contains(point);
+    }
+
+    /// <summary>
+    /// 脱战：回满血并进入回位状态。
+    /// </summary>
+    public virtual void BeginReturnHome()
+    {
+        if (isDead || isReturning)
+            return;
+
+        isAggro = false;
+        isReturning = true;
+        wait = false;
+
+        if (character != null)
+            character.RestoreFullHealth();
+
+        if (rb != null)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+        if (returnState != null)
+            SwitchState(NPCState.Return);
+        else
+            FinishPatrolReset();
+    }
+
+    /// <summary>
+    /// 抵达出生点后重新进入站岗 Idle。
+    /// </summary>
+    public virtual void FinishPatrolReset()
+    {
+        isAggro = false;
+        isReturning = false;
+        transform.position = homePosition;
+
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+
+        if (character != null)
+            character.RestoreFullHealth();
+
+        SwitchState(NPCState.Patrol);
+    }
+
+    /// <summary>
+    /// 巡逻模式下被拉入战斗（发现玩家或受伤）。
+    /// </summary>
+    public virtual void EnterPatrolCombat()
+    {
+        if (!isPatrol || isDead || isAggro)
+            return;
+
+        isAggro = true;
     }
 
     protected virtual void OnEnable()
@@ -223,6 +364,7 @@ public class Enemy : MonoBehaviour
             NPCState.CrouchShoot => crouchShootState,
             NPCState.Reload => reloadState,
             NPCState.Jump => jumpState,
+            NPCState.Return => returnState,
             _ => null
         };
 
@@ -258,6 +400,17 @@ public class Enemy : MonoBehaviour
             StopCoroutine(hurtRoutine);
         RestoreHurtVisuals();
         hurtRoutine = StartCoroutine(OnHurt(dir));
+
+        if (isPatrol && !isAggro && !isDead)
+            OnPatrolAggroFromDamage();
+    }
+
+    /// <summary>
+    /// 巡逻待机时受伤拉仇恨。子类可覆盖以进入战斗循环。
+    /// </summary>
+    protected virtual void OnPatrolAggroFromDamage()
+    {
+        EnterPatrolCombat();
     }
 
     /// <summary>
@@ -356,5 +509,18 @@ public class Enemy : MonoBehaviour
             transform.position + new Vector3(checkDistance * faceDir.x, 0)
             + (Vector3)centerOffset + new Vector3(checkDistance * -transform.localScale.x, 0),
             0.2f);
+
+        if (isPatrol && patrolDetectRange > 0f)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
+        }
+
+        if (homeBounds != null)
+        {
+            Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.35f);
+            var b = homeBounds.bounds;
+            Gizmos.DrawWireCube(b.center, b.size);
+        }
     }
 }

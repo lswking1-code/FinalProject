@@ -1,7 +1,7 @@
 /// <summary>敌人 AI 状态枚举</summary>
 public enum NPCState
 {
-    Patrol,      // 巡逻
+    Patrol,      // 巡逻 / 远程站岗 Idle
     Chase,       // 追击
     Skill,       // 技能（预留）
     GetClose,    // 靠近玩家
@@ -10,7 +10,8 @@ public enum NPCState
     Crouch,      // 蹲伏
     CrouchShoot, // 蹲射
     Reload,      // 换弹冷却
-    Jump         // 跃起（精英能力）
+    Jump,        // 跃起（精英能力）
+    Return       // 脱战后返回出生点
 }
 
 /// <summary>敌人 Action 类型，用于概率记录（Reload 不参与权重）</summary>

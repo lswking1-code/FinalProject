@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot / Jump 循环，带动态 Action 概率。
 /// 射击类结束后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
+/// 可选 isPatrol：原地站岗，索敌开战，离开所属 Bounds 后脱战回位。
 /// </summary>
 public class RangedEnemy : Enemy
 {
@@ -42,6 +43,8 @@ public class RangedEnemy : Enemy
     protected override void Awake()
     {
         base.Awake();
+        patroState = new RangedIdleGuardState();
+        returnState = new RangedReturnHomeState();
         getCloseState = new RangedGetCloseState();
         shotState = new RangedShotState();
         moveState = new RangedMoveState();
@@ -77,6 +80,35 @@ public class RangedEnemy : Enemy
     {
         ResetActionProbabilities();
         lastAction = null;
+        CacheHome();
+        isReturning = false;
+
+        if (isPatrol)
+        {
+            isAggro = false;
+            SwitchState(NPCState.Patrol);
+        }
+        else
+        {
+            isAggro = true;
+            EvaluateCycle();
+        }
+    }
+
+    protected override void Update()
+    {
+        if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
+            BeginReturnHome();
+
+        base.Update();
+    }
+
+    protected override void OnPatrolAggroFromDamage()
+    {
+        if (isReturning)
+            isReturning = false;
+
+        EnterPatrolCombat();
         EvaluateCycle();
     }
 
@@ -119,7 +151,7 @@ public class RangedEnemy : Enemy
     protected override bool ShouldAutoMove() => false;
 
     /// <summary>
-    /// 每轮循环入口：距离判断 → GetClose 或 Action 判定
+    /// 每轮循环入口：巡逻闸门 → 距离判断 → GetClose 或 Action 判定
     /// </summary>
     public void EvaluateCycle()
     {
@@ -127,6 +159,24 @@ public class RangedEnemy : Enemy
             return;
 
         EnsurePlayerReference();
+
+        if (isPatrol)
+        {
+            if (isReturning)
+                return;
+
+            if (!isAggro)
+            {
+                SwitchState(NPCState.Patrol);
+                return;
+            }
+
+            if (!IsPlayerInsideHomeBounds())
+            {
+                BeginReturnHome();
+                return;
+            }
+        }
 
         float dist = GetHorizontalDistanceToPlayer();
 
@@ -284,5 +334,11 @@ public class RangedEnemy : Enemy
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawLine(transform.position + Vector3.left * shootRange, transform.position + Vector3.right * shootRange);
+
+        if (isPatrol && patrolDetectRange > 0f)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
+        }
     }
 }
