@@ -60,7 +60,6 @@ public class MachinistShooting : MonoBehaviour
     float pendingFireAt;
     FireDir pendingFireDir;
     PlayerMNormalBullet pendingPrefab;
-    bool pendingRaiseComboEvent;
 
     bool hasTrackedComboStance;
     ComboStance lastComboStance;
@@ -165,9 +164,7 @@ public class MachinistShooting : MonoBehaviour
             return;
 
         hasPendingFire = false;
-        bool raiseCombo = pendingRaiseComboEvent;
-        pendingRaiseComboEvent = false;
-        Fire(pendingFireDir, pendingPrefab, raiseCombo);
+        Fire(pendingFireDir, pendingPrefab);
         pendingPrefab = null;
     }
 
@@ -204,12 +201,16 @@ public class MachinistShooting : MonoBehaviour
 
         lastShotTime = Time.time;
         bool isCombo = kind == MachinistShootKind.Combo;
+        // 终结连击：射击动画一开始就触发机器人连携，不等子弹生成
+        if (isCombo)
+            robotComboEvent?.RaiseEvent();
+
         var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
         float delay = isCombo ? comboFireDelay : normalFireDelay;
         FireDir fireDir = ResolveFireDir();
         if (isCombo && isHorizontalForward)
             fireDir = FireDir.Crouch;
-        ScheduleFire(fireDir, prefab, delay, isCombo);
+        ScheduleFire(fireDir, prefab, delay);
 
         if (isCombo && !forceComboFromSpecialS)
             comboCount = 0;
@@ -247,13 +248,12 @@ public class MachinistShooting : MonoBehaviour
             : MachinistShootKind.Normal;
     }
 
-    void ScheduleFire(FireDir dir, PlayerMNormalBullet prefab, float delay, bool raiseComboEvent = false)
+    void ScheduleFire(FireDir dir, PlayerMNormalBullet prefab, float delay)
     {
         if (prefab == null)
         {
             hasPendingFire = false;
             pendingPrefab = null;
-            pendingRaiseComboEvent = false;
             return;
         }
 
@@ -261,8 +261,7 @@ public class MachinistShooting : MonoBehaviour
         {
             hasPendingFire = false;
             pendingPrefab = null;
-            pendingRaiseComboEvent = false;
-            Fire(dir, prefab, raiseComboEvent);
+            Fire(dir, prefab);
             return;
         }
 
@@ -270,7 +269,6 @@ public class MachinistShooting : MonoBehaviour
         pendingFireAt = Time.time + delay;
         pendingFireDir = dir;
         pendingPrefab = prefab;
-        pendingRaiseComboEvent = raiseComboEvent;
     }
 
     void FireChargeShot()
@@ -359,7 +357,7 @@ public class MachinistShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, PlayerMNormalBullet fallbackPrefab, bool raiseComboEvent = false)
+    void Fire(FireDir dir, PlayerMNormalBullet fallbackPrefab)
     {
         if (fallbackPrefab == null)
             return;
@@ -389,9 +387,6 @@ public class MachinistShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
-
-        if (raiseComboEvent)
-            robotComboEvent?.RaiseEvent();
     }
 
     GameObject ResolveSpecialPrefab(SpecialAmmoType type) => type switch
