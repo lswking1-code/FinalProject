@@ -184,6 +184,7 @@ public class MachinistShooting : MonoBehaviour
             && specialMagazine.TryPeek(out SpecialAmmoType peek)
             && peek == SpecialAmmoType.S;
 
+        bool isHorizontalForward = IsHorizontalForwardAim();
         bool isFinisherNext = forceComboFromSpecialS
             || comboCount + 1 >= comboFinisherCount;
         if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
@@ -192,9 +193,7 @@ public class MachinistShooting : MonoBehaviour
         if (!forceComboFromSpecialS)
             comboCount++;
 
-        var kind = forceComboFromSpecialS || comboCount >= comboFinisherCount
-            ? MachinistShootKind.Combo
-            : MachinistShootKind.Normal;
+        var kind = ResolveTapShootKind(forceComboFromSpecialS, isHorizontalForward);
 
         if (!playerAnim.TryPlayMachinistShootAnim(kind))
         {
@@ -207,10 +206,45 @@ public class MachinistShooting : MonoBehaviour
         bool isCombo = kind == MachinistShootKind.Combo;
         var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
         float delay = isCombo ? comboFireDelay : normalFireDelay;
-        ScheduleFire(ResolveFireDir(), prefab, delay, isCombo);
+        FireDir fireDir = ResolveFireDir();
+        if (isCombo && isHorizontalForward)
+            fireDir = FireDir.Crouch;
+        ScheduleFire(fireDir, prefab, delay, isCombo);
 
         if (isCombo && !forceComboFromSpecialS)
             comboCount = 0;
+    }
+
+    bool IsHorizontalForwardAim()
+    {
+        if (playerAnim.IsCrouching)
+            return true;
+        if (playerMovement.GetShootLookUp())
+            return false;
+        if (playerMovement.GetShootLookDown())
+            return false;
+        return true;
+    }
+
+    MachinistShootKind ResolveTapShootKind(bool forceComboFromSpecialS, bool isHorizontalForward)
+    {
+        if (forceComboFromSpecialS)
+            return MachinistShootKind.Combo;
+
+        if (isHorizontalForward && comboFinisherCount >= 3)
+        {
+            if (comboCount >= comboFinisherCount)
+                return MachinistShootKind.Combo;
+            if (comboCount == comboFinisherCount - 1)
+                return MachinistShootKind.Combo2;
+            if (comboCount == comboFinisherCount - 2)
+                return MachinistShootKind.Combo1;
+            return MachinistShootKind.Normal;
+        }
+
+        return comboCount >= comboFinisherCount
+            ? MachinistShootKind.Combo
+            : MachinistShootKind.Normal;
     }
 
     void ScheduleFire(FireDir dir, PlayerMNormalBullet prefab, float delay, bool raiseComboEvent = false)

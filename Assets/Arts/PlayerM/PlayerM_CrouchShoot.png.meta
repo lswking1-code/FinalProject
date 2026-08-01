@@ -1,55 +1,55 @@
 fileFormatVersion: 2
-guid: 308933480db1dc54a9c1640faa52a398
+guid: 4046b2c6d03d18244aca22c1b033af2b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4229030657366926869
-    second: PlayerM_shoot_0
+      213: -7800546198925885919
+    second: PlayerM_CrouchShoot_0
   - first:
-      213: 1433609642631157141
-    second: PlayerM_shoot_1
+      213: -1368863733322502814
+    second: PlayerM_CrouchShoot_1
   - first:
-      213: -4472057274575632501
-    second: PlayerM_shoot_2
+      213: -3299654161501535168
+    second: PlayerM_CrouchShoot_2
   - first:
-      213: -7144579826741648344
-    second: PlayerM_shoot_3
+      213: 2124630939050294933
+    second: PlayerM_CrouchShoot_3
   - first:
-      213: -9110580363838730165
-    second: PlayerM_shoot_4
+      213: 2917097968898921759
+    second: PlayerM_CrouchShoot_4
   - first:
-      213: -5762090113115895076
-    second: PlayerM_shoot_5
+      213: -6202417568833208614
+    second: PlayerM_CrouchShoot_5
   - first:
-      213: -8366444258253105728
-    second: PlayerM_shoot_6
+      213: 6762957057936977537
+    second: PlayerM_CrouchShoot_6
   - first:
-      213: -3102302458661204025
-    second: PlayerM_shoot_7
+      213: -302346273962492783
+    second: PlayerM_CrouchShoot_7
   - first:
-      213: -7981009237934663477
-    second: PlayerM_shoot_8
+      213: 7396193089038252121
+    second: PlayerM_CrouchShoot_8
   - first:
-      213: -5847420904620831294
-    second: PlayerM_shoot_9
+      213: 4879168850694403360
+    second: PlayerM_CrouchShoot_9
   - first:
-      213: 355930905199409476
-    second: PlayerM_shoot_10
+      213: 1817387618911937096
+    second: PlayerM_CrouchShoot_10
   - first:
-      213: -4699489479582679806
-    second: PlayerM_shoot_11
+      213: 7106567513958686294
+    second: PlayerM_CrouchShoot_11
   - first:
-      213: 8323142800686345751
-    second: PlayerM_shoot_12
+      213: -8856047343943506885
+    second: PlayerM_CrouchShoot_12
   - first:
-      213: 5719690242235373346
-    second: PlayerM_shoot_13
+      213: -7251035127654655671
+    second: PlayerM_CrouchShoot_13
   - first:
-      213: -6977565773493827650
-    second: PlayerM_shoot_14
+      213: 1807896455019507181
+    second: PlayerM_CrouchShoot_14
   - first:
-      213: 1082299902027726546
-    second: PlayerM_shoot_15
+      213: -682209802579117412
+    second: PlayerM_CrouchShoot_15
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -171,189 +171,145 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_shoot_0
+      name: PlayerM_CrouchShoot_0
       rect:
         serializedVersion: 2
-        x: 18
-        y: 215
-        width: 40
-        height: 30
+        x: 17
+        y: 205
+        width: 60
+        height: 40
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.28333333, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 516a79cf9f880ba30800000000000000
-      internalID: 4229030657366926869
+      spriteID: 12ebff6af84eeb390800000000000000
+      internalID: -7800546198925885919
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_1
+      name: PlayerM_CrouchShoot_1
       rect:
         serializedVersion: 2
-        x: 83
-        y: 215
-        width: 40
-        height: 30
+        x: 81
+        y: 205
+        width: 60
+        height: 40
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.28333333, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 595da97df5435e310800000000000000
-      internalID: 1433609642631157141
+      spriteID: 26da565efa1d00de0800000000000000
+      internalID: -1368863733322502814
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_2
+      name: PlayerM_CrouchShoot_2
       rect:
         serializedVersion: 2
-        x: 148
-        y: 215
-        width: 40
-        height: 30
+        x: 146
+        y: 205
+        width: 60
+        height: 40
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.28333333, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b87c7bd4a9f00f1c0800000000000000
-      internalID: -4472057274575632501
+      spriteID: 044cf0eb5064532d0800000000000000
+      internalID: -3299654161501535168
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_3
+      name: PlayerM_CrouchShoot_3
       rect:
         serializedVersion: 2
-        x: 211
-        y: 215
-        width: 40
-        height: 30
+        x: 210
+        y: 205
+        width: 46
+        height: 40
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.3617021, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 82464ad408a59dc90800000000000000
-      internalID: -7144579826741648344
+      spriteID: 59eb5e015943c7d10800000000000000
+      internalID: 2124630939050294933
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_4
+      name: PlayerM_CrouchShoot_4
       rect:
         serializedVersion: 2
-        x: 18
-        y: 151
-        width: 40
-        height: 30
+        x: 17
+        y: 141
+        width: 60
+        height: 40
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.28333336, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b405eb3dd67b09180800000000000000
-      internalID: -9110580363838730165
+      spriteID: f15db33b52d9b7820800000000000000
+      internalID: 2917097968898921759
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_5
+      name: PlayerM_CrouchShoot_5
       rect:
         serializedVersion: 2
-        x: 83
-        y: 151
-        width: 50
-        height: 30
+        x: 81
+        y: 141
+        width: 60
+        height: 40
       alignment: 9
-      pivot: {x: 0.26, y: 0.26666668}
+      pivot: {x: 0.28333336, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cdacfeb2291f800b0800000000000000
-      internalID: -5762090113115895076
+      spriteID: adefd0d35169ce9a0800000000000000
+      internalID: -6202417568833208614
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_6
+      name: PlayerM_CrouchShoot_6
       rect:
         serializedVersion: 2
-        x: 148
-        y: 151
-        width: 40
-        height: 30
-      alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0c597b1464b64eb80800000000000000
-      internalID: -8366444258253105728
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_7
-      rect:
-        serializedVersion: 2
-        x: 211
-        y: 151
-        width: 40
-        height: 30
-      alignment: 9
-      pivot: {x: 0.3, y: 0.26666668}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7cf8dadb95862f4d0800000000000000
-      internalID: -3102302458661204025
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_8
-      rect:
-        serializedVersion: 2
-        x: 19
-        y: 76
-        width: 29
-        height: 41
+        x: 146
+        y: 140
+        width: 26
+        height: 36
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -362,152 +318,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bc81bcf1262cd3190800000000000000
-      internalID: -7981009237934663477
+      spriteID: 18eed8dcc99dadd50800000000000000
+      internalID: 6762957057936977537
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_9
-      rect:
-        serializedVersion: 2
-        x: 83
-        y: 76
-        width: 30
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2cdc1ef0ba9c9dea0800000000000000
-      internalID: -5847420904620831294
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_10
-      rect:
-        serializedVersion: 2
-        x: 149
-        y: 76
-        width: 42
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4497ef0c54580f400800000000000000
-      internalID: 355930905199409476
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_11
-      rect:
-        serializedVersion: 2
-        x: 208
-        y: 76
-        width: 32
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 20df9cf973f08ceb0800000000000000
-      internalID: -4699489479582679806
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_12
-      rect:
-        serializedVersion: 2
-        x: 18
-        y: 12
-        width: 30
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 71e62c1874eb18370800000000000000
-      internalID: 8323142800686345751
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_13
-      rect:
-        serializedVersion: 2
-        x: 82
-        y: 12
-        width: 32
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 22715b998fb606f40800000000000000
-      internalID: 5719690242235373346
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_14
-      rect:
-        serializedVersion: 2
-        x: 148
-        y: 12
-        width: 45
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: eb70af1d5e4ba2f90800000000000000
-      internalID: -6977565773493827650
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_15
+      name: PlayerM_CrouchShoot_7
       rect:
         serializedVersion: 2
         x: 212
-        y: 12
-        width: 29
-        height: 41
+        y: 140
+        width: 24
+        height: 34
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -516,8 +340,184 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2de7dc0d60a150f00800000000000000
-      internalID: 1082299902027726546
+      spriteID: 19c7d4d6aa9ddcbf0800000000000000
+      internalID: -302346273962492783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_8
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 77
+        width: 60
+        height: 40
+      alignment: 9
+      pivot: {x: 0.28333336, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 958f2528d6e84a660800000000000000
+      internalID: 7396193089038252121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_9
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 77
+        width: 60
+        height: 40
+      alignment: 9
+      pivot: {x: 0.28333336, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0257ac0083a46b340800000000000000
+      internalID: 4879168850694403360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_10
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 77
+        width: 60
+        height: 40
+      alignment: 9
+      pivot: {x: 0.28333336, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84260741968a83910800000000000000
+      internalID: 1817387618911937096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_11
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 76
+        width: 27
+        height: 35
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65e96d170899f9260800000000000000
+      internalID: 7106567513958686294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_12
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 12
+        width: 26
+        height: 35
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b34a43eacdff81580800000000000000
+      internalID: -8856047343943506885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_13
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 13
+        width: 60
+        height: 40
+      alignment: 9
+      pivot: {x: 0.28333336, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 949d34218f52f5b90800000000000000
+      internalID: -7251035127654655671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_14
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 13
+        width: 60
+        height: 40
+      alignment: 9
+      pivot: {x: 0.28333336, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ded20284f30f61910800000000000000
+      internalID: 1807896455019507181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_CrouchShoot_15
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 13
+        width: 45
+        height: 40
+      alignment: 9
+      pivot: {x: 0.3541667, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9a7bfe8ccd4886f0800000000000000
+      internalID: -682209802579117412
       vertices: []
       indices: 
       edges: []
@@ -526,7 +526,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 623742b49ab6b41448b45d4d61019eb8
+    spriteID: a44836dce5d6a2e4d818a15e54049103
     internalID: 0
     vertices: []
     indices: 
@@ -536,22 +536,22 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_shoot_0: 4229030657366926869
-      PlayerM_shoot_1: 1433609642631157141
-      PlayerM_shoot_10: 355930905199409476
-      PlayerM_shoot_11: -4699489479582679806
-      PlayerM_shoot_12: 8323142800686345751
-      PlayerM_shoot_13: 5719690242235373346
-      PlayerM_shoot_14: -6977565773493827650
-      PlayerM_shoot_15: 1082299902027726546
-      PlayerM_shoot_2: -4472057274575632501
-      PlayerM_shoot_3: -7144579826741648344
-      PlayerM_shoot_4: -9110580363838730165
-      PlayerM_shoot_5: -5762090113115895076
-      PlayerM_shoot_6: -8366444258253105728
-      PlayerM_shoot_7: -3102302458661204025
-      PlayerM_shoot_8: -7981009237934663477
-      PlayerM_shoot_9: -5847420904620831294
+      PlayerM_CrouchShoot_0: -7800546198925885919
+      PlayerM_CrouchShoot_1: -1368863733322502814
+      PlayerM_CrouchShoot_10: 1817387618911937096
+      PlayerM_CrouchShoot_11: 7106567513958686294
+      PlayerM_CrouchShoot_12: -8856047343943506885
+      PlayerM_CrouchShoot_13: -7251035127654655671
+      PlayerM_CrouchShoot_14: 1807896455019507181
+      PlayerM_CrouchShoot_15: -682209802579117412
+      PlayerM_CrouchShoot_2: -3299654161501535168
+      PlayerM_CrouchShoot_3: 2124630939050294933
+      PlayerM_CrouchShoot_4: 2917097968898921759
+      PlayerM_CrouchShoot_5: -6202417568833208614
+      PlayerM_CrouchShoot_6: 6762957057936977537
+      PlayerM_CrouchShoot_7: -302346273962492783
+      PlayerM_CrouchShoot_8: 7396193089038252121
+      PlayerM_CrouchShoot_9: 4879168850694403360
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

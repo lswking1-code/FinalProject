@@ -320,6 +320,10 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookUpExComboClipPath = "Assets/Animations/Machinist/EXShoot/lookup_EXcombo_shoot.anim";
     const string MachinistLookDownExComboClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_EXcombo_shoot.anim";
     const string MachinistCrouchExComboClipPath = "Assets/Animations/Machinist/EXShoot/crouch_EXcombo_shoot.anim";
+    const string MachinistCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/combo1_shoot.anim";
+    const string MachinistCombo2ClipPath = "Assets/Animations/Machinist/EXShoot/combo2_shoot.anim";
+    const string MachinistCrouchCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/crouch_combo1_shoot.anim";
+    const string MachinistCrouchCombo2ClipPath = "Assets/Animations/Machinist/EXShoot/crouch_combo2_shoot.anim";
     const string MachinistChargeShootClipPath = "Assets/Animations/Machinist/EXShoot/charge_shoot.anim";
     const string MachinistLookUpChargeStartClipPath = "Assets/Animations/Machinist/EXShoot/lookup_charge_start.anim";
     const string MachinistLookUpChargeLoopClipPath = "Assets/Animations/Machinist/EXShoot/lookup_charge_loop.anim";
@@ -332,9 +336,13 @@ public static class PlayerAnimControllerSetup
     const string MachinistLoadBulletClipPath = "Assets/Animations/Machinist/M_LoadBullet.anim";
 
     const string ComboShootStateName = "ComboShoot";
+    const string Combo1ShootStateName = "combo1_shoot";
+    const string Combo2ShootStateName = "combo2_shoot";
     const string LookUpComboShootStateName = "LookUpComboShoot";
     const string LookDownComboShootStateName = "LookDownComboShoot";
     const string CrouchComboShootStateName = "CrouchComboShoot";
+    const string CrouchCombo1ShootStateName = "CrouchCombo1Shoot";
+    const string CrouchCombo2ShootStateName = "CrouchCombo2Shoot";
     const string LoadBulletStateName = "LoadBullet";
     const string CrouchStateName = "Crouch";
     const string ChargeStartStateName = "ChargeStart";
@@ -382,6 +390,8 @@ public static class PlayerAnimControllerSetup
         var states = BuildStateMap(sm);
 
         changed |= EnsureMachinistState(sm, states, ComboShootStateName, MachinistExComboClipPath, new Vector3(900f, 0f, 0f));
+        changed |= EnsureMachinistState(sm, states, Combo1ShootStateName, MachinistCombo1ClipPath, new Vector3(900f, -200f, 0f));
+        changed |= EnsureMachinistState(sm, states, Combo2ShootStateName, MachinistCombo2ClipPath, new Vector3(1050f, -200f, 0f));
         changed |= EnsureMachinistState(sm, states, LookUpComboShootStateName, MachinistLookUpExComboClipPath, new Vector3(900f, 120f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownComboShootStateName, MachinistLookDownExComboClipPath, new Vector3(900f, -120f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, ShootClipPath, new Vector3(1050f, 0f, 0f));
@@ -446,6 +456,8 @@ public static class PlayerAnimControllerSetup
         bool changed = false;
         changed |= EnsureParameter(MachinistFullBodyMPath, IsChargingParam, AnimatorControllerParameterType.Bool);
         changed |= EnsureMachinistState(sm, states, CrouchComboShootStateName, MachinistCrouchExComboClipPath, new Vector3(750f, 300f, 0f));
+        changed |= EnsureMachinistState(sm, states, CrouchCombo1ShootStateName, MachinistCrouchCombo1ClipPath, new Vector3(600f, 300f, 0f));
+        changed |= EnsureMachinistState(sm, states, CrouchCombo2ShootStateName, MachinistCrouchCombo2ClipPath, new Vector3(450f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, MachinistCrouchShootClipPath, new Vector3(900f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, MachinistCrouchShootClipPath, new Vector3(1050f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));
@@ -454,6 +466,7 @@ public static class PlayerAnimControllerSetup
         states = BuildStateMap(sm);
         changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
         changed |= EnsureExitTimeTransition(states, CrouchComboShootStateName, CrouchStateName, 0.95f);
+        // CrouchCombo1/2 不设 ExitTime：由 MaintainShootCompletion 按 normalizedTime 结束，避免被重播钉回
 
         if (changed)
             EditorUtility.SetDirty(controller);

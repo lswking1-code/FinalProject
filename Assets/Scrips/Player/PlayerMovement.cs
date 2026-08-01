@@ -40,11 +40,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     Vector2 moveInput;
     bool jumpPressed;
     float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
-    bool comboShootInputSnapshotActive;
-    float comboStartMoveX;
-    bool comboStartWantCrouch;
-    bool comboStartWasCrouching;
-    bool comboStartHadJumpBuffer;
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
     public float FaceDirection => faceDir;
     public Vector2 MoveInput => moveInput;
@@ -119,7 +114,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!IsActionLocked && !playerAnim.IsRolling)
         {
             ReadInput();
-            TryInterruptMachinistComboShoot();
             HandleLook();
             TryTurn();
             SyncAnimation(); // 先推进空中/落地，再处理蹲姿，才能同帧打断 Land
@@ -168,7 +162,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        TryInterruptMachinistComboShoot();
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
         CancelVelocityIntoObstacle();
@@ -261,61 +254,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
     }
 
-    void TryInterruptMachinistComboShoot()
-    {
-        if (!playerAnim.IsPlayingMachinistComboShoot)
-        {
-            comboShootInputSnapshotActive = false;
-            return;
-        }
-
-        if (!comboShootInputSnapshotActive)
-        {
-            CaptureComboShootInputSnapshot();
-            comboShootInputSnapshotActive = true;
-            return;
-        }
-
-        if (!HasMachinistComboShootInterruptInput())
-            return;
-
-        playerAnim.InterruptMachinistComboShootFromInput();
-    }
-
-    void CaptureComboShootInputSnapshot()
-    {
-        comboStartMoveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        comboStartWantCrouch = physicsCheck.isGround && moveInput.y < -inputThreshold;
-        comboStartWasCrouching = playerAnim.IsCrouching;
-        comboStartHadJumpBuffer = jumpBufferCounter > 0f;
-    }
-
-    bool HasMachinistComboShootInterruptInput()
-    {
-        if (jumpPressed)
-            return true;
-
-        if (jumpBufferCounter > 0f && !comboStartHadJumpBuffer)
-            return true;
-
-        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (moveX != comboStartMoveX)
-            return true;
-
-        bool wantCrouch = physicsCheck.isGround && moveInput.y < -inputThreshold;
-        if (wantCrouch != comboStartWantCrouch)
-            return true;
-
-        if (comboStartWasCrouching && playerAnim.IsCrouching && !wantCrouch)
-            return true;
-
-        return false;
-    }
-
     void HandleCrouch() // 仅地面响应下方向进入/退出蹲姿
     {
         if (!physicsCheck.isGround)
             return;
+
+        // 连击终结期间禁止站起/换蹲
+        if (playerAnim.IsPlayingMachinistComboShoot)
+        {
+            jumpBufferCounter = 0f;
+            return;
+        }
 
         bool wantCrouch = moveInput.y < -inputThreshold;
 
@@ -395,6 +344,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (playerAnim.IsCharging)
             return;
 
+        if (playerAnim.IsPlayingMachinistComboShoot)
+            return;
+
         // 蹲姿召唤期间不转身、不移动
         if (playerAnim.IsCrouching && playerAnim.IsDispatching)
             return;
@@ -420,6 +372,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgJumpBufferRemaining = Mathf.Max(0f, jumpBufferCounter);
         dbgIsGroundInFixed = physicsCheck.isGround;
         dbgDidJump = false;
+
+        if (playerAnim.IsPlayingMachinistComboShoot)
+        {
+            jumpBufferCounter = 0f;
+            dbgResult = "连击终结中禁止跳跃";
+            return false;
+        }
 
         if (!wantsJump)
         {
@@ -486,6 +445,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
+        if (playerAnim.IsPlayingMachinistComboShoot)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
         if (physicsCheck.isGround && playerAnim.IsCrouching
             && (playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsDispatching))
         {

@@ -21,6 +21,7 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsDispatching => false;
     public virtual MachinistChargeAim ActiveChargeAim => MachinistChargeAim.Forward;
     public virtual bool IsPlayingMachinistComboShoot => false;
+    public virtual bool IsForcedCrouchCombo => false;
     public virtual bool IsPlayingLoadBullet => false;
     public virtual bool IsThrowing => false;
     public virtual bool IsMelee => false;

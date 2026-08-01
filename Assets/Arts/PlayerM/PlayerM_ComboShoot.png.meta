@@ -1,55 +1,61 @@
 fileFormatVersion: 2
-guid: 308933480db1dc54a9c1640faa52a398
+guid: 7ea8bec19e347674b9095bca76f523eb
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4229030657366926869
-    second: PlayerM_shoot_0
+      213: -8629669140500564571
+    second: PlayerM_ComboShoot_0
   - first:
-      213: 1433609642631157141
-    second: PlayerM_shoot_1
+      213: -4359632559486840732
+    second: PlayerM_ComboShoot_1
   - first:
-      213: -4472057274575632501
-    second: PlayerM_shoot_2
+      213: -7035015307797175232
+    second: PlayerM_ComboShoot_2
   - first:
-      213: -7144579826741648344
-    second: PlayerM_shoot_3
+      213: 7025425591105198103
+    second: PlayerM_ComboShoot_3
   - first:
-      213: -9110580363838730165
-    second: PlayerM_shoot_4
+      213: -7444983319681713166
+    second: PlayerM_ComboShoot_4
   - first:
-      213: -5762090113115895076
-    second: PlayerM_shoot_5
+      213: -6197097249270102234
+    second: PlayerM_ComboShoot_5
   - first:
-      213: -8366444258253105728
-    second: PlayerM_shoot_6
+      213: -2871411020759141605
+    second: PlayerM_ComboShoot_6
   - first:
-      213: -3102302458661204025
-    second: PlayerM_shoot_7
+      213: -3135570793736169486
+    second: PlayerM_ComboShoot_7
   - first:
-      213: -7981009237934663477
-    second: PlayerM_shoot_8
+      213: -3190511640881306521
+    second: PlayerM_ComboShoot_8
   - first:
-      213: -5847420904620831294
-    second: PlayerM_shoot_9
+      213: -8569290742394968435
+    second: PlayerM_ComboShoot_9
   - first:
-      213: 355930905199409476
-    second: PlayerM_shoot_10
+      213: -5059657715512666997
+    second: PlayerM_ComboShoot_10
   - first:
-      213: -4699489479582679806
-    second: PlayerM_shoot_11
+      213: -2366093274132425301
+    second: PlayerM_ComboShoot_11
   - first:
-      213: 8323142800686345751
-    second: PlayerM_shoot_12
+      213: -6234408963815003448
+    second: PlayerM_ComboShoot_12
   - first:
-      213: 5719690242235373346
-    second: PlayerM_shoot_13
+      213: 2233499696990788322
+    second: PlayerM_ComboShoot_13
   - first:
-      213: -6977565773493827650
-    second: PlayerM_shoot_14
+      213: 7793567258516248183
+    second: PlayerM_ComboShoot_14
   - first:
-      213: 1082299902027726546
-    second: PlayerM_shoot_15
+      213: -2409454609144786893
+    second: PlayerM_ComboShoot_15
+  - first:
+      213: 6314265074322773801
+    second: PlayerM_ComboShoot_16
+  - first:
+      213: 7545526786339476236
+    second: PlayerM_ComboShoot_17
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -171,188 +177,254 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_shoot_0
+      name: PlayerM_ComboShoot_0
       rect:
         serializedVersion: 2
-        x: 18
-        y: 215
-        width: 40
+        x: 13
+        y: 217
+        width: 55
         height: 30
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.34545454, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 516a79cf9f880ba30800000000000000
-      internalID: 4229030657366926869
+      spriteID: 5a5305f73a14d3880800000000000000
+      internalID: -8629669140500564571
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_1
+      name: PlayerM_ComboShoot_1
       rect:
         serializedVersion: 2
-        x: 83
-        y: 215
-        width: 40
+        x: 77
+        y: 217
+        width: 55
         height: 30
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.34545454, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 595da97df5435e310800000000000000
-      internalID: 1433609642631157141
+      spriteID: 4605f8419497f73c0800000000000000
+      internalID: -4359632559486840732
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_2
+      name: PlayerM_ComboShoot_2
       rect:
         serializedVersion: 2
-        x: 148
-        y: 215
-        width: 40
+        x: 142
+        y: 217
+        width: 55
         height: 30
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.34545454, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b87c7bd4a9f00f1c0800000000000000
-      internalID: -4472057274575632501
+      spriteID: 0446055c9da9e5e90800000000000000
+      internalID: -7035015307797175232
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_3
+      name: PlayerM_ComboShoot_3
       rect:
         serializedVersion: 2
-        x: 211
-        y: 215
-        width: 40
-        height: 30
-      alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 82464ad408a59dc90800000000000000
-      internalID: -7144579826741648344
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_4
-      rect:
-        serializedVersion: 2
-        x: 18
-        y: 151
-        width: 40
-        height: 30
-      alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b405eb3dd67b09180800000000000000
-      internalID: -9110580363838730165
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_5
-      rect:
-        serializedVersion: 2
-        x: 83
-        y: 151
+        x: 206
+        y: 217
         width: 50
         height: 30
       alignment: 9
-      pivot: {x: 0.26, y: 0.26666668}
+      pivot: {x: 0.38, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cdacfeb2291f800b0800000000000000
-      internalID: -5762090113115895076
+      spriteID: 71893c15a535f7160800000000000000
+      internalID: 7025425591105198103
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_6
+      name: PlayerM_ComboShoot_4
       rect:
         serializedVersion: 2
-        x: 148
-        y: 151
-        width: 40
+        x: 2
+        y: 184
+        width: 14
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fbb9afad1b1ea890800000000000000
+      internalID: -7444983319681713166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ComboShoot_5
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 153
+        width: 55
         height: 30
       alignment: 9
-      pivot: {x: 0.325, y: 0.26666668}
+      pivot: {x: 0.34545454, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0c597b1464b64eb80800000000000000
-      internalID: -8366444258253105728
+      spriteID: 62784baa2ec7ff9a0800000000000000
+      internalID: -6197097249270102234
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_7
+      name: PlayerM_ComboShoot_6
       rect:
         serializedVersion: 2
-        x: 211
-        y: 151
-        width: 40
+        x: 78
+        y: 153
+        width: 55
         height: 30
       alignment: 9
-      pivot: {x: 0.3, y: 0.26666668}
+      pivot: {x: 0.34545454, y: 0.16666667}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7cf8dadb95862f4d0800000000000000
-      internalID: -3102302458661204025
+      spriteID: b137287d3e2b628d0800000000000000
+      internalID: -2871411020759141605
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_8
+      name: PlayerM_ComboShoot_7
       rect:
         serializedVersion: 2
-        x: 19
-        y: 76
-        width: 29
+        x: 142
+        y: 153
+        width: 55
+        height: 30
+      alignment: 9
+      pivot: {x: 0.34545454, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f7144fd9f63c74d0800000000000000
+      internalID: -3135570793736169486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ComboShoot_8
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 153
+        width: 50
+        height: 30
+      alignment: 9
+      pivot: {x: 0.38, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7646581119609b3d0800000000000000
+      internalID: -3190511640881306521
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ComboShoot_9
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 89
+        width: 55
+        height: 30
+      alignment: 9
+      pivot: {x: 0.34545454, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d86218ac873c31980800000000000000
+      internalID: -8569290742394968435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ComboShoot_10
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 89
+        width: 55
+        height: 30
+      alignment: 9
+      pivot: {x: 0.34545454, y: 0.16666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b849dcd6d1c78c9b0800000000000000
+      internalID: -5059657715512666997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_ComboShoot_11
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 75
+        width: 39
         height: 41
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -362,19 +434,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bc81bcf1262cd3190800000000000000
-      internalID: -7981009237934663477
+      spriteID: ba555e904b2f92fd0800000000000000
+      internalID: -2366093274132425301
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_9
+      name: PlayerM_ComboShoot_12
       rect:
         serializedVersion: 2
-        x: 83
-        y: 76
-        width: 30
+        x: 206
+        y: 75
+        width: 38
         height: 41
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -384,19 +456,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2cdc1ef0ba9c9dea0800000000000000
-      internalID: -5847420904620831294
+      spriteID: 8caab47241eea79a0800000000000000
+      internalID: -6234408963815003448
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_10
+      name: PlayerM_ComboShoot_13
       rect:
         serializedVersion: 2
-        x: 149
-        y: 76
-        width: 42
+        x: 14
+        y: 11
+        width: 49
         height: 41
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -406,19 +478,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4497ef0c54580f400800000000000000
-      internalID: 355930905199409476
+      spriteID: 2ea141d042cfefe10800000000000000
+      internalID: 2233499696990788322
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_11
+      name: PlayerM_ComboShoot_14
       rect:
         serializedVersion: 2
-        x: 208
-        y: 76
-        width: 32
+        x: 78
+        y: 11
+        width: 39
         height: 41
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -428,20 +500,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 20df9cf973f08ceb0800000000000000
-      internalID: -4699489479582679806
+      spriteID: 776d9f82120582c60800000000000000
+      internalID: 7793567258516248183
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_12
+      name: PlayerM_ComboShoot_15
       rect:
         serializedVersion: 2
-        x: 18
-        y: 12
-        width: 30
-        height: 41
+        x: 120
+        y: 34
+        width: 9
+        height: 15
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -450,40 +522,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 71e62c1874eb18370800000000000000
-      internalID: 8323142800686345751
+      spriteID: 3305f7f7cc5ef8ed0800000000000000
+      internalID: -2409454609144786893
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_13
+      name: PlayerM_ComboShoot_16
       rect:
         serializedVersion: 2
-        x: 82
-        y: 12
-        width: 32
-        height: 41
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 22715b998fb606f40800000000000000
-      internalID: 5719690242235373346
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_shoot_14
-      rect:
-        serializedVersion: 2
-        x: 148
-        y: 12
+        x: 144
+        y: 11
         width: 45
         height: 41
       alignment: 0
@@ -494,19 +544,19 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: eb70af1d5e4ba2f90800000000000000
-      internalID: -6977565773493827650
+      spriteID: 9271aa471a6c0a750800000000000000
+      internalID: 6314265074322773801
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_shoot_15
+      name: PlayerM_ComboShoot_17
       rect:
         serializedVersion: 2
-        x: 212
-        y: 12
-        width: 29
+        x: 208
+        y: 11
+        width: 35
         height: 41
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -516,8 +566,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2de7dc0d60a150f00800000000000000
-      internalID: 1082299902027726546
+      spriteID: c0395fe52a817b860800000000000000
+      internalID: 7545526786339476236
       vertices: []
       indices: 
       edges: []
@@ -526,7 +576,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 623742b49ab6b41448b45d4d61019eb8
+    spriteID: cb2a2f53927c0a646a8e5029bb2ed0db
     internalID: 0
     vertices: []
     indices: 
@@ -536,22 +586,24 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_shoot_0: 4229030657366926869
-      PlayerM_shoot_1: 1433609642631157141
-      PlayerM_shoot_10: 355930905199409476
-      PlayerM_shoot_11: -4699489479582679806
-      PlayerM_shoot_12: 8323142800686345751
-      PlayerM_shoot_13: 5719690242235373346
-      PlayerM_shoot_14: -6977565773493827650
-      PlayerM_shoot_15: 1082299902027726546
-      PlayerM_shoot_2: -4472057274575632501
-      PlayerM_shoot_3: -7144579826741648344
-      PlayerM_shoot_4: -9110580363838730165
-      PlayerM_shoot_5: -5762090113115895076
-      PlayerM_shoot_6: -8366444258253105728
-      PlayerM_shoot_7: -3102302458661204025
-      PlayerM_shoot_8: -7981009237934663477
-      PlayerM_shoot_9: -5847420904620831294
+      PlayerM_ComboShoot_0: -8629669140500564571
+      PlayerM_ComboShoot_1: -4359632559486840732
+      PlayerM_ComboShoot_10: -5059657715512666997
+      PlayerM_ComboShoot_11: -2366093274132425301
+      PlayerM_ComboShoot_12: -6234408963815003448
+      PlayerM_ComboShoot_13: 2233499696990788322
+      PlayerM_ComboShoot_14: 7793567258516248183
+      PlayerM_ComboShoot_15: -2409454609144786893
+      PlayerM_ComboShoot_16: 6314265074322773801
+      PlayerM_ComboShoot_17: 7545526786339476236
+      PlayerM_ComboShoot_2: -7035015307797175232
+      PlayerM_ComboShoot_3: 7025425591105198103
+      PlayerM_ComboShoot_4: -7444983319681713166
+      PlayerM_ComboShoot_5: -6197097249270102234
+      PlayerM_ComboShoot_6: -2871411020759141605
+      PlayerM_ComboShoot_7: -3135570793736169486
+      PlayerM_ComboShoot_8: -3190511640881306521
+      PlayerM_ComboShoot_9: -8569290742394968435
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
