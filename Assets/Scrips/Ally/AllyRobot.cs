@@ -77,6 +77,8 @@ public class AllyRobot : MonoBehaviour
     public string pullTriggerName = "pull";
     [Tooltip("连击协同攻击 Trigger 参数名")]
     public string comboAttackTriggerName = "comboAttack";
+    [Tooltip("连击协同攻击 Animator 状态名（强制打断近战用）")]
+    public string comboAttackStateName = "ComboAttack";
     [Tooltip("冲刺终结攻击 Trigger 参数名")]
     public string dashAttackTriggerName = "dashAttack";
     [Tooltip("冲刺终结攻击 Animator 状态名（用于检测动画结束）")]
@@ -474,8 +476,7 @@ public class AllyRobot : MonoBehaviour
         if (IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
-        if (anim != null)
-            anim.SetTrigger(comboAttackTriggerName);
+        ForcePlayCombatAnim(comboAttackStateName, comboAttackTriggerName);
 
         attackTimer = attackCooldown;
         SwitchState(AllyState.ComboAttacking);
@@ -490,8 +491,7 @@ public class AllyRobot : MonoBehaviour
         if (IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
-        if (anim != null)
-            anim.SetTrigger(dashAttackTriggerName);
+        ForcePlayCombatAnim(dashAttackStateName, dashAttackTriggerName);
 
         attackTimer = attackCooldown;
         SwitchState(AllyState.ComboAttacking);
@@ -506,10 +506,31 @@ public class AllyRobot : MonoBehaviour
         if (IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
-        if (anim != null)
-            anim.SetTrigger(dashStartTriggerName);
+        ForcePlayCombatAnim(dashStartStateName, dashStartTriggerName);
 
         SwitchState(AllyState.ComboDashWindup);
+    }
+
+    /// <summary>
+    /// 强制切到连携相关动画，打断近战 Attack 等当前状态；
+    /// 同时清掉战斗 Trigger，避免残留触发把状态机再拉回去。
+    /// </summary>
+    void ForcePlayCombatAnim(string stateName, string keepTriggerName)
+    {
+        if (anim == null || string.IsNullOrEmpty(stateName))
+            return;
+
+        anim.ResetTrigger(attackTriggerName);
+        anim.ResetTrigger(comboAttackTriggerName);
+        anim.ResetTrigger(dashAttackTriggerName);
+        anim.ResetTrigger(dashStartTriggerName);
+        anim.ResetTrigger(pullTriggerName);
+
+        if (!string.IsNullOrEmpty(keepTriggerName))
+            anim.SetTrigger(keepTriggerName);
+
+        anim.Play(stateName, 0, 0f);
+        anim.Update(0f);
     }
 
     void BeginPullWithoutVisual()
@@ -874,7 +895,7 @@ public class AllyRobot : MonoBehaviour
         }
 
         var info = anim.GetCurrentAnimatorStateInfo(0);
-        bool inFinisher = info.IsName("ComboAttack") || info.IsName(dashAttackStateName);
+        bool inFinisher = info.IsName(comboAttackStateName) || info.IsName(dashAttackStateName);
         if (inFinisher)
             comboAttackAnimSeen = true;
 

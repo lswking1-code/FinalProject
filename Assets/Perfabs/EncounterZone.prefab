@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 5210998869008272370}
   - component: {fileID: 1782420128616184481}
   - component: {fileID: 1135614538045203894}
+  - component: {fileID: 1135614538045203895}
   m_Layer: 0
   m_Name: EncounterZone
   m_TagString: Untagged
@@ -272,6 +273,20 @@ MonoBehaviour:
   OnEncounterEnded:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1135614538045203895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3323314801615092429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e3da11df83e724fabf207aec40f56d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  persistentType: 0
+  ID: encounter-zone-prefab-001
 --- !u!1 &3377360540569093516
 GameObject:
   m_ObjectHideFlags: 0

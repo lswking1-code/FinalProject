@@ -9,7 +9,8 @@ public class Data
 
     public Dictionary<string, SerializeVector3> characterPosDict = new Dictionary<string, SerializeVector3>();
     public Dictionary<string, float> floatSavedData = new Dictionary<string, float>();
-    public Dictionary<bool,bool>boolSavedData = new Dictionary<bool, bool>();
+    public Dictionary<string, bool> boolSavedData = new Dictionary<string, bool>();
+    public Dictionary<string, List<int>> intListSavedData = new Dictionary<string, List<int>>();
 
     public void SaveGameScene(GameSceneSO savedScene)
     {

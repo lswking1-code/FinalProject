@@ -46,6 +46,7 @@ public class GrenadeEnemy : RangedEnemy
         var throwerCollider = GetComponent<Collider2D>();
 
         var grenade = Instantiate(grenadePrefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(grenade.gameObject, this);
         grenade.Init(dir, throwerVelocity, throwerCollider, throwAngle, throwSpeed);
         FacePlayer();
     }

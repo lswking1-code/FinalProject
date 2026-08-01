@@ -17,6 +17,7 @@ public class UIManage : MonoBehaviour
     public VoidEventSO GameOverEvent;
     public VoidEventSO backToMenuEvent;
     public VoidEventSO GameClearEvent;
+    public VoidEventSO newGameEvent;
 
     [Header("组件")]
     public GameObject gameOverPannel;
@@ -26,14 +27,19 @@ public class UIManage : MonoBehaviour
     public GameObject abilities;
     public GameObject collection;
 
+    GameOverActions endGameActions;
+
     void Awake()
     {
         EnsureGameOverUI();
+        EnsureGameClearUI();
+        WireEndGameButtons();
     }
 
     void EnsureGameOverUI()
     {
-        if (gameOverPannel == null || gameOverPannel.transform.Find("RestartButton") != null)
+        // 场景里已有设计好的 GameOverPanel（子物体常为 Restart，而非 RestartButton）时不要再生成一套
+        if (gameOverPannel == null || gameOverPannel.transform.childCount > 0)
             return;
 
         var overlay = CreateUIObject("Overlay", gameOverPannel.transform);
@@ -74,13 +80,115 @@ public class UIManage : MonoBehaviour
         label.alignment = TextAnchor.MiddleCenter;
         label.color = Color.white;
 
-        var actions = GetComponent<GameOverActions>();
-        if (actions == null)
-            actions = gameObject.AddComponent<GameOverActions>();
-        actions.Configure(loadDataEvent);
-        button.onClick.AddListener(actions.OnRestartFromSave);
-
         restartBtn = buttonGo;
+    }
+
+    void EnsureGameClearUI()
+    {
+        if (gameClearPannel == null)
+            return;
+
+        if (FindChildButton(gameClearPannel.transform, "Replay", "ReplayButton") != null)
+            return;
+
+        var overlay = CreateUIObject("Overlay", gameClearPannel.transform);
+        var overlayImage = overlay.AddComponent<Image>();
+        overlayImage.color = new Color(0f, 0f, 0f, 0.75f);
+        StretchFull(overlay.GetComponent<RectTransform>());
+
+        var title = CreateUIObject("Title", gameClearPannel.transform);
+        var titleRect = title.GetComponent<RectTransform>();
+        titleRect.anchorMin = new Vector2(0.5f, 0.65f);
+        titleRect.anchorMax = new Vector2(0.5f, 0.65f);
+        titleRect.sizeDelta = new Vector2(400f, 80f);
+        titleRect.anchoredPosition = Vector2.zero;
+        var titleText = title.AddComponent<Text>();
+        titleText.text = "通关";
+        titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        titleText.fontSize = 48;
+        titleText.alignment = TextAnchor.MiddleCenter;
+        titleText.color = Color.white;
+
+        var buttonGo = CreateUIObject("ReplayButton", gameClearPannel.transform);
+        var buttonRect = buttonGo.GetComponent<RectTransform>();
+        buttonRect.anchorMin = new Vector2(0.5f, 0.4f);
+        buttonRect.anchorMax = new Vector2(0.5f, 0.4f);
+        buttonRect.sizeDelta = new Vector2(220f, 56f);
+        buttonRect.anchoredPosition = Vector2.zero;
+        var buttonImage = buttonGo.AddComponent<Image>();
+        buttonImage.color = new Color(0.2f, 0.55f, 0.85f, 1f);
+        var button = buttonGo.AddComponent<Button>();
+        button.targetGraphic = buttonImage;
+
+        var labelGo = CreateUIObject("Text", buttonGo.transform);
+        StretchFull(labelGo.GetComponent<RectTransform>());
+        var label = labelGo.AddComponent<Text>();
+        label.text = "再玩一次";
+        label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        label.fontSize = 28;
+        label.alignment = TextAnchor.MiddleCenter;
+        label.color = Color.white;
+
+        replayBtn = buttonGo;
+    }
+
+    void WireEndGameButtons()
+    {
+        endGameActions = GetComponent<GameOverActions>();
+        if (endGameActions == null)
+            endGameActions = gameObject.AddComponent<GameOverActions>();
+        endGameActions.Configure(loadDataEvent, backToMenuEvent, newGameEvent);
+
+        if (gameOverPannel != null)
+        {
+            var restart = FindChildButton(gameOverPannel.transform, "Restart", "RestartButton");
+            if (restart != null)
+            {
+                restartBtn = restart.gameObject;
+                BindButton(restart, endGameActions.OnRestartFromSave);
+            }
+
+            var backToMenu = FindChildButton(gameOverPannel.transform, "Backtomenu", "BackToMenu", "Back");
+            if (backToMenu != null)
+                BindButton(backToMenu, endGameActions.OnBackToMenu);
+        }
+
+        if (gameClearPannel != null)
+        {
+            var replay = FindChildButton(gameClearPannel.transform, "Replay", "ReplayButton");
+            if (replay != null)
+            {
+                replayBtn = replay.gameObject;
+                BindButton(replay, endGameActions.OnReplay);
+            }
+        }
+    }
+
+    static Button FindChildButton(Transform root, params string[] names)
+    {
+        if (root == null)
+            return null;
+
+        for (int i = 0; i < names.Length; i++)
+        {
+            var t = root.Find(names[i]);
+            if (t == null)
+                continue;
+            var button = t.GetComponent<Button>();
+            if (button != null)
+                return button;
+        }
+
+        return null;
+    }
+
+    static void BindButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null || action == null)
+            return;
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
     }
 
     static GameObject CreateUIObject(string name, Transform parent)
@@ -102,22 +210,24 @@ public class UIManage : MonoBehaviour
     {
         healthEvent.OnEventRaised += OnHealthEvent;
         unloadedSceneEvent.LoadRequestEvent += OnUnLoadedSceneEvent;
-        loadDataEvent.OnEventRaised += OnLoadDataEvent;
+        loadDataEvent.OnEventRaised += OnCloseEndGamePanels;
         GameOverEvent.OnEventRaised += OnGameOverEvent;
-        backToMenuEvent.OnEventRaised += OnLoadDataEvent;
+        backToMenuEvent.OnEventRaised += OnCloseEndGamePanels;
         GameClearEvent.OnEventRaised += OnGameClearEvent;
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += OnCloseEndGamePanels;
     }
-
-   
 
     private void OnDisable()
     {
         healthEvent.OnEventRaised -= OnHealthEvent;
         unloadedSceneEvent.LoadRequestEvent -= OnUnLoadedSceneEvent;
-        loadDataEvent.OnEventRaised -= OnLoadDataEvent;
+        loadDataEvent.OnEventRaised -= OnCloseEndGamePanels;
         GameOverEvent.OnEventRaised -= OnGameOverEvent;
-        backToMenuEvent.OnEventRaised -= OnLoadDataEvent;
+        backToMenuEvent.OnEventRaised -= OnCloseEndGamePanels;
         GameClearEvent.OnEventRaised -= OnGameClearEvent;
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= OnCloseEndGamePanels;
     }
 
     private void OnGameClearEvent()
@@ -128,16 +238,18 @@ public class UIManage : MonoBehaviour
 
     private void OnGameOverEvent()
     {
-        //Debug.Log("dead");
         gameOverPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(restartBtn);
     }
-    private void OnLoadDataEvent()
+
+    private void OnCloseEndGamePanels()
     {
-        //Debug.Log("close");
-        gameOverPannel.SetActive(false);
-        gameClearPannel.SetActive(false);
+        if (gameOverPannel != null)
+            gameOverPannel.SetActive(false);
+        if (gameClearPannel != null)
+            gameClearPannel.SetActive(false);
     }
+
     private void OnUnLoadedSceneEvent(GameSceneSO sceneToLoad, Vector3 arg1, bool arg2)
     {
         var isMenu = sceneToLoad.sceneType == SceneType.Menu;// 判断是否为菜单场景，用于控制 HUD 显示

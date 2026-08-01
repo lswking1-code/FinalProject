@@ -147,7 +147,10 @@ public class EnemyGrenade : MonoBehaviour
         hasExploded = true;
 
         if (explosionPrefab != null)
-            Instantiate(explosionPrefab, GetExplosionPosition(), Quaternion.identity);
+        {
+            var explosion = Instantiate(explosionPrefab, GetExplosionPosition(), Quaternion.identity);
+            EnemySceneCleanup.PlaceInSourceScene(explosion.gameObject, this);
+        }
 
         Destroy(gameObject);
     }

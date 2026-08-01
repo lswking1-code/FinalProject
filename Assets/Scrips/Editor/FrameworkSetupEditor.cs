@@ -183,6 +183,7 @@ public static class FrameworkSetupEditor
 
         dataManager.saveDataEvent = events.saveData;
         dataManager.loadDataEvent = events.loadData;
+        dataManager.newGameEvent = events.newGame;
 
         EditorSceneManager.SaveScene(scene, PersistentScenePath);
     }

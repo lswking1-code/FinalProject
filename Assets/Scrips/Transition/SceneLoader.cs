@@ -334,6 +334,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
         unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
 
+        // 子弹可能落在 Persistent，卸载关卡前统一清掉
+        EnemySceneCleanup.ClearAll();
+
         yield return currentLoadedScene.sceneReference.UnLoadScene();
         if (playerTrans != null)
             playerTrans.gameObject.SetActive(false);

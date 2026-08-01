@@ -79,15 +79,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
         actions = new InputSystem_Actions();
         normalGravityScale = rb.gravityScale;
+
+        // 禁用期间也要能收到新游戏 / 场景加载事件
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += OnNewGame;
+        if (afterSceneLoadedEvent != null)
+            afterSceneLoadedEvent.OnEventRaised += OnSceneLoaded;
     }
 
     void OnEnable()
     {
         actions.Player.Enable();
-        if (newGameEvent != null)
-            newGameEvent.OnEventRaised += OnNewGame;
-        if (afterSceneLoadedEvent != null)
-            afterSceneLoadedEvent.OnEventRaised += OnSceneLoaded;
         ((ISaveable)this).RegisterSaveData();
     }
 
@@ -96,17 +98,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             EndExternalControl();
 
-        if (newGameEvent != null)
-            newGameEvent.OnEventRaised -= OnNewGame;
-        if (afterSceneLoadedEvent != null)
-            afterSceneLoadedEvent.OnEventRaised -= OnSceneLoaded;
         ((ISaveable)this).UnregisterSaveData();
         actions.Player.Disable();
     }
 
     void OnDestroy()
     {
-        actions?.Dispose();//释放玩家输入
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= OnNewGame;
+        if (afterSceneLoadedEvent != null)
+            afterSceneLoadedEvent.OnEventRaised -= OnSceneLoaded;
+        actions?.Dispose();
     }
 
     void Update()

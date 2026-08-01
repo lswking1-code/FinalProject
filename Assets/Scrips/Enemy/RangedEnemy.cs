@@ -303,6 +303,7 @@ public class RangedEnemy : Enemy
             dir = faceDir.x;
 
         var projectile = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(new Vector2(dir, 0f));
         FacePlayer();
     }

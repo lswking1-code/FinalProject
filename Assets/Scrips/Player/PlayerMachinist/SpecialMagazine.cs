@@ -12,8 +12,11 @@ public enum SpecialAmmoType
 /// <summary>
 /// 机械师特殊弹 FIFO 弹夹；与 Character 普通弹药库存独立。
 /// </summary>
-public class SpecialMagazine : MonoBehaviour
+[RequireComponent(typeof(DataDefination))]
+public class SpecialMagazine : MonoBehaviour, ISaveable
 {
+    const string SpecialMagKeySuffix = "specialMag";
+
     [SerializeField] int capacity = 7;
 
     [Header("调试（Play 模式）")]
@@ -28,6 +31,14 @@ public class SpecialMagazine : MonoBehaviour
     public int Capacity => capacity;
     public int Count => rounds.Count;
     public int RemainingCapacity => Mathf.Max(0, capacity - rounds.Count);
+
+    void OnEnable()
+    {
+        ((ISaveable)this).RegisterSaveData();
+        DataManager.instance?.ApplyLoadedData(this);
+    }
+
+    void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
     /// <summary>
     /// 尝试装入 loadCount 发同种特殊弹。会超容时整次失败，不入队。
@@ -87,9 +98,80 @@ public class SpecialMagazine : MonoBehaviour
     /// </summary>
     public IEnumerable<SpecialAmmoType> EnumerateRounds() => rounds;
 
+    public void Clear()
+    {
+        while (rounds.Count > 0)
+        {
+            var type = rounds.Dequeue();
+            RoundConsumed?.Invoke(type);
+        }
+
+        SyncDebugView();
+    }
+
+    /// <summary>
+    /// 用给定顺序重建弹夹（先消耗的在前）。会触发 RoundLoaded 以便 UI 同步。
+    /// </summary>
+    public void Restore(IEnumerable<SpecialAmmoType> types)
+    {
+        Clear();
+        if (types == null)
+            return;
+
+        foreach (var type in types)
+        {
+            if (rounds.Count >= capacity)
+                break;
+            rounds.Enqueue(type);
+            RoundLoaded?.Invoke(type);
+        }
+
+        SyncDebugView();
+    }
+
     void SyncDebugView()
     {
         debugRounds.Clear();
         debugRounds.AddRange(rounds);
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        var list = new List<int>(rounds.Count);
+        foreach (var round in rounds)
+            list.Add((int)round);
+
+        data.intListSavedData[dataId.ID + SpecialMagKeySuffix] = list;
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        string key = dataId.ID + SpecialMagKeySuffix;
+        if (!data.intListSavedData.TryGetValue(key, out var list) || list == null)
+        {
+            Clear();
+            return;
+        }
+
+        var restored = new List<SpecialAmmoType>(list.Count);
+        for (int i = 0; i < list.Count; i++)
+        {
+            int value = list[i];
+            if (value < 0 || value > (int)SpecialAmmoType.L)
+                continue;
+            restored.Add((SpecialAmmoType)value);
+        }
+
+        Restore(restored);
     }
 }

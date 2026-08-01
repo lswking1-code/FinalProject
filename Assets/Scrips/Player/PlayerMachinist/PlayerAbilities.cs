@@ -5,7 +5,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Character))]
 [RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(SpecialMagazine))]
-public class PlayerAbilities : MonoBehaviour
+[RequireComponent(typeof(DataDefination))]
+public class PlayerAbilities : MonoBehaviour, ISaveable
 {
     enum RobotAbilityPhase { Idle, Pressing, Aiming }
 
@@ -28,6 +29,9 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] int[] reloadAmmoCosts = { 0, 10, 5, 3 };
     [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次装填装入的特殊弹数量")]
     [SerializeField] int[] reloadLoadCounts = { 0, 1, 2, 3 };
+
+    [Header("事件")]
+    [SerializeField] VoidEventSO newGameEvent;
 
     RobotAbilityPhase phase = RobotAbilityPhase.Idle;
     InputSystem_Actions actions;
@@ -61,9 +65,16 @@ public class PlayerAbilities : MonoBehaviour
         character = GetComponent<Character>();
         weaponController = GetComponent<PlayerWeaponController>();
         specialMagazine = GetComponent<SpecialMagazine>();
+
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += ResetForNewGame;
     }
 
-    void OnEnable() => actions.Player.Enable();
+    void OnEnable()
+    {
+        actions.Player.Enable();
+        ((ISaveable)this).RegisterSaveData();
+    }
 
     void OnDisable()
     {
@@ -74,9 +85,29 @@ public class PlayerAbilities : MonoBehaviour
 
         EndPlayerDispatch();
         actions.Player.Disable();
+        ((ISaveable)this).UnregisterSaveData();
     }
 
-    void OnDestroy() => actions?.Dispose();
+    void OnDestroy()
+    {
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= ResetForNewGame;
+        actions?.Dispose();
+    }
+
+    void ResetForNewGame()
+    {
+        if (phase == RobotAbilityPhase.Aiming)
+            ExitAimingMode();
+        else
+        {
+            EndPlayerDispatch();
+            phase = RobotAbilityPhase.Idle;
+        }
+
+        DestroyActiveRobot();
+        specialMagazine?.Clear();
+    }
 
     void Update()
     {
@@ -370,5 +401,25 @@ public class PlayerAbilities : MonoBehaviour
         if (reloadLoadCounts == null || weaponId < 0 || weaponId >= reloadLoadCounts.Length)
             return 0;
         return reloadLoadCounts[weaponId];
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        // 机器人不持久化；读档一律召回。
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        if (phase == RobotAbilityPhase.Aiming)
+            ExitAimingMode();
+        else
+        {
+            EndPlayerDispatch();
+            phase = RobotAbilityPhase.Idle;
+        }
+
+        DestroyActiveRobot();
     }
 }

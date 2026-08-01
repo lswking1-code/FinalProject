@@ -54,11 +54,27 @@ public class Character : MonoBehaviour,ISaveable
         currentHealth = maxHealth;
         NotifyStatsChanged();
     }
-    private void NewGame()
+    void Awake()
+    {
+        // 玩家回菜单时会被禁用，newGame 需在禁用期间仍能收到
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += ResetForNewGame;
+    }
+
+    void OnDestroy()
+    {
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= ResetForNewGame;
+    }
+
+    /// <summary>新游戏：清空死亡/无敌并回满血、体力、能力值。</summary>
+    public void ResetForNewGame()
     {
         isDead = false;
         forcedInvulnerable = false;
         invulnerable = false;
+        invulnerableCounter = 0f;
+        pauseAbilityPowerRecover = false;
         currentHealth = maxHealth;
         currentPower = maxPower;
         AbilityPower = maxAbilityPower;
@@ -67,13 +83,12 @@ public class Character : MonoBehaviour,ISaveable
 
     private void OnEnable()
     {
-        newGameEvent.OnEventRaised += NewGame;
         ISaveable saveable = this;
         saveable.RegisterSaveData();
     }
+
     private void OnDisable()
     {
-        newGameEvent.OnEventRaised -= NewGame;
         ISaveable saveable = this;
         saveable.UnregisterSaveData();
     }
@@ -279,34 +294,58 @@ public class Character : MonoBehaviour,ISaveable
         return GetComponent<DataDefination>();
     }
 
+    bool TryGetPersistId(out string id)
+    {
+        var def = GetDataID();
+        if (def == null
+            || def.persistentType != PersistentType.ReadWrite
+            || string.IsNullOrEmpty(def.ID))
+        {
+            id = null;
+            return false;
+        }
+
+        id = def.ID;
+        return true;
+    }
+
     public void GetSaveData(Data data)
     {
-        if (data.characterPosDict.ContainsKey(GetDataID().ID))
-        {
-            data.characterPosDict[GetDataID().ID] = new SerializeVector3(transform.position);
-            data.floatSavedData[GetDataID().ID + "health"] = this.currentHealth;
-            data.floatSavedData[GetDataID().ID + "power"] = this.currentPower;
-        }
-        else
-        {
-            data.characterPosDict.Add(GetDataID().ID, new SerializeVector3(transform.position));
-            data.floatSavedData.Add(GetDataID().ID + "health", this.currentHealth);
-            data.floatSavedData.Add(GetDataID().ID + "power", this.currentPower);
-        }
+        if (!TryGetPersistId(out string id))
+            return;
+
+        data.characterPosDict[id] = new SerializeVector3(transform.position);
+        data.floatSavedData[id + "health"] = currentHealth;
+        data.floatSavedData[id + "power"] = currentPower;
+        data.floatSavedData[id + "abilityPower"] = AbilityPower;
+        data.floatSavedData[id + "bulletS"] = BulletS;
+        data.floatSavedData[id + "bulletM"] = BulletM;
+        data.floatSavedData[id + "bulletL"] = BulletL;
     }
 
     public void LoadSaveData(Data data)
     {
-        if (data.characterPosDict.ContainsKey(GetDataID().ID))
-        {
-            isDead = false;
-            forcedInvulnerable = false;
-            this.currentHealth = data.floatSavedData[GetDataID().ID + "health"];
-            this.currentPower = data.floatSavedData[GetDataID().ID + "power"];
-            transform.position = data.characterPosDict[GetDataID().ID].ToVector3();
+        if (!TryGetPersistId(out string id))
+            return;
 
-            // 通知 UI 更新血条
-            NotifyStatsChanged();
-        }
+        if (!data.characterPosDict.ContainsKey(id))
+            return;
+
+        isDead = false;
+        forcedInvulnerable = false;
+        currentHealth = data.floatSavedData[id + "health"];
+        currentPower = data.floatSavedData[id + "power"];
+        transform.position = data.characterPosDict[id].ToVector3();
+
+        if (data.floatSavedData.TryGetValue(id + "abilityPower", out float ap))
+            AbilityPower = ap;
+        if (data.floatSavedData.TryGetValue(id + "bulletS", out float s))
+            BulletS = Mathf.RoundToInt(s);
+        if (data.floatSavedData.TryGetValue(id + "bulletM", out float m))
+            BulletM = Mathf.RoundToInt(m);
+        if (data.floatSavedData.TryGetValue(id + "bulletL", out float l))
+            BulletL = Mathf.RoundToInt(l);
+
+        NotifyStatsChanged();
     }
 }

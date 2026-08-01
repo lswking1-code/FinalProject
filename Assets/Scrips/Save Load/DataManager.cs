@@ -1,66 +1,81 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-
 [DefaultExecutionOrder(-100)]
-
 public class DataManager : MonoBehaviour
 {
     public static DataManager instance;
+
     [Header("事件监听")]
     public VoidEventSO saveDataEvent;
     public VoidEventSO loadDataEvent;
+    public VoidEventSO newGameEvent;
 
-    private List<ISaveable> saveableList = new List<ISaveable>();
+    readonly List<ISaveable> saveableList = new List<ISaveable>();
 
-    private Data saveData;
+    Data saveData;
+    string jsonFolder;
 
-    private string jsonFolder;
+    public Data CurrentData => saveData;
 
-    private void Awake()
+    string SaveFilePath => jsonFolder + "data.sav";
+
+    void Awake()
     {
         if (instance == null)
             instance = this;
         else
-            Destroy(this.gameObject);
-
-        saveData = new Data();
+            Destroy(gameObject);
 
         jsonFolder = Application.persistentDataPath + "/SAVE DATA/";
-
+        saveData = CreateEmptyData();
         ReadSavedData();
-
-    }
-    private void OnEnable()
-    {
-        saveDataEvent.OnEventRaised += Save;
-        loadDataEvent.OnEventRaised += Load;
     }
 
-    private void OnDisable()
+    /// <summary>
+    /// 供场景加载后新注册的 ISaveable（遭遇区等）立刻套用内存中的存档。
+    /// </summary>
+    public void ApplyLoadedData(ISaveable saveable)
     {
-        saveDataEvent.OnEventRaised -= Save;
-        loadDataEvent.OnEventRaised -= Load;
+        if (saveable == null || saveData == null)
+            return;
+
+        saveable.LoadSaveData(saveData);
     }
 
-    private void Update()
+    void OnEnable()
     {
-        if (Keyboard.current.lKey.wasPressedThisFrame)
-        {
+        if (saveDataEvent != null)
+            saveDataEvent.OnEventRaised += Save;
+        if (loadDataEvent != null)
+            loadDataEvent.OnEventRaised += Load;
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised += ClearForNewGame;
+    }
+
+    void OnDisable()
+    {
+        if (saveDataEvent != null)
+            saveDataEvent.OnEventRaised -= Save;
+        if (loadDataEvent != null)
+            loadDataEvent.OnEventRaised -= Load;
+        if (newGameEvent != null)
+            newGameEvent.OnEventRaised -= ClearForNewGame;
+    }
+
+    void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
             Load();
-        }
     }
 
     public void RegisterSaveData(ISaveable saveable)
     {
         if (!saveableList.Contains(saveable))
-        {
             saveableList.Add(saveable);
-        }
     }
 
     public void UnRegisterSaveData(ISaveable saveable)
@@ -71,47 +86,58 @@ public class DataManager : MonoBehaviour
     public void Save()
     {
         foreach (var saveable in saveableList)
-        {
             saveable.GetSaveData(saveData);
-        }
 
-        var resultPath = jsonFolder + "data.sav";
-
-        var jsonData =JsonConvert.SerializeObject(saveData);
-
-        if (!File.Exists(resultPath))
-        {
+        if (!Directory.Exists(jsonFolder))
             Directory.CreateDirectory(jsonFolder);
-        }
 
-        File.WriteAllText(resultPath, jsonData);
-
-        /*foreach (var item in saveData.characterPosDict)
-        {
-            Debug.Log(item.Key + "  " + item.Value);
-        }*/
-
-
+        File.WriteAllText(SaveFilePath, JsonConvert.SerializeObject(saveData));
     }
+
     public void Load()
     {
         foreach (var saveable in saveableList)
-        {
             saveable.LoadSaveData(saveData);
-        }
     }
 
-    private void ReadSavedData()
+    /// <summary>
+    /// 新游戏：清空内存进度并删除存档文件，避免关卡物体套用上一局状态。
+    /// </summary>
+    public void ClearForNewGame()
     {
-        var resultPath = jsonFolder + "data.sav";
+        saveData = CreateEmptyData();
 
-        if (File.Exists(resultPath))
-        {
-            var stringData = File.ReadAllText(resultPath);
+        if (File.Exists(SaveFilePath))
+            File.Delete(SaveFilePath);
+    }
 
-            var jsonData =JsonConvert.DeserializeObject<Data>(stringData);
+    void ReadSavedData()
+    {
+        if (!File.Exists(SaveFilePath))
+            return;
 
-            saveData = jsonData;
-        }
+        var stringData = File.ReadAllText(SaveFilePath);
+        var jsonData = JsonConvert.DeserializeObject<Data>(stringData);
+        saveData = jsonData ?? CreateEmptyData();
+        EnsureDataCollections(saveData);
+    }
+
+    static Data CreateEmptyData()
+    {
+        var data = new Data();
+        EnsureDataCollections(data);
+        return data;
+    }
+
+    static void EnsureDataCollections(Data data)
+    {
+        if (data.characterPosDict == null)
+            data.characterPosDict = new Dictionary<string, SerializeVector3>();
+        if (data.floatSavedData == null)
+            data.floatSavedData = new Dictionary<string, float>();
+        if (data.boolSavedData == null)
+            data.boolSavedData = new Dictionary<string, bool>();
+        if (data.intListSavedData == null)
+            data.intListSavedData = new Dictionary<string, List<int>>();
     }
 }

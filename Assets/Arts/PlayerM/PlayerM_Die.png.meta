@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: 3768150834d32ec4c81e9c00086a8450
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5002976481549941379
+    second: PlayerM_Die_0
+  - first:
+      213: -6155641326721073852
+    second: PlayerM_Die_1
+  - first:
+      213: 503163179829666945
+    second: PlayerM_Die_2
+  - first:
+      213: 8810421583428040537
+    second: PlayerM_Die_3
+  - first:
+      213: -3786068466825731859
+    second: PlayerM_Die_4
+  - first:
+      213: -3488334891032145887
+    second: PlayerM_Die_5
+  - first:
+      213: -6023370294211003234
+    second: PlayerM_Die_6
+  - first:
+      213: -2740064851224841043
+    second: PlayerM_Die_7
+  - first:
+      213: -7511261192473111027
+    second: PlayerM_Die_8
+  - first:
+      213: 8308903222040216607
+    second: PlayerM_Die_9
+  - first:
+      213: -5207983944704853041
+    second: PlayerM_Die_10
+  - first:
+      213: 1621861383326015790
+    second: PlayerM_Die_11
+  - first:
+      213: -1726572954223502446
+    second: PlayerM_Die_12
+  - first:
+      213: -6210376640347214291
+    second: PlayerM_Die_13
+  - first:
+      213: -4286184222462609491
+    second: PlayerM_Die_14
+  - first:
+      213: -233573381902491247
+    second: PlayerM_Die_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: PlayerM_Die_0
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 204
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d75059d956bd19ab0800000000000000
+      internalID: -5002976481549941379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_1
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 204
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 44d731cc3d4c29aa0800000000000000
+      internalID: -6155641326721073852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_2
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 204
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 184adc50f389bf600800000000000000
+      internalID: 503163179829666945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_3
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 204
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 957b9a120c7e44a70800000000000000
+      internalID: 8810421583428040537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_4
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 140
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: de06b83f9ce257bc0800000000000000
+      internalID: -3786068466825731859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_5
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 140
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1209d6a06e1f69fc0800000000000000
+      internalID: -3488334891032145887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_6
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 140
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9cb9ee61a0b86ca0800000000000000
+      internalID: -6023370294211003234
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_7
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 140
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da4b539098559f9d0800000000000000
+      internalID: -2740064851224841043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_8
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 76
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d069677edb3a2c790800000000000000
+      internalID: -7511261192473111027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_9
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 76
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f144ece35772f4370800000000000000
+      internalID: 8308903222040216607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_10
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 76
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcbfde3023689b7b0800000000000000
+      internalID: -5207983944704853041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_11
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 76
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e21221cc552028610800000000000000
+      internalID: 1621861383326015790
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_12
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 12
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29b16b0cb0bf908e0800000000000000
+      internalID: -1726572954223502446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_13
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 12
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2e68be795f40d9a0800000000000000
+      internalID: -6210376640347214291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_14
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 12
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da77b3aa82a6484c0800000000000000
+      internalID: -4286184222462609491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_Die_15
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 12
+        width: 45
+        height: 50
+      alignment: 9
+      pivot: {x: 0.51111114, y: 0.02}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 19127b62f3e22ccf0800000000000000
+      internalID: -233573381902491247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: ac9a674fa9237bf4ba7f840be8edf3f3
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      PlayerM_Die_0: -5002976481549941379
+      PlayerM_Die_1: -6155641326721073852
+      PlayerM_Die_10: -5207983944704853041
+      PlayerM_Die_11: 1621861383326015790
+      PlayerM_Die_12: -1726572954223502446
+      PlayerM_Die_13: -6210376640347214291
+      PlayerM_Die_14: -4286184222462609491
+      PlayerM_Die_15: -233573381902491247
+      PlayerM_Die_2: 503163179829666945
+      PlayerM_Die_3: 8810421583428040537
+      PlayerM_Die_4: -3786068466825731859
+      PlayerM_Die_5: -3488334891032145887
+      PlayerM_Die_6: -6023370294211003234
+      PlayerM_Die_7: -2740064851224841043
+      PlayerM_Die_8: -7511261192473111027
+      PlayerM_Die_9: 8308903222040216607
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

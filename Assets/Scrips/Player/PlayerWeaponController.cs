@@ -4,8 +4,11 @@ using UnityEngine.InputSystem;
 [DefaultExecutionOrder(50)]
 [RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(PlayerMovement))]
-public class PlayerWeaponController : MonoBehaviour
+[RequireComponent(typeof(DataDefination))]
+public class PlayerWeaponController : MonoBehaviour, ISaveable
 {
+    const string WeaponIdKeySuffix = "weaponId";
+
     [SerializeField] WeaponDefinition[] weapons;
     [SerializeField] int initialWeaponId = 0;
     [SerializeField] float holdToInitialDuration = 0.4f;
@@ -42,9 +45,17 @@ public class PlayerWeaponController : MonoBehaviour
             playerAnim.ApplyWeaponDefinition(def);
     }
 
-    void OnEnable() => actions.Player.Enable();
+    void OnEnable()
+    {
+        actions.Player.Enable();
+        ((ISaveable)this).RegisterSaveData();
+    }
 
-    void OnDisable() => actions.Player.Disable();
+    void OnDisable()
+    {
+        actions.Player.Disable();
+        ((ISaveable)this).UnregisterSaveData();
+    }
 
     void OnDestroy() => actions?.Dispose();
 
@@ -193,5 +204,35 @@ public class PlayerWeaponController : MonoBehaviour
         }
 
         return -1;
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        data.floatSavedData[dataId.ID + WeaponIdKeySuffix] = currentWeaponId;
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        if (!data.floatSavedData.TryGetValue(dataId.ID + WeaponIdKeySuffix, out float saved))
+            return;
+
+        int weaponId = Mathf.RoundToInt(saved);
+        var def = GetDefinition(weaponId);
+        if (def == null)
+            return;
+
+        currentWeaponId = weaponId;
+        if (playerAnim != null)
+            playerAnim.ApplyWeaponDefinition(def);
     }
 }

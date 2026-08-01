@@ -85,6 +85,7 @@ public class EnemyGenerate : MonoBehaviour
 
     Coroutine spawnRoutine;
     int totalSpawned;
+    bool reportedSpawningToZone;
 
     public int WaveCount => waves != null ? waves.Length : 0;
     public int TotalSpawned => totalSpawned;
@@ -148,18 +149,50 @@ public class EnemyGenerate : MonoBehaviour
         AgentDebugLog.Write("A", "EnemyGenerate.cs:StartSpawning", "StartSpawning called",
             "{\"name\":\"" + name + "\",\"waveCount\":" + WaveCount + ",\"totalLimit\":" + GetEffectiveTotalLimit() + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + "}");
         // #endregion
-        StopSpawning();
+        // 重启时不要先 NotifyCompleted，否则波间空窗会误触发遭遇区解锁
+        StopSpawningInternal(releaseZone: false);
         totalSpawned = 0;
+        NotifyZoneSpawningStarted();
         spawnRoutine = StartCoroutine(SpawnRoutine());
     }
 
-    public void StopSpawning()
+    public void StopSpawning() => StopSpawningInternal(releaseZone: true);
+
+    void StopSpawningInternal(bool releaseZone)
     {
-        if (spawnRoutine == null)
+        if (spawnRoutine != null)
+        {
+            StopCoroutine(spawnRoutine);
+            spawnRoutine = null;
+        }
+
+        if (releaseZone)
+            NotifyZoneSpawningCompleted();
+    }
+
+    void NotifyZoneSpawningStarted()
+    {
+        if (encounterZone == null || reportedSpawningToZone)
             return;
 
-        StopCoroutine(spawnRoutine);
+        reportedSpawningToZone = true;
+        encounterZone.NotifySpawningStarted();
+    }
+
+    void NotifyZoneSpawningCompleted()
+    {
+        if (!reportedSpawningToZone || encounterZone == null)
+            return;
+
+        reportedSpawningToZone = false;
+        encounterZone.NotifySpawningCompleted();
+    }
+
+    void FinishSpawning()
+    {
         spawnRoutine = null;
+        NotifyZoneSpawningCompleted();
+        OnSpawningCompleted?.Invoke();
     }
 
     IEnumerator SpawnRoutine()
@@ -179,8 +212,7 @@ public class EnemyGenerate : MonoBehaviour
             if (waveLen <= 0 || !HasAnyValidWave())
                 Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
 
-            spawnRoutine = null;
-            OnSpawningCompleted?.Invoke();
+            FinishSpawning();
             yield break;
         }
 
@@ -214,8 +246,7 @@ public class EnemyGenerate : MonoBehaviour
         AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnRoutine", "spawning completed",
             "{\"name\":\"" + name + "\",\"totalSpawned\":" + totalSpawned + ",\"waveLen\":" + waveLen + "}");
         // #endregion
-        spawnRoutine = null;
-        OnSpawningCompleted?.Invoke();
+        FinishSpawning();
     }
 
     IEnumerator SpawnWaveRoutine(EnemyWaveConfig wave, int remainingBudget)

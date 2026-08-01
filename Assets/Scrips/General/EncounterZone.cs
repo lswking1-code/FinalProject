@@ -9,7 +9,8 @@ using UnityEngine.Events;
 /// 也可由外部调用 EndEncounter 手动结束（事件型遭遇战）。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
-public class EncounterZone : MonoBehaviour
+[RequireComponent(typeof(DataDefination))]
+public class EncounterZone : MonoBehaviour, ISaveable
 {
     [Header("锁区")]
     [Tooltip("本区域相机限制碰撞体（不要使用 Bounds 标签）")]
@@ -35,11 +36,13 @@ public class EncounterZone : MonoBehaviour
     bool hasCompleted;
     bool hasRegisteredAny;
     bool airWallsSealed;
+    int pendingSpawnSources;
     CameraControl cameraControl;
     readonly List<Collider2D> playerColliders = new();
     Coroutine sealAirWallsRoutine;
 
     public bool IsActive => isActive;
+    public bool HasCompleted => hasCompleted;
     public int AliveRegisteredCount => aliveRegistered.Count;
 
     void Awake()
@@ -59,6 +62,14 @@ public class EncounterZone : MonoBehaviour
         if (airWallsRoot != null)
             airWallsRoot.SetActive(false);
     }
+
+    void OnEnable()
+    {
+        ((ISaveable)this).RegisterSaveData();
+        DataManager.instance?.ApplyLoadedData(this);
+    }
+
+    void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -100,6 +111,7 @@ public class EncounterZone : MonoBehaviour
         isActive = true;
         hasRegisteredAny = false;
         airWallsSealed = false;
+        pendingSpawnSources = 0;
         ClearRegistrations();
 
         SetEncounterBoundsVisible(true);
@@ -121,8 +133,17 @@ public class EncounterZone : MonoBehaviour
         if (!isActive)
             return;
 
+        ApplyCompletedState(invokeEndedEvent: true);
+    }
+
+    /// <summary>
+    /// 标记遭遇已完成并恢复锁区表现。Load 时可调用；OnEncounterEnded 监听需幂等。
+    /// </summary>
+    public void ApplyCompletedState(bool invokeEndedEvent)
+    {
         isActive = false;
         hasCompleted = true;
+        pendingSpawnSources = 0;
 
         ClearRegistrations();
         DeactivateAirWalls();
@@ -132,7 +153,25 @@ public class EncounterZone : MonoBehaviour
 
         SetEncounterBoundsVisible(false);
 
-        OnEncounterEnded?.Invoke();
+        if (invokeEndedEvent)
+            OnEncounterEnded?.Invoke();
+    }
+
+    /// <summary>
+    /// 刷怪源开始刷怪时调用；全部波次完成前不会因清场自动结束。
+    /// </summary>
+    public void NotifySpawningStarted()
+    {
+        pendingSpawnSources++;
+    }
+
+    /// <summary>
+    /// 刷怪源全部波次结束后调用；若场上已无敌再尝试自动结束。
+    /// </summary>
+    public void NotifySpawningCompleted()
+    {
+        pendingSpawnSources = Mathf.Max(0, pendingSpawnSources - 1);
+        TryAutoEnd();
     }
 
     Collider2D ResolvePlayerCollider(Collider2D playerCollider)
@@ -375,6 +414,8 @@ public class EncounterZone : MonoBehaviour
     {
         if (!autoEndWhenCleared || !isActive)
             return;
+        if (pendingSpawnSources > 0)
+            return;
         if (!hasRegisteredAny)
             return;
         if (aliveRegistered.Count > 0)
@@ -431,6 +472,36 @@ public class EncounterZone : MonoBehaviour
     {
         DeactivateAirWalls();
         ClearRegistrations();
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    string ProgressKey(string suffix)
+    {
+        var dataId = GetDataID();
+        string id = dataId != null && !string.IsNullOrEmpty(dataId.ID) ? dataId.ID : name;
+        return $"{gameObject.scene.name}:{id}:{name}:{suffix}";
+    }
+
+    public void GetSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        data.boolSavedData[ProgressKey("completed")] = hasCompleted;
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        var dataId = GetDataID();
+        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+            return;
+
+        if (!data.boolSavedData.TryGetValue(ProgressKey("completed"), out bool completed) || !completed)
+            return;
+
+        ApplyCompletedState(invokeEndedEvent: true);
     }
 
     void OnDrawGizmosSelected()

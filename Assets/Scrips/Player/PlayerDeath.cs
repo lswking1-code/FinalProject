@@ -8,6 +8,7 @@ public class PlayerDeath : MonoBehaviour
     [SerializeField] VoidEventSO gameOverEvent;
     [SerializeField] VoidEventSO loadDataEvent;
     [SerializeField] VoidEventSO newGameEvent;
+    [SerializeField] VoidEventSO backToMenuEvent;
 
     Character character;
     PlayerAnimBase playerAnim;
@@ -23,22 +24,31 @@ public class PlayerDeath : MonoBehaviour
         character = GetComponent<Character>();
         playerAnim = GetComponent<PlayerAnimBase>();
         playerMovement = GetComponent<PlayerMovement>();
-    }
 
-    void OnEnable()
-    {
+        // 回菜单会 SetActive(false)，必须用 Awake/OnDestroy 订阅，否则会错过 newGame
         if (loadDataEvent != null)
             loadDataEvent.OnEventRaised += Revive;
         if (newGameEvent != null)
-            newGameEvent.OnEventRaised += Revive;
+            newGameEvent.OnEventRaised += ResetForNewGame;
+        if (backToMenuEvent != null)
+            backToMenuEvent.OnEventRaised += ResetForNewGame;
     }
 
-    void OnDisable()
+    void OnDestroy()
     {
         if (loadDataEvent != null)
             loadDataEvent.OnEventRaised -= Revive;
         if (newGameEvent != null)
-            newGameEvent.OnEventRaised -= Revive;
+            newGameEvent.OnEventRaised -= ResetForNewGame;
+        if (backToMenuEvent != null)
+            backToMenuEvent.OnEventRaised -= ResetForNewGame;
+    }
+
+    void OnEnable()
+    {
+        // 重新启用时若仍卡在死亡态，补一次重置
+        if (deathHandled || (character != null && character.IsDead))
+            ResetForNewGame();
     }
 
     void Update()
@@ -79,12 +89,20 @@ public class PlayerDeath : MonoBehaviour
         gameOverEvent?.RaiseEvent();
     }
 
-    void Revive()
+    /// <summary>读档复活：清死亡态，血量由 Character.LoadSaveData 覆盖。</summary>
+    public void Revive()
     {
         deathHandled = false;
         gameOverRaised = false;
         character.Revive();
         playerAnim.ResetFromDeath();
         playerMovement.EndExternalControl();
+    }
+
+    /// <summary>新游戏 / 回菜单：清死亡态并回满基础属性。</summary>
+    public void ResetForNewGame()
+    {
+        Revive();
+        character.ResetForNewGame();
     }
 }
