@@ -433,9 +433,9 @@ MonoBehaviour:
   BulletS: 0
   BulletM: 0
   BulletL: 0
-  maxBulletS: 0
-  maxBulletM: 0
-  maxBulletL: 0
+  maxBulletS: 200
+  maxBulletM: 50
+  maxBulletL: 25
   invulnerableDuration: 0.4
   invulnerable: 0
   OnHealthChange:
