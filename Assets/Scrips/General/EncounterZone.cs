@@ -62,6 +62,10 @@ public class EncounterZone : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        // #region agent log
+        AgentDebugLog.Write("C", "EncounterZone.cs:OnTriggerEnter2D", "trigger enter",
+            "{\"zone\":\"" + name + "\",\"otherTag\":\"" + other.tag + "\",\"isPlayer\":" + (other.CompareTag("Player") ? "true" : "false") + "}");
+        // #endregion
         if (!other.CompareTag("Player"))
             return;
 
@@ -72,10 +76,26 @@ public class EncounterZone : MonoBehaviour
 
     public void StartEncounter(Collider2D playerCollider)
     {
+        // #region agent log
+        int listenerCount = OnEncounterStarted != null ? OnEncounterStarted.GetPersistentEventCount() : 0;
+        string target0 = listenerCount > 0 ? (OnEncounterStarted.GetPersistentTarget(0) != null ? OnEncounterStarted.GetPersistentTarget(0).GetType().Name + ":" + OnEncounterStarted.GetPersistentMethodName(0) : "NULL_TARGET") : "NO_LISTENERS";
+        // #endregion
         if (isActive)
+        {
+            // #region agent log
+            AgentDebugLog.Write("B", "EncounterZone.cs:StartEncounter", "early return isActive",
+                "{\"zone\":\"" + name + "\",\"isActive\":true,\"hasCompleted\":" + (hasCompleted ? "true" : "false") + ",\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
+            // #endregion
             return;
+        }
         if (triggerOnce && hasCompleted)
+        {
+            // #region agent log
+            AgentDebugLog.Write("B", "EncounterZone.cs:StartEncounter", "early return triggerOnce+completed",
+                "{\"zone\":\"" + name + "\",\"triggerOnce\":true,\"hasCompleted\":true,\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
+            // #endregion
             return;
+        }
 
         isActive = true;
         hasRegisteredAny = false;
@@ -89,6 +109,10 @@ public class EncounterZone : MonoBehaviour
         if (cameraControl != null && encounterBounds != null)
             cameraControl.SetCameraBounds(encounterBounds);
 
+        // #region agent log
+        AgentDebugLog.Write("A", "EncounterZone.cs:StartEncounter", "invoking OnEncounterStarted",
+            "{\"zone\":\"" + name + "\",\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
+        // #endregion
         OnEncounterStarted?.Invoke();
     }
 

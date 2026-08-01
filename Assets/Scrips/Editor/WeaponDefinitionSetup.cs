@@ -39,7 +39,7 @@ public static class WeaponDefinitionSetup
         defs[0] = EnsureDef("Weapon_0_Pistol", 0, "手枪", true, FillPistol, forceFill);
         defs[1] = EnsureDef("Weapon_1_Heavy", 1, "机枪", true, FillHeavy, forceFill);
         defs[2] = EnsureDef("Weapon_2_Shotgun", 2, "霰弹枪", false, FillShotgun, forceFill);
-        defs[3] = EnsureDef("Weapon_3_Laser", 3, "镭射枪", false, FillLaser, forceFill);
+        defs[3] = EnsureDef("Weapon_3_Laser", 3, "镭射枪", true, FillLaser, forceFill);
         defs[4] = EnsureDef("Weapon_4_Flame", 4, "火焰枪", false, FillFlame, forceFill);
 
         AssetDatabase.SaveAssets();

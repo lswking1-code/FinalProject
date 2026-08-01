@@ -58,6 +58,9 @@ public class PlayerAnimBase : MonoBehaviour
 
     public virtual bool TryPlayShootAnim() => false;
 
+    /// <summary>按住持续射击（如镭射）时钉住射击动画，松手后恢复正常结束。</summary>
+    public virtual void SetSustainShoot(bool sustain) { }
+
     public virtual bool TryPlayMachinistShootAnim(MachinistShootKind kind) => false;
 
     public virtual void InterruptMachinistComboShootFromInput() { }

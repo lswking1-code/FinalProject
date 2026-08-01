@@ -116,6 +116,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isCrouching;
     bool isRunning;
     bool isShooting;
+    bool sustainShoot;
     bool isCharging;
     bool isDispatching;
     bool dispatchHoldForLoop;
@@ -2551,6 +2552,12 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         {
             if (IsNaturalShootExitState(info, activeShootStateName))
             {
+                if (sustainShoot)
+                {
+                    activeShootAnimator.Play(activeShootStateName, 0, 0.999f);
+                    return;
+                }
+
                 CompleteShoot();
                 return;
             }
@@ -2561,6 +2568,12 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         if (info.normalizedTime < 1f)
             return;
+
+        if (sustainShoot)
+        {
+            activeShootAnimator.Play(activeShootStateName, 0, 0.999f);
+            return;
+        }
 
         CompleteShoot();
     }
@@ -2733,9 +2746,15 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         RestoreUpperLocomotion();
     }
 
+    public override void SetSustainShoot(bool sustain)
+    {
+        sustainShoot = sustain;
+    }
+
     void CompleteShoot()
     {
         isShooting = false;
+        sustainShoot = false;
         activeShootStateName = null;
         activeShootAnimator = null;
         comboShootPinnedNormalized = 0f;

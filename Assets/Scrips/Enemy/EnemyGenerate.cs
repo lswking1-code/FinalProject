@@ -93,6 +93,10 @@ public class EnemyGenerate : MonoBehaviour
 
     void Start()
     {
+        // #region agent log
+        AgentDebugLog.Write("A", "EnemyGenerate.cs:Start", "EnemyGenerate Start",
+            "{\"name\":\"" + name + "\",\"spawnOnStart\":" + (spawnOnStart ? "true" : "false") + ",\"waveCount\":" + WaveCount + ",\"hasEncounterZone\":" + (encounterZone != null ? "true" : "false") + ",\"encounterZoneName\":\"" + (encounterZone != null ? encounterZone.name : "null") + "\"}");
+        // #endregion
         if (spawnOnStart)
             StartSpawning();
     }
@@ -140,6 +144,10 @@ public class EnemyGenerate : MonoBehaviour
 
     public void StartSpawning()
     {
+        // #region agent log
+        AgentDebugLog.Write("A", "EnemyGenerate.cs:StartSpawning", "StartSpawning called",
+            "{\"name\":\"" + name + "\",\"waveCount\":" + WaveCount + ",\"totalLimit\":" + GetEffectiveTotalLimit() + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + "}");
+        // #endregion
         StopSpawning();
         totalSpawned = 0;
         spawnRoutine = StartCoroutine(SpawnRoutine());
@@ -164,6 +172,10 @@ public class EnemyGenerate : MonoBehaviour
 
         if (waveLen <= 0 || totalLimit <= 0 || !HasAnyValidWave())
         {
+            // #region agent log
+            AgentDebugLog.Write("D", "EnemyGenerate.cs:SpawnRoutine", "early exit invalid waves",
+                "{\"name\":\"" + name + "\",\"waveLen\":" + waveLen + ",\"totalLimit\":" + totalLimit + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + "}");
+            // #endregion
             if (waveLen <= 0 || !HasAnyValidWave())
                 Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
 
@@ -185,6 +197,10 @@ public class EnemyGenerate : MonoBehaviour
                 continue;
             }
 
+            // #region agent log
+            AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnRoutine", "spawning wave",
+                "{\"name\":\"" + name + "\",\"waveIndex\":" + waveIndex + ",\"waveLen\":" + waveLen + ",\"remaining\":" + remaining + ",\"waveEnemyCount\":" + GetWaveTotalCount(wave) + "}");
+            // #endregion
             yield return SpawnWaveRoutine(wave, remaining);
             OnWaveSpawned?.Invoke();
 
@@ -194,6 +210,10 @@ public class EnemyGenerate : MonoBehaviour
             yield return WaitAfterWave(wave, waveIndex, waveLen);
         }
 
+        // #region agent log
+        AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnRoutine", "spawning completed",
+            "{\"name\":\"" + name + "\",\"totalSpawned\":" + totalSpawned + ",\"waveLen\":" + waveLen + "}");
+        // #endregion
         spawnRoutine = null;
         OnSpawningCompleted?.Invoke();
     }
@@ -246,7 +266,13 @@ public class EnemyGenerate : MonoBehaviour
     void SpawnEnemyAt(GameObject prefab, EnemyWaveConfig wave, Vector3 position)
     {
         if (prefab == null)
+        {
+            // #region agent log
+            AgentDebugLog.Write("D", "EnemyGenerate.cs:SpawnEnemyAt", "prefab null skip",
+                "{\"name\":\"" + name + "\"}");
+            // #endregion
             return;
+        }
 
         var instance = Instantiate(prefab, position, Quaternion.identity);
         totalSpawned++;
@@ -255,6 +281,11 @@ public class EnemyGenerate : MonoBehaviour
 
         if (encounterZone != null)
             encounterZone.RegisterEnemy(instance);
+
+        // #region agent log
+        AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnEnemyAt", "enemy spawned",
+            "{\"name\":\"" + name + "\",\"prefab\":\"" + prefab.name + "\",\"totalSpawned\":" + totalSpawned + ",\"pos\":\"" + position.x.ToString("F1") + "," + position.y.ToString("F1") + "\"}");
+        // #endregion
     }
 
     static void ApplyScales(GameObject instance, EnemyWaveConfig wave)

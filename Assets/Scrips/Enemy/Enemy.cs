@@ -17,6 +17,8 @@ public class Enemy : MonoBehaviour
     public float normalSpeed;
     public float chaseSpeed;
     [HideInInspector] public float currentSpeed;
+    [Tooltip("为 true 时镭射光束在此敌人处截断")]
+    public bool blocksLaser;
 
     public Vector3 faceDir;
     public float hurtForce;

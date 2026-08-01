@@ -17,7 +17,7 @@ public class WeaponFirePointSet
 public class WeaponFireConfig
 {
     public int weaponId;
-    [Tooltip("需带 IPlayerAmmo 组件")]
+    [Tooltip("普通子弹需 IPlayerAmmo；holdToFire 时为 PlayerLaserBeam prefab")]
     public GameObject projectilePrefab;
     [Tooltip("两次开火之间的最小间隔（秒）；0 表示不限制。连发整段算一次开火")]
     public float fireInterval = 0f;
@@ -27,6 +27,8 @@ public class WeaponFireConfig
     public float burstInterval = 0.06f;
     [Tooltip("相对枪口的最大位置偏移；水平射击为上下，仰俯射为左右；0 为无散射")]
     public float spreadOffset = 0f;
+    [Tooltip("按住持续开火（镭射枪）；松手结束")]
+    public bool holdToFire;
 }
 
 [DefaultExecutionOrder(100)]
@@ -54,6 +56,8 @@ public class PlayerShooting : MonoBehaviour
     float lastSpreadOffset;
     float nextFireTime;
 
+    PlayerLaserBeam activeLaser;
+
     void Awake()
     {
         actions = new InputSystem_Actions();
@@ -70,12 +74,36 @@ public class PlayerShooting : MonoBehaviour
     {
         actions.Player.Disable();
         StopBurst();
+        EndLaser(immediate: true);
     }
 
-    void OnDestroy() => actions?.Dispose();
+    void OnDestroy()
+    {
+        EndLaser(immediate: true);
+        actions?.Dispose();
+    }
 
     void Update()
     {
+        WeaponFireConfig config = ResolveFireConfig();
+        bool holdLaser = config != null && config.holdToFire;
+
+        if (ShouldForceEndLaser())
+        {
+            EndLaser(immediate: false);
+            if (!holdLaser || !actions.Player.Attack.IsPressed())
+                return;
+        }
+
+        if (holdLaser)
+        {
+            UpdateHoldLaser(config);
+            return;
+        }
+
+        if (activeLaser != null)
+            EndLaser(immediate: false);
+
         if (playerMovement.IsActionLocked)
             return;
 
@@ -94,7 +122,6 @@ public class PlayerShooting : MonoBehaviour
                 && playerMelee.TryMelee())
                 return;
 
-            WeaponFireConfig config = ResolveFireConfig();
             float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
             if (fireInterval > 0f && Time.time < nextFireTime)
                 return;
@@ -105,6 +132,109 @@ public class PlayerShooting : MonoBehaviour
                 BeginFire(config);
             }
         }
+    }
+
+    bool ShouldForceEndLaser()
+    {
+        if (activeLaser == null)
+            return false;
+
+        if (playerMovement != null && playerMovement.IsActionLocked)
+            return true;
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
+            return true;
+        if (playerMelee != null && playerMelee.IsEnemyInMeleeRange() && actions.Player.Attack.WasPressedThisFrame())
+            return true;
+
+        return false;
+    }
+
+    void UpdateHoldLaser(WeaponFireConfig config)
+    {
+        if (playerMovement.IsActionLocked || (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon)))
+        {
+            EndLaser(immediate: false);
+            return;
+        }
+
+        bool pressed = actions.Player.Attack.IsPressed();
+        if (!pressed)
+        {
+            EndLaser(immediate: false);
+            return;
+        }
+
+        if (playerMelee != null && playerMelee.IsEnemyInMeleeRange() && activeLaser == null
+            && actions.Player.Attack.WasPressedThisFrame()
+            && playerMelee.TryMelee())
+            return;
+
+        if (activeLaser == null)
+        {
+            if (!TryBeginLaser(config))
+                return;
+        }
+
+        if (activeLaser == null || activeLaser.IsEnding)
+            return;
+
+        FireDir dir = ResolveFireDir();
+        Transform point = GetFirePoint(dir);
+        float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
+        activeLaser.UpdateBeam(point, dir, faceY);
+
+        if (playerAnim != null && !playerAnim.IsShooting)
+            playerAnim.TryPlayShootAnim();
+    }
+
+    bool TryBeginLaser(WeaponFireConfig config)
+    {
+        GameObject prefab = config != null ? config.projectilePrefab : null;
+        if (prefab == null)
+            return false;
+
+        if (playerAnim == null || !playerAnim.TryPlayShootAnim())
+            return false;
+
+        playerAnim.SetSustainShoot(true);
+
+        FireDir dir = ResolveFireDir();
+        Transform point = GetFirePoint(dir);
+        float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
+        var instance = Instantiate(prefab, point.position, Quaternion.identity);
+        activeLaser = instance.GetComponent<PlayerLaserBeam>();
+        if (activeLaser == null)
+        {
+            Debug.LogError($"Laser prefab '{prefab.name}' is missing PlayerLaserBeam.", prefab);
+            Destroy(instance);
+            playerAnim.SetSustainShoot(false);
+            return false;
+        }
+
+        activeLaser.Begin(point, dir, faceY, character);
+        return true;
+    }
+
+    void EndLaser(bool immediate)
+    {
+        if (playerAnim != null)
+            playerAnim.SetSustainShoot(false);
+
+        if (activeLaser == null)
+            return;
+
+        var beam = activeLaser;
+        activeLaser = null;
+
+        if (immediate || beam == null)
+        {
+            if (beam != null)
+                Destroy(beam.gameObject);
+            return;
+        }
+
+        if (!beam.IsEnding)
+            beam.BeginEnd();
     }
 
     void BeginFire(WeaponFireConfig config)
