@@ -3,18 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// 机器人部署模式：短按跟随 / 长按驻守。
+/// </summary>
+public enum RobotDeployMode
+{
+    Follow,
+    Stationed
+}
+
+/// <summary>
 /// 友军机器人 AI 控制器。
-/// 行为：记录生成点 → 索敌 → 接近目标 → 进入攻击范围后原地攻击（CD）
+/// 行为：记录回归锚点（跟随点或生成点）→ 索敌（以自身为中心）→ 接近目标 → 进入攻击范围后原地攻击（CD）
 ///        → 仅当敌人离开攻击范围才重新追击
-///        → 无目标/超出最大追踪范围时返回生成点。
+///        → 无目标/超出最大追踪范围时返回锚点。
+/// 跟随模式：无敌人时弱跟随身后锚点；遇矮障可自动跳跃。
 /// 伤害输出依赖武器子物体上挂载的 Attack.cs（OnTriggerStay2D）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class AllyRobot : MonoBehaviour
 {
-    // ──────────────────────────────────────────────
-    //  状态
-    // ──────────────────────────────────────────────
     enum AllyState
     {
         Spawning,
@@ -28,11 +35,15 @@ public class AllyRobot : MonoBehaviour
         ComboDashing
     }
 
+    enum RobotAirPhase
+    {
+        Ground = 0,
+        Jump = 1,
+        Fall = 2
+    }
+
     AllyState currentState;
 
-    // ──────────────────────────────────────────────
-    //  Inspector 参数
-    // ──────────────────────────────────────────────
     [Header("移动")]
     public float moveSpeed = 3f;
     [Tooltip("Combo 冲锋冲刺阶段速度（单位/秒）")]
@@ -41,6 +52,10 @@ public class AllyRobot : MonoBehaviour
     public float dashTimeout = 1.5f;
     [Tooltip("到达目标点时判定为'已到达'的距离阈值")]
     public float arriveThreshold = 0.15f;
+    [Tooltip("跟随模式：距锚点超过此距离才开始回跟")]
+    public float followArriveDistance = 0.35f;
+    [Tooltip("跟随点为空时，相对玩家身后的水平偏移")]
+    public float followOffsetX = 1.2f;
 
     [Header("索敌")]
     [Tooltip("以自身为中心的 X 轴单侧索敌半径")]
@@ -63,8 +78,30 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] LayerMask laserHitMask = ~0;
 
     [Header("最大追踪范围")]
-    [Tooltip("以生成点为圆心，超过此距离强制返回")]
+    [Tooltip("以回归锚点为圆心，超过此距离强制返回")]
     public float maxChaseRange = 10f;
+
+    [Header("自动跳跃")]
+    [SerializeField] PhysicsCheck physicsCheck;
+    [Tooltip("起跳高度（仅用于计算起跳初速度，不参与是否可越过判定）")]
+    public float jumpHeight = 2.2f;
+    [Tooltip("可自动越过的障碍顶面相对脚底的最大高度")]
+    public float maxAutoJumpHeight = 1.4f;
+    [Tooltip("低于此高度的凸起不触发跳跃")]
+    public float minObstacleHeight = 0.25f;
+    [Tooltip("前方障碍水平探测距离")]
+    public float jumpProbeDistance = 0.55f;
+    [Tooltip("水平探测原点相对脚底的高度（必须 > 0，贴地会误判地面为障碍）")]
+    public float jumpProbeHeight = 0.45f;
+    [Tooltip("水平探测原点相对身体前缘再向前的额外偏移")]
+    public float jumpProbeForwardPadding = 0.05f;
+    [Tooltip("起跳所需头顶净空；与 jumpHeight 解耦，避免把 jumpHeight 调大后误拦跳跃")]
+    public float jumpCeilingClearance = 0.6f;
+    [Tooltip("两次自动跳跃之间的最短间隔")]
+    public float jumpCooldown = 0.35f;
+    [Tooltip("落地后短暂停稳时长（秒），0 则等 Land 动画播完")]
+    public float landDuration = 0.2f;
+    [SerializeField] LayerMask jumpObstacleMask;
 
     [Header("动画")]
     [Tooltip("手动拖入 Animator；留空则在 Awake 时尝试从自身获取")]
@@ -93,6 +130,11 @@ public class AllyRobot : MonoBehaviour
     public string dashActiveBoolName = "dashActive";
     [Tooltip("生成动画 Animator 状态名")]
     public string dispatchStateName = "Robot_Dispatch";
+    [Tooltip("AirPhase Int 参数名（0 Ground / 1 Jump / 2 Fall）")]
+    public string airPhaseParamName = "AirPhase";
+    public string jumpStateName = "Jump";
+    public string fallStateName = "Fall";
+    public string landStateName = "Land";
 
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
@@ -128,10 +170,21 @@ public class AllyRobot : MonoBehaviour
         || currentState == AllyState.ComboDashWindup
         || currentState == AllyState.ComboDashing;
 
-    // ──────────────────────────────────────────────
-    //  内部引用与运行时变量
-    // ──────────────────────────────────────────────
+    bool IsAirborneBusy =>
+        airPhase != RobotAirPhase.Ground || isLanding;
+
+    Vector3 HomeAnchor
+    {
+        get
+        {
+            if (deployMode == RobotDeployMode.Follow)
+                return ResolveFollowAnchor();
+            return spawnPoint;
+        }
+    }
+
     Rigidbody2D rb;
+    CapsuleCollider2D bodyCollider;
 
     Vector3 spawnPoint;
     Transform currentTarget;
@@ -152,16 +205,39 @@ public class AllyRobot : MonoBehaviour
     Coroutine laserVisualRoutine;
     Attack laserAttackSource;
 
-    // ──────────────────────────────────────────────
-    //  Unity 生命周期
-    // ──────────────────────────────────────────────
+    RobotDeployMode deployMode = RobotDeployMode.Stationed;
+    Transform followPoint;
+    bool idleFollowing;
+    float idleFollowDir;
+
+    RobotAirPhase airPhase = RobotAirPhase.Ground;
+    bool leftGround;
+    bool isLanding;
+    float landTimer;
+    float jumpCooldownTimer;
+    float airTimer;
+    /// <summary>
+    /// 自动跳起后，在障碍仍被探测到前禁止再次自动跳，避免贴墙连跳。
+    /// </summary>
+    bool suppressAutoJumpUntilObstacleClears;
+    bool wasSolidGrounded;
+    bool airStateInitialized;
+    const float MinAirTime = 0.05f;
+    const float DescendVelocityThreshold = 0.01f;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        bodyCollider = GetComponent<CapsuleCollider2D>();
         if (anim == null)
             anim = GetComponent<Animator>();
+        if (physicsCheck == null)
+            physicsCheck = GetComponent<PhysicsCheck>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
+
+        if (jumpObstacleMask.value == 0 && physicsCheck != null)
+            jumpObstacleMask = physicsCheck.groundLayer;
     }
 
     void Start()
@@ -170,6 +246,7 @@ public class AllyRobot : MonoBehaviour
         spawnPoint = transform.position;
         attackTimer = 0f;
         FaceRight();
+        SetAirPhase(RobotAirPhase.Ground, forcePlay: false);
         SwitchState(AllyState.Spawning);
     }
 
@@ -201,6 +278,10 @@ public class AllyRobot : MonoBehaviour
     {
         attackTimer -= Time.deltaTime;
         pullCooldownTimer = Mathf.Max(0f, pullCooldownTimer - Time.deltaTime);
+        jumpCooldownTimer = Mathf.Max(0f, jumpCooldownTimer - Time.deltaTime);
+        idleFollowing = false;
+
+        UpdateAirAndLanding();
 
         switch (currentState)
         {
@@ -218,42 +299,108 @@ public class AllyRobot : MonoBehaviour
 
     void FixedUpdate()
     {
+        // 跳跃判定在 FixedUpdate；同步刷新接地，避免只靠 Update 的一帧延迟。
+        if (physicsCheck != null)
+            physicsCheck.Check();
+
+        if (isLanding)
+        {
+            StopMoving();
+            return;
+        }
+
+        bool movingHorizontally = false;
+        float moveDir = 0f;
+
         switch (currentState)
         {
             case AllyState.Chase:
-                MoveTowardTarget();
+                movingHorizontally = TryGetChaseMoveDir(out moveDir);
+                if (movingHorizontally)
+                    ApplyHorizontalMove(moveDir, moveSpeed);
+                else
+                    StopMoving();
                 break;
             case AllyState.Return:
-                MoveTowardSpawn();
+                movingHorizontally = TryGetHomeMoveDir(arriveThreshold, out moveDir);
+                if (movingHorizontally)
+                    ApplyHorizontalMove(moveDir, moveSpeed);
+                else
+                    StopMoving();
                 break;
             case AllyState.ComboDashing:
-                MoveTowardTargetDash();
+                movingHorizontally = TryGetChaseMoveDir(out moveDir);
+                if (movingHorizontally)
+                    ApplyHorizontalMove(moveDir, dashSpeed);
+                else
+                    StopMoving();
+                break;
+            case AllyState.Idle:
+                if (idleFollowing)
+                {
+                    movingHorizontally = true;
+                    moveDir = idleFollowDir;
+                    ApplyHorizontalMove(moveDir, moveSpeed);
+                }
+                else if (airPhase == RobotAirPhase.Ground)
+                {
+                    StopMoving();
+                }
                 break;
             case AllyState.Spawning:
             case AllyState.Pulling:
             case AllyState.ComboAttacking:
             case AllyState.ComboDashWindup:
-            case AllyState.Idle:
             case AllyState.Attack:
-                StopMoving();
+                if (airPhase == RobotAirPhase.Ground)
+                    StopMoving();
                 break;
+        }
+
+        if (movingHorizontally)
+        {
+            CancelVelocityIntoWall(moveDir);
+            TryAutoJump(moveDir);
+        }
+        else if (airPhase != RobotAirPhase.Ground)
+        {
+            CancelVelocityIntoWall(Mathf.Sign(transform.localScale.x));
         }
     }
 
     public void Initialize(Transform player)
     {
-        owner = player;
-        ownerMovement = player.GetComponent<PlayerMovement>();
-        ownerCharacter = player.GetComponent<Character>();
-        ownerRb = player.GetComponent<Rigidbody2D>();
+        Initialize(player, RobotDeployMode.Stationed, null);
     }
 
-    /// <summary>
-    /// 请求重新索敌。若正在牵引 / Combo，则延后到该动作结束后执行。
-    /// </summary>
+    public void Initialize(Transform player, RobotDeployMode mode, Transform follow)
+    {
+        owner = player;
+        ownerMovement = player != null ? player.GetComponent<PlayerMovement>() : null;
+        ownerCharacter = player != null ? player.GetComponent<Character>() : null;
+        ownerRb = player != null ? player.GetComponent<Rigidbody2D>() : null;
+        deployMode = mode;
+        followPoint = follow;
+    }
+
+    Vector3 ResolveFollowAnchor()
+    {
+        if (followPoint != null)
+            return followPoint.position;
+
+        if (owner == null)
+            return spawnPoint;
+
+        float face = ownerMovement != null ? ownerMovement.FaceDirection : 1f;
+        if (Mathf.Approximately(face, 0f))
+            face = 1f;
+
+        return owner.position + Vector3.left * face * followOffsetX;
+    }
+
     public void RequestRetarget()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || isLanding)
         {
             pendingRetarget = true;
             return;
@@ -284,7 +431,7 @@ public class AllyRobot : MonoBehaviour
         if (IsPulling || pullCooldownTimer > 0f)
             return false;
 
-        if (currentState == AllyState.Spawning)
+        if (currentState == AllyState.Spawning || IsAirborneBusy)
             return false;
 
         if (IsBusyWithCombo)
@@ -319,7 +466,7 @@ public class AllyRobot : MonoBehaviour
 
     public void ComboAttack()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || IsAirborneBusy)
             return;
 
         if (!TryAcquireTarget(out Transform target))
@@ -336,9 +483,6 @@ public class AllyRobot : MonoBehaviour
         BeginComboDashWindup();
     }
 
-    /// <summary>
-    /// 持续弹击中时触发：瞬时满长贯穿激光，有目标可斜向，无目标水平朝向面向。
-    /// </summary>
     public bool TryFirePierceLaser()
     {
         if (currentState == AllyState.Spawning || IsPulling)
@@ -511,10 +655,6 @@ public class AllyRobot : MonoBehaviour
         SwitchState(AllyState.ComboDashWindup);
     }
 
-    /// <summary>
-    /// 强制切到连携相关动画，打断近战 Attack 等当前状态；
-    /// 同时清掉战斗 Trigger，避免残留触发把状态机再拉回去。
-    /// </summary>
     void ForcePlayCombatAnim(string stateName, string keepTriggerName)
     {
         if (anim == null || string.IsNullOrEmpty(stateName))
@@ -623,13 +763,9 @@ public class AllyRobot : MonoBehaviour
 
     void ResumeStateAfterPull()
     {
-        // 牵引 / Combo 结束后统一重新索敌（含 TaggetArea 延后请求）
         PerformRetarget();
     }
 
-    // ──────────────────────────────────────────────
-    //  状态机
-    // ──────────────────────────────────────────────
     void SwitchState(AllyState next)
     {
         OnExitState(currentState);
@@ -653,43 +789,50 @@ public class AllyRobot : MonoBehaviour
                 break;
             case AllyState.Idle:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, false);
-                FaceRight();
+                if (!IsAirborneBusy && anim != null)
+                    anim.SetBool(walkBoolName, false);
                 break;
             case AllyState.Chase:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, true);
+                if (!IsAirborneBusy && anim != null)
+                    anim.SetBool(walkBoolName, true);
                 break;
             case AllyState.Attack:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, false);
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 StopMoving();
                 break;
             case AllyState.Return:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, true);
+                if (!IsAirborneBusy && anim != null)
+                    anim.SetBool(walkBoolName, true);
                 currentTarget = null;
                 break;
             case AllyState.Pulling:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, false);
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 StopMoving();
                 break;
             case AllyState.ComboAttacking:
                 SetDashActive(false);
-                anim.SetBool(walkBoolName, false);
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 StopMoving();
                 comboAttackAnimSeen = false;
                 break;
             case AllyState.ComboDashWindup:
                 SetDashActive(true);
-                anim.SetBool(walkBoolName, false);
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 StopMoving();
                 comboDashWindupAnimSeen = false;
                 break;
             case AllyState.ComboDashing:
                 SetDashActive(true);
-                anim.SetBool(walkBoolName, false);
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 dashTimer = dashTimeout;
                 break;
         }
@@ -705,9 +848,6 @@ public class AllyRobot : MonoBehaviour
 
     bool IsWithinDashDecideRange(Transform target) => GetDistXTo(target) <= dashDecideDistance;
 
-    /// <summary>
-    /// 目标仍存在、处于激活状态，且未进入死亡流程。
-    /// </summary>
     bool IsValidCombatTarget(Transform target)
     {
         if (target == null || !target.gameObject.activeInHierarchy)
@@ -729,9 +869,6 @@ public class AllyRobot : MonoBehaviour
             anim.SetBool(dashActiveBoolName, active);
     }
 
-    /// <summary>
-    /// 统一退出 Combo 冲刺：停移、强制 Idle，再恢复常规 AI 状态。
-    /// </summary>
     void ExitComboDash()
     {
         StopMoving();
@@ -763,10 +900,6 @@ public class AllyRobot : MonoBehaviour
         }
     }
 
-    // ──────────────────────────────────────────────
-    //  各状态 Update 逻辑
-    // ──────────────────────────────────────────────
-
     void UpdateSpawning()
     {
         if (anim == null)
@@ -784,7 +917,6 @@ public class AllyRobot : MonoBehaviour
         }
         else if (!dispatchAnimSeen)
         {
-            // 等待 Animator 进入 Dispatch 状态
             return;
         }
 
@@ -794,6 +926,9 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateIdle()
     {
+        if (isLanding)
+            return;
+
         if (pendingRetarget)
         {
             PerformRetarget();
@@ -801,11 +936,37 @@ public class AllyRobot : MonoBehaviour
         }
 
         if (TryAcquireTarget(out Transform target))
+        {
             BeginCombat(target);
+            return;
+        }
+
+        if (deployMode != RobotDeployMode.Follow)
+            return;
+
+        Vector3 home = HomeAnchor;
+        float distX = Mathf.Abs(transform.position.x - home.x);
+        if (distX > followArriveDistance)
+        {
+            FaceTarget(home);
+            idleFollowing = true;
+            idleFollowDir = Mathf.Sign(home.x - transform.position.x);
+            if (anim != null && airPhase == RobotAirPhase.Ground)
+                anim.SetBool(walkBoolName, true);
+        }
+        else if (anim != null && airPhase == RobotAirPhase.Ground)
+        {
+            anim.SetBool(walkBoolName, false);
+            if (owner != null)
+                FaceTarget(owner.position);
+        }
     }
 
     void UpdateChase()
     {
+        if (isLanding)
+            return;
+
         if (IsOutsideMaxChaseRange())
         {
             SwitchState(AllyState.Return);
@@ -821,7 +982,6 @@ public class AllyRobot : MonoBehaviour
             }
         }
 
-        // 进入攻击范围：立刻停下并切换攻击，不再继续靠近
         if (IsInAttackRange(currentTarget))
         {
             StopMoving();
@@ -834,6 +994,9 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateAttack()
     {
+        if (isLanding || IsAirborneBusy)
+            return;
+
         if (IsOutsideMaxChaseRange())
         {
             SwitchState(AllyState.Return);
@@ -849,7 +1012,6 @@ public class AllyRobot : MonoBehaviour
             }
         }
 
-        // 敌人离开攻击范围后才重新追击
         if (!IsInAttackRange(currentTarget))
         {
             SwitchState(AllyState.Chase);
@@ -868,18 +1030,22 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateReturn()
     {
+        if (isLanding)
+            return;
+
         if (TryAcquireTarget(out Transform target))
         {
             BeginCombat(target);
             return;
         }
 
-        FaceTarget(spawnPoint);
+        Vector3 home = HomeAnchor;
+        FaceTarget(home);
 
-        float distToSpawn = Mathf.Abs(transform.position.x - spawnPoint.x);
-        if (distToSpawn <= arriveThreshold)
+        float distToHome = Mathf.Abs(transform.position.x - home.x);
+        if (distToHome <= arriveThreshold)
         {
-            transform.position = new Vector3(spawnPoint.x, transform.position.y, transform.position.z);
+            transform.position = new Vector3(home.x, transform.position.y, transform.position.z);
             SwitchState(AllyState.Idle);
         }
     }
@@ -990,50 +1156,40 @@ public class AllyRobot : MonoBehaviour
 
     void ResumeStateAfterCombo() => ResumeStateAfterPull();
 
-    // ──────────────────────────────────────────────
-    //  移动
-    // ──────────────────────────────────────────────
-
-    void MoveTowardTarget()
+    bool TryGetChaseMoveDir(out float dir)
     {
-        if (!IsValidCombatTarget(currentTarget)) return;
-
-        // 已在攻击范围内则不移动
-        if (IsInAttackRange(currentTarget))
-        {
-            StopMoving();
-            return;
-        }
-
-        float dir = Mathf.Sign(currentTarget.position.x - transform.position.x);
-        rb.linearVelocity = new Vector2(moveSpeed * dir, rb.linearVelocity.y);
-    }
-
-    void MoveTowardTargetDash()
-    {
-        if (!IsValidCombatTarget(currentTarget)) return;
+        dir = 0f;
+        if (!IsValidCombatTarget(currentTarget))
+            return false;
 
         if (IsInAttackRange(currentTarget))
-        {
-            StopMoving();
-            return;
-        }
+            return false;
 
-        float dir = Mathf.Sign(currentTarget.position.x - transform.position.x);
-        rb.linearVelocity = new Vector2(dashSpeed * dir, rb.linearVelocity.y);
+        dir = Mathf.Sign(currentTarget.position.x - transform.position.x);
+        return !Mathf.Approximately(dir, 0f);
     }
 
-    void MoveTowardSpawn()
+    bool TryGetHomeMoveDir(float threshold, out float dir)
     {
-        float distX = Mathf.Abs(transform.position.x - spawnPoint.x);
-        if (distX <= arriveThreshold)
+        dir = 0f;
+        Vector3 home = HomeAnchor;
+        float distX = Mathf.Abs(transform.position.x - home.x);
+        if (distX <= threshold)
+            return false;
+
+        dir = Mathf.Sign(home.x - transform.position.x);
+        return !Mathf.Approximately(dir, 0f);
+    }
+
+    void ApplyHorizontalMove(float dir, float speed)
+    {
+        if (Mathf.Approximately(dir, 0f))
         {
             StopMoving();
             return;
         }
 
-        float dir = Mathf.Sign(spawnPoint.x - transform.position.x);
-        rb.linearVelocity = new Vector2(moveSpeed * dir, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(speed * dir, rb.linearVelocity.y);
     }
 
     void StopMoving()
@@ -1041,13 +1197,316 @@ public class AllyRobot : MonoBehaviour
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
-    // ──────────────────────────────────────────────
-    //  朝向
-    // ──────────────────────────────────────────────
+    bool IsGrounded()
+    {
+        return physicsCheck != null && physicsCheck.isGround;
+    }
 
-    /// <summary>
-    /// 与 PlayerMovement 一致：1 朝右，-1 朝左，通过 localScale.x 翻转。
-    /// </summary>
+    bool IsSolidGrounded()
+    {
+        return physicsCheck != null && physicsCheck.isSolidGround;
+    }
+
+    void UpdateAirAndLanding()
+    {
+        if (isLanding)
+        {
+            UpdateLanding();
+            return;
+        }
+
+        bool solidGrounded = IsSolidGrounded();
+        float velocityY = rb != null ? rb.linearVelocity.y : 0f;
+
+        if (!airStateInitialized)
+        {
+            wasSolidGrounded = solidGrounded;
+            airStateInitialized = true;
+            return;
+        }
+
+        switch (airPhase)
+        {
+            case RobotAirPhase.Ground:
+                // 与玩家一致：非主动起跳而离地 → Fall（走下平台等）
+                if (wasSolidGrounded && !solidGrounded
+                    && currentState != AllyState.Spawning
+                    && currentState != AllyState.Pulling)
+                {
+                    leftGround = true;
+                    airTimer = 0f;
+                    SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
+                }
+                break;
+
+            case RobotAirPhase.Jump:
+                airTimer += Time.deltaTime;
+                if (!solidGrounded)
+                    leftGround = true;
+
+                if (velocityY <= DescendVelocityThreshold)
+                    SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
+
+                if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
+                    BeginLanding();
+                break;
+
+            case RobotAirPhase.Fall:
+                airTimer += Time.deltaTime;
+                if (!solidGrounded)
+                    leftGround = true;
+
+                if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
+                    BeginLanding();
+                break;
+        }
+
+        wasSolidGrounded = solidGrounded;
+    }
+
+    void UpdateLanding()
+    {
+        StopMoving();
+        landTimer -= Time.deltaTime;
+
+        bool landAnimDone = true;
+        if (anim != null)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (info.IsName(landStateName))
+                landAnimDone = info.normalizedTime >= 1f;
+        }
+
+        if (landTimer > 0f || !landAnimDone)
+            return;
+
+        isLanding = false;
+        SetAirPhase(RobotAirPhase.Ground, forcePlay: false);
+        if (anim != null)
+        {
+            bool walking = currentState == AllyState.Chase
+                || currentState == AllyState.Return
+                || idleFollowing;
+            anim.SetBool(walkBoolName, walking);
+            if (!walking)
+                anim.Play("Idle", 0, 0f);
+            else
+                anim.Play("Walk", 0, 0f);
+        }
+
+        if (pendingRetarget)
+            PerformRetarget();
+    }
+
+    void BeginLanding()
+    {
+        isLanding = true;
+        landTimer = landDuration;
+        leftGround = false;
+        airTimer = 0f;
+        StopMoving();
+        SetAirPhase(RobotAirPhase.Ground, forcePlay: false);
+        if (anim != null)
+        {
+            anim.SetBool(walkBoolName, false);
+            anim.Play(landStateName, 0, 0f);
+            anim.Update(0f);
+        }
+    }
+
+    void SetAirPhase(RobotAirPhase phase, bool forcePlay)
+    {
+        airPhase = phase;
+        if (anim != null)
+            anim.SetInteger(airPhaseParamName, (int)phase);
+
+        if (!forcePlay || anim == null)
+            return;
+
+        string state = phase switch
+        {
+            RobotAirPhase.Jump => jumpStateName,
+            RobotAirPhase.Fall => fallStateName,
+            _ => null
+        };
+
+        if (!string.IsNullOrEmpty(state))
+        {
+            anim.SetBool(walkBoolName, false);
+            anim.Play(state, 0, 0f);
+            anim.Update(0f);
+        }
+    }
+
+    void TryAutoJump(float moveDir)
+    {
+        if (IsAirborneBusy || jumpCooldownTimer > 0f)
+            return;
+
+        if (currentState == AllyState.Spawning
+            || currentState == AllyState.Pulling
+            || currentState == AllyState.Attack
+            || (IsBusyWithCombo && currentState != AllyState.ComboDashing))
+            return;
+
+        // 自动跳只用真实接地，避免土狼跳窗口内贴墙连跳。
+        if (!IsSolidGrounded() || Mathf.Approximately(moveDir, 0f))
+            return;
+
+        bool obstacleAhead = CanJumpOverObstacle(moveDir);
+        if (suppressAutoJumpUntilObstacleClears)
+        {
+            if (obstacleAhead)
+                return;
+            suppressAutoJumpUntilObstacleClears = false;
+        }
+
+        if (!obstacleAhead)
+            return;
+
+        PerformJump(moveDir);
+    }
+
+    void CancelVelocityIntoWall(float moveDir)
+    {
+        if (physicsCheck == null || Mathf.Approximately(moveDir, 0f))
+            return;
+
+        if (!physicsCheck.IsBlockedHorizontally(moveDir))
+            return;
+
+        Vector2 vel = rb.linearVelocity;
+        if (moveDir > 0f && vel.x > 0f)
+            vel.x = 0f;
+        else if (moveDir < 0f && vel.x < 0f)
+            vel.x = 0f;
+        rb.linearVelocity = vel;
+    }
+
+    bool CanJumpOverObstacle(float moveDir)
+    {
+        LayerMask mask = jumpObstacleMask.value != 0
+            ? jumpObstacleMask
+            : (physicsCheck != null ? physicsCheck.groundLayer : (LayerMask)0);
+        if (mask.value == 0)
+            return false;
+
+        float face = Mathf.Sign(moveDir);
+        if (Mathf.Approximately(face, 0f))
+            return false;
+
+        float footY = GetFootY();
+        // 探测高度必须高于脚底，否则水平射线会打进地面而不是墙面。
+        float probeHeight = Mathf.Max(0.15f, jumpProbeHeight);
+        float bodyFrontX = bodyCollider != null
+            ? (face > 0f ? bodyCollider.bounds.max.x : bodyCollider.bounds.min.x)
+            : transform.position.x;
+        Vector2 probeOrigin = new Vector2(
+            bodyFrontX + face * jumpProbeForwardPadding,
+            footY + probeHeight);
+
+        if (!TryFindWallHit(probeOrigin, face, jumpProbeDistance, mask, out RaycastHit2D wallHit))
+            return false;
+
+        float topProbeX = wallHit.point.x + face * 0.08f;
+        float topStartY = footY + Mathf.Max(maxAutoJumpHeight, probeHeight) + 0.5f;
+        float castDist = topStartY - footY + 0.2f;
+
+        RaycastHit2D[] topHits = Physics2D.RaycastAll(
+            new Vector2(topProbeX, topStartY),
+            Vector2.down,
+            castDist,
+            mask);
+
+        float clearHeight = -1f;
+        for (int i = 0; i < topHits.Length; i++)
+        {
+            RaycastHit2D topHit = topHits[i];
+            if (!IsExternalObstacle(topHit.collider))
+                continue;
+
+            clearHeight = topHit.point.y - footY;
+            break;
+        }
+
+        if (clearHeight < minObstacleHeight || clearHeight > maxAutoJumpHeight)
+            return false;
+
+        float headY = bodyCollider != null
+            ? bodyCollider.bounds.max.y
+            : transform.position.y + 1f;
+        float ceilingCheckDist = Mathf.Max(0.1f, jumpCeilingClearance);
+        RaycastHit2D ceilingHit = Physics2D.Raycast(
+            new Vector2(transform.position.x, headY),
+            Vector2.up,
+            ceilingCheckDist,
+            mask);
+        if (ceilingHit.collider != null && IsExternalObstacle(ceilingHit.collider))
+            return false;
+
+        return true;
+    }
+
+    bool TryFindWallHit(
+        Vector2 origin,
+        float face,
+        float distance,
+        LayerMask mask,
+        out RaycastHit2D wallHit)
+    {
+        wallHit = default;
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.right * face, distance, mask);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit2D hit = hits[i];
+            if (!IsExternalObstacle(hit.collider))
+                continue;
+
+            // 地面/斜坡法线偏上，不应当作需要跳过的墙。
+            if (hit.normal.y > 0.55f)
+                continue;
+
+            wallHit = hit;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool IsExternalObstacle(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        Transform hitTf = col.transform;
+        return hitTf != transform && !hitTf.IsChildOf(transform);
+    }
+
+    float GetFootY()
+    {
+        if (bodyCollider != null)
+            return bodyCollider.bounds.min.y;
+        return transform.position.y;
+    }
+
+    void PerformJump(float moveDir)
+    {
+        float gravity = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
+        if (gravity < 0.01f)
+            gravity = Mathf.Abs(Physics2D.gravity.y);
+
+        float jumpVelocity = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, jumpHeight));
+        float speed = currentState == AllyState.ComboDashing ? dashSpeed : moveSpeed;
+        rb.linearVelocity = new Vector2(speed * Mathf.Sign(moveDir), jumpVelocity);
+
+        jumpCooldownTimer = jumpCooldown;
+        leftGround = false;
+        airTimer = 0f;
+        isLanding = false;
+        // 跳完后只要前方仍有同一障碍，就不再自动跳，防止贴墙连跳。
+        suppressAutoJumpUntilObstacleClears = true;
+        SetAirPhase(RobotAirPhase.Jump, forcePlay: true);
+    }
+
     void FaceTarget(Vector3 targetPos)
     {
         float dx = targetPos.x - transform.position.x;
@@ -1066,14 +1525,6 @@ public class AllyRobot : MonoBehaviour
         transform.localScale = scale;
     }
 
-    // ──────────────────────────────────────────────
-    //  索敌
-    // ──────────────────────────────────────────────
-
-    /// <summary>
-    /// 用 Tag "Enemy" 直接搜索，不依赖 Physics2D 仿真状态（兼容 simulated=false 的敌人）。
-    /// 标记敌人优先；同优先级内取 X 轴距离最近且在 detectRangeX 范围内的目标。
-    /// </summary>
     Transform FindClosestEnemy()
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -1113,22 +1564,14 @@ public class AllyRobot : MonoBehaviour
         return closestMarked != null ? closestMarked : closestUnmarked;
     }
 
-    // ──────────────────────────────────────────────
-    //  范围检测
-    // ──────────────────────────────────────────────
-
     bool IsOutsideMaxChaseRange()
     {
-        return Vector2.Distance(transform.position, spawnPoint) > maxChaseRange;
+        return Vector2.Distance(transform.position, HomeAnchor) > maxChaseRange;
     }
-
-    // ──────────────────────────────────────────────
-    //  Gizmos 可视化
-    // ──────────────────────────────────────────────
 
     void OnDrawGizmosSelected()
     {
-        Vector3 origin = Application.isPlaying ? spawnPoint : transform.position;
+        Vector3 origin = Application.isPlaying ? HomeAnchor : transform.position;
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectRangeX);
@@ -1145,5 +1588,19 @@ public class AllyRobot : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawLine(origin + Vector3.left * 0.3f, origin + Vector3.right * 0.3f);
         Gizmos.DrawLine(origin + Vector3.up * 0.3f, origin + Vector3.down * 0.3f);
+
+        Gizmos.color = Color.magenta;
+        float footY = Application.isPlaying ? GetFootY() : transform.position.y;
+        float probeHeight = Mathf.Max(0.15f, jumpProbeHeight);
+        float face = Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(face, 0f)) face = 1f;
+        float bodyFrontX = bodyCollider != null
+            ? (face > 0f ? bodyCollider.bounds.max.x : bodyCollider.bounds.min.x)
+            : transform.position.x;
+        Vector3 probe = new Vector3(
+            bodyFrontX + face * jumpProbeForwardPadding,
+            footY + probeHeight,
+            0f);
+        Gizmos.DrawLine(probe, probe + Vector3.right * face * jumpProbeDistance);
     }
 }

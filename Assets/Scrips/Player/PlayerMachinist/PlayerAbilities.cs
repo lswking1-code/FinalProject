@@ -12,6 +12,8 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
     [Header("Robot 生成")]
     [SerializeField] Transform robotGeneratePoint;
+    [Tooltip("短按跟随模式的回归锚点；留空则由机器人按玩家面向后方偏移计算")]
+    [SerializeField] Transform robotFollowPoint;
     [SerializeField] GameObject robotPrefab;
     [SerializeField] GameObject positionPreview;
 
@@ -146,7 +148,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
                     {
                         if (!HasActiveRobot() && CanSpawnRobot())
                         {
-                            SpawnRobot(robotGeneratePoint.position);
+                            SpawnRobot(robotGeneratePoint.position, RobotDeployMode.Follow);
                             // 短按：intro 播完（或已定格）后结束召唤动画
                             if (dispatchStartedThisPress)
                                 playerAnim.SetDispatchAutoEnd(true);
@@ -177,7 +179,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
                 if (actions.Player.Ability2.WasReleasedThisFrame())
                 {
                     if (CanSpawnRobot())
-                        SpawnRobot(robotGeneratePoint.position);
+                        SpawnRobot(robotGeneratePoint.position, RobotDeployMode.Stationed);
 
                     ExitAimingMode();
                 }
@@ -323,7 +325,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         dispatchStartedThisPress = false;
     }
 
-    void SpawnRobot(Vector3 worldPos)
+    void SpawnRobot(Vector3 worldPos, RobotDeployMode mode)
     {
         if (robotPrefab == null)
         {
@@ -335,7 +337,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             return;
 
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
-        robot.GetComponent<AllyRobot>()?.Initialize(transform);
+        robot.GetComponent<AllyRobot>()?.Initialize(transform, mode, robotFollowPoint);
         OnRobotSpawned(robot);
     }
 

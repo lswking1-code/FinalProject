@@ -23,6 +23,8 @@ public class PhysicsCheck : MonoBehaviour
 
     [Header("状态")]
     public bool isGround;
+    [Tooltip("当前帧脚下真实接触地面（不含土狼跳缓冲）")]
+    public bool isSolidGround;
     public bool touchLeftWall;
     public bool touchRightWall;
     public bool onWall;
@@ -236,6 +238,7 @@ public class PhysicsCheck : MonoBehaviour
             lastGroundFrame = Time.frameCount;
         }
 
+        isSolidGround = rawGround;
         isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
         if (isGround && !rawGround)
             groundNormal = lastGroundNormal;

@@ -8,7 +8,6 @@ using UnityEngine.InputSystem;
 public class MachinistShooting : MonoBehaviour
 {
     enum ShootPhase { Idle, Pressing, Charging }
-    enum ComboStance { Ground, Air, Crouch }
 
     [Header("子弹")]
     [SerializeField] PlayerMNormalBullet normalProjectilePrefab;
@@ -61,9 +60,6 @@ public class MachinistShooting : MonoBehaviour
     FireDir pendingFireDir;
     PlayerMNormalBullet pendingPrefab;
 
-    bool hasTrackedComboStance;
-    ComboStance lastComboStance;
-
     void Awake()
     {
         actions = new InputSystem_Actions();
@@ -83,7 +79,6 @@ public class MachinistShooting : MonoBehaviour
     void Update()
     {
         TrySpawnPendingProjectile();
-        TryResetComboOnStanceChange();
 
         if (playerMovement.IsActionLocked || playerAnim.IsDispatching || playerAnim.IsPlayingLoadBullet)
             return;
@@ -130,32 +125,6 @@ public class MachinistShooting : MonoBehaviour
     {
         if (comboCount > 0 && Time.time - lastShotTime > comboResetWindow)
             comboCount = 0;
-    }
-
-    void TryResetComboOnStanceChange()
-    {
-        var stance = ResolveComboStance();
-        if (!hasTrackedComboStance)
-        {
-            hasTrackedComboStance = true;
-            lastComboStance = stance;
-            return;
-        }
-
-        if (stance == lastComboStance)
-            return;
-
-        comboCount = 0;
-        lastComboStance = stance;
-    }
-
-    ComboStance ResolveComboStance()
-    {
-        if (playerAnim.IsCrouching)
-            return ComboStance.Crouch;
-        if (playerAnim.CurrentAirPhase != PlayerAnimBase.AirPhaseType.Ground)
-            return ComboStance.Air;
-        return ComboStance.Ground;
     }
 
     void TrySpawnPendingProjectile()

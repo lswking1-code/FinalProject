@@ -1,0 +1,455 @@
+fileFormatVersion: 2
+guid: d863299ebd0e9c54590c9f445321c019
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8860614994397618295
+    second: RobotNeo2_Jump_0
+  - first:
+      213: 295078652650015898
+    second: RobotNeo2_Jump_1
+  - first:
+      213: 1594129180093730134
+    second: RobotNeo2_Jump_2
+  - first:
+      213: 780073812122325526
+    second: RobotNeo2_Jump_3
+  - first:
+      213: 7432124418633878309
+    second: RobotNeo2_Jump_4
+  - first:
+      213: -1753090313196058063
+    second: RobotNeo2_Jump_5
+  - first:
+      213: -2039408314166609619
+    second: RobotNeo2_Jump_6
+  - first:
+      213: 7131954880638487063
+    second: RobotNeo2_Jump_7
+  - first:
+      213: 923545799868029734
+    second: RobotNeo2_Jump_8
+  - first:
+      213: 5005595923276761586
+    second: RobotNeo2_Jump_9
+  - first:
+      213: 2553395165302816513
+    second: RobotNeo2_Jump_10
+  - first:
+      213: -7122604183328333812
+    second: RobotNeo2_Jump_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_0
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 137
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98f1e6fab95c80580800000000000000
+      internalID: -8860614994397618295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_1
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 137
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9c4100a874581400800000000000000
+      internalID: 295078652650015898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_2
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 138
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65d42911b0c7f1610800000000000000
+      internalID: 1594129180093730134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_3
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 140
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 612d226cff063da00800000000000000
+      internalID: 780073812122325526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_4
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 77
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 52bcd2b18c5342760800000000000000
+      internalID: 7432124418633878309
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_5
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 77
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13a45cef5a5cba7e0800000000000000
+      internalID: -1753090313196058063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_6
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 75
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d29fe1a81f092b3e0800000000000000
+      internalID: -2039408314166609619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_7
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 73
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71a029e5d2bc9f260800000000000000
+      internalID: 7131954880638487063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_8
+      rect:
+        serializedVersion: 2
+        x: 4
+        y: 9
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5102041, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62b10f6030811dc00800000000000000
+      internalID: 923545799868029734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_9
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 9
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f90e00b8f2777540800000000000000
+      internalID: 5005595923276761586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_10
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 9
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: -0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10ff217df5b7f6320800000000000000
+      internalID: 2553395165302816513
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: RobotNeo2_Jump_11
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 9
+        width: 55
+        height: 50
+      alignment: 9
+      pivot: {x: 0.5090909, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c00e0018b3d672d90800000000000000
+      internalID: -7122604183328333812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 7e9bea2a5f3d4464b9bc14f886eb0f61
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      RobotNeo2_Jump_0: -8860614994397618295
+      RobotNeo2_Jump_1: 295078652650015898
+      RobotNeo2_Jump_10: 2553395165302816513
+      RobotNeo2_Jump_11: -7122604183328333812
+      RobotNeo2_Jump_2: 1594129180093730134
+      RobotNeo2_Jump_3: 780073812122325526
+      RobotNeo2_Jump_4: 7432124418633878309
+      RobotNeo2_Jump_5: -1753090313196058063
+      RobotNeo2_Jump_6: -2039408314166609619
+      RobotNeo2_Jump_7: 7131954880638487063
+      RobotNeo2_Jump_8: 923545799868029734
+      RobotNeo2_Jump_9: 5005595923276761586
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

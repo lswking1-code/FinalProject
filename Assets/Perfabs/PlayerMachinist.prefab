@@ -484,6 +484,7 @@ Transform:
   - {fileID: 8591273858336282524}
   - {fileID: 1124422903828144628}
   - {fileID: 4683972848920230760}
+  - {fileID: 9103856712345678902}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2349208277476313027
@@ -635,6 +636,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4160
   isGround: 0
+  isSolidGround: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
@@ -753,6 +755,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   robotGeneratePoint: {fileID: 4683972848920230760}
+  robotFollowPoint: {fileID: 9103856712345678902}
   robotPrefab: {fileID: 5818673389914477433, guid: fd85b8cfeb5b34342ba7993ef17a33ca, type: 3}
   positionPreview: {fileID: 4602526496284074832}
   longPressThreshold: 0.5
@@ -1106,6 +1109,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.43, y: -0.466, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3566494782694489320}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9103856712345678901
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9103856712345678902}
+  m_Layer: 9
+  m_Name: RobotFollowPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9103856712345678902
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9103856712345678901}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
