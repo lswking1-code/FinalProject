@@ -118,6 +118,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
         UpdateRobotDrain();
         UpdateAbility1();
+        UpdateRobotManualMove();
 
         switch (phase)
         {
@@ -205,6 +206,14 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             return;
 
         playerAnim.TryPlayLoadBulletAnim();
+    }
+
+    void UpdateRobotManualMove()
+    {
+        if (!HasActiveRobot() || activeRobotController == null)
+            return;
+
+        activeRobotController.SetManualMoveInput(actions.Player.RobotMove.ReadValue<Vector2>());
     }
 
     bool HasActiveRobot() => activeRobot != null;

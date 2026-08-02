@@ -32,7 +32,8 @@ public class AllyRobot : MonoBehaviour
         Pulling,
         ComboAttacking,
         ComboDashWindup,
-        ComboDashing
+        ComboDashing,
+        ManualMove
     }
 
     enum RobotAirPhase
@@ -158,6 +159,8 @@ public class AllyRobot : MonoBehaviour
     public float pullInvulnerableLinger = 0.5f;
 
     public bool IsPulling => currentState == AllyState.Pulling;
+    public bool IsManualMoving =>
+        currentState == AllyState.ManualMove || pendingStationOnLand;
     public float PullCooldown => Mathf.Max(0f, pullCooldown);
     public float PullCooldownRemaining => Mathf.Max(0f, pullCooldownTimer);
     public float PullCooldownNormalized =>
@@ -172,6 +175,16 @@ public class AllyRobot : MonoBehaviour
 
     bool IsAirborneBusy =>
         airPhase != RobotAirPhase.Ground || isLanding;
+
+    /// <summary>
+    /// 这些状态下不播 Jump/Fall/Land，避免打断专用动画（冲刺、牵引、生成）。
+    /// </summary>
+    bool SuppressAirAnim =>
+        currentState == AllyState.Spawning
+        || currentState == AllyState.Pulling
+        || IsBusyWithCombo;
+
+    const float ManualMoveInputThreshold = 0.5f;
 
     Vector3 HomeAnchor
     {
@@ -209,6 +222,10 @@ public class AllyRobot : MonoBehaviour
     Transform followPoint;
     bool idleFollowing;
     float idleFollowDir;
+
+    Vector2 manualMoveInput;
+    bool manualJumpHeldPrev;
+    bool pendingStationOnLand;
 
     RobotAirPhase airPhase = RobotAirPhase.Ground;
     bool leftGround;
@@ -294,6 +311,7 @@ public class AllyRobot : MonoBehaviour
             case AllyState.ComboAttacking:   UpdateComboAttacking();   break;
             case AllyState.ComboDashWindup:  UpdateComboDashWindup();  break;
             case AllyState.ComboDashing:     UpdateComboDashing();     break;
+            case AllyState.ManualMove:       UpdateManualMove();       break;
         }
     }
 
@@ -347,6 +365,18 @@ public class AllyRobot : MonoBehaviour
                     StopMoving();
                 }
                 break;
+            case AllyState.ManualMove:
+                if (!pendingStationOnLand
+                    && TryGetManualMoveDir(out moveDir))
+                {
+                    movingHorizontally = true;
+                    ApplyHorizontalMove(moveDir, moveSpeed);
+                }
+                else if (airPhase == RobotAirPhase.Ground)
+                {
+                    StopMoving();
+                }
+                break;
             case AllyState.Spawning:
             case AllyState.Pulling:
             case AllyState.ComboAttacking:
@@ -360,7 +390,9 @@ public class AllyRobot : MonoBehaviour
         if (movingHorizontally)
         {
             CancelVelocityIntoWall(moveDir);
-            TryAutoJump(moveDir);
+            // 手动遥控只用↑跳跃，关闭障碍自动跳
+            if (currentState != AllyState.ManualMove)
+                TryAutoJump(moveDir);
         }
         else if (airPhase != RobotAirPhase.Ground)
         {
@@ -383,6 +415,138 @@ public class AllyRobot : MonoBehaviour
         followPoint = follow;
     }
 
+    /// <summary>
+    /// 由玩家每帧下发 RobotMove。牵引 / 生成中输入无效。
+    /// </summary>
+    public void SetManualMoveInput(Vector2 input)
+    {
+        if (currentState == AllyState.Spawning || IsPulling)
+            return;
+
+        bool hasInput = Mathf.Abs(input.x) > ManualMoveInputThreshold
+            || Mathf.Abs(input.y) > ManualMoveInputThreshold;
+
+        if (hasInput)
+        {
+            manualMoveInput = input;
+            if (pendingStationOnLand)
+                pendingStationOnLand = false;
+
+            if (currentState != AllyState.ManualMove)
+                BeginManualMove();
+        }
+        else
+        {
+            manualMoveInput = Vector2.zero;
+            manualJumpHeldPrev = false;
+
+            if (currentState == AllyState.ManualMove && !pendingStationOnLand)
+                EndManualMove();
+        }
+    }
+
+    void BeginManualMove()
+    {
+        SetDashActive(false);
+        if (anim != null)
+        {
+            anim.ResetTrigger(attackTriggerName);
+            anim.ResetTrigger(comboAttackTriggerName);
+            anim.ResetTrigger(dashAttackTriggerName);
+            anim.ResetTrigger(dashStartTriggerName);
+            anim.ResetTrigger(pullTriggerName);
+        }
+
+        currentTarget = null;
+        pendingRetarget = false;
+        pendingStationOnLand = false;
+        SwitchState(AllyState.ManualMove);
+    }
+
+    void EndManualMove()
+    {
+        deployMode = RobotDeployMode.Stationed;
+        StopMoving();
+        if (anim != null)
+            anim.SetBool(walkBoolName, false);
+
+        if (IsAirborneBusy || !IsSolidGrounded())
+        {
+            pendingStationOnLand = true;
+            return;
+        }
+
+        CommitStationedAtCurrentPosition();
+    }
+
+    void CommitStationedAtCurrentPosition()
+    {
+        pendingStationOnLand = false;
+        spawnPoint = transform.position;
+        deployMode = RobotDeployMode.Stationed;
+        manualMoveInput = Vector2.zero;
+        manualJumpHeldPrev = false;
+        SwitchState(AllyState.Idle);
+    }
+
+    bool TryGetManualMoveDir(out float moveDir)
+    {
+        if (Mathf.Abs(manualMoveInput.x) > ManualMoveInputThreshold)
+        {
+            moveDir = Mathf.Sign(manualMoveInput.x);
+            return true;
+        }
+
+        moveDir = 0f;
+        return false;
+    }
+
+    void UpdateManualMove()
+    {
+        if (pendingStationOnLand)
+        {
+            if (!IsAirborneBusy && IsSolidGrounded())
+            {
+                CommitStationedAtCurrentPosition();
+                return;
+            }
+
+            if (anim != null && !IsAirborneBusy)
+                anim.SetBool(walkBoolName, false);
+            return;
+        }
+
+        if (isLanding)
+            return;
+
+        float moveX = 0f;
+        if (TryGetManualMoveDir(out moveX))
+        {
+            SetFacing(moveX);
+            if (!IsAirborneBusy && anim != null)
+                anim.SetBool(walkBoolName, true);
+        }
+        else if (!IsAirborneBusy && anim != null)
+        {
+            anim.SetBool(walkBoolName, false);
+        }
+
+        bool jumpHeld = manualMoveInput.y > ManualMoveInputThreshold;
+        if (jumpHeld && !manualJumpHeldPrev
+            && !IsAirborneBusy
+            && jumpCooldownTimer <= 0f)
+        {
+            float jumpDir = !Mathf.Approximately(moveX, 0f)
+                ? moveX
+                : Mathf.Sign(transform.localScale.x);
+            if (Mathf.Approximately(jumpDir, 0f))
+                jumpDir = 1f;
+            PerformJump(jumpDir);
+        }
+
+        manualJumpHeldPrev = jumpHeld;
+    }
+
     Vector3 ResolveFollowAnchor()
     {
         if (followPoint != null)
@@ -400,7 +564,8 @@ public class AllyRobot : MonoBehaviour
 
     public void RequestRetarget()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || isLanding)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || isLanding
+            || currentState == AllyState.ManualMove || pendingStationOnLand)
         {
             pendingRetarget = true;
             return;
@@ -437,6 +602,9 @@ public class AllyRobot : MonoBehaviour
         if (IsBusyWithCombo)
             return false;
 
+        if (currentState == AllyState.ManualMove || pendingStationOnLand)
+            return false;
+
         if (owner == null || ownerMovement == null || ownerRb == null)
             return false;
 
@@ -466,7 +634,8 @@ public class AllyRobot : MonoBehaviour
 
     public void ComboAttack()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || IsAirborneBusy)
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || IsAirborneBusy
+            || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
         if (!TryAcquireTarget(out Transform target))
@@ -485,7 +654,8 @@ public class AllyRobot : MonoBehaviour
 
     public bool TryFirePierceLaser()
     {
-        if (currentState == AllyState.Spawning || IsPulling)
+        if (currentState == AllyState.Spawning || IsPulling
+            || currentState == AllyState.ManualMove || pendingStationOnLand)
             return false;
 
         Transform aimTarget = null;
@@ -768,10 +938,19 @@ public class AllyRobot : MonoBehaviour
 
     void SwitchState(AllyState next)
     {
-        OnExitState(currentState);
+        AllyState prev = currentState;
+        OnExitState(prev);
         currentState = next;
         OnEnterState(currentState);
+
+        if (IsComboState(prev) && !IsComboState(next))
+            SyncAirVisualAfterBusy();
     }
+
+    static bool IsComboState(AllyState state) =>
+        state == AllyState.ComboAttacking
+        || state == AllyState.ComboDashWindup
+        || state == AllyState.ComboDashing;
 
     void OnEnterState(AllyState state)
     {
@@ -834,6 +1013,12 @@ public class AllyRobot : MonoBehaviour
                 if (anim != null)
                     anim.SetBool(walkBoolName, false);
                 dashTimer = dashTimeout;
+                break;
+            case AllyState.ManualMove:
+                SetDashActive(false);
+                StopMoving();
+                if (anim != null)
+                    anim.SetBool(walkBoolName, false);
                 break;
         }
     }
@@ -1229,13 +1414,14 @@ public class AllyRobot : MonoBehaviour
         {
             case RobotAirPhase.Ground:
                 // 与玩家一致：非主动起跳而离地 → Fall（走下平台等）
-                if (wasSolidGrounded && !solidGrounded
-                    && currentState != AllyState.Spawning
-                    && currentState != AllyState.Pulling)
+                if (wasSolidGrounded && !solidGrounded)
                 {
                     leftGround = true;
                     airTimer = 0f;
-                    SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
+                    if (SuppressAirAnim)
+                        airPhase = RobotAirPhase.Fall;
+                    else
+                        SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
                 }
                 break;
 
@@ -1245,10 +1431,20 @@ public class AllyRobot : MonoBehaviour
                     leftGround = true;
 
                 if (velocityY <= DescendVelocityThreshold)
-                    SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
+                {
+                    if (SuppressAirAnim)
+                        airPhase = RobotAirPhase.Fall;
+                    else
+                        SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
+                }
 
                 if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
-                    BeginLanding();
+                {
+                    if (SuppressAirAnim)
+                        RecoverGroundWithoutLandAnim();
+                    else
+                        BeginLanding();
+                }
                 break;
 
             case RobotAirPhase.Fall:
@@ -1257,11 +1453,48 @@ public class AllyRobot : MonoBehaviour
                     leftGround = true;
 
                 if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
-                    BeginLanding();
+                {
+                    if (SuppressAirAnim)
+                        RecoverGroundWithoutLandAnim();
+                    else
+                        BeginLanding();
+                }
                 break;
         }
 
         wasSolidGrounded = solidGrounded;
+    }
+
+    /// <summary>
+    /// 冲刺/牵引等忙碌态落地：只恢复逻辑接地，不播 Land、不加 isLanding 锁停。
+    /// </summary>
+    void RecoverGroundWithoutLandAnim()
+    {
+        leftGround = false;
+        airTimer = 0f;
+        isLanding = false;
+        airPhase = RobotAirPhase.Ground;
+    }
+
+    /// <summary>
+    /// Combo 结束后若仍在空中，补播 Fall；已落地则静默回到 Ground。
+    /// </summary>
+    void SyncAirVisualAfterBusy()
+    {
+        if (IsSolidGrounded())
+        {
+            leftGround = false;
+            airTimer = 0f;
+            isLanding = false;
+            airPhase = RobotAirPhase.Ground;
+            if (anim != null)
+                anim.SetInteger(airPhaseParamName, (int)RobotAirPhase.Ground);
+            return;
+        }
+
+        leftGround = true;
+        airTimer = 0f;
+        SetAirPhase(RobotAirPhase.Fall, forcePlay: true);
     }
 
     void UpdateLanding()
@@ -1286,12 +1519,21 @@ public class AllyRobot : MonoBehaviour
         {
             bool walking = currentState == AllyState.Chase
                 || currentState == AllyState.Return
-                || idleFollowing;
+                || idleFollowing
+                || (currentState == AllyState.ManualMove
+                    && !pendingStationOnLand
+                    && Mathf.Abs(manualMoveInput.x) > ManualMoveInputThreshold);
             anim.SetBool(walkBoolName, walking);
             if (!walking)
                 anim.Play("Idle", 0, 0f);
             else
                 anim.Play("Walk", 0, 0f);
+        }
+
+        if (pendingStationOnLand)
+        {
+            CommitStationedAtCurrentPosition();
+            return;
         }
 
         if (pendingRetarget)
@@ -1346,6 +1588,7 @@ public class AllyRobot : MonoBehaviour
         if (currentState == AllyState.Spawning
             || currentState == AllyState.Pulling
             || currentState == AllyState.Attack
+            || currentState == AllyState.ManualMove
             || (IsBusyWithCombo && currentState != AllyState.ComboDashing))
             return;
 
@@ -1504,7 +1747,10 @@ public class AllyRobot : MonoBehaviour
         isLanding = false;
         // 跳完后只要前方仍有同一障碍，就不再自动跳，防止贴墙连跳。
         suppressAutoJumpUntilObstacleClears = true;
-        SetAirPhase(RobotAirPhase.Jump, forcePlay: true);
+        if (SuppressAirAnim)
+            airPhase = RobotAirPhase.Jump;
+        else
+            SetAirPhase(RobotAirPhase.Jump, forcePlay: true);
     }
 
     void FaceTarget(Vector3 targetPos)
