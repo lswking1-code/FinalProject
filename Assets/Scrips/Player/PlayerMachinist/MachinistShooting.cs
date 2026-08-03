@@ -305,6 +305,8 @@ public class MachinistShooting : MonoBehaviour
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
         IPlayerAmmo ammo = projectile;
         ammo.Init(dir, faceY, character);
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
     }
 
     FireDir ResolveChargeFireDir() => playerAnim.ActiveChargeAim switch
@@ -356,6 +358,8 @@ public class MachinistShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
     }
 
     GameObject ResolveSpecialPrefab(SpecialAmmoType type) => type switch

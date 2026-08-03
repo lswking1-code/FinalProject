@@ -524,6 +524,9 @@ MonoBehaviour:
   inputThreshold: 0.5
   jumpBufferTime: 0.2
   crouchColliderSize: {x: 1.08, y: 1.2}
+  airHangDuration: 0.15
+  airHangGravityScale: 0.25
+  airHangVelocityY: 0
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   afterSceneLoadedEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
   dbgKPressedThisUpdate: 0

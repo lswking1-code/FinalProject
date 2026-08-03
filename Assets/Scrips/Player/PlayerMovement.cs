@@ -18,6 +18,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     [Header("蹲伏碰撞")]
     [SerializeField] Vector2 crouchColliderSize = new Vector2(1.08f, 1.2f);
 
+    [Header("空中下射滞空")]
+    [Tooltip("每次向下射击刷新的滞空时长（秒）")]
+    [SerializeField] float airHangDuration = 0.12f;
+    [Tooltip("滞空期间的重力倍率（相对 Prefab 正常 gravityScale）")]
+    [SerializeField] float airHangGravityScale = 0.25f;
+    [Tooltip("触发/维持时竖直速度下限；过快下落会被抬到此值")]
+    [SerializeField] float airHangVelocityY = 0f;
+
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
     PlatformDropThrough platformDropThrough;
@@ -33,9 +41,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float normalGravityScale;
     /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
     float slopeDetachTimer;
+    float airHangTimer;
 
     public bool IsActionLocked { get; private set; }
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
+    public bool IsAirHanging => airHangTimer > 0f;
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -147,6 +157,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         physicsCheck.Check();
         UpdateSlopeGravity();
+        UpdateAirHang();
 
         if (playerAnim.IsRolling)
         {
@@ -170,6 +181,73 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ApplyRobotTopPlatformCarry(applyVertical: true);
         CancelVelocityIntoObstacle();
         CancelVelocityIntoSlope();
+    }
+
+    /// <summary>
+    /// 空中向下射击成功出弹时调用：刷新短暂低重力滞空。
+    /// </summary>
+    public void NotifyAirHangFromDownShot()
+    {
+        if (IsActionLocked || physicsCheck.isGround)
+            return;
+
+        if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
+            return;
+
+        airHangTimer = airHangDuration;
+        ApplyAirHangPhysics();
+    }
+
+    void UpdateAirHang()
+    {
+        if (airHangTimer <= 0f)
+            return;
+
+        if (physicsCheck.isGround
+            || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
+        {
+            ClearAirHang(restoreGravity: true);
+            return;
+        }
+
+        airHangTimer -= Time.fixedDeltaTime;
+        if (airHangTimer > 0f)
+        {
+            ApplyAirHangPhysics();
+            return;
+        }
+
+        airHangTimer = 0f;
+        RestoreGravityAfterAirHang();
+    }
+
+    void ApplyAirHangPhysics()
+    {
+        rb.gravityScale = normalGravityScale * airHangGravityScale;
+        if (rb.linearVelocity.y < airHangVelocityY)
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, airHangVelocityY);
+    }
+
+    void ClearAirHang(bool restoreGravity)
+    {
+        airHangTimer = 0f;
+        if (restoreGravity)
+            RestoreGravityAfterAirHang();
+    }
+
+    void RestoreGravityAfterAirHang()
+    {
+        if (IsActionLocked)
+            return;
+
+        // 斜坡贴合时由 UpdateSlopeGravity / MaintainSlopeContact 管重力
+        if (!IsSlopeDetached
+            && physicsCheck.isGround
+            && physicsCheck.isOnSlope
+            && (platformDropThrough == null || !platformDropThrough.IsDroppingThrough))
+            return;
+
+        rb.gravityScale = normalGravityScale;
     }
 
     void OnCollisionStay2D(Collision2D collision)
@@ -402,6 +480,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             && platformDropThrough != null
             && platformDropThrough.TryBeginDropThrough(moveInput, inputThreshold))
         {
+            ClearAirHang(restoreGravity: false);
             BeginSlopeDetach(0.35f);
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, -2f));
             jumpBufferCounter = 0f;
@@ -616,6 +695,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void UpdateSlopeGravity()
     {
+        // 滞空期间由 UpdateAirHang 管重力，避免斜坡逻辑覆写
+        if (IsAirHanging)
+            return;
+
         if (IsSlopeDetached || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
         {
             rb.gravityScale = normalGravityScale;
@@ -716,6 +799,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         jumpBufferCounter = 0f;
         lastKPressFrame = -1;
         slopeDetachTimer = 0f;
+        airHangTimer = 0f;
 
         rb.linearVelocity = Vector2.zero;
         rb.position = transform.position;
@@ -737,7 +821,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             return;
 
-        savedGravityScale = rb.gravityScale;
+        ClearAirHang(restoreGravity: false);
+        savedGravityScale = normalGravityScale;
         savedColliderEnabled = capsuleCollider != null && capsuleCollider.enabled;
 
         rb.gravityScale = 0f;

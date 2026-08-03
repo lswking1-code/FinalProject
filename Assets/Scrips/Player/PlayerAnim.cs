@@ -838,6 +838,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         || stateName == LookDownComboShootStateName
         || stateName == CrouchComboShootStateName;
 
+    static bool IsMachinistChargeShootState(string stateName) =>
+        stateName == ChargeShootStateName
+        || stateName == LookUpChargeShootStateName
+        || stateName == LookDownChargeShootStateName;
+
     static bool IsLookMachinistComboShootState(string stateName) =>
         stateName == LookUpComboShootStateName
         || stateName == LookDownComboShootStateName;
@@ -1931,8 +1936,18 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (forcedCrouchComboActive && IsPlayingMachinistComboShoot)
             return;
 
-        // 空中最终连击未播完就落地：直接结束，避免回到 Split 后被 pin 逻辑在地面重播
-        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
+        // 连击终结 / 蓄力中 / 蓄力射击：落地不打断，只同步空中相位，避免 Land 切全身层取消状态
+        if (IsPlayingMachinistComboShoot
+            || isCharging
+            || (isShooting && IsMachinistChargeShootState(activeShootStateName)))
+        {
+            airPhase = AirPhaseType.Ground;
+            airTrack = AirTrack.None;
+            return;
+        }
+
+        // 空中装弹未播完就落地：直接结束，避免回到 Split 后被 pin 逻辑在地面重播
+        if (IsPlayingLoadBullet)
             CompleteShoot();
 
         EnterFullBody(LandStateName, autoExitOnComplete: true);

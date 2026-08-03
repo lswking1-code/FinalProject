@@ -183,6 +183,9 @@ public class PlayerShooting : MonoBehaviour
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         activeLaser.UpdateBeam(point, dir, faceY);
 
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
+
         if (playerAnim != null && !playerAnim.IsShooting)
             playerAnim.TryPlayShootAnim();
     }
@@ -212,6 +215,8 @@ public class PlayerShooting : MonoBehaviour
         }
 
         activeLaser.Begin(point, dir, faceY, character);
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
         return true;
     }
 
@@ -349,6 +354,8 @@ public class PlayerShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
     }
 
     WeaponFireConfig ResolveFireConfig()
