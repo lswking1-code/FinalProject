@@ -112,6 +112,14 @@ public class EnemyGrenade : MonoBehaviour
         if (hasExploded)
             return;
 
+        // 机器人顶部仅给玩家站立，手雷应穿过、不引爆、不吸附
+        if (IsRobotTopCollider(collision.collider))
+        {
+            if (grenadeCollider != null)
+                Physics2D.IgnoreCollision(grenadeCollider, collision.collider, true);
+            return;
+        }
+
         if (IsPlayerCollider(collision.collider))
         {
             Explode();
@@ -131,9 +139,24 @@ public class EnemyGrenade : MonoBehaviour
         return character != null && character.CompareTag("Player");
     }
 
+    static bool IsRobotTopCollider(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        if (collider.GetComponent<RobotTopPlatform>() != null)
+            return true;
+
+        int robotTopLayer = LayerMask.NameToLayer("RobotTop");
+        return robotTopLayer >= 0 && collider.gameObject.layer == robotTopLayer;
+    }
+
     bool IsGroundCollider(Collider2D collider)
     {
         if (groundLayer.value == 0 || collider == null)
+            return false;
+
+        if (IsRobotTopCollider(collider))
             return false;
 
         return (groundLayer.value & (1 << collider.gameObject.layer)) != 0;
@@ -165,9 +188,27 @@ public class EnemyGrenade : MonoBehaviour
 
         if (groundLayer.value != 0)
         {
-            var hit = Physics2D.Raycast(new Vector2(x, probeY), Vector2.down, groundSnapRayDistance, groundLayer);
-            if (hit.collider != null)
-                return new Vector3(x, hit.point.y, z);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(
+                new Vector2(x, probeY), Vector2.down, groundSnapRayDistance, groundLayer);
+            float bestDistance = float.PositiveInfinity;
+            Vector2 bestPoint = Vector2.zero;
+            bool found = false;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider2D col = hits[i].collider;
+                if (col == null || IsRobotTopCollider(col))
+                    continue;
+
+                if (hits[i].distance < bestDistance)
+                {
+                    bestDistance = hits[i].distance;
+                    bestPoint = hits[i].point;
+                    found = true;
+                }
+            }
+
+            if (found)
+                return new Vector3(x, bestPoint.y, z);
         }
 
         if (grenadeCollider != null)

@@ -634,7 +634,7 @@ MonoBehaviour:
   checkRaduis: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 4160
+    m_Bits: 36928
   isGround: 0
   isSolidGround: 0
   touchLeftWall: 0
@@ -761,7 +761,7 @@ MonoBehaviour:
   longPressThreshold: 0.5
   previewMoveSpeed: 3
   maxPreviewDistance: 5
-  robotDrainRate: 5
+  robotDrainRate: 2.5
   minAbilityPowerToSpawn: 1
   reloadAmmoCosts: 00000000140000000a00000005000000
   reloadLoadCounts: 00000000050000000300000001000000
@@ -815,7 +815,7 @@ MonoBehaviour:
   surfaceMargin: 0.05
   oneWayPlatformLayer:
     serializedVersion: 2
-    m_Bits: 4096
+    m_Bits: 36864
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
 --- !u!1 &7813873309445321570

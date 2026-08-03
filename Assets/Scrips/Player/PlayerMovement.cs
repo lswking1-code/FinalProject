@@ -161,11 +161,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (TryJump()) // 起跳覆盖本帧速度，跳过后不再水平移动
         {
             HandleLook(); // 蹲跳等：离开地面后同帧补判空中向下看
+            ApplyRobotTopPlatformCarry(applyVertical: false);
             return;
         }
 
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         ApplyHorizontalMovement();
+        ApplyRobotTopPlatformCarry(applyVertical: true);
         CancelVelocityIntoObstacle();
         CancelVelocityIntoSlope();
     }
@@ -443,6 +445,49 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgResult = "起跳成功";
         lastKPressFrame = -1;
         return true;
+    }
+
+    /// <summary>
+    /// 站在机器人顶部单向平台时叠加平台速度。
+    /// 玩家无摩擦材质，无法靠物理摩擦跟随，必须在速度层携带。
+    /// </summary>
+    void ApplyRobotTopPlatformCarry(bool applyVertical)
+    {
+        if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
+            return;
+
+        RobotTopPlatform platform = FindRobotTopUnderFeet();
+        if (platform == null)
+            return;
+
+        Vector2 platformVelocity = platform.PlatformVelocity;
+        Vector2 velocity = rb.linearVelocity;
+        velocity.x += platformVelocity.x;
+        if (applyVertical && physicsCheck.isSolidGround)
+            velocity.y = platformVelocity.y;
+        rb.linearVelocity = velocity;
+    }
+
+    RobotTopPlatform FindRobotTopUnderFeet()
+    {
+        float facing = Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(facing, 0f))
+            facing = 1f;
+
+        Vector2 origin = (Vector2)transform.position
+            + new Vector2(physicsCheck.bottomOffset.x * facing, physicsCheck.bottomOffset.y);
+        float castDistance = physicsCheck.checkRaduis + 0.12f;
+
+        RaycastHit2D hit = Physics2D.CircleCast(
+            origin, 0.08f, Vector2.down, castDistance, physicsCheck.groundLayer);
+
+        if (hit.collider == null || hit.normal.y <= 0.5f)
+            return null;
+
+        if (platformDropThrough != null && !platformDropThrough.ShouldCollideWith(hit.collider))
+            return null;
+
+        return hit.collider.GetComponent<RobotTopPlatform>();
     }
 
     void ApplyHorizontalMovement()

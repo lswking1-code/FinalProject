@@ -634,12 +634,15 @@ public class AllyRobot : MonoBehaviour
 
     public void ComboAttack()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || IsAirborneBusy
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
         if (!TryAcquireTarget(out Transform target))
             return;
+
+        // 跳跃 / 下落 / 落地过程中允许立即打断空中动画进入连携
+        InterruptAirForCombo();
 
         currentTarget = target;
 
@@ -650,6 +653,16 @@ public class AllyRobot : MonoBehaviour
         }
 
         BeginComboDashWindup();
+    }
+
+    /// <summary>
+    /// 取消落地锁停，让 ForcePlayCombatAnim 能立刻切到连携动画。
+    /// 逻辑空中阶段保留，连携结束后由 SyncAirVisualAfterBusy 接回 Fall/Ground。
+    /// </summary>
+    void InterruptAirForCombo()
+    {
+        isLanding = false;
+        landTimer = 0f;
     }
 
     public bool TryFirePierceLaser()
