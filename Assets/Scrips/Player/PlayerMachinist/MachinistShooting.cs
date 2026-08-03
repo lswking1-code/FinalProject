@@ -174,11 +174,18 @@ public class MachinistShooting : MonoBehaviour
         if (isCombo)
             robotComboEvent?.RaiseEvent();
 
+        // 动画开始即滞空：下射，或空中水平终结
+        if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
+            playerMovement.NotifyAirHangFromDownShot();
+
         var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
         float delay = isCombo ? comboFireDelay : normalFireDelay;
         FireDir fireDir = ResolveFireDir();
         if (isCombo && isHorizontalForward)
-            fireDir = FireDir.Crouch;
+        {
+            // 空中水平终结用前方水平弹；地面/蹲姿终结仍蹲射点
+            fireDir = playerAnim.IsForcedAirCombo ? FireDir.Forward : FireDir.Crouch;
+        }
         ScheduleFire(fireDir, prefab, delay);
 
         if (isCombo && !forceComboFromSpecialS)
@@ -248,6 +255,10 @@ public class MachinistShooting : MonoBehaviour
         if (!playerAnim.ReleaseMachinistCharge())
             return;
 
+        // 蓄力下射：释放射击动画开始时即滞空
+        if (fireDir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
+
         FireCharge(fireDir, ResolveChargePrefab());
     }
 
@@ -305,8 +316,6 @@ public class MachinistShooting : MonoBehaviour
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
         IPlayerAmmo ammo = projectile;
         ammo.Init(dir, faceY, character);
-        if (dir == FireDir.Down)
-            playerMovement.NotifyAirHangFromDownShot();
     }
 
     FireDir ResolveChargeFireDir() => playerAnim.ActiveChargeAim switch
@@ -358,8 +367,6 @@ public class MachinistShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
-        if (dir == FireDir.Down)
-            playerMovement.NotifyAirHangFromDownShot();
     }
 
     GameObject ResolveSpecialPrefab(SpecialAmmoType type) => type switch

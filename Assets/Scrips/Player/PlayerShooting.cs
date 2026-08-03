@@ -129,6 +129,8 @@ public class PlayerShooting : MonoBehaviour
             if (playerAnim.TryPlayShootAnim())
             {
                 nextFireTime = Time.time + fireInterval;
+                if (playerMovement.GetShootLookDown())
+                    playerMovement.NotifyAirHangFromDownShot();
                 BeginFire(config);
             }
         }
@@ -202,6 +204,9 @@ public class PlayerShooting : MonoBehaviour
         playerAnim.SetSustainShoot(true);
 
         FireDir dir = ResolveFireDir();
+        if (dir == FireDir.Down)
+            playerMovement.NotifyAirHangFromDownShot();
+
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var instance = Instantiate(prefab, point.position, Quaternion.identity);
@@ -215,8 +220,6 @@ public class PlayerShooting : MonoBehaviour
         }
 
         activeLaser.Begin(point, dir, faceY, character);
-        if (dir == FireDir.Down)
-            playerMovement.NotifyAirHangFromDownShot();
         return true;
     }
 
@@ -354,8 +357,6 @@ public class PlayerShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
-        if (dir == FireDir.Down)
-            playerMovement.NotifyAirHangFromDownShot();
     }
 
     WeaponFireConfig ResolveFireConfig()

@@ -320,6 +320,7 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookUpExComboClipPath = "Assets/Animations/Machinist/EXShoot/lookup_EXcombo_shoot.anim";
     const string MachinistLookDownExComboClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_EXcombo_shoot.anim";
     const string MachinistCrouchExComboClipPath = "Assets/Animations/Machinist/EXShoot/crouch_EXcombo_shoot.anim";
+    const string MachinistAirExComboClipPath = "Assets/Animations/Machinist/EXShoot/EXcombo_shoot_air.anim";
     const string MachinistCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/combo1_shoot.anim";
     const string MachinistCombo2ClipPath = "Assets/Animations/Machinist/EXShoot/combo2_shoot.anim";
     const string MachinistCrouchCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/crouch_combo1_shoot.anim";
@@ -343,6 +344,7 @@ public static class PlayerAnimControllerSetup
     const string CrouchComboShootStateName = "CrouchComboShoot";
     const string CrouchCombo1ShootStateName = "CrouchCombo1Shoot";
     const string CrouchCombo2ShootStateName = "CrouchCombo2Shoot";
+    const string AirComboShootStateName = "EXcombo_shoot_air";
     const string LoadBulletStateName = "LoadBullet";
     const string CrouchStateName = "Crouch";
     const string ChargeStartStateName = "ChargeStart";
@@ -458,6 +460,8 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureMachinistState(sm, states, CrouchComboShootStateName, MachinistCrouchExComboClipPath, new Vector3(750f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, CrouchCombo1ShootStateName, MachinistCrouchCombo1ClipPath, new Vector3(600f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, CrouchCombo2ShootStateName, MachinistCrouchCombo2ClipPath, new Vector3(450f, 300f, 0f));
+        // 空中水平终结：无 ExitTime，由 MaintainShootCompletion 结束（与 Combo1/2 一致）
+        changed |= EnsureMachinistState(sm, states, AirComboShootStateName, MachinistAirExComboClipPath, new Vector3(750f, 450f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, MachinistCrouchShootClipPath, new Vector3(900f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, MachinistCrouchShootClipPath, new Vector3(1050f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));

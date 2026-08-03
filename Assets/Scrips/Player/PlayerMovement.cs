@@ -45,7 +45,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     public bool IsActionLocked { get; private set; }
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
-    public bool IsAirHanging => airHangTimer > 0f;
+    public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsForcedAirCombo;
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -184,7 +184,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     }
 
     /// <summary>
-    /// 空中向下射击成功出弹时调用：刷新短暂低重力滞空。
+    /// 空中向下射击 / 空中终结动画开始时调用：刷新短暂低重力滞空。
     /// </summary>
     public void NotifyAirHangFromDownShot()
     {
@@ -198,17 +198,31 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ApplyAirHangPhysics();
     }
 
+    /// <summary>结束滞空并恢复重力（空中终结动画退出时调用）。</summary>
+    public void ClearAirHang()
+    {
+        ClearAirHang(restoreGravity: true);
+    }
+
     void UpdateAirHang()
     {
-        if (airHangTimer <= 0f)
-            return;
-
         if (physicsCheck.isGround
             || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
         {
-            ClearAirHang(restoreGravity: true);
+            if (airHangTimer > 0f || playerAnim.IsForcedAirCombo)
+                ClearAirHang(restoreGravity: true);
             return;
         }
+
+        // 空中全身终结：整段动画维持滞空
+        if (playerAnim.IsForcedAirCombo)
+        {
+            ApplyAirHangPhysics();
+            return;
+        }
+
+        if (airHangTimer <= 0f)
+            return;
 
         airHangTimer -= Time.fixedDeltaTime;
         if (airHangTimer > 0f)
@@ -223,6 +237,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyAirHangPhysics()
     {
+        // 上升阶段不减重力，否则起跳瞬间下射/空中终结会抬高跳跃顶点
+        if (rb.linearVelocity.y > airHangVelocityY)
+        {
+            rb.gravityScale = normalGravityScale;
+            return;
+        }
+
         rb.gravityScale = normalGravityScale * airHangGravityScale;
         if (rb.linearVelocity.y < airHangVelocityY)
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, airHangVelocityY);

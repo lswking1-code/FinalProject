@@ -55,6 +55,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string CrouchComboShootStateName = "CrouchComboShoot";
     const string CrouchCombo1ShootStateName = "CrouchCombo1Shoot";
     const string CrouchCombo2ShootStateName = "CrouchCombo2Shoot";
+    const string AirComboShootStateName = "EXcombo_shoot_air";
     const string LoadBulletStateName = "LoadBullet";
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
@@ -167,6 +168,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool pendingLookDownReleaseAfterCombo;
     bool forcedCrouchComboActive;
     bool forcedCrouchComboWasAlreadyCrouching;
+    bool forcedAirComboActive;
 
     public override bool IsCrouching => isCrouching;
     public override bool IsShooting => isShooting;
@@ -177,6 +179,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         isShooting && IsMachinistComboShootState(activeShootStateName);
     public override bool IsForcedCrouchCombo =>
         forcedCrouchComboActive && IsPlayingMachinistComboShoot;
+    public override bool IsForcedAirCombo =>
+        forcedAirComboActive && IsPlayingMachinistComboShoot;
     public override bool IsPlayingLoadBullet =>
         isShooting && activeShootStateName == LoadBulletStateName;
     public override bool IsThrowing => isThrowing;
@@ -252,6 +256,14 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         if (displayMode == BodyDisplayMode.FullBody)
         {
+            // 空中全身终结：不走 autoExit，由 MaintainShootCompletion 结束
+            if (forcedAirComboActive)
+            {
+                MaintainShootCompletion();
+                wasGrounded = grounded;
+                return;
+            }
+
             TryAutoExitFullBody(); // normalizedTime 兜底退出，配合 Animation Event
             MaintainChargeCompletion();
             MaintainDispatchCompletion();
@@ -554,9 +566,14 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         bool shootLookDown = !isCrouching && playerMovement != null && playerMovement.GetShootLookDown();
         bool isHorizontalForward = !shootLookUp && !shootLookDown;
 
-        // 前方终结连击：强制全身蹲姿 CrouchComboShoot（站立/跳跃/已蹲统一）
+        // 前方终结连击：地面/已蹲 → 蹲姿全身；空中未蹲 → 空中全身终结
         if (kind == MachinistShootKind.Combo && isHorizontalForward)
+        {
+            bool grounded = physicsCheck != null && physicsCheck.isGround;
+            if (!grounded && !isCrouching)
+                return PlayForcedAirComboShoot();
             return PlayForcedCrouchComboShoot();
+        }
 
         string stateName;
         Animator animator;
@@ -646,6 +663,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (crouchAnimator == null)
             return false;
 
+        if (forcedAirComboActive)
+            ExitForcedAirComboDisplay(clearHang: false);
+
         bool alreadyCrouching = isCrouching;
 
         if (!alreadyCrouching)
@@ -667,6 +687,30 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         return true;
     }
 
+    bool PlayForcedAirComboShoot()
+    {
+        if (crouchAnimator == null)
+            return false;
+
+        if (forcedCrouchComboActive)
+            ExitForcedCrouchComboDisplay();
+
+        EnterForcedAirComboDisplay();
+
+        forcedAirComboActive = true;
+        upperShootUsesAnimatorParam = false;
+        isShooting = true;
+        activeShootStateName = AirComboShootStateName;
+        activeShootAnimator = crouchAnimator;
+        comboShootPinnedNormalized = 0f;
+        comboShootInputInterrupted = false;
+        pendingLookUpReleaseAfterCombo = false;
+        pendingLookDownReleaseAfterCombo = false;
+
+        crouchAnimator.Play(AirComboShootStateName, 0, 0f);
+        return true;
+    }
+
     void EnterForcedCrouchComboDisplay()
     {
         InterruptLand();
@@ -675,6 +719,25 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         isCrouching = true;
         displayMode = BodyDisplayMode.FullBody;
         activeFullBodyState = CrouchComboShootStateName;
+        fullBodyAutoExit = false;
+        ResetFullBodyParams();
+
+        if (upBody != null)
+            upBody.SetActive(false);
+        if (downBody != null)
+            downBody.SetActive(false);
+        if (crouchBody != null)
+            crouchBody.SetActive(true);
+    }
+
+    void EnterForcedAirComboDisplay()
+    {
+        InterruptLand();
+        ClearLookState();
+
+        // 不设 isCrouching，避免空中缩碰撞体
+        displayMode = BodyDisplayMode.FullBody;
+        activeFullBodyState = AirComboShootStateName;
         fullBodyAutoExit = false;
         ResetFullBodyParams();
 
@@ -717,6 +780,30 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         ResetFullBodyParams();
         SetSplitDisplay();
         InvalidateUpperLocomotionCache();
+
+        bool grounded = physicsCheck != null && physicsCheck.isGround;
+        if (!grounded)
+        {
+            float velocityY = rb != null ? rb.linearVelocity.y : 0f;
+            RestoreAirPhaseAfterForcedCrouch(velocityY);
+            SyncSplitAnimators();
+            return;
+        }
+
+        airPhase = AirPhaseType.Ground;
+        airTrack = AirTrack.None;
+        RestoreUpperLocomotion();
+    }
+
+    void ExitForcedAirComboDisplay(bool clearHang = true)
+    {
+        forcedAirComboActive = false;
+        ResetFullBodyParams();
+        SetSplitDisplay();
+        InvalidateUpperLocomotionCache();
+
+        if (clearHang && playerMovement != null)
+            playerMovement.ClearAirHang();
 
         bool grounded = physicsCheck != null && physicsCheck.isGround;
         if (!grounded)
@@ -836,7 +923,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         stateName == ComboShootStateName
         || stateName == LookUpComboShootStateName
         || stateName == LookDownComboShootStateName
-        || stateName == CrouchComboShootStateName;
+        || stateName == CrouchComboShootStateName
+        || stateName == AirComboShootStateName;
 
     static bool IsMachinistChargeShootState(string stateName) =>
         stateName == ChargeShootStateName
@@ -1932,8 +2020,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     void EnterFullBodyLand() // 空中落地或地面急停播 Land，结束后回地面 Split
     {
-        // 强制蹲姿连击播完前不被落地打断
-        if (forcedCrouchComboActive && IsPlayingMachinistComboShoot)
+        // 强制蹲姿/空中连击播完前不被落地打断
+        if ((forcedCrouchComboActive || forcedAirComboActive) && IsPlayingMachinistComboShoot)
             return;
 
         // 连击终结 / 蓄力中 / 蓄力射击：落地不打断，只同步空中相位，避免 Land 切全身层取消状态
@@ -2780,6 +2868,12 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (forcedCrouchComboActive)
         {
             ExitForcedCrouchComboDisplay();
+            return;
+        }
+
+        if (forcedAirComboActive)
+        {
+            ExitForcedAirComboDisplay();
             return;
         }
 
