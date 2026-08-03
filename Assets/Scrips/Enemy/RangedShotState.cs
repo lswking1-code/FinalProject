@@ -1,13 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人射击状态：持续 actionDuration 秒，按 fireInterval 发射子弹。
+/// 远程敌人射击状态：进入时开一枪，随后立刻进入 Reload。
 /// </summary>
 public class RangedShotState : BaseState
 {
     RangedEnemy rangedEnemy;
-    float actionTimer;
-    float fireTimer;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -20,9 +18,6 @@ public class RangedShotState : BaseState
         rangedEnemy.OnActionEntered(EnemyAction.Shot);
         rangedEnemy.FacePlayer();
 
-        actionTimer = rangedEnemy.actionDuration;
-        fireTimer = 0f;
-
         currentEnemy.anim.SetBool("shoot", true);
         rangedEnemy.FireProjectile();
     }
@@ -32,17 +27,7 @@ public class RangedShotState : BaseState
         if (rangedEnemy == null || currentEnemy.isDead)
             return;
 
-        actionTimer -= Time.deltaTime;
-        fireTimer -= Time.deltaTime;
-
-        if (fireTimer <= 0f)
-        {
-            rangedEnemy.FireProjectile();
-            fireTimer = rangedEnemy.fireInterval;
-        }
-
-        if (actionTimer <= 0f)
-            rangedEnemy.SwitchState(NPCState.Reload);
+        rangedEnemy.SwitchState(NPCState.Reload);
     }
 
     public override void PhysicsUpdate()

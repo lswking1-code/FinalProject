@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot / Jump 循环，带动态 Action 概率。
-/// 射击类结束后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
+/// 射击类（Shot / CrouchShoot）进入后只开一枪，随后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
 /// 可选 isPatrol：原地站岗，索敌开战，离开所属 Bounds 后脱战回位。
 /// </summary>
 public class RangedEnemy : Enemy
@@ -13,6 +13,7 @@ public class RangedEnemy : Enemy
     [Header("远程参数")]
     public float shootRange = 5f;
     public float actionDuration = 3f;
+    [Tooltip("当前射击为单发，此字段暂未使用（保留以免破坏 Prefab 序列化）")]
     public float fireInterval = 0.5f;
     public float reloadDuration = 1f;
     public EnemyProjectile projectilePrefab;
