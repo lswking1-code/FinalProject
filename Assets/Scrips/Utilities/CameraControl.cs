@@ -23,7 +23,7 @@ public class CameraControl : MonoBehaviour
     private CinemachineConfiner2D confiner2D;
     private CinemachinePositionComposer positionComposer;
     public CinemachineImpulseSource impulseSource;
-    public VoidEventSO cameraShakeEvent;
+    public FloatEventSO cameraShakeEvent;
 
     Coroutine boundsTransitionRoutine;
     float cachedConfinerDamping;
@@ -107,10 +107,12 @@ public class CameraControl : MonoBehaviour
         GetNewCameraBounds(smooth: false);
     }
 
-    private void OnCameraShakeEvent()
+    private void OnCameraShakeEvent(float force)
     {
-        if (impulseSource != null)
-            impulseSource.GenerateImpulse();
+        if (impulseSource == null || force <= 0f)
+            return;
+
+        impulseSource.GenerateImpulseWithForce(force);
     }
 
     /// <summary>
