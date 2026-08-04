@@ -46,7 +46,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &839517100973540446
 Transform:
   m_ObjectHideFlags: 0
@@ -742,9 +742,11 @@ MonoBehaviour:
   normalFireInterval: 0.35
   normalFireDelay: 0
   comboFireDelay: 0.15
+  blastFireDelay: -1
   chargeHoldThreshold: 0.4
   chargeAmmoCosts: 00000000000000000000000000000000
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
+  robotBlastComboEvent: {fileID: 11400000, guid: e2ffee01112233445566778899aabb03, type: 2}
 --- !u!114 &3614759619717667695
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -836,7 +838,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5385784896981279530
 Transform:
   m_ObjectHideFlags: 0
@@ -981,7 +983,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7888574001001994483
 Transform:
   m_ObjectHideFlags: 0

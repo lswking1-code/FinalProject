@@ -1,31 +1,22 @@
 fileFormatVersion: 2
-guid: f1703c88d1949d64391d848a37b663fe
+guid: bbbb4054332e88341816e23f85df7c34
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5263336797595999296
-    second: RobotNeo2_DashAttack4_0
+      213: -2399075257477647434
+    second: PlayerM_BlastShoot_Crouch_0
   - first:
-      213: 2297113232782098101
-    second: RobotNeo2_DashAttack4_1
+      213: 6171293519981864822
+    second: PlayerM_BlastShoot_Crouch_1
   - first:
-      213: -238518531256123076
-    second: RobotNeo2_DashAttack4_2
+      213: -3134319231676671837
+    second: PlayerM_BlastShoot_Crouch_2
   - first:
-      213: 7679760326311087662
-    second: RobotNeo2_DashAttack4_3
+      213: 6235897352851300957
+    second: PlayerM_BlastShoot_Crouch_3
   - first:
-      213: 1745180428868303553
-    second: RobotNeo2_DashAttack4_4
-  - first:
-      213: 3695172479160911107
-    second: RobotNeo2_DashAttack4_5
-  - first:
-      213: 1599460762782740152
-    second: RobotNeo2_DashAttack4_6
-  - first:
-      213: 1746466426573700706
-    second: RobotNeo2_DashAttack4_7
+      213: -2163200785981738327
+    second: PlayerM_BlastShoot_Crouch_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -147,177 +138,111 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_0
+      name: PlayerM_BlastShoot_Crouch_0
       rect:
         serializedVersion: 2
-        x: 13
-        y: 201
-        width: 90
-        height: 55
+        x: 15
+        y: 205
+        width: 60
+        height: 45
       alignment: 9
-      pivot: {x: 0.21111111, y: 0}
+      pivot: {x: 0.3, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 04c93f95ee02b0940800000000000000
-      internalID: 5263336797595999296
+      spriteID: 6b3bd90a3c5c4bed0800000000000000
+      internalID: -2399075257477647434
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_1
+      name: PlayerM_BlastShoot_Crouch_1
       rect:
         serializedVersion: 2
-        x: 110
-        y: 201
-        width: 90
-        height: 55
+        x: 80
+        y: 205
+        width: 60
+        height: 45
       alignment: 9
-      pivot: {x: 0.2, y: 0}
+      pivot: {x: 0.3, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5be73d8805cf0ef10800000000000000
-      internalID: 2297113232782098101
+      spriteID: 677603f62c6d4a550800000000000000
+      internalID: 6171293519981864822
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_2
+      name: PlayerM_BlastShoot_Crouch_2
       rect:
         serializedVersion: 2
-        x: 13
-        y: 121
-        width: 95
-        height: 55
+        x: 144
+        y: 205
+        width: 60
+        height: 45
       alignment: 9
-      pivot: {x: 0.2, y: -0}
+      pivot: {x: 0.3, y: -0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c318128d8ac90bcf0800000000000000
-      internalID: -238518531256123076
+      spriteID: 3a89c3fd349a084d0800000000000000
+      internalID: -3134319231676671837
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_6
+      name: PlayerM_BlastShoot_Crouch_3
       rect:
         serializedVersion: 2
-        x: 110
-        y: 121
-        width: 90
-        height: 55
+        x: 208
+        y: 205
+        width: 47
+        height: 45
       alignment: 9
-      pivot: {x: 0.21111111, y: 0}
+      pivot: {x: 0.3829787, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8be27d5e61d623610800000000000000
-      internalID: 1599460762782740152
+      spriteID: d52208c6a9b5a8650800000000000000
+      internalID: 6235897352851300957
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_7
+      name: PlayerM_BlastShoot_Crouch_4
       rect:
         serializedVersion: 2
-        x: 8
-        y: 41
-        width: 90
-        height: 55
+        x: 15
+        y: 141
+        width: 60
+        height: 45
       alignment: 9
-      pivot: {x: 0.26666668, y: 0}
+      pivot: {x: 0.3, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 26e321836f1bc3810800000000000000
-      internalID: 1746466426573700706
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_3
-      rect:
-        serializedVersion: 2
-        x: 104
-        y: 41
-        width: 90
-        height: 55
-      alignment: 9
-      pivot: {x: 0.25555557, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 1c3aa99967310d94b9a2de80a885c2d6
-      internalID: 7679760326311087662
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_4
-      rect:
-        serializedVersion: 2
-        x: 206
-        y: 121
-        width: 50
-        height: 55
-      alignment: 9
-      pivot: {x: 0.35999998, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7f31efe5b96136f468d916f226cc7207
-      internalID: 1745180428868303553
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_DashAttack4_5
-      rect:
-        serializedVersion: 2
-        x: 197
-        y: 40
-        width: 56
-        height: 55
-      alignment: 9
-      pivot: {x: 0.46428573, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 4e555e11aea088a40bd7991e621495c9
-      internalID: 3695172479160911107
+      spriteID: 9a276b5a854caf1e0800000000000000
+      internalID: -2163200785981738327
       vertices: []
       indices: 
       edges: []
@@ -326,7 +251,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: a1d4c273abb3db64490854205894bea8
+    spriteID: 67dcc1f89fc9e7b4ab7f7e54afbc0e17
     internalID: 0
     vertices: []
     indices: 
@@ -336,14 +261,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      RobotNeo2_DashAttack4_0: 5263336797595999296
-      RobotNeo2_DashAttack4_1: 2297113232782098101
-      RobotNeo2_DashAttack4_2: -238518531256123076
-      RobotNeo2_DashAttack4_3: 7679760326311087662
-      RobotNeo2_DashAttack4_4: 1745180428868303553
-      RobotNeo2_DashAttack4_5: 3695172479160911107
-      RobotNeo2_DashAttack4_6: 1599460762782740152
-      RobotNeo2_DashAttack4_7: 1746466426573700706
+      PlayerM_BlastShoot_Crouch_0: -2399075257477647434
+      PlayerM_BlastShoot_Crouch_1: 6171293519981864822
+      PlayerM_BlastShoot_Crouch_2: -3134319231676671837
+      PlayerM_BlastShoot_Crouch_3: 6235897352851300957
+      PlayerM_BlastShoot_Crouch_4: -2163200785981738327
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

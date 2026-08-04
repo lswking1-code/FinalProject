@@ -121,6 +121,10 @@ public class AllyRobot : MonoBehaviour
     public string dashAttackTriggerName = "dashAttack";
     [Tooltip("冲刺终结攻击 Animator 状态名（用于检测动画结束）")]
     public string dashAttackStateName = "DashAttack";
+    [Tooltip("Blast 终结攻击 Trigger 参数名")]
+    public string blastAttackTriggerName = "blastAttack";
+    [Tooltip("Blast 终结攻击 Animator 状态名（用于检测动画结束）")]
+    public string blastAttackStateName = "BlastAttack";
     [Tooltip("Combo 冲锋起步 Trigger 参数名")]
     public string dashStartTriggerName = "dashStart";
     [Tooltip("Combo 冲锋起步 Animator 状态名（用于检测动画结束）")]
@@ -139,6 +143,7 @@ public class AllyRobot : MonoBehaviour
 
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
+    [SerializeField] VoidEventSO robotBlastComboEvent;
 
     [Header("牵引召回 (Ability2 短按)")]
     [Tooltip("钩爪伸出速度（单位/秒）")]
@@ -212,6 +217,7 @@ public class AllyRobot : MonoBehaviour
     bool comboAttackAnimSeen;
     bool comboDashWindupAnimSeen;
     float dashTimer;
+    bool pendingBlastFinisher;
     bool pendingRetarget;
     bool dispatchAnimSeen;
     LineRenderer laserLine;
@@ -271,12 +277,16 @@ public class AllyRobot : MonoBehaviour
     {
         if (robotComboEvent != null)
             robotComboEvent.OnEventRaised += ComboAttack;
+        if (robotBlastComboEvent != null)
+            robotBlastComboEvent.OnEventRaised += BlastCombo;
     }
 
     void OnDisable()
     {
         if (robotComboEvent != null)
             robotComboEvent.OnEventRaised -= ComboAttack;
+        if (robotBlastComboEvent != null)
+            robotBlastComboEvent.OnEventRaised -= BlastCombo;
     }
 
     void OnDestroy()
@@ -453,6 +463,7 @@ public class AllyRobot : MonoBehaviour
             anim.ResetTrigger(attackTriggerName);
             anim.ResetTrigger(comboAttackTriggerName);
             anim.ResetTrigger(dashAttackTriggerName);
+            anim.ResetTrigger(blastAttackTriggerName);
             anim.ResetTrigger(dashStartTriggerName);
             anim.ResetTrigger(pullTriggerName);
         }
@@ -645,10 +656,34 @@ public class AllyRobot : MonoBehaviour
         InterruptAirForCombo();
 
         currentTarget = target;
+        pendingBlastFinisher = false;
 
         if (IsWithinDashDecideRange(currentTarget))
         {
             BeginComboAttack();
+            return;
+        }
+
+        BeginComboDashWindup();
+    }
+
+    public void BlastCombo()
+    {
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+            || currentState == AllyState.ManualMove || pendingStationOnLand)
+            return;
+
+        if (!TryAcquireTarget(out Transform target))
+            return;
+
+        InterruptAirForCombo();
+
+        currentTarget = target;
+        pendingBlastFinisher = true;
+
+        if (IsWithinDashDecideRange(currentTarget))
+        {
+            BeginBlastAttack();
             return;
         }
 
@@ -811,6 +846,12 @@ public class AllyRobot : MonoBehaviour
 
     void BeginDashAttack()
     {
+        if (pendingBlastFinisher)
+        {
+            BeginBlastAttack();
+            return;
+        }
+
         StopMoving();
         if (anim != null)
             anim.SetBool(walkBoolName, false);
@@ -819,6 +860,21 @@ public class AllyRobot : MonoBehaviour
             FaceTarget(currentTarget.position);
 
         ForcePlayCombatAnim(dashAttackStateName, dashAttackTriggerName);
+
+        attackTimer = attackCooldown;
+        SwitchState(AllyState.ComboAttacking);
+    }
+
+    void BeginBlastAttack()
+    {
+        StopMoving();
+        if (anim != null)
+            anim.SetBool(walkBoolName, false);
+
+        if (IsValidCombatTarget(currentTarget))
+            FaceTarget(currentTarget.position);
+
+        ForcePlayCombatAnim(blastAttackStateName, blastAttackTriggerName);
 
         attackTimer = attackCooldown;
         SwitchState(AllyState.ComboAttacking);
@@ -846,6 +902,7 @@ public class AllyRobot : MonoBehaviour
         anim.ResetTrigger(attackTriggerName);
         anim.ResetTrigger(comboAttackTriggerName);
         anim.ResetTrigger(dashAttackTriggerName);
+        anim.ResetTrigger(blastAttackTriggerName);
         anim.ResetTrigger(dashStartTriggerName);
         anim.ResetTrigger(pullTriggerName);
 
@@ -957,7 +1014,10 @@ public class AllyRobot : MonoBehaviour
         OnEnterState(currentState);
 
         if (IsComboState(prev) && !IsComboState(next))
+        {
+            pendingBlastFinisher = false;
             SyncAirVisualAfterBusy();
+        }
     }
 
     static bool IsComboState(AllyState state) =>
@@ -1071,6 +1131,7 @@ public class AllyRobot : MonoBehaviour
     {
         StopMoving();
         SetDashActive(false);
+        pendingBlastFinisher = false;
         if (anim != null)
             anim.Play("Idle", 0, 0f);
         ResumeStateAfterCombo();
@@ -1259,7 +1320,9 @@ public class AllyRobot : MonoBehaviour
         }
 
         var info = anim.GetCurrentAnimatorStateInfo(0);
-        bool inFinisher = info.IsName(comboAttackStateName) || info.IsName(dashAttackStateName);
+        bool inFinisher = info.IsName(comboAttackStateName)
+            || info.IsName(dashAttackStateName)
+            || info.IsName(blastAttackStateName);
         if (inFinisher)
             comboAttackAnimSeen = true;
 
