@@ -1,0 +1,624 @@
+fileFormatVersion: 2
+guid: 5416e2235762543e18b879e3672f29e7
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2598995364537615694
+    second: buzzsaw_idle_0
+  - first:
+      213: -1987276524670458747
+    second: buzzsaw_idle_1
+  - first:
+      213: -1358720856304897810
+    second: buzzsaw_idle_2
+  - first:
+      213: -4595571344072154813
+    second: buzzsaw_idle_3
+  - first:
+      213: 6212260865260725351
+    second: buzzsaw_idle_4
+  - first:
+      213: -1696396693602752603
+    second: buzzsaw_idle_5
+  - first:
+      213: -3388448578651416449
+    second: buzzsaw_idle_6
+  - first:
+      213: -7645359694048059131
+    second: buzzsaw_idle_7
+  - first:
+      213: 4387760494895036728
+    second: buzzsaw_idle_8
+  - first:
+      213: 4389657368267649969
+    second: buzzsaw_idle_9
+  - first:
+      213: 8783855114994685664
+    second: buzzsaw_idle_10
+  - first:
+      213: -531943767614653124
+    second: buzzsaw_idle_11
+  - first:
+      213: 7791510341100067244
+    second: buzzsaw_idle_12
+  - first:
+      213: -2811946340032145922
+    second: buzzsaw_idle_13
+  - first:
+      213: -4194162076424041004
+    second: buzzsaw_idle_14
+  - first:
+      213: -4961922367243722801
+    second: buzzsaw_idle_15
+  - first:
+      213: 7289367503185870849
+    second: buzzsaw_idle_16
+  - first:
+      213: 8513782379710755891
+    second: buzzsaw_idle_17
+  - first:
+      213: -2451558536987410673
+    second: buzzsaw_idle_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: buzzsaw_idle_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 203
+        width: 58
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ba39db6c738eebd0800000000000000
+      internalID: -2598995364537615694
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_1
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 203
+        width: 58
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5846b84a786cb64e0800000000000000
+      internalID: -1987276524670458747
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_2
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 205
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee0380b749ad42de0800000000000000
+      internalID: -1358720856304897810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_3
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 205
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3416d9006304930c0800000000000000
+      internalID: -4595571344072154813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_4
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 141
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7642dedc752663650800000000000000
+      internalID: 6212260865260725351
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_5
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 147
+        width: 58
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a729afe1303578e0800000000000000
+      internalID: -1696396693602752603
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_6
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 141
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f781ec178ffc9f0d0800000000000000
+      internalID: -3388448578651416449
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_7
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 141
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5012d287dd936e590800000000000000
+      internalID: -7645359694048059131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_8
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 140
+        width: 58
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 839f5b93ce474ec30800000000000000
+      internalID: 4387760494895036728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_9
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 75
+        width: 58
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b3f4497e123bec30800000000000000
+      internalID: 4389657368267649969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_10
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 77
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e691cf20b586e970800000000000000
+      internalID: 8783855114994685664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_11
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 77
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c3d78d236f72e98f0800000000000000
+      internalID: -531943767614653124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_12
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 81
+        width: 58
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca95d01cf51012c60800000000000000
+      internalID: 7791510341100067244
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_13
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 77
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef59ceab3b5f9f8d0800000000000000
+      internalID: -2811946340032145922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_14
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 17
+        width: 58
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4dd845820d75bc5c0800000000000000
+      internalID: -4194162076424041004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_15
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 13
+        width: 16
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcf5f5975e5b32bb0800000000000000
+      internalID: -4961922367243722801
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_16
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 13
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1008ba89f19092560800000000000000
+      internalID: 7289367503185870849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_17
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 13
+        width: 58
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 334b3a567f7072670800000000000000
+      internalID: 8513782379710755891
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: buzzsaw_idle_18
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 11
+        width: 58
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0ff9c0ef705afdd0800000000000000
+      internalID: -2451558536987410673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      buzzsaw_idle_0: -2598995364537615694
+      buzzsaw_idle_1: -1987276524670458747
+      buzzsaw_idle_10: 8783855114994685664
+      buzzsaw_idle_11: -531943767614653124
+      buzzsaw_idle_12: 7791510341100067244
+      buzzsaw_idle_13: -2811946340032145922
+      buzzsaw_idle_14: -4194162076424041004
+      buzzsaw_idle_15: -4961922367243722801
+      buzzsaw_idle_16: 7289367503185870849
+      buzzsaw_idle_17: 8513782379710755891
+      buzzsaw_idle_18: -2451558536987410673
+      buzzsaw_idle_2: -1358720856304897810
+      buzzsaw_idle_3: -4595571344072154813
+      buzzsaw_idle_4: 6212260865260725351
+      buzzsaw_idle_5: -1696396693602752603
+      buzzsaw_idle_6: -3388448578651416449
+      buzzsaw_idle_7: -7645359694048059131
+      buzzsaw_idle_8: 4387760494895036728
+      buzzsaw_idle_9: 4389657368267649969
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,650 @@
+fileFormatVersion: 2
+guid: de2318f750e614182b17ca9ce8c48313
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4669195120526152647
+    second: rush_jump_upattack_0
+  - first:
+      213: -733042239035062488
+    second: rush_jump_upattack_1
+  - first:
+      213: -5652900289642925924
+    second: rush_jump_upattack_2
+  - first:
+      213: 4015136407236928211
+    second: rush_jump_upattack_3
+  - first:
+      213: -7273427256681415165
+    second: rush_jump_upattack_4
+  - first:
+      213: 1968375847096026607
+    second: rush_jump_upattack_5
+  - first:
+      213: -2725776824391875798
+    second: rush_jump_upattack_6
+  - first:
+      213: -1009563015011944486
+    second: rush_jump_upattack_7
+  - first:
+      213: 7532405644610217929
+    second: rush_jump_upattack_8
+  - first:
+      213: -9218160916110387693
+    second: rush_jump_upattack_9
+  - first:
+      213: -5156847799779805458
+    second: rush_jump_upattack_10
+  - first:
+      213: -6786718946613273167
+    second: rush_jump_upattack_11
+  - first:
+      213: -8745800606887775473
+    second: rush_jump_upattack_12
+  - first:
+      213: -6672626458888816545
+    second: rush_jump_upattack_13
+  - first:
+      213: 6493688816117421907
+    second: rush_jump_upattack_14
+  - first:
+      213: 8311577920165311797
+    second: rush_jump_upattack_15
+  - first:
+      213: -1159570699185793494
+    second: rush_jump_upattack_16
+  - first:
+      213: -7353505256883746556
+    second: rush_jump_upattack_17
+  - first:
+      213: 5289663615004907677
+    second: rush_jump_upattack_18
+  - first:
+      213: -4981674010215283115
+    second: rush_jump_upattack_19
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: rush_jump_upattack_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 204
+        width: 38
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c3d2f149305cc040800000000000000
+      internalID: 4669195120526152647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_1
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 209
+        width: 39
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82745f8a7f5b3d5f0800000000000000
+      internalID: -733042239035062488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_2
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 207
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c90712d032ddc81b0800000000000000
+      internalID: -5652900289642925924
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_3
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 207
+        width: 31
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3d2681e0a41a8b730800000000000000
+      internalID: 4015136407236928211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_4
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 140
+        width: 33
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30e3cd142789f0b90800000000000000
+      internalID: -7273427256681415165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_5
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 135
+        width: 30
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fe50e9e6763115b10800000000000000
+      internalID: 1968375847096026607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_6
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 155
+        width: 15
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2341258b681c2ad0800000000000000
+      internalID: -2725776824391875798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_7
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 138
+        width: 37
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad737d769cf4df1f0800000000000000
+      internalID: -1009563015011944486
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_8
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 138
+        width: 34
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c7a32f760b788860800000000000000
+      internalID: 7532405644610217929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_9
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 140
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 316d9d89c73821080800000000000000
+      internalID: -9218160916110387693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_10
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 76
+        width: 30
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ee6be5d8f323f68b0800000000000000
+      internalID: -5156847799779805458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_11
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 77
+        width: 27
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bdd3bc531bb0d1a0800000000000000
+      internalID: -6786718946613273167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_12
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 73
+        width: 33
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f03fe0e6faca0a680800000000000000
+      internalID: -8745800606887775473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_13
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 74
+        width: 26
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f583f07b6911663a0800000000000000
+      internalID: -6672626458888816545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_14
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 12
+        width: 34
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3571b9eb2973e1a50800000000000000
+      internalID: 6493688816117421907
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_15
+      rect:
+        serializedVersion: 2
+        x: 77
+        y: 13
+        width: 29
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 535fe6ee418a85370800000000000000
+      internalID: 8311577920165311797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_16
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 15
+        width: 6
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a26541fb79068efe0800000000000000
+      internalID: -1159570699185793494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_17
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 10
+        width: 29
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4090a7dede913f990800000000000000
+      internalID: -7353505256883746556
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_18
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 4
+        width: 29
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d981da13809a86940800000000000000
+      internalID: 5289663615004907677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: rush_jump_upattack_19
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 16
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 556825ab1e98ddab0800000000000000
+      internalID: -4981674010215283115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      rush_jump_upattack_0: 4669195120526152647
+      rush_jump_upattack_1: -733042239035062488
+      rush_jump_upattack_10: -5156847799779805458
+      rush_jump_upattack_11: -6786718946613273167
+      rush_jump_upattack_12: -8745800606887775473
+      rush_jump_upattack_13: -6672626458888816545
+      rush_jump_upattack_14: 6493688816117421907
+      rush_jump_upattack_15: 8311577920165311797
+      rush_jump_upattack_16: -1159570699185793494
+      rush_jump_upattack_17: -7353505256883746556
+      rush_jump_upattack_18: 5289663615004907677
+      rush_jump_upattack_19: -4981674010215283115
+      rush_jump_upattack_2: -5652900289642925924
+      rush_jump_upattack_3: 4015136407236928211
+      rush_jump_upattack_4: -7273427256681415165
+      rush_jump_upattack_5: 1968375847096026607
+      rush_jump_upattack_6: -2725776824391875798
+      rush_jump_upattack_7: -1009563015011944486
+      rush_jump_upattack_8: 7532405644610217929
+      rush_jump_upattack_9: -9218160916110387693
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
