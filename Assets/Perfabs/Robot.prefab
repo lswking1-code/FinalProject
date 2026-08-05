@@ -394,6 +394,7 @@ GameObject:
   - component: {fileID: 6726520255277155661}
   - component: {fileID: 2370199281924299456}
   - component: {fileID: 3020030780281877794}
+  - component: {fileID: 9102001001001005001}
   m_Layer: 11
   m_Name: Visual
   m_TagString: Untagged
@@ -515,6 +516,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraShakeEvent: {fileID: 11400000, guid: 98f75be0dc0b9b24b88c5e440ee4a421, type: 2}
   forceMultiplier: 1
+--- !u!114 &9102001001001005001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1225434488220012935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6789012345678abcdef90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  robot: {fileID: 7103856813796321060}
 --- !u!1 &1709888759997292766
 GameObject:
   m_ObjectHideFlags: 0
@@ -804,13 +818,14 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.958468, y: 2.122234}
+    - - {x: 2.604135, y: 1.6836678}
       - {x: 0.43501616, y: 2.247348}
       - {x: -0.43891627, y: 1.6396328}
-      - {x: -0.7006268, y: 1.3872831}
+      - {x: -0.65361637, y: 1.171035}
       - {x: -2.7133517, y: 1.6943591}
-      - {x: -0.2513628, y: 0.3164612}
-      - {x: 2.0672436, y: 1.1754538}
+      - {x: -1.5643053, y: 0.36411667}
+      - {x: 0.9164171, y: 0.42767823}
+      - {x: 2.5301752, y: 1.1571802}
   m_UseDelaunayMesh: 0
 --- !u!114 &8912548981170408170
 MonoBehaviour:
@@ -1176,6 +1191,8 @@ MonoBehaviour:
   attackDistance: 2.2
   dashDecideDistance: 4.5
   attackCooldown: 1
+  attackLungeSpeed: 4
+  attackLungeDuration: 0.25
   laserDamage: 30
   laserRange: 30
   laserVisualDuration: 0.5
@@ -1207,7 +1224,10 @@ MonoBehaviour:
   dashAttackTriggerName: dashAttack
   dashAttackStateName: DashAttack
   blastAttackTriggerName: blastAttack
-  blastAttackStateName: BlastAttack
+  blastAttackStateNames:
+  - BlastAttack1
+  - BlastAttack2
+  - BlastAttack3
   dashStartTriggerName: dashStart
   dashStartStateName: DashAttack_start
   dashLoopStateName: DashAttack_loop
@@ -1526,13 +1546,14 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 1.7364717, y: 2.8880513}
-      - {x: 0.014125824, y: 3.121702}
-      - {x: -0.72532374, y: 1.2118244}
+    - - {x: 2.451469, y: 3.096215}
+      - {x: 0.39425087, y: 2.9135382}
+      - {x: 0.51885414, y: 1.7317343}
+      - {x: -0.72532374, y: 1.2299259}
       - {x: -1.0261903, y: 0.5342381}
-      - {x: 0.758742, y: 0.43267727}
-      - {x: 1.5869498, y: 1.135563}
-      - {x: 1.9444256, y: 2.1467693}
+      - {x: 1.0936142, y: 0.5141325}
+      - {x: 2.1390367, y: 1.0722085}
+      - {x: 2.8146944, y: 2.6137397}
   m_UseDelaunayMesh: 0
 --- !u!114 &1108237073089540197
 MonoBehaviour:

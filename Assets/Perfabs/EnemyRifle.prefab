@@ -275,10 +275,11 @@ MonoBehaviour:
   normalSpeed: 2
   chaseSpeed: 4
   currentSpeed: 0
+  blocksLaser: 0
   faceDir: {x: 0, y: 0, z: 0}
   hurtForce: 1
   attacker: {fileID: 0}
-  hurtDuration: 0.35
+  hurtDuration: 0.5
   hurtFlashInterval: 0.05
   hurtFlashColor: {r: 1, g: 0.25, b: 0.25, a: 1}
   hurtShakeIntensity: 0.08
@@ -288,6 +289,9 @@ MonoBehaviour:
   attackLayer:
     serializedVersion: 2
     m_Bits: 0
+  isPatrol: 0
+  patrolDetectRange: 6
+  returnArriveDistance: 0.15
   waitTime: 0
   waitTimeCounter: 0
   wait: 0
@@ -296,7 +300,11 @@ MonoBehaviour:
   isHurt: 0
   isDead: 0
   isMarked: 0
+  isAggro: 0
+  isReturning: 0
   player: {fileID: 0}
+  homePosition: {x: 0, y: 0, z: 0}
+  homeBounds: {fileID: 0}
   shootRange: 5
   actionDuration: 2
   fireInterval: 0.7
@@ -396,6 +404,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   isGround: 0
+  isSolidGround: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0

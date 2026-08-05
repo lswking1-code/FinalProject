@@ -69,6 +69,11 @@ public class AllyRobot : MonoBehaviour
     public float dashDecideDistance = 2.5f;
     [Tooltip("每次攻击之间的冷却时间（秒）")]
     public float attackCooldown = 1.5f;
+    [Header("攻击前冲（Animation Event）")]
+    [Tooltip("BeginAttackLunge 默认水平速度（单位/秒）")]
+    public float attackLungeSpeed = 3.5f;
+    [Tooltip("BeginAttackLunge 无参或 float<=0 时使用的默认时长（秒）")]
+    public float attackLungeDuration = 0.15f;
 
     [Header("贯穿激光（持续弹触发）")]
     [SerializeField] int laserDamage = 10;
@@ -123,8 +128,8 @@ public class AllyRobot : MonoBehaviour
     public string dashAttackStateName = "DashAttack";
     [Tooltip("Blast 终结攻击 Trigger 参数名")]
     public string blastAttackTriggerName = "blastAttack";
-    [Tooltip("Blast 终结攻击 Animator 状态名（用于检测动画结束）")]
-    public string blastAttackStateName = "BlastAttack";
+    [Tooltip("Blast 三段连击 Animator 状态名（下标 0/1/2）")]
+    public string[] blastAttackStateNames = { "BlastAttack1", "BlastAttack2", "BlastAttack3" };
     [Tooltip("Combo 冲锋起步 Trigger 参数名")]
     public string dashStartTriggerName = "dashStart";
     [Tooltip("Combo 冲锋起步 Animator 状态名（用于检测动画结束）")]
@@ -218,6 +223,11 @@ public class AllyRobot : MonoBehaviour
     bool comboDashWindupAnimSeen;
     float dashTimer;
     bool pendingBlastFinisher;
+    int blastComboStep = -1;
+    const int BlastComboHitCount = 3;
+    bool attackLungeActive;
+    float attackLungeTimer;
+    float attackLungeFaceDir = 1f;
     bool pendingRetarget;
     bool dispatchAnimSeen;
     LineRenderer laserLine;
@@ -333,6 +343,7 @@ public class AllyRobot : MonoBehaviour
 
         if (isLanding)
         {
+            EndAttackLunge();
             StopMoving();
             return;
         }
@@ -340,68 +351,86 @@ public class AllyRobot : MonoBehaviour
         bool movingHorizontally = false;
         float moveDir = 0f;
 
-        switch (currentState)
+        if (attackLungeActive)
         {
-            case AllyState.Chase:
-                movingHorizontally = TryGetChaseMoveDir(out moveDir);
-                if (movingHorizontally)
-                    ApplyHorizontalMove(moveDir, moveSpeed);
-                else
-                    StopMoving();
-                break;
-            case AllyState.Return:
-                movingHorizontally = TryGetHomeMoveDir(arriveThreshold, out moveDir);
-                if (movingHorizontally)
-                    ApplyHorizontalMove(moveDir, moveSpeed);
-                else
-                    StopMoving();
-                break;
-            case AllyState.ComboDashing:
-                movingHorizontally = TryGetChaseMoveDir(out moveDir);
-                if (movingHorizontally)
-                    ApplyHorizontalMove(moveDir, dashSpeed);
-                else
-                    StopMoving();
-                break;
-            case AllyState.Idle:
-                if (idleFollowing)
-                {
-                    movingHorizontally = true;
-                    moveDir = idleFollowDir;
-                    ApplyHorizontalMove(moveDir, moveSpeed);
-                }
-                else if (airPhase == RobotAirPhase.Ground)
-                {
-                    StopMoving();
-                }
-                break;
-            case AllyState.ManualMove:
-                if (!pendingStationOnLand
-                    && TryGetManualMoveDir(out moveDir))
-                {
-                    movingHorizontally = true;
-                    ApplyHorizontalMove(moveDir, moveSpeed);
-                }
-                else if (airPhase == RobotAirPhase.Ground)
-                {
-                    StopMoving();
-                }
-                break;
-            case AllyState.Spawning:
-            case AllyState.Pulling:
-            case AllyState.ComboAttacking:
-            case AllyState.ComboDashWindup:
-            case AllyState.Attack:
-                if (airPhase == RobotAirPhase.Ground)
-                    StopMoving();
-                break;
+            attackLungeTimer -= Time.fixedDeltaTime;
+            if (attackLungeTimer <= 0f)
+            {
+                EndAttackLunge();
+            }
+            else
+            {
+                movingHorizontally = true;
+                moveDir = attackLungeFaceDir;
+                ApplyHorizontalMove(moveDir, attackLungeSpeed);
+            }
+        }
+
+        if (!attackLungeActive)
+        {
+            switch (currentState)
+            {
+                case AllyState.Chase:
+                    movingHorizontally = TryGetChaseMoveDir(out moveDir);
+                    if (movingHorizontally)
+                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    else
+                        StopMoving();
+                    break;
+                case AllyState.Return:
+                    movingHorizontally = TryGetHomeMoveDir(arriveThreshold, out moveDir);
+                    if (movingHorizontally)
+                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    else
+                        StopMoving();
+                    break;
+                case AllyState.ComboDashing:
+                    movingHorizontally = TryGetChaseMoveDir(out moveDir);
+                    if (movingHorizontally)
+                        ApplyHorizontalMove(moveDir, dashSpeed);
+                    else
+                        StopMoving();
+                    break;
+                case AllyState.Idle:
+                    if (idleFollowing)
+                    {
+                        movingHorizontally = true;
+                        moveDir = idleFollowDir;
+                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    }
+                    else if (airPhase == RobotAirPhase.Ground)
+                    {
+                        StopMoving();
+                    }
+                    break;
+                case AllyState.ManualMove:
+                    if (!pendingStationOnLand
+                        && TryGetManualMoveDir(out moveDir))
+                    {
+                        movingHorizontally = true;
+                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    }
+                    else if (airPhase == RobotAirPhase.Ground)
+                    {
+                        StopMoving();
+                    }
+                    break;
+                case AllyState.Spawning:
+                case AllyState.Pulling:
+                case AllyState.ComboAttacking:
+                case AllyState.ComboDashWindup:
+                case AllyState.Attack:
+                    if (airPhase == RobotAirPhase.Ground)
+                        StopMoving();
+                    break;
+            }
         }
 
         if (movingHorizontally)
         {
             CancelVelocityIntoWall(moveDir);
-            // 手动遥控只用↑跳跃，关闭障碍自动跳
-            if (currentState != AllyState.ManualMove)
+            // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳
+            if (currentState != AllyState.ManualMove && !attackLungeActive)
                 TryAutoJump(moveDir);
         }
         else if (airPhase != RobotAirPhase.Ground)
@@ -457,6 +486,8 @@ public class AllyRobot : MonoBehaviour
 
     void BeginManualMove()
     {
+        EndAttackLunge();
+        blastComboStep = -1;
         SetDashActive(false);
         if (anim != null)
         {
@@ -829,8 +860,50 @@ public class AllyRobot : MonoBehaviour
         laserVisualRoutine = null;
     }
 
+    /// <summary>
+    /// Animation Event：开始朝面向方向轻微前冲，使用 Inspector 默认时长。
+    /// </summary>
+    public void BeginAttackLunge()
+    {
+        BeginAttackLunge(attackLungeDuration);
+    }
+
+    /// <summary>
+    /// Animation Event：开始朝面向方向轻微前冲。
+    /// float 参数为时长（秒）；&lt;=0 时回退到 attackLungeDuration。
+    /// </summary>
+    public void BeginAttackLunge(float duration)
+    {
+        float len = duration > 0f ? duration : attackLungeDuration;
+        if (len <= 0f || attackLungeSpeed <= 0f)
+            return;
+
+        float face = Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(face, 0f))
+            face = 1f;
+
+        attackLungeActive = true;
+        attackLungeTimer = len;
+        attackLungeFaceDir = face;
+    }
+
+    /// <summary>
+    /// Animation Event：立即结束前冲。不挂事件时靠时长自动结束。
+    /// </summary>
+    public void EndAttackLunge()
+    {
+        if (!attackLungeActive)
+            return;
+
+        attackLungeActive = false;
+        attackLungeTimer = 0f;
+        StopMoving();
+    }
+
     void BeginComboAttack()
     {
+        blastComboStep = -1;
+        EndAttackLunge();
         StopMoving();
         if (anim != null)
             anim.SetBool(walkBoolName, false);
@@ -852,6 +925,8 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
+        blastComboStep = -1;
+        EndAttackLunge();
         StopMoving();
         if (anim != null)
             anim.SetBool(walkBoolName, false);
@@ -867,17 +942,80 @@ public class AllyRobot : MonoBehaviour
 
     void BeginBlastAttack()
     {
+        blastComboStep = 0;
+        PlayBlastAttackStep(0);
+    }
+
+    void PlayBlastAttackStep(int step)
+    {
+        EndAttackLunge();
         StopMoving();
         if (anim != null)
             anim.SetBool(walkBoolName, false);
 
-        if (IsValidCombatTarget(currentTarget))
+        // 仅起手段朝向当前目标；后续段朝向由 TryAdvanceBlastCombo 决定（有范围内敌才转）
+        if (step == 0 && IsValidCombatTarget(currentTarget))
             FaceTarget(currentTarget.position);
 
-        ForcePlayCombatAnim(blastAttackStateName, blastAttackTriggerName);
+        string stateName = GetBlastAttackStateName(step);
+        // 只靠 Play 切段；不要 SetTrigger(blastAttack)，否则 AnyState→BlastAttack1 会把 2/3 段拉回第一段
+        ForcePlayCombatAnim(stateName, null);
 
         attackTimer = attackCooldown;
-        SwitchState(AllyState.ComboAttacking);
+        comboAttackAnimSeen = false;
+        if (currentState != AllyState.ComboAttacking)
+            SwitchState(AllyState.ComboAttacking);
+    }
+
+    string GetBlastAttackStateName(int step)
+    {
+        if (blastAttackStateNames != null
+            && step >= 0
+            && step < blastAttackStateNames.Length
+            && !string.IsNullOrEmpty(blastAttackStateNames[step]))
+            return blastAttackStateNames[step];
+
+        return step switch
+        {
+            0 => "BlastAttack1",
+            1 => "BlastAttack2",
+            _ => "BlastAttack3",
+        };
+    }
+
+    bool IsCurrentBlastAttackState(AnimatorStateInfo info)
+    {
+        if (blastComboStep < 0)
+            return false;
+
+        return info.IsName(GetBlastAttackStateName(blastComboStep));
+    }
+
+    void TryAdvanceBlastCombo()
+    {
+        int nextStep = blastComboStep + 1;
+        if (nextStep >= BlastComboHitCount)
+        {
+            FinishBlastCombo();
+            return;
+        }
+
+        if (TryAcquireTarget(out Transform target) && IsInAttackRange(target))
+        {
+            currentTarget = target;
+            FaceTarget(currentTarget.position);
+        }
+
+        blastComboStep = nextStep;
+        PlayBlastAttackStep(nextStep);
+    }
+
+    void FinishBlastCombo()
+    {
+        EndAttackLunge();
+        blastComboStep = -1;
+        pendingBlastFinisher = false;
+        ResumeStateAfterCombo();
     }
 
     void BeginComboDashWindup()
@@ -1016,6 +1154,8 @@ public class AllyRobot : MonoBehaviour
         if (IsComboState(prev) && !IsComboState(next))
         {
             pendingBlastFinisher = false;
+            blastComboStep = -1;
+            EndAttackLunge();
             SyncAirVisualAfterBusy();
         }
     }
@@ -1129,9 +1269,11 @@ public class AllyRobot : MonoBehaviour
 
     void ExitComboDash()
     {
+        EndAttackLunge();
         StopMoving();
         SetDashActive(false);
         pendingBlastFinisher = false;
+        blastComboStep = -1;
         if (anim != null)
             anim.Play("Idle", 0, 0f);
         ResumeStateAfterCombo();
@@ -1277,7 +1419,8 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        StopMoving();
+        if (!attackLungeActive)
+            StopMoving();
         FaceTarget(currentTarget.position);
 
         if (attackTimer <= 0f)
@@ -1311,28 +1454,47 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateComboAttacking()
     {
-        StopMoving();
+        if (!attackLungeActive)
+            StopMoving();
 
         if (anim == null)
         {
+            EndAttackLunge();
+            blastComboStep = -1;
+            pendingBlastFinisher = false;
             ResumeStateAfterCombo();
             return;
         }
 
         var info = anim.GetCurrentAnimatorStateInfo(0);
+        bool inBlastFinisher = IsCurrentBlastAttackState(info);
         bool inFinisher = info.IsName(comboAttackStateName)
             || info.IsName(dashAttackStateName)
-            || info.IsName(blastAttackStateName);
+            || inBlastFinisher;
         if (inFinisher)
             comboAttackAnimSeen = true;
 
-        if (comboAttackAnimSeen && (!inFinisher || info.normalizedTime >= 1f))
-            ResumeStateAfterCombo();
+        if (!comboAttackAnimSeen || (inFinisher && info.normalizedTime < 1f))
+            return;
+
+        EndAttackLunge();
+
+        if (blastComboStep >= 0)
+        {
+            if (blastComboStep + 1 < BlastComboHitCount)
+                TryAdvanceBlastCombo();
+            else
+                FinishBlastCombo();
+            return;
+        }
+
+        ResumeStateAfterCombo();
     }
 
     void UpdateComboDashWindup()
     {
-        StopMoving();
+        if (!attackLungeActive)
+            StopMoving();
 
         if (!IsValidCombatTarget(currentTarget))
         {
