@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c3d4e5f6a7489900bbcdddeeff1122, type: 3}
+  m_Name: Melee_Weapon_2 1
+  m_EditorClassIdentifier: 
+  weaponId: 3
+  displayName: buzzsaw
+  enabledInCycle: 0
+  idle: {fileID: 7400000, guid: de4c152936b714456b0f549be04f4d72, type: 2}
+  run: {fileID: 7400000, guid: 609264457acd54c43a1e4586b1da0e7c, type: 2}
+  jump: {fileID: 7400000, guid: 718efdf6400b04b78aee1d97a2ae7425, type: 2}
+  fall: {fileID: 0}
+  leap: {fileID: 0}
+  leapAir: {fileID: 0}
+  lookUpStart: {fileID: 0}
+  lookUp: {fileID: 0}
+  lookUpEnd: {fileID: 0}
+  lookDownStart: {fileID: 0}
+  lookDown: {fileID: 0}
+  lookDownEnd: {fileID: 0}
+  shoot: {fileID: 0}
+  lookUpShoot: {fileID: 0}
+  lookDownShoot: {fileID: 0}
+  melee: {fileID: 0}
+  airMelee: {fileID: 0}
+  throwClip: {fileID: 0}
+  airThrow: {fileID: 0}
+  weaponSwitch: {fileID: 0}
+  crouch: {fileID: 0}
+  crouchStart: {fileID: 0}
+  crouchMove: {fileID: 0}
+  crouchTurn: {fileID: 0}
+  crouchShoot: {fileID: 0}
+  crouchMelee: {fileID: 0}
+  crouchThrow: {fileID: 0}
+  crouchWeaponSwitch: {fileID: 0}
+  land: {fileID: 0}
+  turn: {fileID: 0}
+  die: {fileID: 0}
