@@ -49,6 +49,15 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip airThrow;
     public AnimationClip weaponSwitch;
 
+    [Header("Bob 攻击扩展（仅 FullBodyMelee）")]
+    [Tooltip("地面向上攻击 · 替换动画机 default_up_melee")]
+    public AnimationClip upMelee;
+    [Tooltip("空中向上攻击 · 替换动画机 default_air_up_melee")]
+    public AnimationClip airUpMelee;
+    [Tooltip("向下攻击 · 替换动画机 default_down_melee；未填则空中攻击回退 airMelee")]
+    public AnimationClip downMelee;
+
+    [Header("蹲姿 / 其它")]
     public AnimationClip crouch;
     public AnimationClip crouchStart;
     public AnimationClip crouchMove;
@@ -132,6 +141,10 @@ public class WeaponDefinition : ScriptableObject
             case "default_fall": return fall != null ? fall : jump;
             case "default_melee": return melee;
             case "default_air_melee": return airMelee != null ? airMelee : melee;
+            case "default_up_melee": return upMelee;
+            case "default_air_up_melee": return airUpMelee != null ? airUpMelee : upMelee;
+            case "default_down_melee": return downMelee;
+            case "default_attack": return melee;
             case "crouch": return crouch;
             case "crouch_start": return crouchStart;
             case "crouch_move": return crouchMove;

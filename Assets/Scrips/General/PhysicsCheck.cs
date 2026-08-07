@@ -118,6 +118,10 @@ public class PhysicsCheck : MonoBehaviour
             if (Mathf.Abs(contact.normal.y) >= 0.6f)
                 continue;
 
+            // 倾斜单向坡端面/棱角不得当作墙，否则坡脚入口会挡住水平移动
+            if (IsSlopeSurfaceHit(collision.collider))
+                continue;
+
             if (!CountsAsSolidObstacle(collision.collider))
                 continue;
 

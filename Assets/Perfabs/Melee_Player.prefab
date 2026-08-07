@@ -165,6 +165,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bodyAnimator: {fileID: 3027643877075010879}
   descendVelocityThreshold: 0
+  rushToWhip: {fileID: 7400000, guid: 226f9991596ef4a73871a4d6fca9d8a2, type: 2}
+  rushToBuzz: {fileID: 7400000, guid: 9745fbe5af50e45b9b19a9578c81c439, type: 2}
+  whipToRush: {fileID: 7400000, guid: 72c5bd6e47532495bb24147cff4ac670, type: 2}
+  whipToBuzz: {fileID: 7400000, guid: 46b5e82dc87b3449fa956a475e06bac3, type: 2}
+  buzzToRush: {fileID: 7400000, guid: af7c8d953e3fa4a92a9a5258115907db, type: 2}
+  buzzToWhip: {fileID: 7400000, guid: 54dc214c29776460c86969350be8185d, type: 2}
 --- !u!114 &1022828831124262964
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1664,6 +1664,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         return true;
     }
 
+    public override bool TryPlayWeaponSwitchAnim(WeaponDefinition fromDef, WeaponDefinition toDef)
+        => TryPlayWeaponSwitchAnim(toDef);
+
     public override bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;

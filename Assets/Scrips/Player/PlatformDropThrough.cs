@@ -160,6 +160,100 @@ public class PlatformDropThrough : MonoBehaviour
         return slope.IsFeetAboveSurface(feetPos);
     }
 
+    /// <summary>
+    /// 平地坡脚入口：站在近似水平地面、位于 BottomJunction、朝上坡输入且非下穿意图。
+    /// 成功时返回与上坡方向对齐的表面切向，供移动在 !isOnSlope 时沿坡抬升。
+    /// </summary>
+    public bool TryGetBottomSlopeEntry(out SlopeOneWayPlatform slope, out Vector2 ascentTangent)
+    {
+        slope = null;
+        ascentTangent = Vector2.right;
+
+        if (physicsCheck == null || playerMovement == null)
+            return false;
+
+        if (!physicsCheck.isGround || physicsCheck.groundNormal.y <= 0.9f)
+            return false;
+
+        if (physicsCheck.isOnSlope)
+            return false;
+
+        float inputThreshold = playerMovement.InputThreshold;
+        Vector2 moveInput = playerMovement.MoveInput;
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (Mathf.Approximately(moveX, 0f))
+            return false;
+
+        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
+        if (isCrouching)
+            return false;
+
+        Vector2 feetPos = GetFeetPosition();
+        if (!TryFindNearbySlope(feetPos, out slope))
+            return false;
+
+        if (!slope.IsInBottomJunction(feetPos))
+            return false;
+
+        Vector2 horizontalMove = new Vector2(moveX, 0f);
+        float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
+        if (towardAscent <= inputThreshold)
+            return false;
+
+        ascentTangent = slope.GetSurfaceTangentAligned(moveX);
+        return true;
+    }
+
+    bool TryFindNearbySlope(Vector2 feetPos, out SlopeOneWayPlatform slope)
+    {
+        slope = null;
+        float bestDistSq = float.MaxValue;
+
+        foreach (Collider2D tracked in trackedPlatforms)
+        {
+            if (!IsColliderAlive(tracked))
+                continue;
+
+            var candidate = tracked.GetComponent<SlopeOneWayPlatform>();
+            if (candidate == null)
+                continue;
+
+            float distSq = (feetPos - candidate.BottomJunctionWorld).sqrMagnitude;
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                slope = candidate;
+            }
+        }
+
+        if (slope != null)
+            return true;
+
+        // tracked 为空时（尚未重叠）用短距扫描，避免必须先顶进碰撞体
+        float searchRadius = 0.7f;
+        int count = Physics2D.OverlapCircle(
+            feetPos, searchRadius, platformFilter, overlapBuffer);
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D col = overlapBuffer[i];
+            if (!IsColliderAlive(col) || col == capsuleCollider)
+                continue;
+
+            var candidate = col.GetComponent<SlopeOneWayPlatform>();
+            if (candidate == null)
+                continue;
+
+            float distSq = (feetPos - candidate.BottomJunctionWorld).sqrMagnitude;
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                slope = candidate;
+            }
+        }
+
+        return slope != null;
+    }
+
     Vector2 GetFeetPosition() =>
         new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
 
@@ -228,7 +322,12 @@ public class PlatformDropThrough : MonoBehaviour
         {
             float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
             if (towardAscent > inputThreshold)
-                return !isCrouching;
+            {
+                // 仅在脚已可站面时强制碰撞；尚未上到坡面则走 base，避免端面当墙顶死
+                if (!isCrouching && slope.IsFeetAboveSurface(feetPos))
+                    return true;
+                return baseCollide;
+            }
         }
 
         if (slope.IsInTopJunction(feetPos))

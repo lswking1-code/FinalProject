@@ -34,7 +34,7 @@ public class MeleeAttackInput : MonoBehaviour
         if (playerMovement.IsActionLocked)
             return;
 
-        if (playerAnim != null && playerAnim.IsRolling)
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
             return;
 
         if (!actions.Player.Attack.WasPressedThisFrame())

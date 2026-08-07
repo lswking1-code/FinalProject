@@ -19,7 +19,7 @@ public class SlopeOneWayPlatform : MonoBehaviour
     [SerializeField] Vector2 manualAscentDirection = new Vector2(1f, 1f);
 
     [Header("判定")]
-    [SerializeField] float junctionRadius = 0.4f;
+    [SerializeField] float junctionRadius = 0.55f;
     [SerializeField] float surfaceMargin = 0.05f;
     [Tooltip("脚底允许低于坡面的容差，用于胶囊体嵌入与落地判定")]
     [SerializeField] float standMargin = 0.45f;
@@ -89,6 +89,25 @@ public class SlopeOneWayPlatform : MonoBehaviour
     /// <summary>脚底是否站在坡面可行走侧（含嵌入容差）。</summary>
     public bool IsFeetAboveSurface(Vector2 feetPos) =>
         GetSignedDistanceToSurface(feetPos) >= -standMargin;
+
+    /// <summary>
+    /// 与 moveX 同向的坡面切向（世界空间单位向量），无水平输入时按上坡方向对齐。
+    /// </summary>
+    public Vector2 GetSurfaceTangentAligned(float moveXSign)
+    {
+        Vector2 normal = SurfaceNormal;
+        Vector2 tangent = new Vector2(-normal.y, normal.x).normalized;
+        if (Mathf.Approximately(moveXSign, 0f))
+        {
+            if (Vector2.Dot(tangent, AscentDirection) < 0f)
+                tangent = -tangent;
+            return tangent;
+        }
+
+        if (Mathf.Sign(tangent.x) != Mathf.Sign(moveXSign))
+            tangent = -tangent;
+        return tangent;
+    }
 
     void GetSurfaceEndpoints(out Vector2 bottomEnd, out Vector2 topEnd)
     {

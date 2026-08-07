@@ -629,7 +629,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (!physicsCheck.isOnSlope && physicsCheck.IsBlockedHorizontally(moveX))
+        Vector2 entryTangent = Vector2.zero;
+        bool slopeEntry = platformDropThrough != null
+            && platformDropThrough.TryGetBottomSlopeEntry(out _, out entryTangent);
+        if (!physicsCheck.isOnSlope && !slopeEntry && physicsCheck.IsBlockedHorizontally(moveX))
             moveX = 0f;
 
         if (physicsCheck.isGround)
@@ -669,12 +672,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                     rb.linearVelocity = tangent * speed;
                 }
             }
+            else if (slopeEntry)
+            {
+                // 坡脚过渡：沿坡面切向抬升，避免纯水平撞厚盒端面
+                rb.linearVelocity = entryTangent * speed;
+            }
             else
             {
                 rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
             }
 
-            if (moveX != 0f)
+            if (moveX != 0f || slopeEntry)
                 ApplyFacing();
             return;
         }
@@ -703,6 +711,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     void CancelVelocityIntoObstacle()
     {
         if (physicsCheck.isOnSlope)
+            return;
+
+        // 坡脚过渡中允许沿切向顶入，不被侧墙速度清除打断
+        if (platformDropThrough != null
+            && platformDropThrough.TryGetBottomSlopeEntry(out _, out _))
             return;
 
         if (physicsCheck.IsBlockedHorizontally(-1f) && rb.linearVelocity.x < 0f)

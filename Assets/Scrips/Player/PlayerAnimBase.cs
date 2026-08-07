@@ -97,6 +97,12 @@ public class PlayerAnimBase : MonoBehaviour
 
     public virtual bool TryPlayWeaponSwitchAnim(WeaponDefinition def) => false;
 
+    /// <summary>
+    /// 带 from→to 的切枪（Bob 方向性切换用）。默认实现忽略 from，等同单参版本。
+    /// </summary>
+    public virtual bool TryPlayWeaponSwitchAnim(WeaponDefinition fromDef, WeaponDefinition toDef)
+        => TryPlayWeaponSwitchAnim(toDef);
+
     public virtual bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;

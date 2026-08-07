@@ -138,7 +138,8 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         if (playerAnim == null)
             return false;
 
-        if (!playerAnim.TryPlayWeaponSwitchAnim(def))
+        var fromDef = GetDefinition(currentWeaponId);
+        if (!playerAnim.TryPlayWeaponSwitchAnim(fromDef, def))
             return false;
 
         currentWeaponId = weaponId;

@@ -1,11 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 单 Animator 全身动画（近战角色 / Bob）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
-/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove, Melee, AirMelee, CrouchMelee, Die, WeaponSwitch。
+/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove,
+/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, CrouchMelee, Die, WeaponSwitch。
 /// 推荐 AnimatorController：<c>Assets/Animations/melee/melee_full.controller</c>。
-/// Prefab：只挂本组件，勿与 <see cref="PlayerAnim"/> 同挂；配合 <see cref="MeleeAttackInput"/> 而非 PlayerShooting。
-/// 切枪：ApplyWeaponDefinition 后播 WeaponSwitch，期间 IsSwitchingWeapon 为 true（仅本组件，分轨角色不受影响）。
+/// 切枪：Apply 目标姿后，按 from→to 覆盖 default_switch（三武器六边；空手相关用 to.weaponSwitch）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerFullBodyAnim : PlayerAnimBase
@@ -17,9 +18,20 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string CrouchStartStateName = "CrouchStart";
     const string MeleeStateName = "Melee";
     const string AirMeleeStateName = "AirMelee";
+    const string UpMeleeStateName = "UpMelee";
+    const string AirUpMeleeStateName = "AirUpMelee";
+    const string DownMeleeStateName = "DownMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string DieStateName = "Die";
     const string WeaponSwitchStateName = "WeaponSwitch";
+    const string DefaultSwitchClipName = "default_switch";
+
+    /// <summary>rush</summary>
+    const int WeaponIdA = 1;
+    /// <summary>whip</summary>
+    const int WeaponIdB = 2;
+    /// <summary>buzzsaw</summary>
+    const int WeaponIdC = 3;
 
     [Header("全身 Animator")]
     public Animator bodyAnimator;
@@ -27,6 +39,15 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     [Header("空中")]
     [Tooltip("竖直速度低于等于该值时视为开始下落")]
     public float descendVelocityThreshold = 0f;
+
+    [Header("Bob 方向切枪 (1=rush 2=whip 3=buzzsaw)")]
+    [Tooltip("未配置时回退目标武器 weaponSwitch")]
+    public AnimationClip rushToWhip;
+    public AnimationClip rushToBuzz;
+    public AnimationClip whipToRush;
+    public AnimationClip whipToBuzz;
+    public AnimationClip buzzToRush;
+    public AnimationClip buzzToWhip;
 
     enum AirTrack
     {
@@ -49,6 +70,8 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool isMelee;
     bool isSwitchingWeapon;
     bool isDead;
+    bool isLookingUp;
+    bool isLookingDown;
     bool jumpInvokedThisFrame;
     bool wasGrounded;
     bool airStateInitialized;
@@ -60,6 +83,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     string activeMeleeStateName;
     AnimatorOverrideController bodyOverrideController;
     RuntimeAnimatorController bodyBaseController;
+    WeaponDefinition appliedWeaponDef;
 
     const string WeaponIdParam = "WeaponID";
 
@@ -67,6 +91,8 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public override bool IsMelee => isMelee;
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
+    public override bool IsLookingUp => isLookingUp;
+    public override bool IsLookingDown => isLookingDown;
     public override AirPhaseType CurrentAirPhase => airPhase;
     public override string CurrentFullBodyState =>
         isSwitchingWeapon ? WeaponSwitchStateName : activeOneShotState;
@@ -74,7 +100,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public override bool IsTurning =>
         activeOneShotState == TurnStateName || activeOneShotState == CrouchTurnStateName;
     public override bool IsInFullBody =>
-        isCrouching || isSwitchingWeapon || !string.IsNullOrEmpty(activeOneShotState);
+        isCrouching || isSwitchingWeapon || isMelee || !string.IsNullOrEmpty(activeOneShotState);
 
     void Awake()
     {
@@ -97,6 +123,10 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     }
 
     void LateUpdate() => jumpInvokedThisFrame = false;
+
+    public override void SetLookUp(bool active) => isLookingUp = active;
+
+    public override void SetLookDown(bool active) => isLookingDown = active;
 
     public override void UpdateAirState(bool grounded) =>
         UpdateAirState(grounded, rb != null ? rb.linearVelocity.y : 0f);
@@ -286,7 +316,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool TryPlayMeleeAnim()
     {
-        if (isSwitchingWeapon || isDead)
+        if (isSwitchingWeapon || isDead || bodyAnimator == null)
             return false;
 
         if (IsPlayingLand)
@@ -294,24 +324,40 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         else if (IsTurning)
             InterruptTurn();
 
-        string stateName;
-        if (isCrouching)
-        {
-            stateName = CrouchMeleeStateName;
-            if (bodyAnimator != null)
-                bodyAnimator.SetBool("IsRun", false);
-        }
-        else
-            stateName = airPhase == AirPhaseType.Ground ? MeleeStateName : AirMeleeStateName;
-
-        if (bodyAnimator == null)
-            return false;
+        string stateName = ResolveMeleeStateName();
+        if (isCrouching && bodyAnimator != null)
+            bodyAnimator.SetBool("IsRun", false);
 
         isMelee = true;
         activeMeleeStateName = stateName;
         bodyAnimator.Play(stateName, 0, 0f);
         return true;
     }
+
+    string ResolveMeleeStateName()
+    {
+        if (isCrouching)
+            return CrouchMeleeStateName;
+
+        bool grounded = airPhase == AirPhaseType.Ground;
+
+        if (grounded)
+        {
+            if (isLookingUp && HasClip(appliedWeaponDef != null ? appliedWeaponDef.upMelee : null))
+                return UpMeleeStateName;
+            return MeleeStateName;
+        }
+
+        if (isLookingUp && HasClip(appliedWeaponDef != null ? appliedWeaponDef.airUpMelee : null))
+            return AirUpMeleeStateName;
+
+        if (isLookingDown && HasClip(appliedWeaponDef != null ? appliedWeaponDef.downMelee : null))
+            return DownMeleeStateName;
+
+        return AirMeleeStateName;
+    }
+
+    static bool HasClip(AnimationClip clip) => clip != null;
 
     public override bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
@@ -334,6 +380,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         EnsureOverrideController();
         ApplyOverridesToController(bodyOverrideController, def);
+        appliedWeaponDef = def;
 
         if (bodyAnimator != null && HasAnimatorParam(bodyAnimator, WeaponIdParam))
             bodyAnimator.SetInteger(WeaponIdParam, def.weaponId);
@@ -342,8 +389,11 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     }
 
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def)
+        => TryPlayWeaponSwitchAnim(null, def);
+
+    public override bool TryPlayWeaponSwitchAnim(WeaponDefinition fromDef, WeaponDefinition toDef)
     {
-        if (def == null || isDead || bodyAnimator == null)
+        if (toDef == null || isDead || bodyAnimator == null)
             return false;
 
         if (isSwitchingWeapon)
@@ -357,17 +407,49 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         else if (IsTurning)
             InterruptTurn();
 
-        ApplyWeaponDefinition(def);
+        ApplyWeaponDefinition(toDef);
+
+        AnimationClip switchClip = ResolveDirectionalSwitchClip(fromDef, toDef);
+        OverrideNamedBaseClip(DefaultSwitchClipName, switchClip);
 
         isSwitchingWeapon = true;
         activeOneShotState = null;
         oneShotAutoExit = false;
 
-        if (isCrouching && bodyAnimator != null)
+        if (isCrouching)
             bodyAnimator.SetBool("IsRun", false);
 
         bodyAnimator.Play(WeaponSwitchStateName, 0, 0f);
         return true;
+    }
+
+    AnimationClip ResolveDirectionalSwitchClip(WeaponDefinition fromDef, WeaponDefinition toDef)
+    {
+        int fromId = fromDef != null ? fromDef.weaponId : -1;
+        int toId = toDef.weaponId;
+
+        if (IsDirectionalCycleWeapon(fromId) && IsDirectionalCycleWeapon(toId) && fromId != toId)
+        {
+            AnimationClip edge = GetDirectionalEdgeClip(fromId, toId);
+            if (edge != null)
+                return edge;
+        }
+
+        return toDef.weaponSwitch;
+    }
+
+    static bool IsDirectionalCycleWeapon(int weaponId)
+        => weaponId == WeaponIdA || weaponId == WeaponIdB || weaponId == WeaponIdC;
+
+    AnimationClip GetDirectionalEdgeClip(int fromId, int toId)
+    {
+        if (fromId == WeaponIdA && toId == WeaponIdB) return rushToWhip;
+        if (fromId == WeaponIdA && toId == WeaponIdC) return rushToBuzz;
+        if (fromId == WeaponIdB && toId == WeaponIdA) return whipToRush;
+        if (fromId == WeaponIdB && toId == WeaponIdC) return whipToBuzz;
+        if (fromId == WeaponIdC && toId == WeaponIdA) return buzzToRush;
+        if (fromId == WeaponIdC && toId == WeaponIdB) return buzzToWhip;
+        return null;
     }
 
     public override void PlayDieAnim()
@@ -764,7 +846,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         if (overrideController == null || def == null)
             return;
 
-        var pairs = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>>();
+        var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
         overrideController.GetOverrides(pairs);
 
         for (int i = 0; i < pairs.Count; i++)
@@ -777,12 +859,38 @@ public class PlayerFullBodyAnim : PlayerAnimBase
                 ? original
                 : def.GetOverrideForBaseClip(original);
 
-            pairs[i] = new System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>(
+            pairs[i] = new KeyValuePair<AnimationClip, AnimationClip>(
                 original,
                 replacement != null ? replacement : original);
         }
 
         overrideController.ApplyOverrides(pairs);
+    }
+
+    /// <summary>在全量 Apply 之后，单独覆盖某一基座 clip（用于方向性 default_switch）。</summary>
+    void OverrideNamedBaseClip(string baseClipName, AnimationClip replacement)
+    {
+        if (bodyOverrideController == null || string.IsNullOrEmpty(baseClipName))
+            return;
+
+        var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        bodyOverrideController.GetOverrides(pairs);
+
+        bool changed = false;
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            AnimationClip original = pairs[i].Key;
+            if (original == null || original.name != baseClipName)
+                continue;
+
+            pairs[i] = new KeyValuePair<AnimationClip, AnimationClip>(
+                original,
+                replacement != null ? replacement : original);
+            changed = true;
+        }
+
+        if (changed)
+            bodyOverrideController.ApplyOverrides(pairs);
     }
 
     static bool HasAnimatorParam(Animator animator, string paramName)

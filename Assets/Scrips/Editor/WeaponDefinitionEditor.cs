@@ -18,7 +18,8 @@ public class WeaponDefinitionEditor : Editor
     SerializedProperty lookUpStart, lookUp, lookUpEnd;
     SerializedProperty lookDownStart, lookDown, lookDownEnd;
     SerializedProperty shoot, lookUpShoot, lookDownShoot;
-    SerializedProperty melee, airMelee, throwClip, airThrow, weaponSwitch;
+    SerializedProperty melee, airMelee, upMelee, airUpMelee, downMelee;
+    SerializedProperty throwClip, airThrow, weaponSwitch;
     SerializedProperty crouch, crouchStart, crouchMove, crouchTurn;
     SerializedProperty crouchShoot, crouchMelee, crouchThrow, crouchWeaponSwitch;
     SerializedProperty land, turn, die;
@@ -49,6 +50,9 @@ public class WeaponDefinitionEditor : Editor
         lookDownShoot = serializedObject.FindProperty("lookDownShoot");
         melee = serializedObject.FindProperty("melee");
         airMelee = serializedObject.FindProperty("airMelee");
+        upMelee = serializedObject.FindProperty("upMelee");
+        airUpMelee = serializedObject.FindProperty("airUpMelee");
+        downMelee = serializedObject.FindProperty("downMelee");
         throwClip = serializedObject.FindProperty("throwClip");
         airThrow = serializedObject.FindProperty("airThrow");
         weaponSwitch = serializedObject.FindProperty("weaponSwitch");
@@ -93,7 +97,7 @@ public class WeaponDefinitionEditor : Editor
         if (profile == WeaponDefinition.AnimProfile.FullBodyMelee && def.weaponId == 0)
         {
             EditorGUILayout.HelpBox(
-                "weaponId = 0 时不会做 Override（与基座 knife/default 保持一致）。切换到其他武器 id 时才会应用下列替换。",
+                "weaponId = 0（空手）时不做 Override。A↔B 六边切枪动画在 Melee_Player 的 PlayerFullBodyAnim 组件上配置。",
                 MessageType.Info);
         }
 
@@ -104,7 +108,7 @@ public class WeaponDefinitionEditor : Editor
     {
         EditorGUILayout.LabelField("Bob / 全身近战 · 动画替换", EditorStyles.boldLabel);
         EditorGUILayout.HelpBox(
-            "对应 melee_full 基座 Clip 名。未填字段保留动画机默认 motion。",
+            "对应 melee_full 的 default_* 基座。rush/whip/buzzsaw 之间的 from→to 切枪在 PlayerFullBodyAnim 上配置，不在此处。",
             MessageType.None);
 
         EditorGUILayout.Space(4);
@@ -113,23 +117,32 @@ public class WeaponDefinitionEditor : Editor
         DrawClip(run, "Run", "default_run");
         DrawClip(jump, "Jump", "default_jump");
         DrawClip(fall, "Fall", "default_fall（空则沿用 Jump）");
-        DrawClip(leap, "Leap", "空中前跃，可与 Jump 同 clip");
-        DrawClip(leapAir, "Leap Air", "前跃下坠，可与 Fall 同 clip");
+        DrawClip(leap, "Leap", "可与 Jump 同 clip");
+        DrawClip(leapAir, "Leap Air", "可与 Fall 同 clip");
 
         EditorGUILayout.Space(4);
-        EditorGUILayout.LabelField("切枪", EditorStyles.boldLabel);
-        DrawClip(weaponSwitch, "Weapon Switch", "default_switch · 切到本武器时播放");
+        EditorGUILayout.LabelField("切枪（空手相关 / 方向表缺失时 fallback）", EditorStyles.boldLabel);
+        DrawClip(weaponSwitch, "Weapon Switch", "default_switch · 与空手切换或六边表未配时使用");
 
         EditorGUILayout.Space(4);
         EditorGUILayout.LabelField("攻击", EditorStyles.boldLabel);
-        DrawClip(melee, "Melee", "default_melee");
-        DrawClip(airMelee, "Air Melee", "default_air_melee");
-        DrawClip(crouchMelee, "Crouch Melee", "蹲姿近战");
+        DrawClip(melee, "站立攻击 Attack", "default_melee · *_attack");
+        DrawClip(airMelee, "跳跃攻击 Jump Attack", "default_air_melee · *_jump_attack");
+        DrawClip(crouchMelee, "蹲姿攻击 Crouch", "蹲姿近战");
+
+        EditorGUILayout.Space(4);
+        EditorGUILayout.LabelField("向上 / 向下攻击", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox(
+            "对应 melee_full 状态 UpMelee / AirUpMelee / DownMelee。上看(W)/下看(空中 S) 时近战会选用。",
+            MessageType.Info);
+        DrawClip(upMelee, "向上攻击 Up", "地面向上 · default_up_melee · *_upattack");
+        DrawClip(airUpMelee, "空中向上攻击 Air Up", "空中向上 · default_air_up_melee · *_jump_upattack");
+        DrawClip(downMelee, "向下攻击 Down", "向下 · default_down_melee（可空，空中回退跳跃攻击）");
 
         EditorGUILayout.Space(4);
         EditorGUILayout.LabelField("其它全身", EditorStyles.boldLabel);
         DrawClip(land, "Land", "着陆");
-        DrawClip(turn, "Turn", "转身 / idle_turning");
+        DrawClip(turn, "Turn", "转身");
         DrawClip(crouch, "Crouch", "蹲待机");
         DrawClip(crouchStart, "Crouch Start", "下蹲起势");
         DrawClip(crouchMove, "Crouch Move", "蹲走");
@@ -185,8 +198,14 @@ public class WeaponDefinitionEditor : Editor
         EditorGUILayout.PropertyField(die);
     }
 
-    static void DrawClip(SerializedProperty prop, string label, string hint)
+    void DrawClip(SerializedProperty prop, string label, string hint)
     {
+        if (prop == null)
+        {
+            EditorGUILayout.HelpBox($"字段丢失：{label}（请确认 WeaponDefinition 已重新编译）", MessageType.Warning);
+            return;
+        }
+
         EditorGUILayout.PropertyField(prop, new GUIContent(label, hint));
     }
 }
