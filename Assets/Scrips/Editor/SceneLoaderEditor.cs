@@ -38,6 +38,13 @@ public class SceneLoaderEditor : Editor
                 "开发模式：运行时可按数字键 1/2/3 切换角色（不触发场景重载）。",
                 MessageType.Info);
         }
+
+        if (loader.enableFillAmmoCheat)
+        {
+            EditorGUILayout.HelpBox(
+                "弹药测试：运行时可按 M 键将当前玩家 S/M/L 弹药全部填满。",
+                MessageType.Info);
+        }
     }
 }
 #endif

@@ -29,6 +29,8 @@ public class TiledSpriteRope : MonoBehaviour, IRopeVisual
     [SerializeField] int maxPooledLinks = 128;
     [Tooltip("可选：带 SpriteRenderer 的模板子物体，用于复制链节")]
     [SerializeField] Transform linkTemplate;
+    [Tooltip("关闭后不覆盖链节 sprite，保留模板 Animator 驱动的帧动画")]
+    [SerializeField] bool overwriteLinkSprite = true;
 
     Transform poolRoot;
     readonly List<SpriteRenderer> links = new List<SpriteRenderer>();
@@ -103,7 +105,8 @@ public class TiledSpriteRope : MonoBehaviour, IRopeVisual
         linkGo.SetActive(true);
         var renderer = linkGo.GetComponent<SpriteRenderer>();
         renderer.enabled = false;
-        renderer.sprite = linkSprite;
+        if (overwriteLinkSprite && linkSprite != null)
+            renderer.sprite = linkSprite;
         renderer.flipX = false;
         renderer.flipY = false;
         renderer.sortingOrder = sortingOrder;
@@ -164,14 +167,21 @@ public class TiledSpriteRope : MonoBehaviour, IRopeVisual
         SpriteRenderer renderer = links[index];
         Transform linkTransform = renderer.transform;
 
-        Sprite sprite = linkSprite;
-        if (linkSpriteAlt != null)
-            sprite = index % 2 == 0 ? linkSprite : linkSpriteAlt;
-        else if (linkSprite != null)
-            sprite = linkSprite;
+        Sprite sprite = renderer.sprite;
+        if (overwriteLinkSprite)
+        {
+            if (linkSpriteAlt != null)
+                sprite = index % 2 == 0 ? linkSprite : linkSpriteAlt;
+            else if (linkSprite != null)
+                sprite = linkSprite;
 
-        if (sprite != null)
-            renderer.sprite = sprite;
+            if (sprite != null)
+                renderer.sprite = sprite;
+        }
+        else if (sprite == null)
+        {
+            sprite = linkSprite;
+        }
 
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         linkTransform.rotation = Quaternion.Euler(0f, 0f, angle);

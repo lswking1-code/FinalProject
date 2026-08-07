@@ -48,7 +48,7 @@ public class EnemyMarkBomb : MonoBehaviour
     void Start()
     {
         if (lifetime > 0f)
-            Destroy(gameObject, lifetime);
+            Invoke(nameof(Detonate), lifetime);
     }
 
     public void Init(Enemy enemy)
@@ -84,11 +84,7 @@ public class EnemyMarkBomb : MonoBehaviour
 
     void OnHostDie()
     {
-        if (hasDetonated)
-            return;
-
-        ClearMark();
-        Destroy(gameObject);
+        Detonate();
     }
 
     void Detonate()
@@ -97,6 +93,7 @@ public class EnemyMarkBomb : MonoBehaviour
             return;
 
         hasDetonated = true;
+        CancelInvoke(nameof(Detonate));
         Unsubscribe();
         ClearMark();
 

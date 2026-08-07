@@ -1219,6 +1219,8 @@ MonoBehaviour:
   laserHitMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  pierceLaserVisualPrefab: {fileID: 8100000000000000001, guid: f1a2b3c4d5e678901234567890abcdef, type: 3}
+  laserMinAimHorizontal: 2
   maxChaseRange: 16
   physicsCheck: {fileID: 8203856712345678901}
   jumpHeight: 2.7

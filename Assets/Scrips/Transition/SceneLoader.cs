@@ -48,6 +48,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public GameSceneSO testScene;
     public Vector3 testPosition;
     public bool enableDevelopCharacterSwitch = true;
+    [Tooltip("开启后按 M 键将当前玩家弹药填满（仅测试用）")]
+    public bool enableFillAmmoCheat;
 
     private GameSceneSO currentLoadedScene;
     private GameSceneSO sceneToLoad;
@@ -77,11 +79,14 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     private void Update()
     {
-        if (!developMode || !enableDevelopCharacterSwitch || playerRegistry == null)
-            return;
-
         var keyboard = Keyboard.current;
         if (keyboard == null)
+            return;
+
+        if (enableFillAmmoCheat && keyboard.mKey.wasPressedThisFrame)
+            TryFillPlayerAmmo();
+
+        if (!developMode || !enableDevelopCharacterSwitch || playerRegistry == null)
             return;
 
         if (keyboard.digit1Key.wasPressedThisFrame)
@@ -90,6 +95,18 @@ public class SceneLoader : MonoBehaviour, ISaveable
             SelectCharacterByIndex(1);
         else if (keyboard.digit3Key.wasPressedThisFrame)
             SelectCharacterByIndex(2);
+    }
+
+    void TryFillPlayerAmmo()
+    {
+        if (playerTrans == null || !playerTrans.gameObject.activeInHierarchy)
+            return;
+
+        var character = playerTrans.GetComponent<Character>();
+        if (character == null)
+            return;
+
+        character.FillAllAmmo();
     }
 
     private void OnEnable()

@@ -82,6 +82,22 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] float laserWidth = 0.08f;
     [SerializeField] Color laserColor = new Color(0.3f, 1f, 1f, 1f);
     [SerializeField] LayerMask laserHitMask = ~0;
+    [Tooltip("可替换的激光视觉 Prefab（需挂 AllyRobotPierceLaserVisual）；为空时回退 LineRenderer")]
+    [SerializeField] GameObject pierceLaserVisualPrefab;
+    [Tooltip("瞄准时最小水平距离；近距垫高 |dx| 避免高度差把角度推过 22.5° 误锁斜向")]
+    [SerializeField] float laserMinAimHorizontal = 2f;
+
+    static readonly Vector2[] LaserDirs8 =
+    {
+        new Vector2(1f, 0f),
+        new Vector2(1f, 1f).normalized,
+        new Vector2(0f, 1f),
+        new Vector2(-1f, 1f).normalized,
+        new Vector2(-1f, 0f),
+        new Vector2(-1f, -1f).normalized,
+        new Vector2(0f, -1f),
+        new Vector2(1f, -1f).normalized,
+    };
 
     [Header("最大追踪范围")]
     [Tooltip("以回归锚点为圆心，超过此距离强制返回")]
@@ -751,8 +767,8 @@ public class AllyRobot : MonoBehaviour
         if (aimTarget != null)
         {
             FaceTarget(aimTarget.position);
-            dir = (Vector2)aimTarget.position - origin;
-            if (dir.sqrMagnitude < 0.0001f)
+            Vector2 toTarget = (Vector2)aimTarget.position - origin;
+            if (toTarget.sqrMagnitude < 0.0001f)
             {
                 float face = Mathf.Sign(transform.localScale.x);
                 if (Mathf.Approximately(face, 0f))
@@ -761,7 +777,13 @@ public class AllyRobot : MonoBehaviour
             }
             else
             {
-                dir.Normalize();
+                float faceX = Mathf.Sign(transform.localScale.x);
+                float sx = Mathf.Sign(toTarget.x);
+                if (Mathf.Approximately(sx, 0f))
+                    sx = Mathf.Approximately(faceX, 0f) ? 1f : faceX;
+                if (Mathf.Abs(toTarget.x) < laserMinAimHorizontal)
+                    toTarget.x = sx * laserMinAimHorizontal;
+                dir = SnapToNearestLaserDir(toTarget);
             }
         }
         else
@@ -773,8 +795,28 @@ public class AllyRobot : MonoBehaviour
         }
 
         ApplyPierceLaserDamage(origin, dir);
-        ShowPierceLaserVisual(origin, origin + dir * laserRange);
+        ShowPierceLaserVisual(origin, dir);
         return true;
+    }
+
+    static Vector2 SnapToNearestLaserDir(Vector2 desired)
+    {
+        if (desired.sqrMagnitude < 0.0001f)
+            return Vector2.right;
+
+        desired.Normalize();
+        Vector2 best = LaserDirs8[0];
+        float bestDot = Vector2.Dot(desired, best);
+        for (int i = 1; i < LaserDirs8.Length; i++)
+        {
+            float d = Vector2.Dot(desired, LaserDirs8[i]);
+            if (d > bestDot)
+            {
+                bestDot = d;
+                best = LaserDirs8[i];
+            }
+        }
+        return best;
     }
 
     void ApplyPierceLaserDamage(Vector2 origin, Vector2 dir)
@@ -821,11 +863,29 @@ public class AllyRobot : MonoBehaviour
         laserAttackSource.ignoreTag = "Player";
     }
 
-    void ShowPierceLaserVisual(Vector2 start, Vector2 end)
+    void ShowPierceLaserVisual(Vector2 origin, Vector2 dir)
     {
+        Vector2 end = origin + dir * laserRange;
+
+        if (pierceLaserVisualPrefab != null)
+        {
+            GameObject go = Instantiate(pierceLaserVisualPrefab, origin, Quaternion.identity);
+            var visual = go.GetComponent<AllyRobotPierceLaserVisual>();
+            if (visual != null)
+            {
+                visual.Setup(origin, dir, laserRange, laserVisualDuration);
+                return;
+            }
+
+            Destroy(go);
+            Debug.LogWarning(
+                $"Pierce laser prefab '{pierceLaserVisualPrefab.name}' is missing AllyRobotPierceLaserVisual.",
+                pierceLaserVisualPrefab);
+        }
+
         EnsureLaserLineRenderer();
         laserLine.enabled = true;
-        laserLine.SetPosition(0, start);
+        laserLine.SetPosition(0, origin);
         laserLine.SetPosition(1, end);
 
         if (laserVisualRoutine != null)
@@ -1421,10 +1481,10 @@ public class AllyRobot : MonoBehaviour
 
         if (!attackLungeActive)
             StopMoving();
-        FaceTarget(currentTarget.position);
 
         if (attackTimer <= 0f)
         {
+            FaceTarget(currentTarget.position);
             anim.SetTrigger(attackTriggerName);
             attackTimer = attackCooldown;
         }

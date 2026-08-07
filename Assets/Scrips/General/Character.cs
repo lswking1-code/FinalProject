@@ -253,6 +253,16 @@ public class Character : MonoBehaviour,ISaveable
     private void triggerInvulnerable() => TriggerInvulnerable();
 
     /// <summary>
+    /// 将 S/M/L 弹药全部填充至上限。
+    /// </summary>
+    public void FillAllAmmo()
+    {
+        BulletS = maxBulletS;
+        BulletM = maxBulletM;
+        BulletL = maxBulletL;
+    }
+
+    /// <summary>
     /// 增加弹药。已达上限或 amount 无效时返回 false。
     /// </summary>
     public bool AddAmmo(AmmoType type, int amount)
