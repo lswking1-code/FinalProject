@@ -197,7 +197,7 @@ public static class PlayerAnimControllerSetup
         string[] oneShots =
         {
             "Land", "Turn", "CrouchStart", "Crouch", "CrouchTurn", "CrouchMove",
-            "Melee", "AirMelee", "CrouchMelee", "Die",
+            "Melee", "AirMelee", "CrouchMelee", "Die", "WeaponSwitch",
         };
 
         var states = new Dictionary<string, AnimatorState>();
@@ -246,6 +246,55 @@ public static class PlayerAnimControllerSetup
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
         Debug.Log($"已创建 {MeleeFullBodyPath}（状态齐全、剪辑为空）。请赋给 PlayerFullBodyAnim.bodyAnimator。");
+    }
+
+    const string MeleeFullRuntimePath = "Assets/Animations/melee/melee_full.controller";
+    const string DefaultSwitchClipPath = "Assets/Animations/melee/default_switch.anim";
+
+    [MenuItem("Lost Division/Ensure Melee WeaponSwitch State")]
+    public static void EnsureMeleeWeaponSwitchState()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+        changed |= EnsureMeleeWeaponSwitchOnController(MeleeFullRuntimePath, assignDefaultSwitchClip: true);
+        changed |= EnsureMeleeWeaponSwitchOnController(MeleeFullBodyPath, assignDefaultSwitchClip: true);
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已为 melee 全身动画机补全 WeaponSwitch 状态。");
+        }
+        else
+            Debug.Log("melee 全身动画机已包含 WeaponSwitch 状态，无需修改。");
+    }
+
+    static bool EnsureMeleeWeaponSwitchOnController(string controllerPath, bool assignDefaultSwitchClip)
+    {
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(controllerPath);
+        if (controller == null)
+        {
+            Debug.LogWarning($"未找到 Animator Controller: {controllerPath}");
+            return false;
+        }
+
+        var sm = controller.layers[0].stateMachine;
+        var states = BuildStateMap(sm);
+        if (states.ContainsKey("WeaponSwitch"))
+            return false;
+
+        var state = sm.AddState("WeaponSwitch", new Vector3(300f, 530f, 0f));
+        state.writeDefaultValues = true;
+        if (assignDefaultSwitchClip)
+        {
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(DefaultSwitchClipPath);
+            if (clip != null)
+                state.motion = clip;
+        }
+
+        EditorUtility.SetDirty(controller);
+        return true;
     }
 
     static void AddBoolTransition(

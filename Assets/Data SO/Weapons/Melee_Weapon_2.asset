@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponId: 2
   displayName: whip
-  enabledInCycle: 0
+  enabledInCycle: 1
+  animProfile: 1
   idle: {fileID: 7400000, guid: ef0b0c39ab9744b6ba800a68ec4b283b, type: 2}
   run: {fileID: 7400000, guid: 24f0dbc5aeb83417ebe079dab6fc5767, type: 2}
   jump: {fileID: 7400000, guid: d6951a54aed77400aadee54b5ae553ee, type: 2}
-  fall: {fileID: 0}
-  leap: {fileID: 0}
-  leapAir: {fileID: 0}
+  fall: {fileID: 7400000, guid: 35d91f4de0c0948ea8e8e9c330412bf4, type: 2}
+  leap: {fileID: 7400000, guid: d6951a54aed77400aadee54b5ae553ee, type: 2}
+  leapAir: {fileID: 7400000, guid: 35d91f4de0c0948ea8e8e9c330412bf4, type: 2}
   lookUpStart: {fileID: 0}
   lookUp: {fileID: 0}
   lookUpEnd: {fileID: 0}
@@ -30,19 +31,19 @@ MonoBehaviour:
   shoot: {fileID: 0}
   lookUpShoot: {fileID: 0}
   lookDownShoot: {fileID: 0}
-  melee: {fileID: 0}
-  airMelee: {fileID: 0}
+  melee: {fileID: 7400000, guid: 6ad01083aace241ee80253838935d6c6, type: 2}
+  airMelee: {fileID: 7400000, guid: 97e14587aa00e4707a512bb46493e13f, type: 2}
   throwClip: {fileID: 0}
   airThrow: {fileID: 0}
-  weaponSwitch: {fileID: 0}
+  weaponSwitch: {fileID: 7400000, guid: 226f9991596ef4a73871a4d6fca9d8a2, type: 2}
   crouch: {fileID: 0}
   crouchStart: {fileID: 0}
   crouchMove: {fileID: 0}
-  crouchTurn: {fileID: 0}
+  crouchTurn: {fileID: 7400000, guid: 3346e656f63b6450ea4704636933b1cb, type: 2}
   crouchShoot: {fileID: 0}
-  crouchMelee: {fileID: 0}
+  crouchMelee: {fileID: 7400000, guid: 6ad01083aace241ee80253838935d6c6, type: 2}
   crouchThrow: {fileID: 0}
   crouchWeaponSwitch: {fileID: 0}
-  land: {fileID: 0}
-  turn: {fileID: 0}
+  land: {fileID: 7400000, guid: ef0b0c39ab9744b6ba800a68ec4b283b, type: 2}
+  turn: {fileID: 7400000, guid: 3346e656f63b6450ea4704636933b1cb, type: 2}
   die: {fileID: 0}

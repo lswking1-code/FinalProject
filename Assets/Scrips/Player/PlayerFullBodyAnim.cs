@@ -1,10 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// 单 Animator 全身动画（近战角色）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
-/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove, Melee, AirMelee, CrouchMelee, Die。
-/// 推荐 AnimatorController：<c>Assets/Animation/meleeFullBody.controller</c>。
+/// 单 Animator 全身动画（近战角色 / Bob）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
+/// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove, Melee, AirMelee, CrouchMelee, Die, WeaponSwitch。
+/// 推荐 AnimatorController：<c>Assets/Animations/melee/melee_full.controller</c>。
 /// Prefab：只挂本组件，勿与 <see cref="PlayerAnim"/> 同挂；配合 <see cref="MeleeAttackInput"/> 而非 PlayerShooting。
+/// 切枪：ApplyWeaponDefinition 后播 WeaponSwitch，期间 IsSwitchingWeapon 为 true（仅本组件，分轨角色不受影响）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerFullBodyAnim : PlayerAnimBase
@@ -18,6 +19,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string AirMeleeStateName = "AirMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string DieStateName = "Die";
+    const string WeaponSwitchStateName = "WeaponSwitch";
 
     [Header("全身 Animator")]
     public Animator bodyAnimator;
@@ -45,6 +47,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool isCrouching;
     bool isRunning;
     bool isMelee;
+    bool isSwitchingWeapon;
     bool isDead;
     bool jumpInvokedThisFrame;
     bool wasGrounded;
@@ -62,13 +65,16 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool IsCrouching => isCrouching;
     public override bool IsMelee => isMelee;
+    public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
     public override AirPhaseType CurrentAirPhase => airPhase;
-    public override string CurrentFullBodyState => activeOneShotState;
+    public override string CurrentFullBodyState =>
+        isSwitchingWeapon ? WeaponSwitchStateName : activeOneShotState;
     public override bool IsPlayingLand => activeOneShotState == LandStateName;
     public override bool IsTurning =>
         activeOneShotState == TurnStateName || activeOneShotState == CrouchTurnStateName;
-    public override bool IsInFullBody => isCrouching || !string.IsNullOrEmpty(activeOneShotState);
+    public override bool IsInFullBody =>
+        isCrouching || isSwitchingWeapon || !string.IsNullOrEmpty(activeOneShotState);
 
     void Awake()
     {
@@ -100,6 +106,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         if (isDead)
             return;
 
+        if (isSwitchingWeapon)
+        {
+            MaintainWeaponSwitchCompletion();
+            wasGrounded = grounded;
+            return;
+        }
+
         if (isCrouching && !grounded)
             ExitCrouchForAir(velocityY);
 
@@ -108,6 +121,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             TryCompleteCrouchStart();
             TryAutoExitCrouchTurn();
             MaintainMeleeCompletion();
+            MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -116,6 +130,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         {
             TryAutoExitOneShot();
             MaintainMeleeCompletion();
+            MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -123,12 +138,16 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         AdvanceAirPhase(grounded, velocityY);
         SyncLocomotion();
         MaintainMeleeCompletion();
+        MaintainWeaponSwitchCompletion();
         wasGrounded = grounded;
         airStateInitialized = true;
     }
 
     public override void PlayJumpAnim(bool hasHorizontalInput)
     {
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
         InterruptLand();
         InterruptTurn();
 
@@ -155,7 +174,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool PlayTurnAnim()
     {
-        if (isCrouching || !string.IsNullOrEmpty(activeOneShotState))
+        if (isSwitchingWeapon || isCrouching || !string.IsNullOrEmpty(activeOneShotState))
             return false;
         if (airPhase != AirPhaseType.Ground)
             return false;
@@ -166,7 +185,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool PlayCrouchTurnAnim()
     {
-        if (!isCrouching || bodyAnimator == null)
+        if (isSwitchingWeapon || !isCrouching || bodyAnimator == null)
             return false;
         if (activeOneShotState == CrouchTurnStateName)
             return false;
@@ -177,7 +196,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool TryPlayRunStopLand()
     {
-        if (!isRunning || isCrouching || IsTurning || IsPlayingLand)
+        if (isSwitchingWeapon || !isRunning || isCrouching || IsTurning || IsPlayingLand)
             return false;
         if (!string.IsNullOrEmpty(activeOneShotState) || airPhase != AirPhaseType.Ground)
             return false;
@@ -190,6 +209,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public override void PlayIdleAnim()
     {
         isRunning = false;
+
+        if (isSwitchingWeapon)
+            return;
 
         if (isCrouching)
         {
@@ -204,6 +226,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override void PlayRunAnim()
     {
+        if (isSwitchingWeapon)
+            return;
+
         if (isCrouching && isMelee)
             return;
 
@@ -230,6 +255,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         if (isCrouching)
             return;
 
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
         InterruptLand();
         isCrouching = true;
         airPhase = AirPhaseType.Ground;
@@ -241,6 +269,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         if (!isCrouching)
             return;
+
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
 
         isCrouching = false;
         activeOneShotState = null;
@@ -255,6 +286,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool TryPlayMeleeAnim()
     {
+        if (isSwitchingWeapon || isDead)
+            return false;
+
         if (IsPlayingLand)
             InterruptLand();
         else if (IsTurning)
@@ -309,16 +343,38 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def)
     {
-        if (def == null || isDead)
+        if (def == null || isDead || bodyAnimator == null)
             return false;
 
-        // melee_full 无 WeaponSwitch 状态：即时换装，不进入 IsSwitchingWeapon 阻塞
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
+        if (isMelee)
+            CompleteMelee();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (IsTurning)
+            InterruptTurn();
+
         ApplyWeaponDefinition(def);
+
+        isSwitchingWeapon = true;
+        activeOneShotState = null;
+        oneShotAutoExit = false;
+
+        if (isCrouching && bodyAnimator != null)
+            bodyAnimator.SetBool("IsRun", false);
+
+        bodyAnimator.Play(WeaponSwitchStateName, 0, 0f);
         return true;
     }
 
     public override void PlayDieAnim()
     {
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
         isDead = true;
         isCrouching = false;
         isRunning = false;
@@ -345,6 +401,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public override void ResetFromDeath()
     {
         isDead = false;
+        isSwitchingWeapon = false;
         activeOneShotState = null;
         oneShotAutoExit = false;
         InvalidateLocomotionCache();
@@ -432,7 +489,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     void SyncLocomotion()
     {
-        if (bodyAnimator == null || isMelee)
+        if (bodyAnimator == null || isMelee || isSwitchingWeapon)
             return;
 
         if (isCrouching)
@@ -623,6 +680,51 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         isMelee = false;
         activeMeleeStateName = null;
+
+        if (isSwitchingWeapon)
+            return;
+
+        if (isCrouching && bodyAnimator != null)
+        {
+            bodyAnimator.SetBool("IsRun", isRunning);
+            bodyAnimator.Play(CrouchStateName, 0, 0f);
+            return;
+        }
+
+        InvalidateLocomotionCache();
+        SyncLocomotion();
+    }
+
+    void MaintainWeaponSwitchCompletion()
+    {
+        if (!isSwitchingWeapon || bodyAnimator == null)
+            return;
+
+        if (!bodyAnimator.isActiveAndEnabled)
+        {
+            CompleteWeaponSwitch();
+            return;
+        }
+
+        var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(WeaponSwitchStateName))
+        {
+            CompleteWeaponSwitch();
+            return;
+        }
+
+        if (info.normalizedTime < 1f)
+            return;
+
+        CompleteWeaponSwitch();
+    }
+
+    void CompleteWeaponSwitch()
+    {
+        isSwitchingWeapon = false;
+
+        if (isDead)
+            return;
 
         if (isCrouching && bodyAnimator != null)
         {

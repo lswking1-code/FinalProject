@@ -1,15 +1,31 @@
 using UnityEngine;
 
+/// <summary>
+/// 武器姿态 / 切枪动画替换定义。
+/// <see cref="AnimProfile.SplitBody"/>：分轨角色（Player / Machinist）上半身 + 蹲姿全身。
+/// <see cref="AnimProfile.FullBodyMelee"/>：Bob 单 Animator 全身（default_* 基座名）。
+/// </summary>
 [CreateAssetMenu(menuName = "Player/Weapon Definition", fileName = "WeaponDefinition")]
 public class WeaponDefinition : ScriptableObject
 {
+    public enum AnimProfile
+    {
+        [Tooltip("分轨：上半身 + FullBody 蹲姿（Player / Machinist）")]
+        SplitBody = 0,
+        [Tooltip("全身近战：Bob / Melee_Player（melee_full 的 default_* 基座）")]
+        FullBodyMelee = 1,
+    }
+
     [Header("基本")]
     public int weaponId;
     public string displayName;
     [Tooltip("勾选后可进入 Q/E 轮换；未填写的动画字段会沿用 Animator 基座 Clip")]
     public bool enabledInCycle = true;
+    [Tooltip("决定 Inspector 展示哪套替换槽；切枪映射仍按基座 Clip 名解析，两套可共用同一字段。")]
+    public AnimProfile animProfile = AnimProfile.SplitBody;
 
-    [Header("上半身 Locomotion")]
+    // —— 以下字段运行时两套角色共用；Inspector 按 animProfile 分区展示 ——
+
     public AnimationClip idle;
     public AnimationClip run;
     public AnimationClip jump;
@@ -17,7 +33,6 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip leap;
     public AnimationClip leapAir;
 
-    [Header("上半身 Look")]
     public AnimationClip lookUpStart;
     public AnimationClip lookUp;
     public AnimationClip lookUpEnd;
@@ -25,7 +40,6 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip lookDown;
     public AnimationClip lookDownEnd;
 
-    [Header("上半身射击 / 动作 / 切枪")]
     public AnimationClip shoot;
     public AnimationClip lookUpShoot;
     public AnimationClip lookDownShoot;
@@ -35,7 +49,6 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip airThrow;
     public AnimationClip weaponSwitch;
 
-    [Header("全身蹲姿 / 切枪 / 其它")]
     public AnimationClip crouch;
     public AnimationClip crouchStart;
     public AnimationClip crouchMove;
@@ -48,9 +61,11 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip turn;
     public AnimationClip die;
 
+    public bool IsFullBodyMelee => animProfile == AnimProfile.FullBodyMelee;
+
     /// <summary>
     /// 是否全部姿态字段已填。仅供编辑器/排查；未填字段切枪时沿用 Animator 基座动画，不作为切枪门槛。
-    /// 手枪(0)恒为 true。
+    /// 手枪(0)恒为 true。分轨与 Bob 校验字段不同。
     /// </summary>
     public bool IsPoseComplete
     {
@@ -58,6 +73,12 @@ public class WeaponDefinition : ScriptableObject
         {
             if (weaponId == 0)
                 return true;
+
+            if (animProfile == AnimProfile.FullBodyMelee)
+            {
+                return idle && run && jump && (fall || jump) && weaponSwitch
+                    && melee && (airMelee || melee);
+            }
 
             return idle && run && jump && fall && leap && leapAir
                 && lookUpStart && lookUp && lookUpEnd
@@ -74,7 +95,7 @@ public class WeaponDefinition : ScriptableObject
 
     /// <summary>
     /// 按基座 Clip 名解析替换 Clip。返回 null 表示保持原 Clip。
-    /// 手枪(0)一律保持基座。
+    /// weaponId == 0 一律保持基座。
     /// </summary>
     public AnimationClip GetOverrideForBaseClip(AnimationClip original)
     {
@@ -103,6 +124,14 @@ public class WeaponDefinition : ScriptableObject
             case "throw": return throwClip;
             case "air_throw": return airThrow;
             case "stand_draw": return weaponSwitch;
+            // Bob / melee_full 基座
+            case "default_switch": return weaponSwitch;
+            case "default_idle": return idle;
+            case "default_run": return run;
+            case "default_jump": return jump;
+            case "default_fall": return fall != null ? fall : jump;
+            case "default_melee": return melee;
+            case "default_air_melee": return airMelee != null ? airMelee : melee;
             case "crouch": return crouch;
             case "crouch_start": return crouchStart;
             case "crouch_move": return crouchMove;
@@ -114,6 +143,7 @@ public class WeaponDefinition : ScriptableObject
             case "stop": return land;
             case "stand_turn": return turn;
             case "die": return die;
+            case "idle_turning": return turn;
             default: return null;
         }
     }
