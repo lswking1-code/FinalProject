@@ -124,6 +124,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isShooting;
     bool sustainShoot;
     bool isCharging;
+    bool isHeavySpinFiring;
     bool isDispatching;
     bool dispatchHoldForLoop;
     bool dispatchAutoEndOnIntroComplete;
@@ -178,6 +179,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsCrouching => isCrouching;
     public override bool IsShooting => isShooting;
     public override bool IsCharging => isCharging;
+    public override bool IsHeavySpinFiring => isHeavySpinFiring;
     public override bool IsDispatching => isDispatching;
     public override MachinistChargeAim ActiveChargeAim => activeChargeAim;
     public override bool IsPlayingMachinistComboShoot =>
@@ -2947,6 +2949,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override void SetSustainShoot(bool sustain)
     {
         sustainShoot = sustain;
+    }
+
+    public override void SetHeavySpinFiring(bool value)
+    {
+        isHeavySpinFiring = value;
     }
 
     void CompleteShoot()

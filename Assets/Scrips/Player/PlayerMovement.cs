@@ -330,7 +330,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.gravityScale = 0f;
 
-        if (playerAnim.IsTurning || playerAnim.IsCharging
+        if (playerAnim.IsTurning || playerAnim.IsCharging || playerAnim.IsHeavySpinFiring
             || (playerAnim.IsCrouching && playerAnim.IsDispatching))
         {
             rb.linearVelocity = Vector2.zero;
@@ -460,7 +460,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
 
         // 蓄力中：左右输入忽略（不翻面、不转身、不移动）
-        if (playerAnim.IsCharging)
+        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
             return;
 
         if (playerAnim.IsPlayingMachinistComboShoot)
@@ -492,10 +492,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgIsGroundInFixed = physicsCheck.isGround;
         dbgDidJump = false;
 
-        if (playerAnim.IsPlayingMachinistComboShoot)
+        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsHeavySpinFiring)
         {
             jumpBufferCounter = 0f;
-            dbgResult = "连击终结中禁止跳跃";
+            dbgResult = playerAnim.IsHeavySpinFiring ? "机枪蓄力中禁止跳跃" : "连击终结中禁止跳跃";
             return false;
         }
 
@@ -528,7 +528,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
         // 蓄力中左右无效：起跳不改朝向、不带水平速度
-        if (playerAnim.IsCharging || (playerAnim.IsCrouching && playerAnim.IsDispatching))
+        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring
+            || (playerAnim.IsCrouching && playerAnim.IsDispatching))
             hasHorizontalInput = false;
         else if (hasHorizontalInput)
             faceDir = moveInput.x > 0f ? 1f : -1f;
@@ -621,7 +622,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        if (playerAnim.IsCharging)
+        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -772,7 +773,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
 
-        if (playerAnim.IsCharging)
+        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
         {
             playerAnim.PlayIdleAnim();
             return;

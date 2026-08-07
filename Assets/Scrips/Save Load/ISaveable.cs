@@ -5,9 +5,18 @@ using UnityEngine;
 public interface ISaveable
 {
     DataDefination GetDataID();
-    void RegisterSaveData() => DataManager.instance.RegisterSaveData(this);// 向 DataManager 注册
-    void UnregisterSaveData() => DataManager.instance.UnRegisterSaveData(this);// 从 DataManager 注销
-    
+    void RegisterSaveData()
+    {
+        // Persistent 未加载或 DataManager 尚未 Awake 时跳过，避免 NRE
+        if (DataManager.instance != null)
+            DataManager.instance.RegisterSaveData(this);
+    }
+    void UnregisterSaveData()
+    {
+        if (DataManager.instance != null)
+            DataManager.instance.UnRegisterSaveData(this);
+    }
+
     void GetSaveData(Data data);// 将当前状态写入存档数据
     void LoadSaveData(Data data);// 从存档数据恢复状态
 }

@@ -29,6 +29,16 @@ public class WeaponFireConfig
     public float spreadOffset = 0f;
     [Tooltip("按住持续开火（镭射枪）；松手结束")]
     public bool holdToFire;
+    [Tooltip("短按点射/连发，长按进入射速渐快的持续开火（机枪）")]
+    public bool spinUpOnHold;
+    [Tooltip("按住超过该秒数且 burst 结束后进入 SpinUp")]
+    public float spinUpHoldThreshold = 0.2f;
+    [Tooltip("SpinUp 起始开火间隔（秒）")]
+    public float spinUpStartInterval = 0.12f;
+    [Tooltip("SpinUp 极限开火间隔（秒）")]
+    public float spinUpMinInterval = 0.04f;
+    [Tooltip("从起始间隔加速到极限间隔所需秒数")]
+    public float spinUpRampDuration = 1.5f;
 }
 
 [DefaultExecutionOrder(100)]
@@ -58,6 +68,13 @@ public class PlayerShooting : MonoBehaviour
 
     PlayerLaserBeam activeLaser;
 
+    bool isSpinningUp;
+    bool attackHeld;
+    float attackPressTime;
+    float spinUpStartTime;
+    float spinNextFireTime;
+    WeaponFireConfig spinUpConfig;
+
     void Awake()
     {
         actions = new InputSystem_Actions();
@@ -74,11 +91,13 @@ public class PlayerShooting : MonoBehaviour
     {
         actions.Player.Disable();
         StopBurst();
+        ExitSpinUp();
         EndLaser(immediate: true);
     }
 
     void OnDestroy()
     {
+        ExitSpinUp();
         EndLaser(immediate: true);
         actions?.Dispose();
     }
@@ -97,6 +116,8 @@ public class PlayerShooting : MonoBehaviour
 
         if (holdLaser)
         {
+            if (isSpinningUp || attackHeld)
+                ExitSpinUp();
             UpdateHoldLaser(config);
             return;
         }
@@ -104,6 +125,25 @@ public class PlayerShooting : MonoBehaviour
         if (activeLaser != null)
             EndLaser(immediate: false);
 
+        if (ShouldForceEndSpinUp())
+        {
+            ExitSpinUp();
+            return;
+        }
+
+        if (config == null || !config.spinUpOnHold)
+        {
+            if (isSpinningUp || attackHeld)
+                ExitSpinUp();
+            UpdateTapFire(config);
+            return;
+        }
+
+        UpdateSpinUpWeapon(config);
+    }
+
+    void UpdateTapFire(WeaponFireConfig config)
+    {
         if (playerMovement.IsActionLocked)
             return;
 
@@ -116,24 +156,169 @@ public class PlayerShooting : MonoBehaviour
         if (burstRoutine != null)
             return;
 
+        if (!actions.Player.Attack.WasPressedThisFrame())
+            return;
+
+        if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
+            && playerMelee.TryMelee())
+            return;
+
+        float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
+        if (fireInterval > 0f && Time.time < nextFireTime)
+            return;
+
+        if (playerAnim.TryPlayShootAnim())
+        {
+            nextFireTime = Time.time + fireInterval;
+            BeginFire(config);
+        }
+    }
+
+    void UpdateSpinUpWeapon(WeaponFireConfig config)
+    {
+        if (isSpinningUp)
+        {
+            if (!actions.Player.Attack.IsPressed())
+            {
+                ExitSpinUp();
+                return;
+            }
+
+            UpdateSpinUpFiring(config);
+            return;
+        }
+
+        if (playerMovement.IsActionLocked)
+            return;
+
+        if (playerAnim != null && playerAnim.IsRolling)
+            return;
+
+        if (playerAnim != null && playerAnim.IsSwitchingWeapon)
+            return;
+
         if (actions.Player.Attack.WasPressedThisFrame())
         {
             if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
                 && playerMelee.TryMelee())
                 return;
 
-            float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
+            float fireInterval = Mathf.Max(0f, config.fireInterval);
             if (fireInterval > 0f && Time.time < nextFireTime)
                 return;
 
-            if (playerAnim.TryPlayShootAnim())
-            {
-                nextFireTime = Time.time + fireInterval;
-                if (playerMovement.GetShootLookDown())
-                    playerMovement.NotifyAirHangFromDownShot();
-                BeginFire(config);
-            }
+            if (burstRoutine != null)
+                return;
+
+            if (!playerAnim.TryPlayShootAnim())
+                return;
+
+            attackHeld = true;
+            attackPressTime = Time.time;
+            nextFireTime = Time.time + fireInterval;
+            if (playerMovement.GetShootLookDown())
+                playerMovement.NotifyAirHangFromDownShot();
+            BeginFire(config);
+            return;
         }
+
+        if (!attackHeld)
+            return;
+
+        if (!actions.Player.Attack.IsPressed())
+        {
+            attackHeld = false;
+            return;
+        }
+
+        float threshold = Mathf.Max(0f, config.spinUpHoldThreshold);
+        if (burstRoutine != null)
+            return;
+
+        if (Time.time - attackPressTime < threshold)
+            return;
+
+        EnterSpinUp(config);
+    }
+
+    bool ShouldForceEndSpinUp()
+    {
+        if (!isSpinningUp && !attackHeld)
+            return false;
+
+        if (playerMovement != null && playerMovement.IsActionLocked)
+            return true;
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
+            return true;
+
+        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        if (spinUpConfig != null && spinUpConfig.weaponId != weaponId)
+            return true;
+
+        WeaponFireConfig current = ResolveFireConfig();
+        if (current == null || !current.spinUpOnHold)
+            return true;
+
+        return false;
+    }
+
+    void EnterSpinUp(WeaponFireConfig config)
+    {
+        isSpinningUp = true;
+        attackHeld = true;
+        spinUpConfig = config;
+        spinUpStartTime = Time.time;
+        spinNextFireTime = Time.time;
+
+        if (playerAnim != null)
+        {
+            playerAnim.SetHeavySpinFiring(true);
+            playerAnim.SetSustainShoot(true);
+            if (!playerAnim.IsShooting)
+                playerAnim.TryPlayShootAnim();
+        }
+    }
+
+    void ExitSpinUp()
+    {
+        bool wasSpinning = isSpinningUp;
+        isSpinningUp = false;
+        attackHeld = false;
+        spinUpConfig = null;
+
+        if (playerAnim != null)
+        {
+            playerAnim.SetHeavySpinFiring(false);
+            if (wasSpinning)
+                playerAnim.SetSustainShoot(false);
+        }
+    }
+
+    void UpdateSpinUpFiring(WeaponFireConfig config)
+    {
+        if (playerAnim != null && !playerAnim.IsShooting)
+            playerAnim.TryPlayShootAnim();
+
+        float interval = ResolveSpinUpInterval(config);
+        if (Time.time < spinNextFireTime)
+            return;
+
+        float spreadOffset = Mathf.Max(0f, config.spreadOffset);
+        FireOnce(spreadOffset, config);
+        spinNextFireTime = Time.time + interval;
+        nextFireTime = spinNextFireTime;
+    }
+
+    float ResolveSpinUpInterval(WeaponFireConfig config)
+    {
+        float start = Mathf.Max(0.01f, config.spinUpStartInterval);
+        float min = Mathf.Max(0.01f, config.spinUpMinInterval);
+        if (min > start)
+            min = start;
+
+        float ramp = Mathf.Max(0.01f, config.spinUpRampDuration);
+        float t = Mathf.Clamp01((Time.time - spinUpStartTime) / ramp);
+        return Mathf.Lerp(start, min, t);
     }
 
     bool ShouldForceEndLaser()

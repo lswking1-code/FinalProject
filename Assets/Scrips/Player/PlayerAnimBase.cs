@@ -18,6 +18,8 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsCrouching => false;
     public virtual bool IsShooting => false;
     public virtual bool IsCharging => false;
+    /// <summary>机枪长按蓄力连射中：禁水平移动/跳跃，仍可蹲。</summary>
+    public virtual bool IsHeavySpinFiring => false;
     public virtual bool IsDispatching => false;
     public virtual MachinistChargeAim ActiveChargeAim => MachinistChargeAim.Forward;
     public virtual bool IsPlayingMachinistComboShoot => false;
@@ -61,6 +63,9 @@ public class PlayerAnimBase : MonoBehaviour
 
     /// <summary>按住持续射击（如镭射）时钉住射击动画，松手后恢复正常结束。</summary>
     public virtual void SetSustainShoot(bool sustain) { }
+
+    /// <summary>机枪长按蓄力连射锁移动标志。</summary>
+    public virtual void SetHeavySpinFiring(bool value) { }
 
     public virtual bool TryPlayMachinistShootAnim(MachinistShootKind kind) => false;
 
