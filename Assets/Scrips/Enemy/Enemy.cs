@@ -21,6 +21,8 @@ public class Enemy : MonoBehaviour
     public bool blocksLaser;
 
     public Vector3 faceDir;
+    [System.Obsolete("已废弃，改用 Attack.enableKnockback / knockbackForce")]
+    [Tooltip("已废弃，改用 Attack.enableKnockback")]
     public float hurtForce;
     public Transform attacker;
 
@@ -381,7 +383,7 @@ public class Enemy : MonoBehaviour
     #region 事件执行方法
 
     /// <summary>
-    /// 受到伤害时调用，转向攻击者并触发击退、闪红与抖动硬直
+    /// 受到伤害时调用，转向攻击者并触发闪红与抖动硬直（推动由 Attack 负责）
     /// </summary>
     public void OnTakeDamage(Transform attackTrans)
     {
@@ -395,13 +397,12 @@ public class Enemy : MonoBehaviour
         isHurt = true;
         anim.SetTrigger("hurt");
 
-        Vector2 dir = new Vector2(transform.position.x - attacker.position.x, 0).normalized;
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
 
         if (hurtRoutine != null)
             StopCoroutine(hurtRoutine);
         RestoreHurtVisuals();
-        hurtRoutine = StartCoroutine(OnHurt(dir));
+        hurtRoutine = StartCoroutine(OnHurt());
 
         if (isPatrol && !isAggro && !isDead)
             OnPatrolAggroFromDamage();
@@ -416,15 +417,14 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 受伤硬直：击退 + 闪红 + 精灵抖动，结束后恢复
+    /// 受伤硬直：闪红 + 精灵抖动，结束后恢复（推动由 Attack.enableKnockback 施加）
     /// </summary>
-    private IEnumerator OnHurt(Vector2 dir)
+    private IEnumerator OnHurt()
     {
         float duration = Mathf.Max(0.05f, hurtDuration);
         float elapsed = 0f;
         float flashTimer = 0f;
         bool flashOn = true;
-        bool appliedImpulse = false;
 
         if (spriteRenderer != null)
             spriteRenderer.color = hurtFlashColor;
@@ -446,18 +446,6 @@ public class Enemy : MonoBehaviour
             {
                 Vector2 offset = Random.insideUnitCircle * hurtShakeIntensity;
                 spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
-            }
-
-            if (rb.bodyType == RigidbodyType2D.Kinematic)
-            {
-                transform.position += (Vector3)(dir * (hurtForce * dt / duration));
-                if (rb.simulated)
-                    rb.MovePosition(transform.position);
-            }
-            else if (!appliedImpulse)
-            {
-                rb.AddForce(dir * hurtForce, ForceMode2D.Impulse);
-                appliedImpulse = true;
             }
 
             yield return null;

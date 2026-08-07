@@ -19,7 +19,7 @@ public class PlayerThrow : MonoBehaviour
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
         playerCollider = GetComponent<Collider2D>();
         playerRb = GetComponent<Rigidbody2D>();

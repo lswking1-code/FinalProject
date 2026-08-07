@@ -103,7 +103,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 146101076622597715}
-  - component: {fileID: 36740854085158905}
   - component: {fileID: 2307431811913099506}
   - component: {fileID: 1022828831124262964}
   - component: {fileID: 944149440048944892}
@@ -114,6 +113,8 @@ GameObject:
   - component: {fileID: 8901234567890123457}
   - component: {fileID: 9123456789012345678}
   - component: {fileID: 3740322793617707706}
+  - component: {fileID: 7012345678901234509}
+  - component: {fileID: 7012345678901234514}
   m_Layer: 9
   m_Name: Melee_Player
   m_TagString: Player
@@ -151,25 +152,6 @@ Transform:
   - {fileID: 7012345678901234504}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &36740854085158905
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3670684932593068974}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06e25b1ad62bf8240b3f5d2d648887e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  upperAnimator: {fileID: 5672296781556710403}
-  lowerAnimator: {fileID: 8465899686639731569}
-  crouchAnimator: {fileID: 3027643877075010879}
-  upBody: {fileID: 598317522747824999}
-  downBody: {fileID: 3708017859273649367}
-  crouchBody: {fileID: 6077945265886347755}
-  descendVelocityThreshold: 0
 --- !u!114 &2307431811913099506
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,7 +164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06c192c856dcec14f80855aea53a3809, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bodyAnimator: {fileID: 0}
+  bodyAnimator: {fileID: 3027643877075010879}
   descendVelocityThreshold: 0
 --- !u!114 &1022828831124262964
 MonoBehaviour:
@@ -418,6 +400,37 @@ MonoBehaviour:
     m_Bits: 4096
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
+--- !u!114 &7012345678901234509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a2b3c4d5e6478990abcdef12345678, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 40
+  hitStart: 0.15
+  hitEnd: 0.45
+  meleePoint1: {fileID: 7012345678901234502}
+  meleePoint2: {fileID: 7012345678901234504}
+  meleeHitbox: {fileID: 7012345678901234505}
+  detectZone: {fileID: 7012345678901234513}
+--- !u!114 &7012345678901234514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e920393765788ee4a8670d32d3b28ed0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0

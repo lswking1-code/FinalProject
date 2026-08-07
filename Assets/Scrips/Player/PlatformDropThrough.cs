@@ -46,7 +46,7 @@ public class PlatformDropThrough : MonoBehaviour
     {
         physicsCheck = GetComponent<PhysicsCheck>();
         playerMovement = GetComponent<PlayerMovement>();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 

@@ -37,6 +37,7 @@ public class Character : MonoBehaviour,ISaveable
     public bool invulnerable;
     bool forcedInvulnerable;
     bool isDead;
+    Coroutine knockbackRoutine;
 
     public bool IsDead => isDead;
     public bool IsForcedInvulnerable => forcedInvulnerable;
@@ -133,12 +134,63 @@ public class Character : MonoBehaviour,ISaveable
             currentHealth -= attacker.damage;
             triggerInvulnerable();
             OnTakeDamage?.Invoke(attacker.transform);
+            ApplyKnockback(attacker);
             NotifyStatsChanged();
         }
         else
         {
             Die();
         }
+    }
+
+    void ApplyKnockback(Attack attacker)
+    {
+        if (attacker == null || !attacker.enableKnockback || attacker.knockbackForce <= 0f)
+            return;
+
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+            return;
+
+        Vector2 dir = new Vector2(transform.position.x - attacker.transform.position.x, 0f).normalized;
+        if (dir.sqrMagnitude < 0.01f)
+            dir = Vector2.right;
+
+        float duration = Mathf.Max(0.05f, attacker.knockbackDuration);
+        Vector2 impulse = dir * attacker.knockbackForce;
+
+        var movement = GetComponent<PlayerMovement>();
+        if (movement != null)
+        {
+            movement.BeginKnockback(impulse, duration);
+            return;
+        }
+
+        if (rb.bodyType == RigidbodyType2D.Kinematic)
+        {
+            if (knockbackRoutine != null)
+                StopCoroutine(knockbackRoutine);
+            knockbackRoutine = StartCoroutine(KnockbackKinematic(rb, dir, attacker.knockbackForce, duration));
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        rb.AddForce(impulse, ForceMode2D.Impulse);
+    }
+
+    IEnumerator KnockbackKinematic(Rigidbody2D rb, Vector2 dir, float force, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            transform.position += (Vector3)(dir * (force * dt / duration));
+            if (rb.simulated)
+                rb.MovePosition(transform.position);
+            yield return null;
+        }
+        knockbackRoutine = null;
     }
 
     void Die()

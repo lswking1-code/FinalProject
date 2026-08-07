@@ -39,7 +39,7 @@ public class PlayerRoll : MonoBehaviour
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
         character = GetComponent<Character>();
         physicsCheck = GetComponent<PhysicsCheck>();

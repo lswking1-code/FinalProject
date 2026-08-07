@@ -19,7 +19,7 @@ public class PlayerMelee : MonoBehaviour
 
     void Awake()
     {
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
 
         if (meleeHitbox != null)

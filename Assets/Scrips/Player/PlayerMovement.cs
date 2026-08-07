@@ -42,8 +42,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
     float slopeDetachTimer;
     float airHangTimer;
+    float knockbackUntil;
 
     public bool IsActionLocked { get; private set; }
+    public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
     public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsForcedAirCombo;
 
@@ -78,7 +80,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
         platformDropThrough = GetComponent<PlatformDropThrough>();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         if (playerAnim == null)
             Debug.LogError("PlayerMovement 需要 PlayerAnim 或 PlayerFullBodyAnim 组件。", this);
         capsuleCollider = GetComponent<CapsuleCollider2D>();
@@ -177,10 +179,24 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
-        ApplyHorizontalMovement();
+        if (!IsKnockbackActive)
+            ApplyHorizontalMovement();
         ApplyRobotTopPlatformCarry(applyVertical: true);
         CancelVelocityIntoObstacle();
         CancelVelocityIntoSlope();
+    }
+
+    /// <summary>
+    /// 受击推动：施加冲量并短时跳过水平速度覆写，避免下一帧被移动逻辑盖掉。
+    /// </summary>
+    public void BeginKnockback(Vector2 impulse, float duration)
+    {
+        if (IsActionLocked)
+            return;
+
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        rb.AddForce(impulse, ForceMode2D.Impulse);
+        knockbackUntil = Time.time + Mathf.Max(0.05f, duration);
     }
 
     /// <summary>

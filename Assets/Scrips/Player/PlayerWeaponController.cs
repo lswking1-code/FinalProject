@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(50)]
-[RequireComponent(typeof(PlayerAnim))]
+[RequireComponent(typeof(PlayerAnimBase))]
 [RequireComponent(typeof(PlayerMovement))]
 [RequireComponent(typeof(DataDefination))]
 public class PlayerWeaponController : MonoBehaviour, ISaveable
@@ -33,7 +33,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
     void Awake()
     {
         actions = new InputSystem_Actions();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
         currentWeaponId = initialWeaponId;
     }

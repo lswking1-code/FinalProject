@@ -19,7 +19,7 @@ public class MeleeAttackInput : MonoBehaviour
     {
         playerMelee = GetComponent<PlayerMelee>();
         playerMovement = GetComponent<PlayerMovement>();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         actions = new InputSystem_Actions();
     }
 

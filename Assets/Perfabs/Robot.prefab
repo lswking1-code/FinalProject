@@ -105,6 +105,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!1 &1035323908920430394
 GameObject:
   m_ObjectHideFlags: 0
@@ -267,6 +270,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!1 &1049432881507766606
 GameObject:
   m_ObjectHideFlags: 0
@@ -542,7 +548,7 @@ GameObject:
   - component: {fileID: 279142597796619701}
   m_Layer: 13
   m_Name: BlastAttack3
-  m_TagString: Untagged
+  m_TagString: Blast
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -634,6 +640,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 1
+  knockbackForce: 3
+  knockbackDuration: 0.15
 --- !u!1 &1970019182183070184
 GameObject:
   m_ObjectHideFlags: 0
@@ -739,6 +748,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!1 &4116885368811100457
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,7 +764,7 @@ GameObject:
   - component: {fileID: 8912548981170408170}
   m_Layer: 13
   m_Name: BlastAttack1
-  m_TagString: Untagged
+  m_TagString: Blast
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -845,6 +857,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 1
+  knockbackForce: 3
+  knockbackDuration: 0.15
 --- !u!1 &4254878822918393790
 GameObject:
   m_ObjectHideFlags: 0
@@ -950,6 +965,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!1 &5818673389914477433
 GameObject:
   m_ObjectHideFlags: 0
@@ -1380,6 +1398,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!1 &6729317048511795535
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,7 +1501,7 @@ GameObject:
   - component: {fileID: 1108237073089540197}
   m_Layer: 13
   m_Name: BlastAttack2
-  m_TagString: Untagged
+  m_TagString: Blast
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1573,6 +1594,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 1
+  knockbackForce: 3
+  knockbackDuration: 0.25
 --- !u!1 &7794252293549558152
 GameObject:
   m_ObjectHideFlags: 0

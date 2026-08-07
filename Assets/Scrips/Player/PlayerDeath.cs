@@ -22,7 +22,7 @@ public class PlayerDeath : MonoBehaviour
     void Awake()
     {
         character = GetComponent<Character>();
-        playerAnim = GetComponent<PlayerAnimBase>();
+        playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
 
         // 回菜单会 SetActive(false)，必须用 Awake/OnDestroy 订阅，否则会错过 newGame

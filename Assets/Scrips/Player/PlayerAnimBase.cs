@@ -131,4 +131,25 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual void SetRollRotation(float degreesZ) { }
 
     public virtual void ResetRollRotation() { }
+
+    /// <summary>
+    /// 解析玩家动画组件：优先返回启用中的实例，避免与禁用的 <see cref="PlayerAnim"/> 同挂时绑错。
+    /// </summary>
+    public static PlayerAnimBase Resolve(GameObject go)
+    {
+        if (go == null)
+            return null;
+
+        var anims = go.GetComponents<PlayerAnimBase>();
+        if (anims == null || anims.Length == 0)
+            return null;
+
+        for (int i = 0; i < anims.Length; i++)
+        {
+            if (anims[i] != null && anims[i].isActiveAndEnabled)
+                return anims[i];
+        }
+
+        return anims[0];
+    }
 }

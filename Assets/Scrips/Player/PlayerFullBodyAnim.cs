@@ -55,6 +55,10 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool lastSyncedRun;
 
     string activeMeleeStateName;
+    AnimatorOverrideController bodyOverrideController;
+    RuntimeAnimatorController bodyBaseController;
+
+    const string WeaponIdParam = "WeaponID";
 
     public override bool IsCrouching => isCrouching;
     public override bool IsMelee => isMelee;
@@ -70,10 +74,12 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        EnsureOverrideController();
     }
 
     void Start()
     {
+        EnsureOverrideController();
         if (physicsCheck != null)
         {
             physicsCheck.Check();
@@ -284,6 +290,30 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             return false;
 
         normalizedTime = info.normalizedTime;
+        return true;
+    }
+
+    public override void ApplyWeaponDefinition(WeaponDefinition def)
+    {
+        if (def == null)
+            return;
+
+        EnsureOverrideController();
+        ApplyOverridesToController(bodyOverrideController, def);
+
+        if (bodyAnimator != null && HasAnimatorParam(bodyAnimator, WeaponIdParam))
+            bodyAnimator.SetInteger(WeaponIdParam, def.weaponId);
+
+        InvalidateLocomotionCache();
+    }
+
+    public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def)
+    {
+        if (def == null || isDead)
+            return false;
+
+        // melee_full 无 WeaponSwitch 状态：即时换装，不进入 IsSwitchingWeapon 阻塞
+        ApplyWeaponDefinition(def);
         return true;
     }
 
@@ -603,5 +633,67 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         InvalidateLocomotionCache();
         SyncLocomotion();
+    }
+
+    void EnsureOverrideController()
+    {
+        if (bodyAnimator == null || bodyOverrideController != null)
+            return;
+
+        var current = bodyAnimator.runtimeAnimatorController;
+        if (current is AnimatorOverrideController existing)
+        {
+            bodyOverrideController = existing;
+            bodyBaseController = existing.runtimeAnimatorController;
+        }
+        else if (current != null)
+        {
+            bodyBaseController = current;
+            bodyOverrideController = new AnimatorOverrideController(bodyBaseController)
+            {
+                name = bodyBaseController.name + "_WeaponOverride",
+            };
+            bodyAnimator.runtimeAnimatorController = bodyOverrideController;
+        }
+    }
+
+    void ApplyOverridesToController(AnimatorOverrideController overrideController, WeaponDefinition def)
+    {
+        if (overrideController == null || def == null)
+            return;
+
+        var pairs = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>>();
+        overrideController.GetOverrides(pairs);
+
+        for (int i = 0; i < pairs.Count; i++)
+        {
+            AnimationClip original = pairs[i].Key;
+            if (original == null)
+                continue;
+
+            AnimationClip replacement = def.weaponId == 0
+                ? original
+                : def.GetOverrideForBaseClip(original);
+
+            pairs[i] = new System.Collections.Generic.KeyValuePair<AnimationClip, AnimationClip>(
+                original,
+                replacement != null ? replacement : original);
+        }
+
+        overrideController.ApplyOverrides(pairs);
+    }
+
+    static bool HasAnimatorParam(Animator animator, string paramName)
+    {
+        if (animator == null || string.IsNullOrEmpty(paramName))
+            return false;
+
+        foreach (var param in animator.parameters)
+        {
+            if (param.name == paramName)
+                return true;
+        }
+
+        return false;
     }
 }

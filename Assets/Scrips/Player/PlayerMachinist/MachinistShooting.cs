@@ -12,8 +12,8 @@ public class MachinistShooting : MonoBehaviour
     [Header("子弹")]
     [SerializeField] PlayerMNormalBullet normalProjectilePrefab;
     [SerializeField] PlayerMNormalBullet comboProjectilePrefab;
-    [Tooltip("下标对应 WeaponId：0 不耗弹，1=BulletS，2=BulletM，3=BulletL")]
-    [SerializeField] PlayerMChargeBullet[] chargeProjectilePrefabs;
+    [Tooltip("下标对应 WeaponId：0 不耗弹，1=BulletS，2=BulletM，3=BulletL；需实现 IPlayerAmmo")]
+    [SerializeField] GameObject[] chargeProjectilePrefabs;
     [Header("特殊弹子弹")]
     [SerializeField] GameObject specialProjectilePrefabS;
     [SerializeField] GameObject specialProjectilePrefabM;
@@ -283,18 +283,18 @@ public class MachinistShooting : MonoBehaviour
         FireCharge(fireDir, ResolveChargePrefab());
     }
 
-    PlayerMChargeBullet ResolveChargePrefab()
+    GameObject ResolveChargePrefab()
     {
         int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
         if (weaponId < 0 || weaponId >= 4)
             weaponId = 0;
 
-        PlayerMChargeBullet fallback = GetChargePrefab(0);
+        GameObject fallback = GetChargePrefab(0);
 
         if (weaponId == 0)
             return fallback;
 
-        PlayerMChargeBullet prefab = GetChargePrefab(weaponId);
+        GameObject prefab = GetChargePrefab(weaponId);
         if (prefab == null)
             return fallback;
 
@@ -320,14 +320,14 @@ public class MachinistShooting : MonoBehaviour
         return chargeAmmoCosts[weaponId];
     }
 
-    PlayerMChargeBullet GetChargePrefab(int index)
+    GameObject GetChargePrefab(int index)
     {
         if (chargeProjectilePrefabs == null || index < 0 || index >= chargeProjectilePrefabs.Length)
             return null;
         return chargeProjectilePrefabs[index];
     }
 
-    void FireCharge(FireDir dir, PlayerMChargeBullet prefab)
+    void FireCharge(FireDir dir, GameObject prefab)
     {
         if (prefab == null)
             return;
@@ -335,7 +335,14 @@ public class MachinistShooting : MonoBehaviour
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        IPlayerAmmo ammo = projectile;
+        var ammo = projectile.GetComponent<IPlayerAmmo>();
+        if (ammo == null)
+        {
+            Debug.LogError($"Charge prefab '{prefab.name}' is missing IPlayerAmmo.", prefab);
+            Destroy(projectile);
+            return;
+        }
+
         ammo.Init(dir, faceY, character);
     }
 
