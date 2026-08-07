@@ -113,6 +113,7 @@ GameObject:
   - component: {fileID: 8901234567890123457}
   - component: {fileID: 9123456789012345678}
   - component: {fileID: 3740322793617707706}
+  - component: {fileID: 8012345678901234501}
   m_Layer: 9
   m_Name: Melee_Player
   m_TagString: Player
@@ -407,6 +408,28 @@ MonoBehaviour:
     m_Bits: 4096
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
+--- !u!114 &8012345678901234501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ecf0b10534094e5082a58e83925f59a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doubleJumpHeight: 4.5
+  usePlayerJumpHeight: 1
+  inputThreshold: 0.5
+  meleeDamage: 40
+  hitStart: 0.15
+  hitEnd: 0.45
+  meleePoint1: {fileID: 7012345678901234502}
+  meleePoint2: {fileID: 7012345678901234504}
+  meleeHitbox: {fileID: 7012345678901234505}
+  detectZone: {fileID: 7012345678901234513}
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0
