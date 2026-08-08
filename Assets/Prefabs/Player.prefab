@@ -194,6 +194,8 @@ MonoBehaviour:
   airHangDuration: 0.12
   airHangGravityScale: 0.25
   airHangVelocityY: 0
+  airHangFadeDuration: 0.75
+  airHangFadedVelocityY: -6
   newGameEvent: {fileID: 0}
   afterSceneLoadedEvent: {fileID: 0}
   dbgKPressedThisUpdate: 0

@@ -25,6 +25,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     [SerializeField] float airHangGravityScale = 0.25f;
     [Tooltip("触发/维持时竖直速度下限；过快下落会被抬到此值")]
     [SerializeField] float airHangVelocityY = 0f;
+    [Tooltip("连续滞空多久后浮空效果完全衰减（秒）")]
+    [SerializeField] float airHangFadeDuration = 0.75f;
+    [Tooltip("衰减结束时的竖直速度下限（负值允许下落）")]
+    [SerializeField] float airHangFadedVelocityY = -6f;
 
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
@@ -42,6 +46,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
     float slopeDetachTimer;
     float airHangTimer;
+    /// <summary>当前连续滞空已持续时长，用于衰减浮空强度。</summary>
+    float airHangSustainElapsed;
     float knockbackUntil;
 
     public bool IsActionLocked { get; private set; }
@@ -225,49 +231,64 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (physicsCheck.isGround
             || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
         {
-            if (airHangTimer > 0f || playerAnim.IsForcedAirCombo)
+            if (airHangTimer > 0f || playerAnim.IsForcedAirCombo || airHangSustainElapsed > 0f)
                 ClearAirHang(restoreGravity: true);
             return;
         }
 
-        // 空中全身终结：整段动画维持滞空
+        // 空中全身终结：整段动画维持满强度滞空，不参与衰减
         if (playerAnim.IsForcedAirCombo)
         {
-            ApplyAirHangPhysics();
+            ApplyAirHangPhysics(fadeHang: false);
             return;
         }
 
         if (airHangTimer <= 0f)
             return;
 
+        airHangSustainElapsed += Time.fixedDeltaTime;
         airHangTimer -= Time.fixedDeltaTime;
         if (airHangTimer > 0f)
         {
-            ApplyAirHangPhysics();
+            ApplyAirHangPhysics(fadeHang: true);
             return;
         }
 
-        airHangTimer = 0f;
-        RestoreGravityAfterAirHang();
+        ClearAirHang(restoreGravity: true);
     }
 
     void ApplyAirHangPhysics()
     {
+        ApplyAirHangPhysics(fadeHang: !playerAnim.IsForcedAirCombo);
+    }
+
+    void ApplyAirHangPhysics(bool fadeHang)
+    {
+        float t = 0f;
+        if (fadeHang && airHangFadeDuration > 0f)
+            t = Mathf.Clamp01(airHangSustainElapsed / airHangFadeDuration);
+        else if (fadeHang)
+            t = 1f;
+
+        float gravityMul = Mathf.Lerp(airHangGravityScale, 1f, t);
+        float velocityFloor = Mathf.Lerp(airHangVelocityY, airHangFadedVelocityY, t);
+
         // 上升阶段不减重力，否则起跳瞬间下射/空中终结会抬高跳跃顶点
-        if (rb.linearVelocity.y > airHangVelocityY)
+        if (rb.linearVelocity.y > velocityFloor)
         {
             rb.gravityScale = normalGravityScale;
             return;
         }
 
-        rb.gravityScale = normalGravityScale * airHangGravityScale;
-        if (rb.linearVelocity.y < airHangVelocityY)
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, airHangVelocityY);
+        rb.gravityScale = normalGravityScale * gravityMul;
+        if (rb.linearVelocity.y < velocityFloor)
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, velocityFloor);
     }
 
     void ClearAirHang(bool restoreGravity)
     {
         airHangTimer = 0f;
+        airHangSustainElapsed = 0f;
         if (restoreGravity)
             RestoreGravityAfterAirHang();
     }
@@ -851,6 +872,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         lastKPressFrame = -1;
         slopeDetachTimer = 0f;
         airHangTimer = 0f;
+        airHangSustainElapsed = 0f;
 
         rb.linearVelocity = Vector2.zero;
         rb.position = transform.position;
