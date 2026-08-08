@@ -6,7 +6,7 @@ public static class WeaponDefinitionSetup
 {
     const string WeaponsFolder = "Assets/Data SO/Weapons";
     const string ClipRoot = "Assets/Arts/Metal Slug";
-    const string PlayerPrefabPath = "Assets/Perfabs/Player.prefab";
+    const string PlayerPrefabPath = "Assets/Prefabs/Player.prefab";
 
     [InitializeOnLoadMethod]
     static void ScheduleEnsure()
@@ -50,6 +50,12 @@ public static class WeaponDefinitionSetup
     public static void EnsurePlayerWeaponController(bool forceFill = false)
     {
         var defs = EnsureWeaponDefinitions(forceFill);
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath) == null)
+        {
+            Debug.LogWarning($"[WeaponDefinitionSetup] Player prefab not found: {PlayerPrefabPath}");
+            return;
+        }
+
         var root = PrefabUtility.LoadPrefabContents(PlayerPrefabPath);
         if (root == null)
             return;

@@ -7,7 +7,7 @@ using UnityEngine;
 /// </summary>
 public static class SaveProgressIdSetup
 {
-    const string EncounterZonePrefabPath = "Assets/Perfabs/EncounterZone.prefab";
+    const string EncounterZonePrefabPath = "Assets/Prefabs/EncounterZone.prefab";
 
     [MenuItem("Lost Division/Ensure Save Progress Data IDs")]
     public static void EnsureSaveProgressDataIds()
@@ -30,6 +30,12 @@ public static class SaveProgressIdSetup
 
     static int EnsureOnPrefab(string path, string stableId)
     {
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null)
+        {
+            Debug.LogWarning($"[SaveProgressIdSetup] Prefab not found: {path}");
+            return 0;
+        }
+
         var root = PrefabUtility.LoadPrefabContents(path);
         if (root == null)
             return 0;

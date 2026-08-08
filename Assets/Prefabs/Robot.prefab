@@ -328,6 +328,7 @@ MonoBehaviour:
   sortingLayerName: 
   maxPooledLinks: 160
   linkTemplate: {fileID: 0}
+  overwriteLinkSprite: 1
 --- !u!1 &1189416587615080527
 GameObject:
   m_ObjectHideFlags: 0
@@ -1597,7 +1598,7 @@ MonoBehaviour:
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
-  knockbackForce: 3
+  knockbackForce: 4
   knockbackDuration: 0.25
 --- !u!1 &7794252293549558152
 GameObject:

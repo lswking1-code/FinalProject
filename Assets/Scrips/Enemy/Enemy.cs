@@ -80,6 +80,8 @@ public class Enemy : MonoBehaviour
     protected BaseState reloadState;
     protected BaseState jumpState;
     protected BaseState returnState;
+    protected BaseState meleeAttackState;
+    protected BaseState skillState;
 
     SpriteRenderer spriteRenderer;
     Color spriteOriginalColor = Color.white;
@@ -353,6 +355,72 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// 朝玩家水平移动
+    /// </summary>
+    public void MoveTowardPlayer()
+    {
+        if (player == null || isHurt || isDead || rb == null)
+            return;
+
+        float dir = GetMoveDirTowardPlayer();
+        ApplyHorizontalMove(dir);
+        FacePlayer();
+    }
+
+    /// <summary>
+    /// 沿指定水平方向移动
+    /// </summary>
+    public void MoveHorizontal(float direction)
+    {
+        if (isHurt || isDead || rb == null)
+            return;
+
+        ApplyHorizontalMove(direction);
+    }
+
+    public float GetMoveDirTowardPlayer()
+    {
+        if (player == null)
+            return faceDir.x;
+
+        float dir = Mathf.Sign(player.position.x - transform.position.x);
+        return dir == 0f ? faceDir.x : dir;
+    }
+
+    protected void ApplyHorizontalMove(float direction)
+    {
+        if (rb == null)
+            return;
+
+        rb.linearVelocity = new Vector2(currentSpeed * direction, rb.linearVelocity.y);
+    }
+
+    /// <summary>
+    /// 遇墙壁时转身，moveDir 为当前水平移动方向
+    /// </summary>
+    public bool TryFlipOnObstacle(float moveDir)
+    {
+        if (physicsCheck == null || !IsPhysicsCheckConfigured())
+            return false;
+
+        if ((physicsCheck.touchLeftWall && moveDir < 0f)
+            || (physicsCheck.touchRightWall && moveDir > 0f))
+        {
+            transform.localScale = new Vector3(faceDir.x, 1, 1);
+            return true;
+        }
+
+        return false;
+    }
+
+    protected bool IsPhysicsCheckConfigured()
+    {
+        return physicsCheck != null
+            && physicsCheck.checkRaduis > 0f
+            && physicsCheck.groundLayer.value != 0;
+    }
+
+    /// <summary>
     /// 切换 AI 状态
     /// </summary>
     public virtual void SwitchState(NPCState state)
@@ -369,6 +437,8 @@ public class Enemy : MonoBehaviour
             NPCState.Reload => reloadState,
             NPCState.Jump => jumpState,
             NPCState.Return => returnState,
+            NPCState.MeleeAttack => meleeAttackState,
+            NPCState.Skill => skillState,
             _ => null
         };
 

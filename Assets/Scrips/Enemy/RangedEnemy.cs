@@ -253,44 +253,6 @@ public class RangedEnemy : Enemy
     }
 
     /// <summary>
-    /// 朝玩家水平移动
-    /// </summary>
-    public void MoveTowardPlayer()
-    {
-        if (player == null || isHurt || isDead || Rb == null)
-            return;
-
-        float dir = GetMoveDirTowardPlayer();
-        ApplyHorizontalMove(dir);
-        FacePlayer();
-    }
-
-    /// <summary>
-    /// 沿指定水平方向移动
-    /// </summary>
-    public void MoveHorizontal(float direction)
-    {
-        if (isHurt || isDead || Rb == null)
-            return;
-
-        ApplyHorizontalMove(direction);
-    }
-
-    public float GetMoveDirTowardPlayer()
-    {
-        if (player == null)
-            return faceDir.x;
-
-        float dir = Mathf.Sign(player.position.x - transform.position.x);
-        return dir == 0f ? faceDir.x : dir;
-    }
-
-    void ApplyHorizontalMove(float direction)
-    {
-        Rb.linearVelocity = new Vector2(currentSpeed * direction, Rb.linearVelocity.y);
-    }
-
-    /// <summary>
     /// 在 firePoint 发射一枚子弹
     /// </summary>
     public void FireProjectile()
@@ -307,29 +269,6 @@ public class RangedEnemy : Enemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(new Vector2(dir, 0f));
         FacePlayer();
-    }
-
-    /// <summary>
-    /// 遇墙壁时转身，moveDir 为当前水平移动方向
-    /// </summary>
-    public bool TryFlipOnObstacle(float moveDir)
-    {
-        if (physicsCheck == null || !IsPhysicsCheckConfigured())
-            return false;
-
-        if ((physicsCheck.touchLeftWall && moveDir < 0f)
-            || (physicsCheck.touchRightWall && moveDir > 0f))
-        {
-            transform.localScale = new Vector3(faceDir.x, 1, 1);
-            return true;
-        }
-
-        return false;
-    }
-
-    bool IsPhysicsCheckConfigured()
-    {
-        return physicsCheck.checkRaduis > 0f && physicsCheck.groundLayer.value != 0;
     }
 
     private void OnDrawGizmosSelected()

@@ -26,8 +26,46 @@ public class Attack : MonoBehaviour
 
     readonly HashSet<Character> hitTargets = new();
     readonly Dictionary<Character, float> nextHitTime = new();
+    readonly List<Collider2D> overlapBuffer = new();
 
-    void OnEnable() => hitTargets.Clear();
+    void OnEnable()
+    {
+        hitTargets.Clear();
+        WakeRelatedRigidbodies();
+    }
+
+    /// <summary>
+    /// Hitbox 启用时唤醒自身所属刚体，以及当前已重叠碰撞体上的刚体，
+    /// 避免双方休眠时 Trigger 不产生 Enter/Stay。
+    /// </summary>
+    void WakeRelatedRigidbodies()
+    {
+        var selfRb = GetComponentInParent<Rigidbody2D>();
+        if (selfRb != null)
+            selfRb.WakeUp();
+
+        var col = GetComponent<Collider2D>();
+        if (col == null || !col.enabled)
+            return;
+
+        Physics2D.SyncTransforms();
+
+        overlapBuffer.Clear();
+        var filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+        col.Overlap(filter, overlapBuffer);
+
+        for (int i = 0; i < overlapBuffer.Count; i++)
+        {
+            var other = overlapBuffer[i];
+            if (other == null)
+                continue;
+
+            var otherRb = other.attachedRigidbody;
+            if (otherRb != null)
+                otherRb.WakeUp();
+        }
+    }
 
     void OnTriggerEnter2D(Collider2D collision) => TryDamage(collision);
 
