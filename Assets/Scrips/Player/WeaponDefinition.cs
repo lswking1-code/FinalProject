@@ -57,6 +57,20 @@ public class WeaponDefinition : ScriptableObject
     [Tooltip("向下攻击 · 替换动画机 default_down_melee；未填则空中攻击回退 airMelee")]
     public AnimationClip downMelee;
 
+    [Header("蓄力射击（分轨；基座 clip 名 charge_*）")]
+    public AnimationClip chargeStart;
+    public AnimationClip chargeLoop;
+    public AnimationClip chargeShoot;
+    public AnimationClip lookUpChargeStart;
+    public AnimationClip lookUpChargeLoop;
+    public AnimationClip lookUpChargeShoot;
+    public AnimationClip lookDownChargeStart;
+    public AnimationClip lookDownChargeLoop;
+    public AnimationClip lookDownChargeShoot;
+    public AnimationClip crouchChargeStart;
+    public AnimationClip crouchChargeLoop;
+    public AnimationClip crouchChargeShoot;
+
     [Header("蹲姿 / 其它")]
     public AnimationClip crouch;
     public AnimationClip crouchStart;
@@ -128,6 +142,27 @@ public class WeaponDefinition : ScriptableObject
             case "shoot": return shoot;
             case "lookup_shoot": return lookUpShoot;
             case "lookdown_shoot": return lookDownShoot;
+            case "charge_start": return chargeStart;
+            case "charge_loop": return chargeLoop;
+            case "charge_shoot": return chargeShoot;
+            case "lookup_charge_start": return lookUpChargeStart;
+            case "lookup_charge_loop": return lookUpChargeLoop;
+            case "lookup_charge_shoot": return lookUpChargeShoot;
+            case "lookdown_charge_start": return lookDownChargeStart;
+            case "lookdown_charge_loop": return lookDownChargeLoop;
+            case "lookdown_charge_shoot": return lookDownChargeShoot;
+            case "crouch_charge_start": return crouchChargeStart;
+            case "crouch_charge_loop": return crouchChargeLoop;
+            case "crouch_charge_shoot": return crouchChargeShoot;
+            // 兼容直接挂火焰/枪姿态 clip 为蓄力基座 motion 的情况
+            case "f_stand_shoot": return chargeShoot;
+            case "f_lookup_shoot": return lookUpChargeShoot;
+            case "f_lookdown_shoot": return lookDownChargeShoot;
+            case "f_crouch_shoot": return crouchChargeShoot;
+            case "s_stand_up_shoot": return chargeStart != null ? chargeStart : shoot;
+            case "s_lookup_shoot": return lookUpChargeStart != null ? lookUpChargeStart : lookUpShoot;
+            case "s_lookdown_shoot": return lookDownChargeStart != null ? lookDownChargeStart : lookDownShoot;
+            case "s_crouch_shoot": return crouchChargeStart != null ? crouchChargeStart : crouchShoot;
             case "melee": return melee;
             case "air_melee": return airMelee;
             case "throw": return throwClip;

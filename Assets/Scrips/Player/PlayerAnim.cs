@@ -1271,6 +1271,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         return true;
     }
 
+    public override void CancelCharge() => CancelMachinistCharge();
+
     void CancelMachinistCharge()
     {
         if (!isCharging)

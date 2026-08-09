@@ -83,11 +83,12 @@ public class BulletUI : MonoBehaviour
         if (character == null)
             return 0;
 
+        // 1 机枪→S，2 霰弹→L，3 镭射→M
         return weaponId switch
         {
             1 => character.BulletS,
-            2 => character.BulletM,
-            3 => character.BulletL,
+            2 => character.BulletL,
+            3 => character.BulletM,
             _ => 0,
         };
     }

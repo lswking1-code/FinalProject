@@ -39,6 +39,18 @@ MonoBehaviour:
   upMelee: {fileID: 0}
   airUpMelee: {fileID: 0}
   downMelee: {fileID: 0}
+  chargeStart: {fileID: 7400000, guid: 4de7f46d5237adf498846361418085ff, type: 2}
+  chargeLoop: {fileID: 7400000, guid: 4de7f46d5237adf498846361418085ff, type: 2}
+  chargeShoot: {fileID: 7400000, guid: c37ecf87d5408a349b0380c46805abd2, type: 2}
+  lookUpChargeStart: {fileID: 7400000, guid: 43484c6b6c5a9364aabf0c828c8c6290, type: 2}
+  lookUpChargeLoop: {fileID: 7400000, guid: 43484c6b6c5a9364aabf0c828c8c6290, type: 2}
+  lookUpChargeShoot: {fileID: 7400000, guid: 9ce3ce0fb92db75499cb1f4e735d09b6, type: 2}
+  lookDownChargeStart: {fileID: 7400000, guid: c92810859dbef7f4b98a6dc38448d6ba, type: 2}
+  lookDownChargeLoop: {fileID: 7400000, guid: c92810859dbef7f4b98a6dc38448d6ba, type: 2}
+  lookDownChargeShoot: {fileID: 7400000, guid: 4ae48c0aa846d7747990f97cd357f359, type: 2}
+  crouchChargeStart: {fileID: 7400000, guid: 06b0fe7e90f1b0547beb7b5e0470d67c, type: 2}
+  crouchChargeLoop: {fileID: 7400000, guid: 06b0fe7e90f1b0547beb7b5e0470d67c, type: 2}
+  crouchChargeShoot: {fileID: 7400000, guid: 4438cf3cfffb8a24088eee8ec6392fff, type: 2}
   crouch: {fileID: 7400000, guid: a747cc98bbffb9b4a84460a2c7814d1a, type: 2}
   crouchStart: {fileID: 7400000, guid: 64382ab14834c0a42820dd0bdb84eee7, type: 2}
   crouchMove: {fileID: 7400000, guid: 155d6ded78dbc7c44a6fca9f84960ddc, type: 2}

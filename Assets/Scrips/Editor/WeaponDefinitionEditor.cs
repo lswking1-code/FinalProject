@@ -184,6 +184,21 @@ public class WeaponDefinitionEditor : Editor
         EditorGUILayout.PropertyField(weaponSwitch);
 
         EditorGUILayout.Space(4);
+        EditorGUILayout.LabelField("蓄力射击（基座 charge_* / crouch_charge_*）", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("chargeStart"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("chargeLoop"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("chargeShoot"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookUpChargeStart"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookUpChargeLoop"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookUpChargeShoot"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookDownChargeStart"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookDownChargeLoop"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("lookDownChargeShoot"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("crouchChargeStart"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("crouchChargeLoop"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("crouchChargeShoot"));
+
+        EditorGUILayout.Space(4);
         EditorGUILayout.LabelField("全身蹲姿 / 切枪 / 其它", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(crouch);
         EditorGUILayout.PropertyField(crouchStart);

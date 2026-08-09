@@ -197,10 +197,23 @@ public static class WeaponDefinitionSetup
     static void FillShotgun(WeaponDefinition d)
     {
         ClearAll(d);
+        // 完整姿态在 asset 中已维护；forceFill 时至少恢复射击 + 蓄力
         d.shoot = Clip("s_stand_up_shoot");
         d.lookUpShoot = Clip("s_lookup_shoot");
         d.lookDownShoot = Clip("s_lookdown_shoot");
         d.crouchShoot = Clip("s_crouch_shoot");
+        d.chargeStart = Clip("s_stand_up_shoot");
+        d.chargeLoop = Clip("s_stand_up_shoot");
+        d.chargeShoot = Clip("f_stand_shoot");
+        d.lookUpChargeStart = Clip("s_lookup_shoot");
+        d.lookUpChargeLoop = Clip("s_lookup_shoot");
+        d.lookUpChargeShoot = Clip("f_lookup_shoot");
+        d.lookDownChargeStart = Clip("s_lookdown_shoot");
+        d.lookDownChargeLoop = Clip("s_lookdown_shoot");
+        d.lookDownChargeShoot = Clip("f_lookdown_shoot");
+        d.crouchChargeStart = Clip("s_crouch_shoot");
+        d.crouchChargeLoop = Clip("s_crouch_shoot");
+        d.crouchChargeShoot = Clip("f_crouch_shoot");
     }
 
     static void FillLaser(WeaponDefinition d)
@@ -228,6 +241,10 @@ public static class WeaponDefinitionSetup
         d.lookDownStart = d.lookDown = d.lookDownEnd = null;
         d.shoot = d.lookUpShoot = d.lookDownShoot = null;
         d.melee = d.airMelee = d.throwClip = d.airThrow = d.weaponSwitch = null;
+        d.chargeStart = d.chargeLoop = d.chargeShoot = null;
+        d.lookUpChargeStart = d.lookUpChargeLoop = d.lookUpChargeShoot = null;
+        d.lookDownChargeStart = d.lookDownChargeLoop = d.lookDownChargeShoot = null;
+        d.crouchChargeStart = d.crouchChargeLoop = d.crouchChargeShoot = null;
         d.crouch = d.crouchStart = d.crouchMove = d.crouchTurn = null;
         d.crouchShoot = d.crouchMelee = d.crouchThrow = d.crouchWeaponSwitch = null;
         d.land = d.turn = d.die = null;

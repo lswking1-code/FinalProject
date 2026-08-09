@@ -37,11 +37,12 @@ public class BulletBox : MonoBehaviour
         Destroy(gameObject);
     }
 
+    /// <summary>S→机枪(1)，M→镭射(3)，L→霰弹(2)。</summary>
     static int AmmoTypeToWeaponId(AmmoType type) => type switch
     {
         AmmoType.S => 1,
-        AmmoType.M => 2,
-        AmmoType.L => 3,
+        AmmoType.M => 3,
+        AmmoType.L => 2,
         _ => 0,
     };
 }

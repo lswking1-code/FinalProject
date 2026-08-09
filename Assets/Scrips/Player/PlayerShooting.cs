@@ -39,6 +39,12 @@ public class WeaponFireConfig
     public float spinUpMinInterval = 0.04f;
     [Tooltip("从起始间隔加速到极限间隔所需秒数")]
     public float spinUpRampDuration = 1.5f;
+    [Tooltip("按住蓄力：未蓄满松手普通射击，蓄满松手发射 chargedProjectilePrefab")]
+    public bool chargeOnHold;
+    [Tooltip("按住达到该秒数后进入蓄满状态")]
+    public float chargeHoldThreshold = 0.35f;
+    [Tooltip("蓄满松手时的子弹 prefab（如龙息）；为空则回退普通 projectilePrefab")]
+    public GameObject chargedProjectilePrefab;
 }
 
 [DefaultExecutionOrder(100)]
@@ -47,6 +53,8 @@ public class WeaponFireConfig
 [RequireComponent(typeof(PlayerMelee))]
 public class PlayerShooting : MonoBehaviour
 {
+    enum ChargeShootPhase { Idle, Pressing, Charging }
+
     [SerializeField] GameObject projectilePrefab;
     [SerializeField] WeaponFireConfig[] fireConfigs;
     [SerializeField] Transform forwardPoint;
@@ -75,6 +83,10 @@ public class PlayerShooting : MonoBehaviour
     float spinNextFireTime;
     WeaponFireConfig spinUpConfig;
 
+    ChargeShootPhase chargePhase = ChargeShootPhase.Idle;
+    float chargePressTime;
+    int chargeWeaponId = -1;
+
     void Awake()
     {
         actions = new InputSystem_Actions();
@@ -92,12 +104,14 @@ public class PlayerShooting : MonoBehaviour
         actions.Player.Disable();
         StopBurst();
         ExitSpinUp();
+        CancelChargeShot(playRelease: false);
         EndLaser(immediate: true);
     }
 
     void OnDestroy()
     {
         ExitSpinUp();
+        CancelChargeShot(playRelease: false);
         EndLaser(immediate: true);
         actions?.Dispose();
     }
@@ -106,6 +120,7 @@ public class PlayerShooting : MonoBehaviour
     {
         WeaponFireConfig config = ResolveFireConfig();
         bool holdLaser = config != null && config.holdToFire;
+        bool chargeHold = config != null && config.chargeOnHold;
 
         if (ShouldForceEndLaser())
         {
@@ -118,12 +133,31 @@ public class PlayerShooting : MonoBehaviour
         {
             if (isSpinningUp || attackHeld)
                 ExitSpinUp();
+            if (chargePhase != ChargeShootPhase.Idle)
+                CancelChargeShot(playRelease: false);
             UpdateHoldLaser(config);
             return;
         }
 
         if (activeLaser != null)
             EndLaser(immediate: false);
+
+        if (ShouldForceCancelCharge(config))
+        {
+            CancelChargeShot(playRelease: false);
+            return;
+        }
+
+        if (chargeHold)
+        {
+            if (isSpinningUp || attackHeld)
+                ExitSpinUp();
+            UpdateChargeWeapon(config);
+            return;
+        }
+
+        if (chargePhase != ChargeShootPhase.Idle)
+            CancelChargeShot(playRelease: false);
 
         if (ShouldForceEndSpinUp())
         {
@@ -163,15 +197,153 @@ public class PlayerShooting : MonoBehaviour
             && playerMelee.TryMelee())
             return;
 
-        float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
-        if (fireInterval > 0f && Time.time < nextFireTime)
+        TryFireNormalShot(config);
+    }
+
+    void UpdateChargeWeapon(WeaponFireConfig config)
+    {
+        switch (chargePhase)
+        {
+            case ChargeShootPhase.Idle:
+                if (playerMovement.IsActionLocked)
+                    return;
+                if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon))
+                    return;
+                if (burstRoutine != null)
+                    return;
+
+                if (!actions.Player.Attack.WasPressedThisFrame())
+                    return;
+
+                if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
+                    && playerMelee.TryMelee())
+                    return;
+
+                chargePressTime = Time.time;
+                chargeWeaponId = config.weaponId;
+                chargePhase = ChargeShootPhase.Pressing;
+                break;
+
+            case ChargeShootPhase.Pressing:
+            {
+                float threshold = Mathf.Max(0f, config.chargeHoldThreshold);
+                if (Time.time - chargePressTime >= threshold)
+                {
+                    if (playerAnim != null && playerAnim.BeginMachinistCharge())
+                    {
+                        chargePhase = ChargeShootPhase.Charging;
+                        SyncChargeAim();
+                    }
+                    else
+                    {
+                        // 动画进入失败：当作未蓄满，允许松手点射
+                    }
+                }
+                else if (actions.Player.Attack.WasReleasedThisFrame())
+                {
+                    TryFireNormalShot(config);
+                    chargePhase = ChargeShootPhase.Idle;
+                    chargeWeaponId = -1;
+                }
+                break;
+            }
+
+            case ChargeShootPhase.Charging:
+                SyncChargeAim();
+                if (actions.Player.Attack.WasReleasedThisFrame())
+                {
+                    TryFireChargedShot(config);
+                    chargePhase = ChargeShootPhase.Idle;
+                    chargeWeaponId = -1;
+                }
+                break;
+        }
+    }
+
+    void SyncChargeAim()
+    {
+        if (playerAnim == null || playerMovement == null)
             return;
 
-        if (playerAnim.TryPlayShootAnim())
+        playerAnim.SyncChargeAimFromInput(
+            playerMovement.GetShootLookUp(),
+            playerMovement.GetShootLookDown(),
+            playerAnim.IsCrouching);
+    }
+
+    bool TryFireNormalShot(WeaponFireConfig config)
+    {
+        float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
+        if (fireInterval > 0f && Time.time < nextFireTime)
+            return false;
+
+        if (playerAnim == null || !playerAnim.TryPlayShootAnim())
+            return false;
+
+        nextFireTime = Time.time + fireInterval;
+        BeginFire(config);
+        return true;
+    }
+
+    bool TryFireChargedShot(WeaponFireConfig config)
+    {
+        float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
+        if (fireInterval > 0f && Time.time < nextFireTime)
         {
-            nextFireTime = Time.time + fireInterval;
-            BeginFire(config);
+            playerAnim?.CancelCharge();
+            return false;
         }
+
+        if (playerAnim == null || !playerAnim.ReleaseMachinistCharge())
+        {
+            playerAnim?.CancelCharge();
+            return false;
+        }
+
+        nextFireTime = Time.time + fireInterval;
+        if (playerMovement != null && playerMovement.GetShootLookDown())
+            playerMovement.NotifyAirHangFromDownShot();
+
+        FireDir dir = ResolveFireDir();
+        Fire(dir, 0f, config, config != null ? config.chargedProjectilePrefab : null);
+        return true;
+    }
+
+    bool ShouldForceCancelCharge(WeaponFireConfig config)
+    {
+        if (chargePhase == ChargeShootPhase.Idle)
+            return false;
+
+        if (playerMovement != null && playerMovement.IsActionLocked)
+            return true;
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
+            return true;
+
+        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        if (chargeWeaponId >= 0 && chargeWeaponId != weaponId)
+            return true;
+
+        if (config == null || !config.chargeOnHold)
+            return true;
+
+        return false;
+    }
+
+    void CancelChargeShot(bool playRelease)
+    {
+        if (chargePhase == ChargeShootPhase.Idle && (playerAnim == null || !playerAnim.IsCharging))
+            return;
+
+        chargePhase = ChargeShootPhase.Idle;
+        chargeWeaponId = -1;
+
+        if (playerAnim == null)
+            return;
+
+        if (playRelease && playerAnim.IsCharging)
+            playerAnim.ReleaseMachinistCharge();
+        else
+            playerAnim.CancelCharge();
     }
 
     void UpdateSpinUpWeapon(WeaponFireConfig config)
@@ -521,9 +693,11 @@ public class PlayerShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, float spreadOffset, WeaponFireConfig config)
+    void Fire(FireDir dir, float spreadOffset, WeaponFireConfig config, GameObject prefabOverride = null)
     {
-        GameObject prefab = config != null ? config.projectilePrefab : null;
+        GameObject prefab = prefabOverride;
+        if (prefab == null)
+            prefab = config != null ? config.projectilePrefab : null;
         if (prefab == null)
             prefab = projectilePrefab;
         if (prefab == null)

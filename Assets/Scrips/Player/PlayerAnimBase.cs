@@ -81,6 +81,9 @@ public class PlayerAnimBase : MonoBehaviour
 
     public virtual bool ReleaseMachinistCharge() => false;
 
+    /// <summary>取消蓄力（不播蓄力释放动画）。霰弹 / 机师射击共用。</summary>
+    public virtual void CancelCharge() { }
+
     public virtual bool BeginDispatch() => false;
 
     public virtual void SetDispatchHold(bool hold) { }

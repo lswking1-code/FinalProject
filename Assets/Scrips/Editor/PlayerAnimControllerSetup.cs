@@ -45,6 +45,7 @@ public static class PlayerAnimControllerSetup
             EnsureAirPhaseParameters();
             EnsureLookAnimatorParamDrivenTransitions();
             EnsureLookShootAnimatorTransitions();
+            EnsurePlayerChargeAnimatorStates();
             RepairAnimatorControllers();
         };
     }
@@ -362,6 +363,20 @@ public static class PlayerAnimControllerSetup
     const string LookUpShootClipPath = "Assets/Arts/Metal Slug/lookup_shoot.anim";
     const string LookDownShootClipPath = "Assets/Arts/Metal Slug/lookdown_shoot.anim";
 
+    // Metal Slug 玩家蓄力基座（可被 WeaponDefinition 覆写）
+    const string PlayerChargeStartClipPath = "Assets/Arts/Metal Slug/charge_start.anim";
+    const string PlayerChargeLoopClipPath = "Assets/Arts/Metal Slug/charge_loop.anim";
+    const string PlayerChargeShootClipPath = "Assets/Arts/Metal Slug/charge_shoot.anim";
+    const string PlayerLookUpChargeStartClipPath = "Assets/Arts/Metal Slug/lookup_charge_start.anim";
+    const string PlayerLookUpChargeLoopClipPath = "Assets/Arts/Metal Slug/lookup_charge_loop.anim";
+    const string PlayerLookUpChargeShootClipPath = "Assets/Arts/Metal Slug/lookup_charge_shoot.anim";
+    const string PlayerLookDownChargeStartClipPath = "Assets/Arts/Metal Slug/lookdown_charge_start.anim";
+    const string PlayerLookDownChargeLoopClipPath = "Assets/Arts/Metal Slug/lookdown_charge_loop.anim";
+    const string PlayerLookDownChargeShootClipPath = "Assets/Arts/Metal Slug/lookdown_charge_shoot.anim";
+    const string PlayerCrouchChargeStartClipPath = "Assets/Arts/Metal Slug/crouch_charge_start.anim";
+    const string PlayerCrouchChargeLoopClipPath = "Assets/Arts/Metal Slug/crouch_charge_loop.anim";
+    const string PlayerCrouchChargeShootClipPath = "Assets/Arts/Metal Slug/crouch_charge_shoot.anim";
+
     const string MachinistUpMPath = "Assets/Animations/Machinist/upM.controller";
     const string MachinistDownMPath = "Assets/Animations/Machinist/downM.controller";
     const string MachinistFullBodyMPath = "Assets/Animations/Machinist/fullbodyM.controller";
@@ -414,6 +429,87 @@ public static class PlayerAnimControllerSetup
     const string LookDownChargeLoopStateName = "LookDownChargeLoop";
     const string LookDownChargeShootStateName = "LookDownChargeShoot";
     const string IsChargingParam = "IsCharging";
+
+    [MenuItem("Lost Division/Ensure Metal Slug Player Charge Animator States")]
+    public static void EnsurePlayerChargeAnimatorStates()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+        changed |= EnsurePlayerUpChargeStates();
+        changed |= EnsurePlayerFullBodyChargeStates();
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已为 Metal Slug Player 动画机配置蓄力状态：up.controller / fullbody.controller。");
+        }
+    }
+
+    static bool EnsurePlayerUpChargeStates()
+    {
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(UpPath);
+        if (controller == null)
+        {
+            Debug.LogWarning($"未找到 Animator Controller: {UpPath}");
+            return false;
+        }
+
+        bool changed = false;
+        changed |= EnsureParameter(UpPath, IsChargingParam, AnimatorControllerParameterType.Bool);
+
+        var sm = controller.layers[0].stateMachine;
+        var states = BuildStateMap(sm);
+
+        changed |= EnsureMachinistState(sm, states, ChargeStartStateName, PlayerChargeStartClipPath, new Vector3(1050f, 0f, 0f));
+        changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, PlayerChargeLoopClipPath, new Vector3(1200f, 0f, 0f));
+        changed |= EnsureMachinistState(sm, states, ChargeShootStateName, PlayerChargeShootClipPath, new Vector3(1350f, 0f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeStartStateName, PlayerLookUpChargeStartClipPath, new Vector3(1050f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeLoopStateName, PlayerLookUpChargeLoopClipPath, new Vector3(1200f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookUpChargeShootStateName, PlayerLookUpChargeShootClipPath, new Vector3(1350f, 120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeStartStateName, PlayerLookDownChargeStartClipPath, new Vector3(1050f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeLoopStateName, PlayerLookDownChargeLoopClipPath, new Vector3(1200f, -120f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownChargeShootStateName, PlayerLookDownChargeShootClipPath, new Vector3(1350f, -120f, 0f));
+
+        states = BuildStateMap(sm);
+        changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
+        changed |= EnsureExitTimeTransition(states, LookUpChargeStartStateName, LookUpChargeLoopStateName, 0.95f);
+        changed |= EnsureExitTimeTransition(states, LookDownChargeStartStateName, LookDownChargeLoopStateName, 0.95f);
+
+        if (changed)
+            EditorUtility.SetDirty(controller);
+
+        return changed;
+    }
+
+    static bool EnsurePlayerFullBodyChargeStates()
+    {
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(FullBodyPath);
+        if (controller == null)
+        {
+            Debug.LogWarning($"未找到 Animator Controller: {FullBodyPath}");
+            return false;
+        }
+
+        bool changed = false;
+        changed |= EnsureParameter(FullBodyPath, IsChargingParam, AnimatorControllerParameterType.Bool);
+
+        var sm = controller.layers[0].stateMachine;
+        var states = BuildStateMap(sm);
+
+        changed |= EnsureMachinistState(sm, states, ChargeStartStateName, PlayerCrouchChargeStartClipPath, new Vector3(900f, 300f, 0f));
+        changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, PlayerCrouchChargeLoopClipPath, new Vector3(1050f, 300f, 0f));
+        changed |= EnsureMachinistState(sm, states, ChargeShootStateName, PlayerCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));
+
+        states = BuildStateMap(sm);
+        changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
+
+        if (changed)
+            EditorUtility.SetDirty(controller);
+
+        return changed;
+    }
 
     [MenuItem("Lost Division/Ensure Machinist Shoot Animator States")]
     public static void EnsureMachinistShootAnimatorStates()
