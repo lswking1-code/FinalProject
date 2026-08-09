@@ -306,6 +306,7 @@ public class EnemyGenerate : MonoBehaviour
         }
 
         var instance = Instantiate(prefab, position, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(instance, this);
         totalSpawned++;
 
         ApplyScales(instance, wave);

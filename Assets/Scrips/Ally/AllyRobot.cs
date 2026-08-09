@@ -65,7 +65,9 @@ public class AllyRobot : MonoBehaviour
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
-    [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出此距离则冲刺，否则直接近战连击")]
+    [Tooltip("对 AirEnemy 停刀/到位的最大 Y 距离（应明显小于 attackDistance，避免偏低打空）")]
+    [SerializeField] float airAttackDistanceY = 0.65f;
+    [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出则冲刺，否则直接近战连击")]
     public float dashDecideDistance = 2.5f;
     [Tooltip("每次攻击之间的冷却时间（秒）")]
     public float attackCooldown = 1.5f;
@@ -74,6 +76,14 @@ public class AllyRobot : MonoBehaviour
     public float attackLungeSpeed = 3.5f;
     [Tooltip("BeginAttackLunge 无参或 float<=0 时使用的默认时长（秒）")]
     public float attackLungeDuration = 0.15f;
+
+    [Header("连携空中滞空")]
+    [Tooltip("空中连携攻击时的重力倍率（相对正常 gravityScale）")]
+    [SerializeField] float comboAirHangGravityScale = 0.2f;
+    [Tooltip("空中连携滞空时长（秒）；连携结束或落地提前解除，Blast 每段会刷新")]
+    [SerializeField] float comboAirHangDuration = 0.55f;
+    [Tooltip("对空中敌人冲刺/连携/爆裂时显示的推进特效子物体；为空则按名称 Boost 查找")]
+    [SerializeField] GameObject boostVisual;
 
     [Header("贯穿激光（持续弹触发）")]
     [SerializeField] int laserDamage = 10;
@@ -84,19 +94,28 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] LayerMask laserHitMask = ~0;
     [Tooltip("可替换的激光视觉 Prefab（需挂 AllyRobotPierceLaserVisual）；为空时回退 LineRenderer")]
     [SerializeField] GameObject pierceLaserVisualPrefab;
-    [Tooltip("瞄准时最小水平距离；近距垫高 |dx| 避免高度差把角度推过 22.5° 误锁斜向")]
+    [Tooltip("瞄准时最小水平距离；近距垫高 |dx| 避免高度差把角度推过 11.25° 误锁斜向")]
     [SerializeField] float laserMinAimHorizontal = 2f;
 
-    static readonly Vector2[] LaserDirs8 =
+    // 16 向：每 22.5° 一档
+    static readonly Vector2[] LaserDirs16 =
     {
         new Vector2(1f, 0f),
+        new Vector2(1f, Mathf.Tan(22.5f * Mathf.Deg2Rad)).normalized,
         new Vector2(1f, 1f).normalized,
+        new Vector2(Mathf.Tan(22.5f * Mathf.Deg2Rad), 1f).normalized,
         new Vector2(0f, 1f),
+        new Vector2(-Mathf.Tan(22.5f * Mathf.Deg2Rad), 1f).normalized,
         new Vector2(-1f, 1f).normalized,
+        new Vector2(-1f, Mathf.Tan(22.5f * Mathf.Deg2Rad)).normalized,
         new Vector2(-1f, 0f),
+        new Vector2(-1f, -Mathf.Tan(22.5f * Mathf.Deg2Rad)).normalized,
         new Vector2(-1f, -1f).normalized,
+        new Vector2(-Mathf.Tan(22.5f * Mathf.Deg2Rad), -1f).normalized,
         new Vector2(0f, -1f),
+        new Vector2(Mathf.Tan(22.5f * Mathf.Deg2Rad), -1f).normalized,
         new Vector2(1f, -1f).normalized,
+        new Vector2(1f, -Mathf.Tan(22.5f * Mathf.Deg2Rad)).normalized,
     };
 
     [Header("最大追踪范围")]
@@ -265,6 +284,11 @@ public class AllyRobot : MonoBehaviour
     float landTimer;
     float jumpCooldownTimer;
     float airTimer;
+    float normalGravityScale = 1f;
+    float comboAirHangTimer;
+    bool comboAirHanging;
+    /// <summary>本次连携曾以空中敌为目标时锁存 Boost，目标死亡也不关，直到连携结束。</summary>
+    bool airComboBoostLatched;
     /// <summary>
     /// 自动跳起后，在障碍仍被探测到前禁止再次自动跳，避免贴墙连跳。
     /// </summary>
@@ -283,10 +307,24 @@ public class AllyRobot : MonoBehaviour
         if (physicsCheck == null)
             physicsCheck = GetComponent<PhysicsCheck>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        normalGravityScale = rb.gravityScale;
         pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
+        ResolveBoostVisual();
 
         if (jumpObstacleMask.value == 0 && physicsCheck != null)
             jumpObstacleMask = physicsCheck.groundLayer;
+    }
+
+    void ResolveBoostVisual()
+    {
+        if (boostVisual == null)
+        {
+            Transform boostTf = transform.Find("Boost");
+            if (boostTf != null)
+                boostVisual = boostTf.gameObject;
+        }
+
+        SetBoostActive(false);
     }
 
     void Start()
@@ -313,6 +351,8 @@ public class AllyRobot : MonoBehaviour
             robotComboEvent.OnEventRaised -= ComboAttack;
         if (robotBlastComboEvent != null)
             robotBlastComboEvent.OnEventRaised -= BlastCombo;
+        airComboBoostLatched = false;
+        SetBoostActive(false);
     }
 
     void OnDestroy()
@@ -349,6 +389,8 @@ public class AllyRobot : MonoBehaviour
             case AllyState.ComboDashing:     UpdateComboDashing();     break;
             case AllyState.ManualMove:       UpdateManualMove();       break;
         }
+
+        UpdateAirEnemyBoostVisual();
     }
 
     void FixedUpdate()
@@ -356,6 +398,8 @@ public class AllyRobot : MonoBehaviour
         // 跳跃判定在 FixedUpdate；同步刷新接地，避免只靠 Update 的一帧延迟。
         if (physicsCheck != null)
             physicsCheck.Check();
+
+        UpdateComboAirHang();
 
         if (isLanding)
         {
@@ -401,11 +445,19 @@ public class AllyRobot : MonoBehaviour
                         StopMoving();
                     break;
                 case AllyState.ComboDashing:
-                    movingHorizontally = TryGetChaseMoveDir(out moveDir);
-                    if (movingHorizontally)
-                        ApplyHorizontalMove(moveDir, dashSpeed);
+                    if (TryApplyAirEnemyComboDash())
+                    {
+                        movingHorizontally = Mathf.Abs(rb.linearVelocity.x) > 0.01f;
+                        moveDir = Mathf.Sign(rb.linearVelocity.x);
+                    }
                     else
-                        StopMoving();
+                    {
+                        movingHorizontally = TryGetChaseMoveDir(out moveDir);
+                        if (movingHorizontally)
+                            ApplyHorizontalMove(moveDir, dashSpeed);
+                        else
+                            StopMoving();
+                    }
                     break;
                 case AllyState.Idle:
                     if (idleFollowing)
@@ -445,8 +497,10 @@ public class AllyRobot : MonoBehaviour
         if (movingHorizontally)
         {
             CancelVelocityIntoWall(moveDir);
-            // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳
-            if (currentState != AllyState.ManualMove && !attackLungeActive)
+            // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳；对空中敌的连携冲刺禁用自动跳
+            if (currentState != AllyState.ManualMove
+                && !attackLungeActive
+                && !(currentState == AllyState.ComboDashing && IsAirEnemyTarget(currentTarget)))
                 TryAutoJump(moveDir);
         }
         else if (airPhase != RobotAirPhase.Ground)
@@ -696,7 +750,7 @@ public class AllyRobot : MonoBehaviour
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
-        if (!TryAcquireTarget(out Transform target))
+        if (!TryAcquireTarget(out Transform target, includeAirEnemy: true))
             return;
 
         // 跳跃 / 下落 / 落地过程中允许立即打断空中动画进入连携
@@ -720,7 +774,7 @@ public class AllyRobot : MonoBehaviour
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
-        if (!TryAcquireTarget(out Transform target))
+        if (!TryAcquireTarget(out Transform target, includeAirEnemy: true))
             return;
 
         InterruptAirForCombo();
@@ -754,11 +808,13 @@ public class AllyRobot : MonoBehaviour
             return false;
 
         Transform aimTarget = null;
-        if (IsValidCombatTarget(currentTarget))
+        if (IsValidCombatTarget(currentTarget, allowAirEnemy: true))
             aimTarget = currentTarget;
-        else if (TryAcquireTarget(out Transform acquired))
+        else if (TryAcquireTarget(out Transform acquired, includeAirEnemy: true))
         {
-            currentTarget = acquired;
+            // 空中敌不写入 currentTarget，避免激光后误入追击/近战
+            if (!IsAirEnemyTarget(acquired))
+                currentTarget = acquired;
             aimTarget = acquired;
         }
 
@@ -766,8 +822,9 @@ public class AllyRobot : MonoBehaviour
         Vector2 dir;
         if (aimTarget != null)
         {
-            FaceTarget(aimTarget.position);
-            Vector2 toTarget = (Vector2)aimTarget.position - origin;
+            Vector2 aimPoint = GetCombatAimPoint(aimTarget);
+            FaceTarget(aimPoint);
+            Vector2 toTarget = aimPoint - origin;
             if (toTarget.sqrMagnitude < 0.0001f)
             {
                 float face = Mathf.Sign(transform.localScale.x);
@@ -805,15 +862,15 @@ public class AllyRobot : MonoBehaviour
             return Vector2.right;
 
         desired.Normalize();
-        Vector2 best = LaserDirs8[0];
+        Vector2 best = LaserDirs16[0];
         float bestDot = Vector2.Dot(desired, best);
-        for (int i = 1; i < LaserDirs8.Length; i++)
+        for (int i = 1; i < LaserDirs16.Length; i++)
         {
-            float d = Vector2.Dot(desired, LaserDirs8[i]);
+            float d = Vector2.Dot(desired, LaserDirs16[i]);
             if (d > bestDot)
             {
                 bestDot = d;
-                best = LaserDirs8[i];
+                best = LaserDirs16[i];
             }
         }
         return best;
@@ -1025,6 +1082,8 @@ public class AllyRobot : MonoBehaviour
         comboAttackAnimSeen = false;
         if (currentState != AllyState.ComboAttacking)
             SwitchState(AllyState.ComboAttacking);
+        else
+            TryBeginComboAirHang();
     }
 
     string GetBlastAttackStateName(int step)
@@ -1060,7 +1119,7 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        if (TryAcquireTarget(out Transform target) && IsInAttackRange(target))
+        if (TryAcquireTarget(out Transform target, includeAirEnemy: true) && IsInAttackRange(target))
         {
             currentTarget = target;
             FaceTarget(currentTarget.position);
@@ -1216,6 +1275,9 @@ public class AllyRobot : MonoBehaviour
             pendingBlastFinisher = false;
             blastComboStep = -1;
             EndAttackLunge();
+            EndComboAirHang();
+            airComboBoostLatched = false;
+            SetBoostActive(false);
             SyncAirVisualAfterBusy();
         }
     }
@@ -1273,6 +1335,7 @@ public class AllyRobot : MonoBehaviour
                     anim.SetBool(walkBoolName, false);
                 StopMoving();
                 comboAttackAnimSeen = false;
+                TryBeginComboAirHang();
                 break;
             case AllyState.ComboDashWindup:
                 SetDashActive(true);
@@ -1299,25 +1362,81 @@ public class AllyRobot : MonoBehaviour
     float GetDistXTo(Transform target)
     {
         if (target == null) return float.MaxValue;
-        return Mathf.Abs(transform.position.x - target.position.x);
+        return Mathf.Abs(transform.position.x - GetCombatAimPoint(target).x);
     }
 
-    bool IsInAttackRange(Transform target) => GetDistXTo(target) <= attackDistance;
+    float GetDistYTo(Transform target)
+    {
+        if (target == null) return float.MaxValue;
+        return Mathf.Abs(transform.position.y - GetCombatAimPoint(target).y);
+    }
 
-    bool IsWithinDashDecideRange(Transform target) => GetDistXTo(target) <= dashDecideDistance;
+    /// <summary>
+    /// 空中敌优先用碰撞体中心作瞄准点，避免根节点偏低导致冲刺停在脚下。
+    /// </summary>
+    Vector2 GetCombatAimPoint(Transform target)
+    {
+        if (target == null)
+            return Vector2.zero;
 
-    bool IsValidCombatTarget(Transform target)
+        Collider2D col = target.GetComponent<Collider2D>();
+        if (col == null)
+            col = target.GetComponentInChildren<Collider2D>();
+        if (col != null)
+            return col.bounds.center;
+
+        return target.position;
+    }
+
+    bool IsAirEnemyTarget(Transform target)
+    {
+        return target != null && target.CompareTag(AirEnemyTag);
+    }
+
+    /// <summary>
+    /// 地面敌只看 X；AirEnemy 需 X 进入 attackDistance 且 Y 进入 airAttackDistanceY。
+    /// </summary>
+    bool IsInAttackRange(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        if (IsAirEnemyTarget(target))
+            return GetDistXTo(target) <= attackDistance && GetDistYTo(target) <= airAttackDistanceY;
+
+        return GetDistXTo(target) <= attackDistance;
+    }
+
+    /// <summary>
+    /// 地面敌只看 X；AirEnemy 的 Y 同样用 airAttackDistanceY，避免「够近可直接打」时仍偏低。
+    /// </summary>
+    bool IsWithinDashDecideRange(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        if (IsAirEnemyTarget(target))
+            return GetDistXTo(target) <= dashDecideDistance && GetDistYTo(target) <= airAttackDistanceY;
+
+        return GetDistXTo(target) <= dashDecideDistance;
+    }
+
+    bool IsValidCombatTarget(Transform target, bool allowAirEnemy = false)
     {
         if (target == null || !target.gameObject.activeInHierarchy)
+            return false;
+
+        // 空中敌默认仅连携期间有效；激光等可显式允许
+        if (target.CompareTag(AirEnemyTag) && !allowAirEnemy && !IsBusyWithCombo)
             return false;
 
         Enemy enemy = target.GetComponent<Enemy>();
         return enemy == null || !enemy.isDead;
     }
 
-    bool TryAcquireTarget(out Transform target)
+    bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false)
     {
-        target = FindClosestEnemy();
+        target = FindClosestEnemy(includeAirEnemy);
         return target != null;
     }
 
@@ -1558,7 +1677,7 @@ public class AllyRobot : MonoBehaviour
 
         if (!IsValidCombatTarget(currentTarget))
         {
-            if (!TryAcquireTarget(out currentTarget))
+            if (!TryAcquireTarget(out currentTarget, includeAirEnemy: true))
             {
                 ExitComboDash();
                 return;
@@ -1586,7 +1705,7 @@ public class AllyRobot : MonoBehaviour
     {
         if (!IsValidCombatTarget(currentTarget))
         {
-            if (!TryAcquireTarget(out currentTarget))
+            if (!TryAcquireTarget(out currentTarget, includeAirEnemy: true))
             {
                 ExitComboDash();
                 return;
@@ -1621,7 +1740,7 @@ public class AllyRobot : MonoBehaviour
 
         if (!IsValidCombatTarget(currentTarget))
         {
-            if (!TryAcquireTarget(out currentTarget))
+            if (!TryAcquireTarget(out currentTarget, includeAirEnemy: true))
             {
                 ExitComboDash();
                 return;
@@ -1675,9 +1794,123 @@ public class AllyRobot : MonoBehaviour
         rb.linearVelocity = new Vector2(speed * dir, rb.linearVelocity.y);
     }
 
+    /// <summary>
+    /// 对 AirEnemy 连携冲刺：按二维方向飞向碰撞体中心；已在攻击距离则停住。
+    /// </summary>
+    bool TryApplyAirEnemyComboDash()
+    {
+        if (!IsAirEnemyTarget(currentTarget) || !IsValidCombatTarget(currentTarget))
+            return false;
+
+        if (IsInAttackRange(currentTarget))
+        {
+            rb.linearVelocity = Vector2.zero;
+            return true;
+        }
+
+        Vector2 aim = GetCombatAimPoint(currentTarget);
+        Vector2 toTarget = aim - rb.position;
+        if (toTarget.sqrMagnitude < 0.0001f)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return true;
+        }
+
+        rb.linearVelocity = toTarget.normalized * dashSpeed;
+        FaceTarget(aim);
+        return true;
+    }
+
     void StopMoving()
     {
-        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        if (rb == null)
+            return;
+
+        // 空中连携冲刺停步时清掉竖直速度，避免冲刺惯性残留
+        if (currentState == AllyState.ComboDashing && IsAirEnemyTarget(currentTarget))
+            rb.linearVelocity = Vector2.zero;
+        else
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    /// <summary>
+    /// 空中进入连携攻击时开启短暂低重力滞空。
+    /// </summary>
+    void TryBeginComboAirHang()
+    {
+        if (rb == null || IsSolidGrounded())
+            return;
+
+        comboAirHanging = true;
+        comboAirHangTimer = Mathf.Max(0.05f, comboAirHangDuration);
+        ApplyComboAirHangPhysics();
+    }
+
+    void UpdateComboAirHang()
+    {
+        if (!comboAirHanging)
+            return;
+
+        if (currentState != AllyState.ComboAttacking || IsSolidGrounded())
+        {
+            EndComboAirHang();
+            return;
+        }
+
+        comboAirHangTimer -= Time.fixedDeltaTime;
+        ApplyComboAirHangPhysics();
+
+        if (comboAirHangTimer <= 0f)
+            EndComboAirHang();
+    }
+
+    void ApplyComboAirHangPhysics()
+    {
+        if (rb == null)
+            return;
+
+        rb.gravityScale = normalGravityScale * comboAirHangGravityScale;
+        if (rb.linearVelocity.y < 0f)
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+    }
+
+    void EndComboAirHang()
+    {
+        comboAirHangTimer = 0f;
+        if (!comboAirHanging)
+            return;
+
+        comboAirHanging = false;
+        if (rb != null)
+            rb.gravityScale = normalGravityScale;
+    }
+
+    /// <summary>
+    /// 对空中敌人进行连携冲刺 / 连携 / 爆裂时显示 Boost。
+    /// 一旦以空中敌开打则锁存，目标死亡也不关，直到本次连携结束。
+    /// </summary>
+    void UpdateAirEnemyBoostVisual()
+    {
+        if (IsBusyWithCombo)
+        {
+            if (currentTarget != null && IsAirEnemyTarget(currentTarget))
+                airComboBoostLatched = true;
+        }
+        else
+        {
+            airComboBoostLatched = false;
+        }
+
+        SetBoostActive(airComboBoostLatched);
+    }
+
+    void SetBoostActive(bool active)
+    {
+        if (boostVisual == null)
+            return;
+        if (boostVisual.activeSelf == active)
+            return;
+        boostVisual.SetActive(active);
     }
 
     bool IsGrounded()
@@ -2069,27 +2302,44 @@ public class AllyRobot : MonoBehaviour
         transform.localScale = scale;
     }
 
-    Transform FindClosestEnemy()
-    {
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+    const string AirEnemyTag = "AirEnemy";
 
+    Transform FindClosestEnemy(bool includeAirEnemy = false)
+    {
         Transform closestMarked = null;
         Transform closestUnmarked = null;
         float minMarkedDistX = float.MaxValue;
         float minUnmarkedDistX = float.MaxValue;
 
+        ConsiderEnemiesWithTag("Enemy", ref closestMarked, ref closestUnmarked, ref minMarkedDistX, ref minUnmarkedDistX);
+        if (includeAirEnemy)
+            ConsiderEnemiesWithTag(AirEnemyTag, ref closestMarked, ref closestUnmarked, ref minMarkedDistX, ref minUnmarkedDistX);
+
+        return closestMarked != null ? closestMarked : closestUnmarked;
+    }
+
+    void ConsiderEnemiesWithTag(
+        string tag,
+        ref Transform closestMarked,
+        ref Transform closestUnmarked,
+        ref float minMarkedDistX,
+        ref float minUnmarkedDistX)
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(tag);
         foreach (var e in enemies)
         {
-            if (!e.gameObject.activeInHierarchy) continue;
+            if (e == null || !e.activeInHierarchy)
+                continue;
 
             Enemy enemy = e.GetComponent<Enemy>();
-            if (enemy != null && enemy.isDead) continue;
+            if (enemy != null && enemy.isDead)
+                continue;
 
             float distX = Mathf.Abs(transform.position.x - e.transform.position.x);
-            if (distX > detectRangeX) continue;
+            if (distX > detectRangeX)
+                continue;
 
             bool marked = enemy != null && enemy.isMarked;
-
             if (marked)
             {
                 if (distX < minMarkedDistX)
@@ -2104,8 +2354,6 @@ public class AllyRobot : MonoBehaviour
                 closestUnmarked = e.transform;
             }
         }
-
-        return closestMarked != null ? closestMarked : closestUnmarked;
     }
 
     bool IsOutsideMaxChaseRange()

@@ -446,7 +446,7 @@ GameObject:
   - component: {fileID: 7922217810541670464}
   m_Layer: 8
   m_Name: EnemyAir
-  m_TagString: Enemy
+  m_TagString: AirEnemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -567,7 +567,7 @@ MonoBehaviour:
   attackLayer:
     serializedVersion: 2
     m_Bits: 0
-  isPatrol: 1
+  isPatrol: 0
   patrolDetectRange: 6
   returnArriveDistance: 0.15
   waitTime: 0

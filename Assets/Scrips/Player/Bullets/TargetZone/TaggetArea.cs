@@ -52,12 +52,17 @@ public class TaggetArea : MonoBehaviour
         }
     }
 
+    static bool IsMarkableEnemy(Collider2D other)
+    {
+        return other.CompareTag("Enemy") || other.CompareTag("AirEnemy");
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!isValid)
             return;
 
-        if (!other.CompareTag("Enemy"))
+        if (!IsMarkableEnemy(other))
             return;
 
         Enemy enemy = other.GetComponent<Enemy>() ?? other.GetComponentInParent<Enemy>();
@@ -73,7 +78,7 @@ public class TaggetArea : MonoBehaviour
         if (!isValid)
             return;
 
-        if (!other.CompareTag("Enemy"))
+        if (!IsMarkableEnemy(other))
             return;
 
         Enemy enemy = other.GetComponent<Enemy>() ?? other.GetComponentInParent<Enemy>();

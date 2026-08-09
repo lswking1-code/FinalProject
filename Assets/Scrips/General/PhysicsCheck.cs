@@ -3,10 +3,12 @@ using UnityEngine;
 /// <summary>
 /// 物理环境检测组件，用于检测地面与墙体碰撞状态。
 /// 玩家与敌人均可挂载；敌人仅需地面/墙体检测，玩家可额外启用贴墙判定。
+/// 碰撞体优先 CapsuleCollider2D，否则回退到任意 Collider2D（如飞行敌人的 CircleCollider2D）。
 /// </summary>
 public class PhysicsCheck : MonoBehaviour
 {
-    private CapsuleCollider2D coll;
+    private Collider2D coll;
+    private CapsuleCollider2D capsuleColl;
     private Rigidbody2D rb;
     PlatformDropThrough platformDropThrough;
 
@@ -48,21 +50,27 @@ public class PhysicsCheck : MonoBehaviour
 
     private void Awake()
     {
-        coll = GetComponent<CapsuleCollider2D>();
+        ResolveCollider();
         rb = GetComponent<Rigidbody2D>();
         if (isPlayer)
             platformDropThrough = GetComponent<PlatformDropThrough>();
         RecalculateOffsets();
 
-        if (isPlayer && coll != null && coll.sharedMaterial == null)
+        if (isPlayer && capsuleColl != null && capsuleColl.sharedMaterial == null)
         {
             var noFriction = new PhysicsMaterial2D("PlayerNoFriction")
             {
                 friction = 0f,
                 bounciness = 0f
             };
-            coll.sharedMaterial = noFriction;
+            capsuleColl.sharedMaterial = noFriction;
         }
+    }
+
+    void ResolveCollider()
+    {
+        capsuleColl = GetComponent<CapsuleCollider2D>();
+        coll = capsuleColl != null ? capsuleColl : GetComponent<Collider2D>();
     }
 
     private void Start()
@@ -81,9 +89,32 @@ public class PhysicsCheck : MonoBehaviour
         if (manual || coll == null)
             return;
 
-        rightOffset = new Vector2((coll.bounds.size.x + coll.offset.x) / 2, coll.bounds.size.y / 2);
+        Vector2 size = GetColliderLocalSize();
+        rightOffset = new Vector2((size.x + coll.offset.x) / 2f, size.y / 2f);
         leftOffset = new Vector2(-rightOffset.x, rightOffset.y);
-        bottomOffset = new Vector2(coll.offset.x, coll.offset.y - coll.size.y * 0.5f);
+        bottomOffset = new Vector2(coll.offset.x, coll.offset.y - size.y * 0.5f);
+    }
+
+    Vector2 GetColliderLocalSize()
+    {
+        if (capsuleColl != null)
+            return capsuleColl.size;
+
+        if (coll is BoxCollider2D box)
+            return box.size;
+
+        if (coll is CircleCollider2D circle)
+        {
+            float diameter = circle.radius * 2f;
+            return new Vector2(diameter, diameter);
+        }
+
+        // Polygon 等：用相对缩放的世界包围盒近似本地尺寸
+        Vector3 lossy = transform.lossyScale;
+        Vector2 worldSize = coll.bounds.size;
+        float sx = Mathf.Abs(lossy.x) > 0.0001f ? worldSize.x / Mathf.Abs(lossy.x) : worldSize.x;
+        float sy = Mathf.Abs(lossy.y) > 0.0001f ? worldSize.y / Mathf.Abs(lossy.y) : worldSize.y;
+        return new Vector2(sx, sy);
     }
 
     public void RefreshOffsets() => RecalculateOffsets();
@@ -137,6 +168,9 @@ public class PhysicsCheck : MonoBehaviour
         var slope = col.GetComponent<SlopeOneWayPlatform>();
         if (slope != null)
         {
+            if (coll == null)
+                return false;
+
             Vector2 feetPos = new Vector2(coll.bounds.center.x, coll.bounds.min.y);
             return slope.IsFeetAboveSurface(feetPos);
         }
@@ -160,6 +194,9 @@ public class PhysicsCheck : MonoBehaviour
 
     bool CheckSideOverlap(float direction)
     {
+        if (coll == null)
+            return false;
+
         Bounds bounds = coll.bounds;
         float skin = Mathf.Max(checkRaduis, 0.05f);
         float probeWidth = skin;
@@ -271,7 +308,7 @@ public class PhysicsCheck : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         if (coll == null)
-            coll = GetComponent<CapsuleCollider2D>();
+            ResolveCollider();
         if (coll == null)
             return;
 

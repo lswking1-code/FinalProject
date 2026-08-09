@@ -527,6 +527,8 @@ MonoBehaviour:
   airHangDuration: 0.17
   airHangGravityScale: 0.25
   airHangVelocityY: 0
+  airHangFadeDuration: 0.75
+  airHangFadedVelocityY: -6
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   afterSceneLoadedEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
   dbgKPressedThisUpdate: 0
@@ -726,9 +728,9 @@ MonoBehaviour:
   normalProjectilePrefab: {fileID: 340545589965268769, guid: caa09d0d5f4a56b4a8b464526f859919, type: 3}
   comboProjectilePrefab: {fileID: -5845897735575499202, guid: b5a02c707e622314d84b667cd0208b31, type: 3}
   chargeProjectilePrefabs:
-  - {fileID: 7954760529879662823, guid: 1cbe70cf89b8b094ba572109b916d60c, type: 3}
-  - {fileID: 7954760529879662823, guid: 672b1f9534775ab43a1b6588856da6d0, type: 3}
-  - {fileID: 7954760529879662823, guid: 18eda76bc59e3b341a864de81666d3b6, type: 3}
+  - {fileID: 7954760529879662823, guid: f4d5e6f7a8b9491234d5e6f7a8b9c0d1, type: 3}
+  - {fileID: 7954760529879662823, guid: f4d5e6f7a8b9491234d5e6f7a8b9c0d1, type: 3}
+  - {fileID: 7954760529879662823, guid: f4d5e6f7a8b9491234d5e6f7a8b9c0d1, type: 3}
   - {fileID: 7954760529879662823, guid: f4d5e6f7a8b9491234d5e6f7a8b9c0d1, type: 3}
   specialProjectilePrefabS: {fileID: 7954760529879662823, guid: a11b22c33d44e55f6677889900aabb01, type: 3}
   specialProjectilePrefabM: {fileID: 7954760529879662823, guid: a11b22c33d44e55f6677889900aabb02, type: 3}

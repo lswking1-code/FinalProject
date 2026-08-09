@@ -995,6 +995,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyAir
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6414,7 +6418,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1191447930
 Transform:
   m_ObjectHideFlags: 0
@@ -6445,6 +6449,9 @@ MonoBehaviour:
   waves:
   - enemies:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      count: 2
+      spawnPoints: []
+    - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       count: 3
       spawnPoints: []
     enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
@@ -6461,6 +6468,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+    - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      count: 2
+      spawnPoints: []
     enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 3
     spawnPoints: []
@@ -6470,10 +6480,13 @@ MonoBehaviour:
     speedScale: 1
   - enemies:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
-      count: 3
+      count: 2
       spawnPoints: []
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      count: 4
+      count: 3
+      spawnPoints: []
+    - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      count: 1
       spawnPoints: []
     enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
     count: 5
@@ -6487,7 +6500,13 @@ MonoBehaviour:
       count: 3
       spawnPoints: []
     - enemyPrefab: {fileID: 2000000000000000001, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
-      count: 4
+      count: 2
+      spawnPoints: []
+    - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      count: 2
+      spawnPoints: []
+    - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      count: 1
       spawnPoints: []
     enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 5
@@ -6525,7 +6544,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1215786184
 Transform:
   m_ObjectHideFlags: 0
@@ -7282,7 +7301,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3377360540569093516, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
@@ -7505,6 +7524,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_Name
       value: EnemyMelee
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
