@@ -63,9 +63,19 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public bool isAggro;
     [HideInInspector] public bool isReturning;
 
+    [Header("死亡掉落")]
+    [Tooltip("开启后死亡时掉落弹药包")]
+    public bool dropAmmoOnDeath;
+    [Tooltip("掉落的弹药包 Prefab（BulletBoxS/M/L）")]
+    public GameObject ammoDropPrefab;
+    [Tooltip("相对敌人当前位置的掉落偏移")]
+    public Vector3 ammoDropOffset;
+
     [HideInInspector] public Transform player;
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
+
+    bool ammoDropped;
 
     protected Character character;
 
@@ -551,6 +561,17 @@ public class Enemy : MonoBehaviour
         }
         RestoreHurtVisuals();
         isHurt = false;
+
+        TryDropAmmo();
+    }
+
+    void TryDropAmmo()
+    {
+        if (ammoDropped || !dropAmmoOnDeath || ammoDropPrefab == null)
+            return;
+
+        ammoDropped = true;
+        Instantiate(ammoDropPrefab, transform.position + ammoDropOffset, Quaternion.identity);
     }
 
     /// <summary>
@@ -581,6 +602,12 @@ public class Enemy : MonoBehaviour
             Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.35f);
             var b = homeBounds.bounds;
             Gizmos.DrawWireCube(b.center, b.size);
+        }
+
+        if (dropAmmoOnDeath)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position + ammoDropOffset, 0.15f);
         }
     }
 }
