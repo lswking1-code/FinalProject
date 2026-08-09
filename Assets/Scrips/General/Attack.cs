@@ -73,6 +73,13 @@ public class Attack : MonoBehaviour
 
     void TryDamage(Collider2D collision)
     {
+        if (attackType == AttackType.Projectile
+            && LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         if (!string.IsNullOrEmpty(requireTag) && !collision.CompareTag(requireTag))
             return;
         if (!string.IsNullOrEmpty(ignoreTag) && collision.CompareTag(ignoreTag))

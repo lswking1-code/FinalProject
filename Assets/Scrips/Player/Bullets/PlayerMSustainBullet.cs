@@ -51,6 +51,12 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
 
     void OnTriggerEnter2D(Collider2D collision)
     {
+        if (LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         var robot = collision.GetComponentInParent<AllyRobot>();
         if (robot != null)
         {
