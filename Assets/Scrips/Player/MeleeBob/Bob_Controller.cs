@@ -4,7 +4,9 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Melee_Player（Bob）专属能力管理。不改动其他玩家脚本，仅在本组件内扩展能力。
+/// FixedUpdate 晚于默认 PlayerMovement，以便 Rush 冲刺速度不被水平移动覆盖。
 /// </summary>
+[DefaultExecutionOrder(100)]
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
 public class Bob_Controller : MonoBehaviour
@@ -37,7 +39,7 @@ public class Bob_Controller : MonoBehaviour
     {
         public int weaponId;
         public int damage;
-        [Tooltip("特技 Hitbox 本地尺寸")]
+        [Tooltip("特技 Hitbox 本地尺寸（Rush / Whip 前方盒）")]
         public Vector2 hitboxSize;
         [Tooltip("特技 Hitbox 本地偏移（面向右为正 X）")]
         public Vector2 hitboxOffset;
@@ -45,6 +47,34 @@ public class Bob_Controller : MonoBehaviour
         public int maxTargets;
         [Range(0f, 1f)] public float hitStart;
         [Range(0f, 1f)] public float hitEnd;
+
+        [Header("Whip · 后方追加判定")]
+        [Tooltip("后方追加判定开始（归一化动画时间）；与前方盒同尺寸，X 镜像")]
+        [Range(0f, 1f)] public float rearHitStart;
+        [Tooltip("后方追加判定结束")]
+        [Range(0f, 1f)] public float rearHitEnd;
+
+        [Header("Buzzsaw · 双层圆形判定")]
+        [Tooltip("外圈半径（高伤害，使用 damage）")]
+        public float outerRadius;
+        [Tooltip("内圈半径（低伤害，使用 innerDamage）")]
+        public float innerRadius;
+        [Tooltip("内圈伤害（应低于 damage）")]
+        public int innerDamage;
+
+        [Header("Rush · 向前冲刺 + 推动")]
+        [Tooltip("冲刺水平速度（单位/秒）")]
+        public float rushSpeed;
+        [Tooltip("冲刺开始（归一化动画时间）")]
+        [Range(0f, 1f)] public float rushStart;
+        [Tooltip("冲刺结束（归一化动画时间）")]
+        [Range(0f, 1f)] public float rushEnd;
+        [Tooltip("路径推动速度；≤0 时回退为 rushSpeed。每物理帧沿面向推动命中盒内敌人")]
+        public float rushPushSpeed;
+        [Tooltip("命中时写入 Attack.knockbackForce（不改 Attack.cs）")]
+        public float knockbackForce;
+        [Tooltip("命中时写入 Attack.knockbackDuration")]
+        public float knockbackDuration;
     }
 
     [Header("二段跳")]
@@ -101,27 +131,32 @@ public class Bob_Controller : MonoBehaviour
     };
 
     [Header("特技（U / Ability1 · 仅武器 1/2/3）")]
-    [Tooltip("发动特技消耗的 AbilityPower；0 表示不消耗")]
-    [SerializeField] int specialAbilityCost = 25;
+    [Tooltip("发动特技消耗的弹药数；武器 1/2/3 分别扣 BulletS/M/L；0 表示不消耗")]
+    [SerializeField] int specialAmmoCost = 1;
     [SerializeField] WeaponSpecialProfile[] specialProfiles =
     {
         new WeaponSpecialProfile
         {
             weaponId = 1, damage = 80,
             hitboxSize = new Vector2(3.2f, 1.4f), hitboxOffset = new Vector2(1.6f, 0f),
-            maxTargets = 0, hitStart = 0.2f, hitEnd = 0.7f,
+            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.6f,
+            rushSpeed = 18f, rushStart = 0.1f, rushEnd = 0.55f,
+            rushPushSpeed = 20f,
+            knockbackForce = 14f, knockbackDuration = 0.22f,
         },
         new WeaponSpecialProfile
         {
             weaponId = 2, damage = 70,
             hitboxSize = new Vector2(4.5f, 0.6f), hitboxOffset = new Vector2(2.2f, 0f),
-            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.75f,
+            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.55f,
+            rearHitStart = 0.5f, rearHitEnd = 0.7f,
         },
         new WeaponSpecialProfile
         {
-            weaponId = 3, damage = 100,
-            hitboxSize = new Vector2(2.0f, 1.6f), hitboxOffset = new Vector2(1.0f, 0f),
-            maxTargets = 4, hitStart = 0.2f, hitEnd = 0.65f,
+            weaponId = 3, damage = 100, innerDamage = 55,
+            hitboxSize = new Vector2(2.0f, 1.6f), hitboxOffset = Vector2.zero,
+            maxTargets = 0, hitStart = 0.2f, hitEnd = 0.7f,
+            outerRadius = 3.2f, innerRadius = 1.5f,
         },
     };
 
@@ -156,8 +191,15 @@ public class Bob_Controller : MonoBehaviour
     WeaponSpecialProfile activeSpecialProfile;
     bool hasSpecialProfile;
     readonly HashSet<Character> swingHitTargets = new();
+    readonly HashSet<Character> specialRearHitTargets = new();
     readonly List<Character> overlapCharacters = new();
-    readonly Collider2D[] overlapBuffer = new Collider2D[24];
+    readonly Collider2D[] overlapBuffer = new Collider2D[48];
+
+    bool rushDashActive;
+    bool savedAttackKnockbackEnable;
+    float savedAttackKnockbackForce;
+    float savedAttackKnockbackDuration;
+    bool hasSavedAttackKnockback;
 
     void Awake()
     {
@@ -198,6 +240,7 @@ public class Bob_Controller : MonoBehaviour
 
     void OnDisable()
     {
+        EndRushSpecialState();
         actions.Player.Disable();
     }
 
@@ -222,6 +265,8 @@ public class Bob_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
+        UpdateRushSpecialDash();
+
         if (physicsCheck.isGround)
         {
             hasUsedDoubleJump = false;
@@ -335,6 +380,42 @@ public class Bob_Controller : MonoBehaviour
             profile.hitEnd = 0.7f;
         }
 
+        if (weaponId == 2)
+        {
+            if (profile.rearHitEnd <= profile.rearHitStart)
+            {
+                profile.rearHitStart = Mathf.Clamp01(profile.hitEnd);
+                profile.rearHitEnd = Mathf.Clamp01(profile.rearHitStart + 0.2f);
+            }
+        }
+        else if (weaponId == 3)
+        {
+            if (profile.outerRadius <= 0.01f)
+                profile.outerRadius = 3.2f;
+            if (profile.innerRadius <= 0.01f)
+                profile.innerRadius = profile.outerRadius * 0.45f;
+            if (profile.innerRadius >= profile.outerRadius)
+                profile.innerRadius = profile.outerRadius * 0.45f;
+            if (profile.innerDamage <= 0)
+                profile.innerDamage = Mathf.Max(1, profile.damage / 2);
+        }
+        else if (weaponId == 1)
+        {
+            if (profile.rushSpeed <= 0.01f)
+                profile.rushSpeed = 18f;
+            if (profile.rushPushSpeed <= 0.01f)
+                profile.rushPushSpeed = profile.rushSpeed;
+            if (profile.rushEnd <= profile.rushStart)
+            {
+                profile.rushStart = 0.1f;
+                profile.rushEnd = 0.55f;
+            }
+            if (profile.knockbackForce <= 0.01f)
+                profile.knockbackForce = 14f;
+            if (profile.knockbackDuration <= 0.01f)
+                profile.knockbackDuration = 0.22f;
+        }
+
         return profile;
     }
 
@@ -404,11 +485,19 @@ public class Bob_Controller : MonoBehaviour
                 ? activeSpecialProfile.maxTargets
                 : activeProfile.maxTargets;
 
+            // Whip 前后双段 / Buzzsaw 双层圆 一律手动结算，避免 Trigger 重复或形状不符
+            bool manualSpecial = special && hasSpecialProfile
+                && (activeSpecialProfile.weaponId == 2 || activeSpecialProfile.weaponId == 3);
+
             meleeAttack.damage = damage;
             meleeAttack.attackType = AttackType.Melee;
             meleeAttack.ignoreTag = "Player";
-            // 有命中上限时改由本脚本结算，避免 Attack 触发器打满所有重叠目标
-            meleeAttack.enabled = maxTargets <= 0;
+            meleeAttack.enabled = !manualSpecial && maxTargets <= 0;
+
+            if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 1)
+                ApplyRushAttackKnockback(true);
+            else
+                RestoreRushAttackKnockback();
         }
     }
 
@@ -475,6 +564,7 @@ public class Bob_Controller : MonoBehaviour
         playerAnim.SetLookDown(lookDown);
 
         swingHitTargets.Clear();
+        specialRearHitTargets.Clear();
         playerAnim.InterruptTurn();
         playerAnim.TryPlayMeleeAnim();
         ApplyActiveProfileToColliders();
@@ -500,11 +590,10 @@ public class Bob_Controller : MonoBehaviour
                 || fullBodyAnim.AppliedWeaponDefinition.special == null))
             return;
 
-        if (specialAbilityCost > 0)
-        {
-            if (selfCharacter == null || selfCharacter.AbilityPower < specialAbilityCost)
-                return;
-        }
+        AmmoType ammoType = ResolveSpecialAmmoType(weaponId);
+        if (specialAmmoCost > 0
+            && (selfCharacter == null || !HasEnoughAmmo(ammoType, specialAmmoCost)))
+            return;
 
         if (detectZone != null && detectZone.HasValidTarget)
         {
@@ -514,14 +603,37 @@ public class Bob_Controller : MonoBehaviour
         }
 
         swingHitTargets.Clear();
+        specialRearHitTargets.Clear();
         playerAnim.InterruptTurn();
         if (!playerAnim.TryPlaySpecialAnim())
             return;
 
-        if (specialAbilityCost > 0 && selfCharacter != null)
-            selfCharacter.OnAbility(specialAbilityCost);
+        if (specialAmmoCost > 0 && selfCharacter != null)
+            selfCharacter.TrySpendAmmo(ammoType, specialAmmoCost);
 
         ApplyActiveProfileToColliders();
+    }
+
+    static AmmoType ResolveSpecialAmmoType(int weaponId) => weaponId switch
+    {
+        1 => AmmoType.S,
+        2 => AmmoType.M,
+        3 => AmmoType.L,
+        _ => AmmoType.S,
+    };
+
+    bool HasEnoughAmmo(AmmoType type, int amount)
+    {
+        if (selfCharacter == null || amount <= 0)
+            return amount <= 0;
+
+        return type switch
+        {
+            AmmoType.S => selfCharacter.BulletS >= amount,
+            AmmoType.M => selfCharacter.BulletM >= amount,
+            AmmoType.L => selfCharacter.BulletL >= amount,
+            _ => false,
+        };
     }
 
     void UpdateMeleeHitbox()
@@ -534,11 +646,28 @@ public class Bob_Controller : MonoBehaviour
             if (meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(false);
             ApplyHitboxShape(upward: false, special: false);
+            EndRushSpecialState();
             return;
         }
 
         bool special = IsCurrentSwingSpecial();
         SyncHitboxAnchor();
+
+        if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 3)
+        {
+            UpdateBuzzsawSpecialHits();
+            return;
+        }
+
+        if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 2)
+        {
+            UpdateWhipSpecialHits();
+            return;
+        }
+
+        if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 1)
+            ApplyRushAttackKnockback(true);
+
         ApplyHitboxShape(upward: !special && IsCurrentSwingUpward(), special: special);
 
         float windowStart = special && hasSpecialProfile ? activeSpecialProfile.hitStart : activeProfile.hitStart;
@@ -571,36 +700,162 @@ public class Bob_Controller : MonoBehaviour
         }
     }
 
-    void ProcessLimitedHitTargets(int maxTargets)
+    void UpdateWhipSpecialHits()
     {
-        if (meleeAttack == null || meleeHitboxCollider == null)
+        ApplyHitboxShape(upward: false, special: true);
+
+        if (meleeAttack != null)
+        {
+            meleeAttack.damage = activeSpecialProfile.damage;
+            meleeAttack.enabled = false;
+        }
+
+        if (!playerAnim.TryGetMeleeAnimProgress(out float t))
+        {
+            if (meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(false);
+            return;
+        }
+
+        bool frontWindow = t >= activeSpecialProfile.hitStart && t <= activeSpecialProfile.hitEnd;
+        bool rearWindow = t >= activeSpecialProfile.rearHitStart && t <= activeSpecialProfile.rearHitEnd;
+
+        if (frontWindow || rearWindow)
+        {
+            if (!meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(true);
+
+            if (frontWindow)
+            {
+                ProcessSpecialBoxHits(
+                    activeSpecialProfile.hitboxOffset,
+                    activeSpecialProfile.hitboxSize,
+                    activeSpecialProfile.damage,
+                    swingHitTargets,
+                    activeSpecialProfile.maxTargets);
+            }
+
+            if (rearWindow)
+            {
+                Vector2 rearOffset = new Vector2(
+                    -activeSpecialProfile.hitboxOffset.x,
+                    activeSpecialProfile.hitboxOffset.y);
+                ProcessSpecialBoxHits(
+                    rearOffset,
+                    activeSpecialProfile.hitboxSize,
+                    activeSpecialProfile.damage,
+                    specialRearHitTargets,
+                    activeSpecialProfile.maxTargets);
+            }
+        }
+        else if (meleeHitbox.activeSelf)
+        {
+            meleeHitbox.SetActive(false);
+        }
+    }
+
+    void UpdateBuzzsawSpecialHits()
+    {
+        if (meleeHitbox != null && meleeHitbox.activeSelf)
+            meleeHitbox.SetActive(false);
+
+        if (meleeAttack != null)
+            meleeAttack.enabled = false;
+
+        if (!playerAnim.TryGetMeleeAnimProgress(out float t))
             return;
 
-        if (swingHitTargets.Count >= maxTargets)
+        if (t < activeSpecialProfile.hitStart || t > activeSpecialProfile.hitEnd)
             return;
 
-        Bounds bounds = meleeHitboxCollider.bounds;
-        int count = Physics2D.OverlapBoxNonAlloc(bounds.center, bounds.size, 0f, overlapBuffer);
+        ProcessBuzzsawCircleHits();
+    }
+
+    void ProcessBuzzsawCircleHits()
+    {
+        if (meleeAttack == null)
+            return;
+
+        Vector2 center = ResolveSpecialCenter();
+        float outer = activeSpecialProfile.outerRadius;
+        float inner = activeSpecialProfile.innerRadius;
+        int outerDamage = activeSpecialProfile.damage;
+        int innerDamage = activeSpecialProfile.innerDamage > 0
+            ? activeSpecialProfile.innerDamage
+            : Mathf.Max(1, outerDamage / 2);
+        int maxTargets = activeSpecialProfile.maxTargets;
+
+        if (maxTargets > 0 && swingHitTargets.Count >= maxTargets)
+            return;
+
+        int count = Physics2D.OverlapCircleNonAlloc(center, outer, overlapBuffer);
         if (count <= 0)
             return;
 
         overlapCharacters.Clear();
         for (int i = 0; i < count; i++)
         {
-            var col = overlapBuffer[i];
-            if (col == null)
+            if (!TryResolveAttackTarget(overlapBuffer[i], swingHitTargets, out Character target))
+                continue;
+            if (!overlapCharacters.Contains(target))
+                overlapCharacters.Add(target);
+        }
+
+        if (overlapCharacters.Count == 0)
+            return;
+
+        overlapCharacters.Sort((a, b) =>
+        {
+            float da = ((Vector2)a.transform.position - center).sqrMagnitude;
+            float db = ((Vector2)b.transform.position - center).sqrMagnitude;
+            return da.CompareTo(db);
+        });
+
+        int slots = maxTargets > 0 ? maxTargets - swingHitTargets.Count : int.MaxValue;
+        float innerSq = inner * inner;
+        for (int i = 0; i < overlapCharacters.Count && slots > 0; i++)
+        {
+            var target = overlapCharacters[i];
+            if (swingHitTargets.Contains(target))
                 continue;
 
-            // Hitbox / DetectZone 等子碰撞体没有 Player Tag，但仍会 GetComponentInParent 到自己
-            if (col.transform == transform || col.transform.IsChildOf(transform))
-                continue;
+            float distSq = ((Vector2)target.transform.position - center).sqrMagnitude;
+            meleeAttack.damage = distSq <= innerSq ? innerDamage : outerDamage;
+            target.TakeDamage(meleeAttack);
+            swingHitTargets.Add(target);
+            slots--;
+        }
+    }
 
-            var target = col.GetComponentInParent<Character>();
-            if (target == null || target == selfCharacter || swingHitTargets.Contains(target))
-                continue;
-            if (!string.IsNullOrEmpty(meleeAttack.ignoreTag) && target.CompareTag(meleeAttack.ignoreTag))
-                continue;
-            if (target.currentHealth <= 0f)
+    void ProcessSpecialBoxHits(
+        Vector2 localOffset,
+        Vector2 localSize,
+        int damage,
+        HashSet<Character> hitSet,
+        int maxTargets)
+    {
+        if (meleeAttack == null || meleeHitbox == null)
+            return;
+
+        if (maxTargets > 0 && hitSet.Count >= maxTargets)
+            return;
+
+        Transform space = meleeHitbox.transform;
+        Vector2 center = space.TransformPoint(localOffset);
+        Vector3 lossy = space.lossyScale;
+        Vector2 worldSize = new Vector2(
+            Mathf.Abs(localSize.x * lossy.x),
+            Mathf.Abs(localSize.y * lossy.y));
+        float angle = space.eulerAngles.z;
+
+        int count = Physics2D.OverlapBoxNonAlloc(center, worldSize, angle, overlapBuffer);
+        if (count <= 0)
+            return;
+
+        overlapCharacters.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            if (!TryResolveAttackTarget(overlapBuffer[i], hitSet, out Character target))
                 continue;
             if (!overlapCharacters.Contains(target))
                 overlapCharacters.Add(target);
@@ -617,17 +872,202 @@ public class Bob_Controller : MonoBehaviour
             return da.CompareTo(db);
         });
 
-        int slots = maxTargets - swingHitTargets.Count;
+        int slots = maxTargets > 0 ? maxTargets - hitSet.Count : int.MaxValue;
+        int previousDamage = meleeAttack.damage;
+        meleeAttack.damage = damage;
         for (int i = 0; i < overlapCharacters.Count && slots > 0; i++)
         {
             var target = overlapCharacters[i];
-            if (swingHitTargets.Contains(target))
+            if (hitSet.Contains(target))
                 continue;
 
             target.TakeDamage(meleeAttack);
-            swingHitTargets.Add(target);
+            hitSet.Add(target);
             slots--;
         }
+
+        meleeAttack.damage = previousDamage;
+    }
+
+    Vector2 ResolveSpecialCenter()
+    {
+        Transform anchor = playerAnim != null && playerAnim.IsCrouching ? meleePoint2 : meleePoint1;
+        if (anchor == null)
+            anchor = transform;
+        return anchor.position;
+    }
+
+    bool TryResolveAttackTarget(Collider2D col, HashSet<Character> alreadyHit, out Character target)
+    {
+        target = null;
+        if (col == null)
+            return false;
+
+        if (col.transform == transform || col.transform.IsChildOf(transform))
+            return false;
+
+        target = col.GetComponentInParent<Character>();
+        if (target == null || target == selfCharacter || alreadyHit.Contains(target))
+            return false;
+        if (meleeAttack != null
+            && !string.IsNullOrEmpty(meleeAttack.ignoreTag)
+            && target.CompareTag(meleeAttack.ignoreTag))
+            return false;
+        if (target.currentHealth <= 0f)
+            return false;
+
+        return true;
+    }
+
+    void ProcessLimitedHitTargets(int maxTargets)
+    {
+        if (meleeHitboxCollider == null)
+            return;
+
+        ProcessSpecialBoxHits(
+            meleeHitboxCollider.offset,
+            meleeHitboxCollider.size,
+            meleeAttack != null ? meleeAttack.damage : meleeDamage,
+            swingHitTargets,
+            maxTargets);
+    }
+
+    void UpdateRushSpecialDash()
+    {
+        bool wantDash = IsCurrentSwingSpecial()
+            && hasSpecialProfile
+            && activeSpecialProfile.weaponId == 1
+            && activeSpecialProfile.rushSpeed > 0.01f
+            && playerAnim != null
+            && playerAnim.TryGetMeleeAnimProgress(out float t)
+            && t >= activeSpecialProfile.rushStart
+            && t <= activeSpecialProfile.rushEnd;
+
+        if (!wantDash)
+        {
+            if (rushDashActive)
+                rushDashActive = false;
+            return;
+        }
+
+        rushDashActive = true;
+        float dir = playerMovement != null ? playerMovement.FaceDirection : Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(dir, 0f))
+            dir = 1f;
+
+        bool blocked = physicsCheck != null && physicsCheck.IsBlockedHorizontally(dir);
+        if (blocked)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        else
+            rb.linearVelocity = new Vector2(dir * activeSpecialProfile.rushSpeed, rb.linearVelocity.y);
+
+        // 敌人 AI 会每帧覆写速度，且 Character 击退在重叠时方向不可靠；
+        // 因此冲刺窗内主动沿面向推动命中盒内敌人（伤害仍由 Attack 结算）。
+        PushEnemiesAlongRushPath(dir);
+    }
+
+    void PushEnemiesAlongRushPath(float dir)
+    {
+        if (meleeHitbox == null)
+            return;
+
+        SyncHitboxAnchor();
+        ApplyHitboxShape(upward: false, special: true);
+
+        Transform space = meleeHitbox.transform;
+        Vector2 localOffset = activeSpecialProfile.hitboxOffset;
+        Vector2 localSize = activeSpecialProfile.hitboxSize;
+        Vector2 center = space.TransformPoint(localOffset);
+        Vector3 lossy = space.lossyScale;
+        Vector2 worldSize = new Vector2(
+            Mathf.Abs(localSize.x * lossy.x),
+            Mathf.Abs(localSize.y * lossy.y));
+        float angle = space.eulerAngles.z;
+
+        int count = Physics2D.OverlapBoxNonAlloc(center, worldSize, angle, overlapBuffer);
+        if (count <= 0)
+            return;
+
+        float pushSpeed = activeSpecialProfile.rushPushSpeed > 0.01f
+            ? activeSpecialProfile.rushPushSpeed
+            : activeSpecialProfile.rushSpeed;
+        float step = pushSpeed * Time.fixedDeltaTime;
+        Vector2 delta = new Vector2(dir * step, 0f);
+
+        for (int i = 0; i < count; i++)
+        {
+            var col = overlapBuffer[i];
+            if (col == null)
+                continue;
+            if (col.transform == transform || col.transform.IsChildOf(transform))
+                continue;
+
+            var target = col.GetComponentInParent<Character>();
+            if (target == null || target == selfCharacter || target.currentHealth <= 0f)
+                continue;
+            if (meleeAttack != null
+                && !string.IsNullOrEmpty(meleeAttack.ignoreTag)
+                && target.CompareTag(meleeAttack.ignoreTag))
+                continue;
+
+            var targetRb = target.GetComponent<Rigidbody2D>();
+            if (targetRb == null || !targetRb.simulated)
+            {
+                target.transform.position += (Vector3)delta;
+                continue;
+            }
+
+            if (targetRb.bodyType == RigidbodyType2D.Kinematic)
+            {
+                targetRb.MovePosition(targetRb.position + delta);
+            }
+            else
+            {
+                // 覆盖敌人本帧 AI 速度，使其随冲刺被推走
+                targetRb.linearVelocity = new Vector2(dir * pushSpeed, targetRb.linearVelocity.y);
+            }
+        }
+    }
+
+    void ApplyRushAttackKnockback(bool enable)
+    {
+        if (meleeAttack == null)
+            return;
+
+        if (!hasSavedAttackKnockback)
+        {
+            savedAttackKnockbackEnable = meleeAttack.enableKnockback;
+            savedAttackKnockbackForce = meleeAttack.knockbackForce;
+            savedAttackKnockbackDuration = meleeAttack.knockbackDuration;
+            hasSavedAttackKnockback = true;
+        }
+
+        if (!enable)
+        {
+            RestoreRushAttackKnockback();
+            return;
+        }
+
+        meleeAttack.enableKnockback = activeSpecialProfile.knockbackForce > 0.01f;
+        meleeAttack.knockbackForce = activeSpecialProfile.knockbackForce;
+        meleeAttack.knockbackDuration = Mathf.Max(0.05f, activeSpecialProfile.knockbackDuration);
+    }
+
+    void RestoreRushAttackKnockback()
+    {
+        if (meleeAttack == null || !hasSavedAttackKnockback)
+            return;
+
+        meleeAttack.enableKnockback = savedAttackKnockbackEnable;
+        meleeAttack.knockbackForce = savedAttackKnockbackForce;
+        meleeAttack.knockbackDuration = savedAttackKnockbackDuration;
+        hasSavedAttackKnockback = false;
+    }
+
+    void EndRushSpecialState()
+    {
+        rushDashActive = false;
+        RestoreRushAttackKnockback();
     }
 
     void SyncDetectZoneAnchor()
@@ -736,6 +1176,37 @@ public class Bob_Controller : MonoBehaviour
         bool drawSpecial = Application.isPlaying && IsCurrentSwingSpecial();
         bool drawUp = !drawSpecial && Application.isPlaying && IsCurrentSwingUpward();
 
+        WeaponSpecialProfile specialDraw = default;
+        bool hasSpecialDraw = false;
+        if (Application.isPlaying && hasSpecialProfile)
+        {
+            specialDraw = activeSpecialProfile;
+            hasSpecialDraw = true;
+        }
+        else if (!Application.isPlaying && TryFindSpecialProfile(drawWeaponId, out specialDraw))
+        {
+            hasSpecialDraw = true;
+        }
+
+        // Buzzsaw：双层圆预览；特技播放中只画圆、不画旧盒
+        if (hasSpecialDraw && specialDraw.weaponId == 3 && specialDraw.outerRadius > 0.01f)
+        {
+            Vector3 center = Application.isPlaying
+                ? (Vector3)ResolveSpecialCenter()
+                : (meleePoint1 != null ? meleePoint1.position : transform.position);
+            bool live = drawSpecial;
+            Color outer = live
+                ? new Color(1f, 0.25f, 0.2f, 0.35f)
+                : new Color(1f, 0.45f, 0.9f, 0.18f);
+            Color inner = live
+                ? new Color(1f, 0.75f, 0.2f, 0.28f)
+                : new Color(1f, 0.7f, 0.35f, 0.14f);
+            DrawWireCircleGizmo(center, specialDraw.outerRadius, outer);
+            DrawWireCircleGizmo(center, specialDraw.innerRadius, inner);
+            if (drawSpecial)
+                return;
+        }
+
         Vector2 hitSize;
         Vector2 hitOffset;
         if (drawSpecial && hasSpecialProfile)
@@ -761,6 +1232,16 @@ public class Bob_Controller : MonoBehaviour
             new Color(hitColor.r, hitColor.g, hitColor.b, Mathf.Clamp01(hitColor.a + 0.35f)),
             filled: false);
 
+        // Whip 特技：额外画出后方镜像盒
+        if (hasSpecialDraw && specialDraw.weaponId == 2)
+        {
+            Vector2 rearOffset = new Vector2(-specialDraw.hitboxOffset.x, specialDraw.hitboxOffset.y);
+            Color rearColor = drawSpecial
+                ? new Color(1f, 0.35f, 0.85f, 0.35f)
+                : new Color(1f, 0.45f, 0.9f, 0.18f);
+            DrawLocalBoxGizmo(hitMatrix, rearOffset, specialDraw.hitboxSize, rearColor, filled: false);
+        }
+
         // 非向上挥击时额外用半透明线框标出上方判定，方便对照
         if (!drawUp && !drawSpecial)
         {
@@ -774,20 +1255,8 @@ public class Bob_Controller : MonoBehaviour
                 filled: false);
         }
 
-        // 额外标出当前武器特技判定（粉线框）
-        WeaponSpecialProfile specialDraw = default;
-        bool showSpecialOutline = false;
-        if (Application.isPlaying && hasSpecialProfile && !drawSpecial)
-        {
-            specialDraw = activeSpecialProfile;
-            showSpecialOutline = true;
-        }
-        else if (!Application.isPlaying && TryFindSpecialProfile(drawWeaponId, out specialDraw))
-        {
-            showSpecialOutline = true;
-        }
-
-        if (showSpecialOutline)
+        // Rush / 其他：非播放中时粉线框预览特技盒
+        if (hasSpecialDraw && !drawSpecial && specialDraw.weaponId == 1)
         {
             DrawLocalBoxGizmo(
                 hitMatrix,
@@ -841,5 +1310,25 @@ public class Bob_Controller : MonoBehaviour
 
         Gizmos.matrix = prev;
         Gizmos.color = prevColor;
+    }
+
+    static void DrawWireCircleGizmo(Vector3 center, float radius, Color color)
+    {
+        if (radius <= 0.01f)
+            return;
+
+        Color prev = Gizmos.color;
+        Gizmos.color = color;
+        const int segments = 48;
+        Vector3 prevPoint = center + new Vector3(radius, 0f, 0f);
+        for (int i = 1; i <= segments; i++)
+        {
+            float ang = (i / (float)segments) * Mathf.PI * 2f;
+            Vector3 next = center + new Vector3(Mathf.Cos(ang) * radius, Mathf.Sin(ang) * radius, 0f);
+            Gizmos.DrawLine(prevPoint, next);
+            prevPoint = next;
+        }
+
+        Gizmos.color = prev;
     }
 }

@@ -440,7 +440,7 @@ MonoBehaviour:
   detectZone: {fileID: 7012345678901234513}
   weaponProfiles:
   - weaponId: 0
-    damage: 40
+    damage: 30
     hitboxSize: {x: 1.2, y: 1}
     hitboxOffset: {x: 0, y: 0}
     upHitboxSize: {x: 1.3, y: 1.8}
@@ -483,29 +483,62 @@ MonoBehaviour:
     maxTargets: 2
     hitStart: 0.15
     hitEnd: 0.45
-  specialAbilityCost: 25
+  specialAmmoCost: 10
   specialProfiles:
   - weaponId: 1
     damage: 80
     hitboxSize: {x: 3.2, y: 1.4}
     hitboxOffset: {x: 1.6, y: 0}
     maxTargets: 0
-    hitStart: 0.2
-    hitEnd: 0.7
+    hitStart: 0.15
+    hitEnd: 0.6
+    rearHitStart: 0
+    rearHitEnd: 0
+    outerRadius: 0
+    innerRadius: 0
+    innerDamage: 0
+    rushSpeed: 18
+    rushStart: 0.1
+    rushEnd: 0.55
+    rushPushSpeed: 20
+    knockbackForce: 14
+    knockbackDuration: 0.22
   - weaponId: 2
     damage: 70
     hitboxSize: {x: 4.5, y: 0.6}
     hitboxOffset: {x: 2.2, y: 0}
     maxTargets: 0
     hitStart: 0.15
-    hitEnd: 0.75
+    hitEnd: 0.55
+    rearHitStart: 0.5
+    rearHitEnd: 0.7
+    outerRadius: 0
+    innerRadius: 0
+    innerDamage: 0
+    rushSpeed: 0
+    rushStart: 0
+    rushEnd: 0
+    rushPushSpeed: 0
+    knockbackForce: 0
+    knockbackDuration: 0
   - weaponId: 3
     damage: 100
     hitboxSize: {x: 2, y: 1.6}
-    hitboxOffset: {x: 1, y: 0}
-    maxTargets: 4
+    hitboxOffset: {x: 0, y: 0}
+    maxTargets: 0
     hitStart: 0.2
-    hitEnd: 0.65
+    hitEnd: 0.7
+    rearHitStart: 0
+    rearHitEnd: 0
+    outerRadius: 3.2
+    innerRadius: 1.5
+    innerDamage: 55
+    rushSpeed: 0
+    rushStart: 0
+    rushEnd: 0
+    rushPushSpeed: 0
+    knockbackForce: 0
+    knockbackDuration: 0
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1
