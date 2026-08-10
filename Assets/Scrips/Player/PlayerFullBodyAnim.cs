@@ -25,6 +25,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string DieStateName = "Die";
     const string WeaponSwitchStateName = "WeaponSwitch";
     const string DefaultSwitchClipName = "default_switch";
+    const string DoubleJumpStateName = "default_doublejump";
 
     /// <summary>rush</summary>
     const int WeaponIdA = 1;
@@ -75,6 +76,8 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool jumpInvokedThisFrame;
     bool wasGrounded;
     bool airStateInitialized;
+    /// <summary>二段跳上升段改播 <see cref="DoubleJumpStateName"/>，下落后清掉。</summary>
+    bool useDoubleJumpAnim;
 
     int lastSyncedPhase = -1;
     string lastLocomotionState;
@@ -94,6 +97,10 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public override bool IsLookingUp => isLookingUp;
     public override bool IsLookingDown => isLookingDown;
     public override AirPhaseType CurrentAirPhase => airPhase;
+    /// <summary>最近一次 <see cref="ApplyWeaponDefinition"/> 套用的武器；未套用前为 null。</summary>
+    public WeaponDefinition AppliedWeaponDefinition => appliedWeaponDef;
+    /// <summary>当前姿态武器 ID；未套用定义时视为 0。</summary>
+    public int AppliedWeaponId => appliedWeaponDef != null ? appliedWeaponDef.weaponId : 0;
     public override string CurrentFullBodyState =>
         isSwitchingWeapon ? WeaponSwitchStateName : activeOneShotState;
     public override bool IsPlayingLand => activeOneShotState == LandStateName;
@@ -175,6 +182,19 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override void PlayJumpAnim(bool hasHorizontalInput)
     {
+        BeginAirJump(hasHorizontalInput, doubleJump: false);
+    }
+
+    /// <summary>
+    /// Bob 二段跳：空中再跳时播 Animator 状态 <c>default_doublejump</c>（对应 default_doublejump 动画）。
+    /// </summary>
+    public void PlayDoubleJumpAnim(bool hasHorizontalInput)
+    {
+        BeginAirJump(hasHorizontalInput, doubleJump: true);
+    }
+
+    void BeginAirJump(bool hasHorizontalInput, bool doubleJump)
+    {
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
@@ -184,6 +204,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         isCrouching = false;
         activeOneShotState = null;
         oneShotAutoExit = false;
+        useDoubleJumpAnim = doubleJump;
 
         jumpInvokedThisFrame = true;
 
@@ -553,16 +574,23 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
             case AirPhaseType.Jump:
                 if (velocityY <= descendVelocityThreshold)
+                {
                     airPhase = AirPhaseType.Fall;
+                    useDoubleJumpAnim = false;
+                }
                 break;
 
             case AirPhaseType.Leap:
                 if (velocityY <= descendVelocityThreshold)
+                {
                     airPhase = AirPhaseType.LeapAir;
+                    useDoubleJumpAnim = false;
+                }
                 break;
 
             case AirPhaseType.Fall:
             case AirPhaseType.LeapAir:
+                useDoubleJumpAnim = false;
                 if (grounded)
                     PlayOneShot(LandStateName, autoExit: true);
                 break;
@@ -605,7 +633,14 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     string GetLocomotionStateName()
     {
         if (airPhase == AirPhaseType.Ground)
+        {
+            useDoubleJumpAnim = false;
             return isRunning ? "Run" : "Idle";
+        }
+
+        if (useDoubleJumpAnim
+            && (airPhase == AirPhaseType.Jump || airPhase == AirPhaseType.Leap))
+            return DoubleJumpStateName;
 
         return airPhase switch
         {
