@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6574215230855571360}
   m_Layer: 13
   m_Name: DashAttack2
-  m_TagString: Untagged
+  m_TagString: Blast
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -874,7 +874,7 @@ GameObject:
   - component: {fileID: 4881969272807865406}
   m_Layer: 13
   m_Name: Attack4
-  m_TagString: Untagged
+  m_TagString: Blast
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1208,6 +1208,7 @@ MonoBehaviour:
   followArriveDistance: 0.35
   followOffsetX: 1.2
   detectRangeX: 14.5
+  detectRangeY: 6
   attackDistance: 2.2
   airAttackDistanceY: 0.65
   dashDecideDistance: 4.5

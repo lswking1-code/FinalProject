@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2116673155432072033}
   - component: {fileID: 785616209480741553}
   - component: {fileID: 8176860469796530371}
+  - component: {fileID: 4440517719147602147}
   m_Layer: 14
   m_Name: PlayerMSpecialBulletM
   m_TagString: Electric
@@ -192,3 +193,25 @@ MonoBehaviour:
   lifetime: 10
   damageInterval: 0.5
   abilityPowerRestore: 5
+--- !u!95 &4440517719147602147
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7954760529879662823}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 886513f5553d4c349a3d4ea00233044f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

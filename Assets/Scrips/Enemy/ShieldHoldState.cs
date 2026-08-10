@@ -1,21 +1,21 @@
 using UnityEngine;
 
 /// <summary>
-/// 盾兵举盾对峙：原地停下，未面向玩家时延迟转身。
+/// 盾兵举盾对峙：原地停下，未面向玩家时延迟转身；
+/// 玩家离开理想距离持续一段时间后重新追击。
 /// </summary>
 public class ShieldHoldState : BaseState
 {
     ShieldEnemy shieldEnemy;
     float turnTimer;
+    float leaveIdealTimer;
 
     public override void OnEnter(Enemy enemy)
     {
         currentEnemy = enemy;
         shieldEnemy = enemy as ShieldEnemy;
         turnTimer = 0f;
-
-        if (shieldEnemy != null && shieldEnemy.HasShield && !currentEnemy.isPatrol)
-            shieldEnemy.MarkInitialApproachCompleted();
+        leaveIdealTimer = 0f;
 
         currentEnemy.currentSpeed = 0f;
         if (currentEnemy.Rb != null)
@@ -39,6 +39,9 @@ public class ShieldHoldState : BaseState
             shieldEnemy.EvaluateCycle();
             return;
         }
+
+        if (!currentEnemy.isPatrol && TryReapproachIfPlayerLeft())
+            return;
 
         if (IsFacingPlayer())
         {
@@ -65,6 +68,30 @@ public class ShieldHoldState : BaseState
     public override void OnExit()
     {
         turnTimer = 0f;
+        leaveIdealTimer = 0f;
+    }
+
+    /// <summary>
+    /// 玩家超出再追距离并持续 reapproachDelay 后进入 GetClose。
+    /// </summary>
+    bool TryReapproachIfPlayerLeft()
+    {
+        float dist = shieldEnemy.GetHorizontalDistanceToPlayer();
+        float reapproachRange = shieldEnemy.GetReapproachRange();
+
+        if (dist <= reapproachRange)
+        {
+            leaveIdealTimer = 0f;
+            return false;
+        }
+
+        leaveIdealTimer += Time.deltaTime;
+        if (leaveIdealTimer < shieldEnemy.reapproachDelay)
+            return false;
+
+        leaveIdealTimer = 0f;
+        shieldEnemy.SwitchState(NPCState.GetClose);
+        return true;
     }
 
     bool IsFacingPlayer()

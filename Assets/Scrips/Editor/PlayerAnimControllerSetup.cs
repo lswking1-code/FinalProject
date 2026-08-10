@@ -389,6 +389,11 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookDownBlastClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_EXcombo_shoot.anim";
     const string MachinistCrouchBlastClipPath = "Assets/Animations/Machinist/EXShoot/CrouchBlastShoot.anim";
     const string MachinistAirBlastClipPath = "Assets/Animations/Machinist/EXShoot/EXcombo_shoot_air.anim";
+    const string MachinistCrouchElectricClipPath = "Assets/Animations/Machinist/EXShoot/CrouchElectricShoot.anim";
+    // Electric 仰视/俯视/空中暂用 Blast 正式 clip 占位
+    const string MachinistLookUpElectricClipPath = "Assets/Animations/Machinist/EXShoot/lookup_BlastShoot.anim";
+    const string MachinistLookDownElectricClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_BlastShoot.anim";
+    const string MachinistAirElectricClipPath = "Assets/Animations/Machinist/EXShoot/AirBlastShoot.anim";
     const string MachinistCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/combo1_shoot.anim";
     const string MachinistCombo2ClipPath = "Assets/Animations/Machinist/EXShoot/combo2_shoot.anim";
     const string MachinistCrouchCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/crouch_combo1_shoot.anim";
@@ -417,6 +422,10 @@ public static class PlayerAnimControllerSetup
     const string LookDownBlastShootStateName = "LookDownBlastShoot";
     const string CrouchBlastShootStateName = "CrouchBlastShoot";
     const string AirBlastShootStateName = "AirBlastShoot";
+    const string LookUpElectricShootStateName = "LookUpElectricShoot";
+    const string LookDownElectricShootStateName = "LookDownElectricShoot";
+    const string CrouchElectricShootStateName = "CrouchElectricShoot";
+    const string AirElectricShootStateName = "AirElectricShoot";
     const string LoadBulletStateName = "LoadBullet";
     const string CrouchStateName = "Crouch";
     const string ChargeStartStateName = "ChargeStart";
@@ -552,6 +561,9 @@ public static class PlayerAnimControllerSetup
         // BlastShoot：暂用 EX Combo clip 占位，正式美术替换后改路径即可
         changed |= EnsureMachinistState(sm, states, LookUpBlastShootStateName, MachinistLookUpBlastClipPath, new Vector3(900f, 240f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownBlastShootStateName, MachinistLookDownBlastClipPath, new Vector3(900f, -240f, 0f));
+        // ElectricShoot：仰视/俯视暂用 Blast clip 占位
+        changed |= EnsureMachinistState(sm, states, LookUpElectricShootStateName, MachinistLookUpElectricClipPath, new Vector3(900f, 360f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownElectricShootStateName, MachinistLookDownElectricClipPath, new Vector3(900f, -360f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, ShootClipPath, new Vector3(1050f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, ShootClipPath, new Vector3(1200f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistChargeShootClipPath, new Vector3(1350f, 0f, 0f));
@@ -572,9 +584,11 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureTriggerSelfTransition(states, ComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookUpComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookDownComboShootStateName, ShootTriggerParam);
-        // Blast 仅靠代码 Play，不挂 AnyState/Look→Blast 的 Shoot Trigger，避免与 Combo 抢过渡
+        // Blast / Electric 仅靠代码 Play，不挂 AnyState/Look→专用态的 Shoot Trigger，避免与 Combo 抢过渡
         changed |= EnsureTriggerSelfTransition(states, LookUpBlastShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookDownBlastShootStateName, ShootTriggerParam);
+        changed |= EnsureTriggerSelfTransition(states, LookUpElectricShootStateName, ShootTriggerParam);
+        changed |= EnsureTriggerSelfTransition(states, LookDownElectricShootStateName, ShootTriggerParam);
 
         if (changed)
             EditorUtility.SetDirty(controller);
@@ -624,6 +638,9 @@ public static class PlayerAnimControllerSetup
         // BlastShoot：蹲姿/空中；clip 暂用 EX Combo 占位（蹲姿有 PlayerM_BlastShoot_Crouch 原画时可替换）
         changed |= EnsureMachinistState(sm, states, CrouchBlastShootStateName, MachinistCrouchBlastClipPath, new Vector3(750f, 600f, 0f));
         changed |= EnsureMachinistState(sm, states, AirBlastShootStateName, MachinistAirBlastClipPath, new Vector3(750f, 750f, 0f));
+        // ElectricShoot：蹲姿用正式 clip；空中暂用 Blast/Air clip 占位
+        changed |= EnsureMachinistState(sm, states, CrouchElectricShootStateName, MachinistCrouchElectricClipPath, new Vector3(750f, 900f, 0f));
+        changed |= EnsureMachinistState(sm, states, AirElectricShootStateName, MachinistAirElectricClipPath, new Vector3(750f, 1050f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, MachinistCrouchShootClipPath, new Vector3(900f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, MachinistCrouchShootClipPath, new Vector3(1050f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));
@@ -633,7 +650,8 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureExitTimeTransition(states, ChargeStartStateName, ChargeLoopStateName, 0.95f);
         changed |= EnsureExitTimeTransition(states, CrouchComboShootStateName, CrouchStateName, 0.95f);
         changed |= EnsureExitTimeTransition(states, CrouchBlastShootStateName, CrouchStateName, 0.95f);
-        // CrouchCombo1/2 / AirBlast 不设 ExitTime：由 MaintainShootCompletion 按 normalizedTime 结束
+        changed |= EnsureExitTimeTransition(states, CrouchElectricShootStateName, CrouchStateName, 0.95f);
+        // CrouchCombo1/2 / AirBlast / AirElectric 不设 ExitTime：由 MaintainShootCompletion 按 normalizedTime 结束
 
         if (changed)
             EditorUtility.SetDirty(controller);

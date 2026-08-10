@@ -7,6 +7,7 @@ public enum MachinistShootKind
     Combo2,
     Combo,
     Blast,
+    Electric,
 }
 
 public enum MachinistChargeAim
@@ -61,6 +62,10 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string LookDownBlastShootStateName = "LookDownBlastShoot";
     const string CrouchBlastShootStateName = "CrouchBlastShoot";
     const string AirBlastShootStateName = "AirBlastShoot";
+    const string LookUpElectricShootStateName = "LookUpElectricShoot";
+    const string LookDownElectricShootStateName = "LookDownElectricShoot";
+    const string CrouchElectricShootStateName = "CrouchElectricShoot";
+    const string AirElectricShootStateName = "AirElectricShoot";
     const string LoadBulletStateName = "LoadBullet";
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
@@ -573,20 +578,27 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         bool shootLookDown = !isCrouching && playerMovement != null && playerMovement.GetShootLookDown();
         bool isHorizontalForward = !shootLookUp && !shootLookDown;
 
-        // 前方终结连击 / Blast：地面/已蹲 → 蹲姿全身；空中未蹲 → 空中全身
-        if ((kind == MachinistShootKind.Combo || kind == MachinistShootKind.Blast) && isHorizontalForward)
+        // 前方终结连击 / Blast / Electric：地面/已蹲 → 蹲姿全身；空中未蹲 → 空中全身
+        if ((kind == MachinistShootKind.Combo
+                || kind == MachinistShootKind.Blast
+                || kind == MachinistShootKind.Electric)
+            && isHorizontalForward)
         {
             bool grounded = physicsCheck != null && physicsCheck.isGround;
             if (!grounded && !isCrouching)
             {
-                return kind == MachinistShootKind.Blast
-                    ? PlayForcedAirBlastShoot()
-                    : PlayForcedAirComboShoot();
+                if (kind == MachinistShootKind.Blast)
+                    return PlayForcedAirBlastShoot();
+                if (kind == MachinistShootKind.Electric)
+                    return PlayForcedAirElectricShoot();
+                return PlayForcedAirComboShoot();
             }
 
-            return kind == MachinistShootKind.Blast
-                ? PlayForcedCrouchBlastShoot()
-                : PlayForcedCrouchComboShoot();
+            if (kind == MachinistShootKind.Blast)
+                return PlayForcedCrouchBlastShoot();
+            if (kind == MachinistShootKind.Electric)
+                return PlayForcedCrouchElectricShoot();
+            return PlayForcedCrouchComboShoot();
         }
 
         string stateName;
@@ -611,6 +623,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 {
                     MachinistShootKind.Combo => LookUpComboShootStateName,
                     MachinistShootKind.Blast => LookUpBlastShootStateName,
+                    MachinistShootKind.Electric => LookUpElectricShootStateName,
                     _ => LookUpShootStateName,
                 };
                 upperShootUsesAnimatorParam = true;
@@ -622,6 +635,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 {
                     MachinistShootKind.Combo => LookDownComboShootStateName,
                     MachinistShootKind.Blast => LookDownBlastShootStateName,
+                    MachinistShootKind.Electric => LookDownElectricShootStateName,
                     _ => LookDownShootStateName,
                 };
                 upperShootUsesAnimatorParam = true;
@@ -643,7 +657,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeShootStateName = stateName;
         activeShootAnimator = animator;
 
-        if (kind == MachinistShootKind.Combo || kind == MachinistShootKind.Blast)
+        if (kind == MachinistShootKind.Combo
+            || kind == MachinistShootKind.Blast
+            || kind == MachinistShootKind.Electric)
         {
             comboShootPinnedNormalized = 0f;
             comboShootInputInterrupted = false;
@@ -666,6 +682,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     {
         MachinistShootKind.Combo => CrouchComboShootStateName,
         MachinistShootKind.Blast => CrouchBlastShootStateName,
+        MachinistShootKind.Electric => CrouchElectricShootStateName,
         MachinistShootKind.Combo1 => CrouchCombo1ShootStateName,
         MachinistShootKind.Combo2 => CrouchCombo2ShootStateName,
         _ => CrouchShootStateName,
@@ -782,6 +799,59 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         pendingLookDownReleaseAfterCombo = false;
 
         crouchAnimator.Play(AirBlastShootStateName, 0, 0f);
+        return true;
+    }
+
+    bool PlayForcedCrouchElectricShoot()
+    {
+        if (crouchAnimator == null)
+            return false;
+
+        if (forcedAirComboActive)
+            ExitForcedAirComboDisplay(clearHang: false);
+
+        bool alreadyCrouching = isCrouching;
+
+        if (!alreadyCrouching)
+            EnterForcedCrouchComboDisplay(CrouchElectricShootStateName);
+
+        forcedCrouchComboActive = true;
+        forcedCrouchComboWasAlreadyCrouching = alreadyCrouching;
+
+        upperShootUsesAnimatorParam = false;
+        isShooting = true;
+        activeShootStateName = CrouchElectricShootStateName;
+        activeShootAnimator = crouchAnimator;
+        comboShootPinnedNormalized = 0f;
+        comboShootInputInterrupted = false;
+        pendingLookUpReleaseAfterCombo = false;
+        pendingLookDownReleaseAfterCombo = false;
+
+        crouchAnimator.Play(CrouchElectricShootStateName, 0, 0f);
+        return true;
+    }
+
+    bool PlayForcedAirElectricShoot()
+    {
+        if (crouchAnimator == null)
+            return false;
+
+        if (forcedCrouchComboActive)
+            ExitForcedCrouchComboDisplay();
+
+        EnterForcedAirComboDisplay(AirElectricShootStateName);
+
+        forcedAirComboActive = true;
+        upperShootUsesAnimatorParam = false;
+        isShooting = true;
+        activeShootStateName = AirElectricShootStateName;
+        activeShootAnimator = crouchAnimator;
+        comboShootPinnedNormalized = 0f;
+        comboShootInputInterrupted = false;
+        pendingLookUpReleaseAfterCombo = false;
+        pendingLookDownReleaseAfterCombo = false;
+
+        crouchAnimator.Play(AirElectricShootStateName, 0, 0f);
         return true;
     }
 
@@ -1002,7 +1072,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         || stateName == LookUpBlastShootStateName
         || stateName == LookDownBlastShootStateName
         || stateName == CrouchBlastShootStateName
-        || stateName == AirBlastShootStateName;
+        || stateName == AirBlastShootStateName
+        || stateName == LookUpElectricShootStateName
+        || stateName == LookDownElectricShootStateName
+        || stateName == CrouchElectricShootStateName
+        || stateName == AirElectricShootStateName;
 
     static bool IsMachinistChargeShootState(string stateName) =>
         stateName == ChargeShootStateName
@@ -1013,7 +1087,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         stateName == LookUpComboShootStateName
         || stateName == LookDownComboShootStateName
         || stateName == LookUpBlastShootStateName
-        || stateName == LookDownBlastShootStateName;
+        || stateName == LookDownBlastShootStateName
+        || stateName == LookUpElectricShootStateName
+        || stateName == LookDownElectricShootStateName;
 
     static bool IsUpperBodyLookShootState(string stateName) =>
         stateName == LookUpShootStateName
@@ -1021,13 +1097,16 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         || stateName == LookUpComboShootStateName
         || stateName == LookDownComboShootStateName
         || stateName == LookUpBlastShootStateName
-        || stateName == LookDownBlastShootStateName;
+        || stateName == LookDownBlastShootStateName
+        || stateName == LookUpElectricShootStateName
+        || stateName == LookDownElectricShootStateName;
 
     static bool IsNaturalShootExitState(AnimatorStateInfo info, string shootStateName)
     {
         if (shootStateName == LookUpShootStateName
             || shootStateName == LookUpComboShootStateName
-            || shootStateName == LookUpBlastShootStateName)
+            || shootStateName == LookUpBlastShootStateName
+            || shootStateName == LookUpElectricShootStateName)
         {
             return info.IsName(LookUpStateName)
                 || info.IsName(LookUpEndStateName)
@@ -1036,7 +1115,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         if (shootStateName == LookDownShootStateName
             || shootStateName == LookDownComboShootStateName
-            || shootStateName == LookDownBlastShootStateName)
+            || shootStateName == LookDownBlastShootStateName
+            || shootStateName == LookDownElectricShootStateName)
         {
             return info.IsName(LookDownStateName)
                 || info.IsName(LookDownEndStateName)
@@ -1760,7 +1840,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             TrySwitchHorizontalShootToLookShoot(LookUpShootStateName);
             EnsureUpperLookLoopWhenNotShooting(
                 LookUpStateName, LookUpStartStateName, LookUpShootStateName,
-                LookUpComboShootStateName, LookUpBlastShootStateName);
+                LookUpComboShootStateName, LookUpBlastShootStateName, LookUpElectricShootStateName);
         }
         else if (isLookingUp)
         {
@@ -1780,6 +1860,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
                 if (info.IsName(LookUpComboShootStateName)
                     || info.IsName(LookUpBlastShootStateName)
+                    || info.IsName(LookUpElectricShootStateName)
                     || info.IsName(LookUpShootStateName))
                     upperAnimator.Play(LookUpEndStateName, 0, 0f);
             }
@@ -1810,7 +1891,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             TrySwitchHorizontalShootToLookShoot(LookDownShootStateName);
             EnsureUpperLookLoopWhenNotShooting(
                 LookDownStateName, LookDownStartStateName, LookDownShootStateName,
-                LookDownComboShootStateName, LookDownBlastShootStateName);
+                LookDownComboShootStateName, LookDownBlastShootStateName, LookDownElectricShootStateName);
         }
         else if (isLookingDown)
         {
@@ -1830,6 +1911,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
                 if (info.IsName(LookDownComboShootStateName)
                     || info.IsName(LookDownBlastShootStateName)
+                    || info.IsName(LookDownElectricShootStateName)
                     || info.IsName(LookDownShootStateName))
                     upperAnimator.Play(LookDownEndStateName, 0, 0f);
             }
@@ -1915,7 +1997,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         string lookStartState,
         string lookShootState,
         string lookComboShootState,
-        string lookBlastShootState = null)
+        string lookBlastShootState = null,
+        string lookElectricShootState = null)
     {
         if (isShooting || upperAnimator == null)
             return;
@@ -1928,7 +2011,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         // 未在射击却停在 Look*Shoot：强制回 Look 循环，避免落地后继续播完射击片段
         if (info.IsName(lookShootState)
             || info.IsName(lookComboShootState)
-            || (!string.IsNullOrEmpty(lookBlastShootState) && info.IsName(lookBlastShootState)))
+            || (!string.IsNullOrEmpty(lookBlastShootState) && info.IsName(lookBlastShootState))
+            || (!string.IsNullOrEmpty(lookElectricShootState) && info.IsName(lookElectricShootState)))
         {
             upperAnimator.Play(lookLoopState, 0, 0f);
             return;
@@ -2730,7 +2814,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             if (info.IsName(activeShootStateName))
             {
                 comboShootPinnedNormalized = info.normalizedTime;
-                if (info.normalizedTime < 1f)
+                // 空/零长度 clip（无关键帧）无法靠 normalizedTime 推进，立即结束以免锁移动
+                if (info.length > 0.001f && info.normalizedTime < 1f)
                     return;
 
                 CompleteShoot();

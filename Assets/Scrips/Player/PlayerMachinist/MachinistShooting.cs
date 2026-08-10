@@ -36,6 +36,8 @@ public class MachinistShooting : MonoBehaviour
     [SerializeField] float comboFireDelay = 0f;
     [Tooltip("特殊弹 L / BlastShoot：动画开始后延迟多久再生成子弹；<0 则复用 comboFireDelay")]
     [SerializeField] float blastFireDelay = -1f;
+    [Tooltip("特殊弹 M / ElectricShoot：动画开始后延迟多久再生成子弹；<0 则复用 blastFireDelay（再回退 comboFireDelay）")]
+    [SerializeField] float electricFireDelay = -1f;
 
     [Header("蓄力")]
     [SerializeField] float chargeHoldThreshold = 0.3f;
@@ -153,26 +155,39 @@ public class MachinistShooting : MonoBehaviour
             && specialMagazine.TryPeek(out SpecialAmmoType peek)
             && peek == SpecialAmmoType.L;
 
+        bool forceElectricFromSpecialM =
+            !forceBlastFromSpecialL
+            && specialMagazine != null
+            && specialMagazine.TryPeek(out peek)
+            && peek == SpecialAmmoType.M;
+
         bool forceComboFromSpecialS =
             !forceBlastFromSpecialL
+            && !forceElectricFromSpecialM
             && specialMagazine != null
             && specialMagazine.TryPeek(out peek)
             && peek == SpecialAmmoType.S;
 
         bool isHorizontalForward = IsHorizontalForwardAim();
         bool isFinisherNext = forceBlastFromSpecialL
+            || forceElectricFromSpecialM
             || forceComboFromSpecialS
             || comboCount + 1 >= comboFinisherCount;
         if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
             return;
 
-        bool advancesComboCount = !forceBlastFromSpecialL && !forceComboFromSpecialS;
+        bool advancesComboCount =
+            !forceBlastFromSpecialL && !forceElectricFromSpecialM && !forceComboFromSpecialS;
         if (advancesComboCount)
             comboCount++;
 
-        var kind = forceBlastFromSpecialL
-            ? MachinistShootKind.Blast
-            : ResolveTapShootKind(forceComboFromSpecialS, isHorizontalForward);
+        MachinistShootKind kind;
+        if (forceBlastFromSpecialL)
+            kind = MachinistShootKind.Blast;
+        else if (forceElectricFromSpecialM)
+            kind = MachinistShootKind.Electric;
+        else
+            kind = ResolveTapShootKind(forceComboFromSpecialS, isHorizontalForward);
 
         if (!playerAnim.TryPlayMachinistShootAnim(kind))
         {
@@ -184,32 +199,45 @@ public class MachinistShooting : MonoBehaviour
         lastShotTime = Time.time;
         bool isCombo = kind == MachinistShootKind.Combo;
         bool isBlast = kind == MachinistShootKind.Blast;
+        bool isElectric = kind == MachinistShootKind.Electric;
 
-        // 终结 / Blast：射击动画一开始就触发机器人连携，不等子弹生成
+        // 终结 / Blast：射击动画一开始就触发机器人连携，不等子弹生成（Electric/M 不触发）
         if (isBlast)
             robotBlastComboEvent?.RaiseEvent();
         else if (isCombo)
             robotComboEvent?.RaiseEvent();
 
-        // 动画开始即滞空：下射，或空中水平终结/Blast
+        // 动画开始即滞空：下射，或空中水平终结/Blast/Electric
         if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
             playerMovement.NotifyAirHangFromDownShot();
 
         var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
-        float delay = isBlast
-            ? (blastFireDelay >= 0f ? blastFireDelay : comboFireDelay)
-            : (isCombo ? comboFireDelay : normalFireDelay);
-        FireDir fireDir = ResolveFireDir();
-        if ((isCombo || isBlast) && isHorizontalForward)
+        float delay;
+        if (isElectric)
         {
-            // 空中水平终结/Blast 用前方水平弹；地面/蹲姿仍蹲射点
+            if (electricFireDelay >= 0f)
+                delay = electricFireDelay;
+            else if (blastFireDelay >= 0f)
+                delay = blastFireDelay;
+            else
+                delay = comboFireDelay;
+        }
+        else if (isBlast)
+            delay = blastFireDelay >= 0f ? blastFireDelay : comboFireDelay;
+        else
+            delay = isCombo ? comboFireDelay : normalFireDelay;
+
+        FireDir fireDir = ResolveFireDir();
+        if ((isCombo || isBlast || isElectric) && isHorizontalForward)
+        {
+            // 空中水平终结/Blast/Electric 用前方水平弹；地面/蹲姿仍蹲射点
             fireDir = playerAnim.IsForcedAirCombo ? FireDir.Forward : FireDir.Crouch;
         }
         ScheduleFire(fireDir, prefab, delay);
 
         if (isCombo && !forceComboFromSpecialS)
             comboCount = 0;
-        else if (isBlast)
+        else if (isBlast || isElectric)
             comboCount = 0;
     }
 

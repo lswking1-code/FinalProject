@@ -61,11 +61,13 @@ public class AllyRobot : MonoBehaviour
     [Header("索敌")]
     [Tooltip("以自身为中心的 X 轴单侧索敌半径")]
     public float detectRangeX = 6f;
+    [Tooltip("以自身为中心的 Y 轴单侧索敌半径（与空中敌相同，过滤不同高度平台上的目标）")]
+    public float detectRangeY = 6f;
 
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
-    [Tooltip("对 AirEnemy 停刀/到位的最大 Y 距离（应明显小于 attackDistance，避免偏低打空）")]
+    [Tooltip("停刀/到位的最大 Y 距离（地面敌与 AirEnemy 共用；应明显小于 attackDistance，避免偏低打空）")]
     [SerializeField] float airAttackDistanceY = 0.65f;
     [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出则冲刺，否则直接近战连击")]
     public float dashDecideDistance = 2.5f;
@@ -1435,31 +1437,25 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 地面敌只看 X；AirEnemy 需 X 进入 attackDistance 且 Y 进入 airAttackDistanceY。
+    /// 地面敌与 AirEnemy 均需：X 进入 attackDistance，且 Y 进入 airAttackDistanceY。
     /// </summary>
     bool IsInAttackRange(Transform target)
     {
         if (target == null)
             return false;
 
-        if (IsAirEnemyTarget(target))
-            return GetDistXTo(target) <= attackDistance && GetDistYTo(target) <= airAttackDistanceY;
-
-        return GetDistXTo(target) <= attackDistance;
+        return GetDistXTo(target) <= attackDistance && GetDistYTo(target) <= airAttackDistanceY;
     }
 
     /// <summary>
-    /// 地面敌只看 X；AirEnemy 的 Y 同样用 airAttackDistanceY，避免「够近可直接打」时仍偏低。
+    /// 地面敌与 AirEnemy 均需：X 进入 dashDecideDistance，且 Y 进入 airAttackDistanceY。
     /// </summary>
     bool IsWithinDashDecideRange(Transform target)
     {
         if (target == null)
             return false;
 
-        if (IsAirEnemyTarget(target))
-            return GetDistXTo(target) <= dashDecideDistance && GetDistYTo(target) <= airAttackDistanceY;
-
-        return GetDistXTo(target) <= dashDecideDistance;
+        return GetDistXTo(target) <= dashDecideDistance && GetDistYTo(target) <= airAttackDistanceY;
     }
 
     bool IsValidCombatTarget(Transform target, bool allowAirEnemy = false)
@@ -2383,8 +2379,10 @@ public class AllyRobot : MonoBehaviour
             if (enemy != null && enemy.isDead)
                 continue;
 
-            float distX = Mathf.Abs(transform.position.x - e.transform.position.x);
-            if (distX > detectRangeX)
+            Vector2 aim = GetCombatAimPoint(e.transform);
+            float distX = Mathf.Abs(transform.position.x - aim.x);
+            float distY = Mathf.Abs(transform.position.y - aim.y);
+            if (distX > detectRangeX || distY > detectRangeY)
                 continue;
 
             bool marked = enemy != null && enemy.isMarked;
@@ -2409,12 +2407,26 @@ public class AllyRobot : MonoBehaviour
         return Vector2.Distance(transform.position, HomeAnchor) > maxChaseRange;
     }
 
+    void DrawDetectRangeGizmo(Vector3 center)
+    {
+        float hx = detectRangeX;
+        float hy = detectRangeY;
+        Vector3 bl = center + new Vector3(-hx, -hy, 0f);
+        Vector3 br = center + new Vector3( hx, -hy, 0f);
+        Vector3 tr = center + new Vector3( hx,  hy, 0f);
+        Vector3 tl = center + new Vector3(-hx,  hy, 0f);
+        Gizmos.DrawLine(bl, br);
+        Gizmos.DrawLine(br, tr);
+        Gizmos.DrawLine(tr, tl);
+        Gizmos.DrawLine(tl, bl);
+    }
+
     void OnDrawGizmosSelected()
     {
         Vector3 origin = Application.isPlaying ? HomeAnchor : transform.position;
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectRangeX);
+        DrawDetectRangeGizmo(transform.position);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackDistance);
