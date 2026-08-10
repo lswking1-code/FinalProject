@@ -154,19 +154,22 @@ AnimatorStateMachine:
     m_Position: {x: 70, y: -70, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5799328676089812006}
-    m_Position: {x: 360, y: -140, z: 0}
+    m_Position: {x: 330, y: -200, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1307462359902628167}
-    m_Position: {x: 600, y: -170, z: 0}
+    m_Position: {x: 540, y: -260, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 728479943993012759}
-    m_Position: {x: 730, y: -150, z: 0}
+    m_Position: {x: 760, y: -210, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -365539275890384479}
-    m_Position: {x: 765, y: -85, z: 0}
+    m_Position: {x: 830, y: -140, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -1918230764470998875}
-    m_Position: {x: 800, y: -20, z: 0}
+    m_Position: {x: 900, y: 20, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 7691585877369941473}
+    m_Position: {x: 935, y: 85, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions:
   - {fileID: -5000000000000000008}
@@ -357,7 +360,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 1c74f98589b577447b6806bab9cee279, type: 2}
+  m_Motion: {fileID: 7400000, guid: 04e45a8de8d52084da50e3ea0951f3c2, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -541,6 +544,32 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7400000, guid: 4aeaf2b217ec41645bdd7e5c9156a123, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &7691585877369941473
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: enemy_melee
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: 04e45a8de8d52084da50e3ea0951f3c2, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

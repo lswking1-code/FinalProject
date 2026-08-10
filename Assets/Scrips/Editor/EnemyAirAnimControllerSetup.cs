@@ -16,7 +16,7 @@ public static class EnemyAirAnimControllerSetup
     const string IdleClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_idle.anim";
     const string FlyClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_fly.anim";
     const string ShootClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_shoot.anim";
-    const string ShootDownClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_shootDown.anim";
+    const string ShootDownClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_downshoot.anim";
     const string HitClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_hit.anim";
     const string DieClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_die.anim";
 

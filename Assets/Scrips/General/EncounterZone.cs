@@ -28,6 +28,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public UnityEvent OnEncounterStarted;
     public UnityEvent OnEncounterEnded;
 
+    [Header("编辑器显示")]
+    [Tooltip("在 Scene 视图中始终绘制遭遇区域（触发区 / 相机 Bounds / 空气墙）")]
+    [SerializeField] bool alwaysDrawInEditor = true;
+
     readonly HashSet<Character> aliveRegistered = new();
     readonly Dictionary<Character, UnityAction> dieHandlers = new();
     readonly List<Collider2D> airWallColliders = new();
@@ -504,23 +508,83 @@ public class EncounterZone : MonoBehaviour, ISaveable
         ApplyCompletedState(invokeEndedEvent: true);
     }
 
-    void OnDrawGizmosSelected()
+    void OnDrawGizmos()
     {
-        var col = GetComponent<Collider2D>();
+        if (!alwaysDrawInEditor)
+            return;
+
+        // 玩家进入触发区（本物体 Collider）
+        DrawCollider2DGizmo(
+            GetComponent<Collider2D>(),
+            new Color(1f, 0.45f, 0.1f, 0.18f),
+            new Color(1f, 0.5f, 0.15f, 0.95f));
+
+        // 遭遇锁区 / 相机 Bounds（即便运行时默认关闭，编辑器也常亮）
+        if (encounterBounds != null && encounterBounds.gameObject != gameObject)
+        {
+            DrawCollider2DGizmo(
+                encounterBounds,
+                new Color(0.15f, 0.75f, 1f, 0.12f),
+                new Color(0.2f, 0.85f, 1f, 0.9f));
+        }
+
+        // 空气墙位置，辅助判断刷兵是否落在锁区内
+        if (airWallsRoot != null)
+        {
+            var walls = airWallsRoot.GetComponentsInChildren<Collider2D>(true);
+            for (int i = 0; i < walls.Length; i++)
+            {
+                DrawCollider2DGizmo(
+                    walls[i],
+                    new Color(1f, 0.2f, 0.25f, 0.2f),
+                    new Color(1f, 0.25f, 0.3f, 0.9f));
+            }
+        }
+    }
+
+    static void DrawCollider2DGizmo(Collider2D col, Color fill, Color wire)
+    {
         if (col == null)
             return;
 
-        Gizmos.color = new Color(1f, 0.4f, 0.1f, 0.35f);
+        Matrix4x4 old = Gizmos.matrix;
+        Gizmos.matrix = col.transform.localToWorldMatrix;
+
         if (col is BoxCollider2D box)
         {
-            Matrix4x4 old = Gizmos.matrix;
-            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.color = fill;
             Gizmos.DrawCube(box.offset, box.size);
-            Gizmos.matrix = old;
+            Gizmos.color = wire;
+            Gizmos.DrawWireCube(box.offset, box.size);
+        }
+        else if (col is CircleCollider2D circle)
+        {
+            Gizmos.matrix = Matrix4x4.identity;
+            float scale = Mathf.Max(
+                Mathf.Abs(col.transform.lossyScale.x),
+                Mathf.Abs(col.transform.lossyScale.y));
+            Vector3 worldCenter = col.transform.TransformPoint(circle.offset);
+            Gizmos.color = wire;
+            Gizmos.DrawWireSphere(worldCenter, circle.radius * scale);
+        }
+        else if (col is CapsuleCollider2D capsule)
+        {
+            Gizmos.color = fill;
+            Gizmos.DrawCube(capsule.offset, capsule.size);
+            Gizmos.color = wire;
+            Gizmos.DrawWireCube(capsule.offset, capsule.size);
         }
         else
         {
-            Gizmos.DrawWireSphere(col.bounds.center, Mathf.Max(col.bounds.extents.x, col.bounds.extents.y));
+            Gizmos.matrix = Matrix4x4.identity;
+            Bounds b = col.bounds;
+            if (b.size.sqrMagnitude > 0.0001f)
+            {
+                Gizmos.color = wire;
+                Gizmos.DrawWireCube(b.center, b.size);
+            }
         }
+
+        Gizmos.matrix = old;
     }
 }

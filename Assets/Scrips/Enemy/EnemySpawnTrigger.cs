@@ -12,6 +12,10 @@ public class EnemySpawnTrigger : MonoBehaviour, ISaveable
     [SerializeField] Transform spawnPoint;
     [SerializeField] bool spawnOnce = true;
 
+    [Header("编辑器显示")]
+    [Tooltip("在 Scene 视图中始终绘制刷怪点")]
+    [SerializeField] bool alwaysDrawSpawnPoint = true;
+
     bool hasSpawned;
 
     void OnEnable()
@@ -80,12 +84,22 @@ public class EnemySpawnTrigger : MonoBehaviour, ISaveable
             hasSpawned = spawned;
     }
 
-    void OnDrawGizmosSelected()
+    void OnDrawGizmos()
     {
-        if (spawnPoint != null)
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(spawnPoint.position, 0.3f);
-        }
+        if (!alwaysDrawSpawnPoint)
+            return;
+
+        Vector3 pos = spawnPoint != null ? spawnPoint.position : transform.position;
+        Color color = new Color(1f, 0.25f, 0.2f, 1f);
+
+        Color fill = color;
+        fill.a = 0.35f;
+        Gizmos.color = fill;
+        Gizmos.DrawSphere(pos, 0.18f);
+
+        Gizmos.color = color;
+        Gizmos.DrawWireSphere(pos, 0.28f);
+        Gizmos.DrawLine(pos + Vector3.left * 0.35f, pos + Vector3.right * 0.35f);
+        Gizmos.DrawLine(pos + Vector3.up * 0.35f, pos + Vector3.down * 0.35f);
     }
 }

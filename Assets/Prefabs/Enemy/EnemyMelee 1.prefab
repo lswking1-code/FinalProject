@@ -588,6 +588,9 @@ MonoBehaviour:
   dropAmmoOnDeath: 1
   ammoDropPrefab: {fileID: 2051788991309760816, guid: c67900e55696ef542a650c6adf474fb7, type: 3}
   ammoDropOffset: {x: 0, y: 1, z: 0}
+  dropHealthOnDeath: 0
+  healthDropPrefab: {fileID: 0}
+  healthDropOffset: {x: 0, y: 0, z: 0}
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}

@@ -25,6 +25,24 @@ public class FlyingMoveState : BaseState
 
         if (currentEnemy.anim != null)
             currentEnemy.anim.SetBool("walk", true);
+
+        // #region agent log
+        try
+        {
+            string clip = "none";
+            if (currentEnemy.anim != null && currentEnemy.anim.runtimeAnimatorController != null)
+            {
+                var clips = currentEnemy.anim.GetCurrentAnimatorClipInfo(0);
+                if (clips != null && clips.Length > 0 && clips[0].clip != null)
+                    clip = clips[0].clip.name;
+            }
+            long ts = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            string line = "{\"sessionId\":\"960d0c\",\"runId\":\"post-fix\",\"hypothesisId\":\"C\",\"location\":\"FlyingMoveState.OnEnter\",\"message\":\"set walk true\",\"data\":{\"walk\":true,\"clipBeforeTransition\":\"" + clip + "\"},\"timestamp\":" + ts + "}\n";
+            string path = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "..", "debug-960d0c.log"));
+            System.IO.File.AppendAllText(path, line);
+        }
+        catch { }
+        // #endregion
     }
 
     public override void LogicUpdate()

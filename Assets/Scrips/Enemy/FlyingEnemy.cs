@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.IO;
+using System.Text;
 
 /// <summary>
 /// 飞行敌人：追入玩家头顶扇区后，先随机水平走位，再按相对位置选择向下或斜向单发射击，
@@ -41,6 +43,10 @@ public class FlyingEnemy : Enemy
     [HideInInspector] public float hoverBaseY;
     float bobPhase;
     float hoverHeightOutOfRangeTimer;
+    // #region agent log
+    float _dbgAnimLogTimer;
+    string _dbgLastState;
+    // #endregion
 
     protected override void Awake()
     {
@@ -64,6 +70,10 @@ public class FlyingEnemy : Enemy
         hoverBaseY = homePosition.y;
         bobPhase = 0f;
         hoverHeightOutOfRangeTimer = 0f;
+
+        // #region agent log
+        AgentDebugLog("A", "FlyingEnemy.Awake", "flying enemy awake anim dump", CollectAnimDebugData("awake"));
+        // #endregion
     }
 
     protected override void OnEnable()
@@ -95,7 +105,97 @@ public class FlyingEnemy : Enemy
             BeginReturnHome();
 
         base.Update();
+
+        // #region agent log
+        _dbgAnimLogTimer += Time.deltaTime;
+        if (_dbgAnimLogTimer >= 0.5f)
+        {
+            _dbgAnimLogTimer = 0f;
+            string stateName = "none";
+            if (anim != null && anim.runtimeAnimatorController != null)
+            {
+                var info = anim.GetCurrentAnimatorStateInfo(0);
+                stateName = info.IsName("Idle") ? "Idle"
+                    : info.IsName("Fly") ? "Fly"
+                    : info.IsName("Shoot") ? "Shoot"
+                    : info.IsName("ShootDown") ? "ShootDown"
+                    : info.IsName("Hit") ? "Hit"
+                    : info.IsName("Die") ? "Die"
+                    : $"hash:{info.shortNameHash}";
+            }
+
+            if (stateName != _dbgLastState || Time.frameCount % 60 < 2)
+            {
+                _dbgLastState = stateName;
+                AgentDebugLog("B", "FlyingEnemy.Update", "animator runtime snapshot", CollectAnimDebugData(stateName));
+            }
+        }
+        // #endregion
     }
+
+    // #region agent log
+    string CollectAnimDebugData(string note)
+    {
+        var sb = new StringBuilder(512);
+        sb.Append("{\"note\":\"").Append(note).Append("\"");
+        sb.Append(",\"animNull\":").Append(anim == null ? "true" : "false");
+        if (anim != null)
+        {
+            var ctrl = anim.runtimeAnimatorController;
+            sb.Append(",\"controller\":\"").Append(ctrl != null ? ctrl.name : "null").Append("\"");
+            sb.Append(",\"enabled\":").Append(anim.enabled ? "true" : "false");
+            sb.Append(",\"speed\":").Append(anim.speed.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            if (ctrl != null)
+            {
+                sb.Append(",\"walk\":").Append(anim.GetBool("walk") ? "true" : "false");
+                sb.Append(",\"shoot\":").Append(anim.GetBool("shoot") ? "true" : "false");
+                sb.Append(",\"shootDown\":").Append(anim.GetBool("shootDown") ? "true" : "false");
+                sb.Append(",\"dead\":").Append(anim.GetBool("dead") ? "true" : "false");
+                var clips = anim.GetCurrentAnimatorClipInfo(0);
+                sb.Append(",\"clipCount\":").Append(clips != null ? clips.Length : 0);
+                if (clips != null && clips.Length > 0 && clips[0].clip != null)
+                {
+                    sb.Append(",\"playingClip\":\"").Append(clips[0].clip.name).Append("\"");
+                    sb.Append(",\"clipLength\":").Append(clips[0].clip.length.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    sb.Append(",\"playingClip\":\"none\"");
+                }
+            }
+        }
+
+        var spriteTf = transform.Find("Sprite");
+        var squareTf = transform.Find("Square");
+        var weaponTf = transform.Find("weapon");
+        var rootSr = GetComponent<SpriteRenderer>();
+        var spriteSr = spriteTf != null ? spriteTf.GetComponent<SpriteRenderer>() : null;
+        sb.Append(",\"rootHasSpriteRenderer\":").Append(rootSr != null ? "true" : "false");
+        sb.Append(",\"spriteChildActive\":").Append(spriteTf != null && spriteTf.gameObject.activeInHierarchy ? "true" : "false");
+        sb.Append(",\"squareActive\":").Append(squareTf != null && squareTf.gameObject.activeInHierarchy ? "true" : "false");
+        sb.Append(",\"weaponActive\":").Append(weaponTf != null && weaponTf.gameObject.activeInHierarchy ? "true" : "false");
+        if (spriteSr != null && spriteSr.sprite != null)
+            sb.Append(",\"visibleSprite\":\"").Append(spriteSr.sprite.name).Append("\"");
+        else
+            sb.Append(",\"visibleSprite\":\"null\"");
+        sb.Append("}");
+        return sb.ToString();
+    }
+
+    void AgentDebugLog(string hypothesisId, string location, string message, string dataJson)
+    {
+        try
+        {
+            long ts = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            string line = "{\"sessionId\":\"960d0c\",\"runId\":\"post-fix\",\"hypothesisId\":\"" + hypothesisId
+                + "\",\"location\":\"" + location + "\",\"message\":\"" + message
+                + "\",\"data\":" + dataJson + ",\"timestamp\":" + ts + "}\n";
+            string path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "debug-960d0c.log"));
+            File.AppendAllText(path, line);
+        }
+        catch { /* ignore debug IO */ }
+    }
+    // #endregion
 
     protected override bool ShouldRunTimeCounter() => false;
 

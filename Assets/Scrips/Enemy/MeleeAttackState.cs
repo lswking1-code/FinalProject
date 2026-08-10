@@ -2,11 +2,14 @@ using UnityEngine;
 
 /// <summary>
 /// 近战攻击：前摇 → 挥刀动画（跟 Animator Melee 状态播完）→ 后摇。
-/// Hitbox 由动画控制；本状态不生成判定框。
+/// Hitbox（Attacker1）按 Melee clip 归一化时间在出刀帧开启，状态退出时关闭。
 /// </summary>
 public class MeleeAttackState : BaseState
 {
     const string MeleeStateName = "Melee";
+    const string AttackerChildName = "Attacker1";
+    /// <summary>enemy_melee 出刀帧（sprite 3）起始 normalizedTime ≈ 0.5。</summary>
+    const float HitboxActiveFromNormalized = 0.5f;
 
     enum Phase
     {
@@ -18,6 +21,7 @@ public class MeleeAttackState : BaseState
     MeleeEnemy meleeEnemy;
     Phase phase;
     float timer;
+    Transform attacker1;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -26,6 +30,9 @@ public class MeleeAttackState : BaseState
 
         if (meleeEnemy == null)
             return;
+
+        attacker1 = currentEnemy.transform.Find(AttackerChildName);
+        SetAttackerActive(false);
 
         meleeEnemy.FacePlayer();
         StopHorizontal();
@@ -48,6 +55,7 @@ public class MeleeAttackState : BaseState
 
         if (phase == Phase.Slash)
         {
+            SyncHitboxWithSlashAnim();
             if (IsMeleeAnimFinished())
                 EnterRecovery();
             return;
@@ -78,6 +86,8 @@ public class MeleeAttackState : BaseState
 
     public override void OnExit()
     {
+        SetAttackerActive(false);
+
         if (currentEnemy?.anim == null)
             return;
 
@@ -89,6 +99,7 @@ public class MeleeAttackState : BaseState
     {
         phase = Phase.Slash;
         meleeEnemy.FacePlayer();
+        SetAttackerActive(false);
 
         if (currentEnemy.anim != null)
         {
@@ -101,6 +112,7 @@ public class MeleeAttackState : BaseState
     {
         phase = Phase.Recovery;
         timer = Mathf.Max(0.01f, meleeEnemy.recoveryDuration);
+        SetAttackerActive(false);
 
         if (currentEnemy.anim != null)
             currentEnemy.anim.SetBool("melee", false);
@@ -122,6 +134,30 @@ public class MeleeAttackState : BaseState
         return info.normalizedTime >= 1f;
     }
 
+    /// <summary>
+    /// 仅在 Melee 动画后半段（enemy_melee_3 / _4）开启伤害判定。
+    /// </summary>
+    void SyncHitboxWithSlashAnim()
+    {
+        var anim = currentEnemy.anim;
+        if (anim == null)
+        {
+            SetAttackerActive(false);
+            return;
+        }
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(MeleeStateName))
+        {
+            SetAttackerActive(false);
+            return;
+        }
+
+        float n = info.normalizedTime;
+        bool active = n >= HitboxActiveFromNormalized && n < 1f;
+        SetAttackerActive(active);
+    }
+
     void StopHorizontal()
     {
         if (currentEnemy.Rb == null)
@@ -130,5 +166,14 @@ public class MeleeAttackState : BaseState
         Vector2 vel = currentEnemy.Rb.linearVelocity;
         vel.x = 0f;
         currentEnemy.Rb.linearVelocity = vel;
+    }
+
+    void SetAttackerActive(bool active)
+    {
+        if (attacker1 == null)
+            return;
+        if (attacker1.gameObject.activeSelf == active)
+            return;
+        attacker1.gameObject.SetActive(active);
     }
 }

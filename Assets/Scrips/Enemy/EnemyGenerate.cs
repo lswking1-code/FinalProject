@@ -69,6 +69,10 @@ public class EnemyGenerate : MonoBehaviour
     [Tooltip("默认刷怪位置列表；波未配置专用点时使用。为空则在本物体位置生成")]
     [SerializeField] Transform[] spawnPoints;
 
+    [Header("编辑器显示")]
+    [Tooltip("在 Scene 视图中始终绘制刷怪点")]
+    [SerializeField] bool alwaysDrawSpawnPoints = true;
+
     [Header("遭遇战（可选）")]
     [Tooltip("若指定，生成的敌人会自动 RegisterEnemy 到该遭遇区，用于清敌结束判定")]
     [SerializeField] EncounterZone encounterZone;
@@ -456,12 +460,15 @@ public class EnemyGenerate : MonoBehaviour
         return null;
     }
 
-    void OnDrawGizmosSelected()
+    void OnDrawGizmos()
     {
-        Gizmos.color = Color.cyan;
+        if (!alwaysDrawSpawnPoints)
+            return;
+
+        // 组件级默认点（青绿）
         if (spawnPoints == null || spawnPoints.Length == 0)
         {
-            Gizmos.DrawWireSphere(transform.position, 0.3f);
+            DrawSpawnMarker(transform.position, new Color(0.2f, 0.95f, 0.85f, 1f), 0.28f);
         }
         else
         {
@@ -469,7 +476,7 @@ public class EnemyGenerate : MonoBehaviour
             {
                 if (spawnPoints[i] == null)
                     continue;
-                Gizmos.DrawWireSphere(spawnPoints[i].position, 0.3f);
+                DrawSpawnMarker(spawnPoints[i].position, new Color(0.2f, 0.95f, 0.85f, 1f), 0.28f);
             }
         }
 
@@ -482,16 +489,16 @@ public class EnemyGenerate : MonoBehaviour
             if (wave == null)
                 continue;
 
-            Color waveColor = Color.HSVToRGB((w * 0.17f) % 1f, 0.75f, 1f);
+            Color waveColor = Color.HSVToRGB((w * 0.17f) % 1f, 0.85f, 1f);
+            waveColor.a = 1f;
 
             if (wave.spawnPoints != null)
             {
-                Gizmos.color = waveColor;
                 for (int i = 0; i < wave.spawnPoints.Length; i++)
                 {
                     if (wave.spawnPoints[i] == null)
                         continue;
-                    Gizmos.DrawWireSphere(wave.spawnPoints[i].position, 0.25f);
+                    DrawSpawnMarker(wave.spawnPoints[i].position, waveColor, 0.24f);
                 }
             }
 
@@ -504,14 +511,30 @@ public class EnemyGenerate : MonoBehaviour
                 if (entry == null || entry.spawnPoints == null)
                     continue;
 
-                Gizmos.color = Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
+                Color entryColor = Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
                 for (int i = 0; i < entry.spawnPoints.Length; i++)
                 {
                     if (entry.spawnPoints[i] == null)
                         continue;
-                    Gizmos.DrawWireSphere(entry.spawnPoints[i].position, 0.2f);
+                    DrawSpawnMarker(entry.spawnPoints[i].position, entryColor, 0.2f);
                 }
             }
         }
+    }
+
+    static void DrawSpawnMarker(Vector3 pos, Color color, float radius)
+    {
+        // 半透明实心 + 线框，再加十字，未选中时也容易辨认
+        Color fill = color;
+        fill.a = 0.35f;
+        Gizmos.color = fill;
+        Gizmos.DrawSphere(pos, radius * 0.65f);
+
+        Gizmos.color = color;
+        Gizmos.DrawWireSphere(pos, radius);
+
+        float arm = radius * 1.35f;
+        Gizmos.DrawLine(pos + Vector3.left * arm, pos + Vector3.right * arm);
+        Gizmos.DrawLine(pos + Vector3.up * arm, pos + Vector3.down * arm);
     }
 }
