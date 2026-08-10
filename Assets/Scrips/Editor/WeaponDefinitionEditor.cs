@@ -18,7 +18,7 @@ public class WeaponDefinitionEditor : Editor
     SerializedProperty lookUpStart, lookUp, lookUpEnd;
     SerializedProperty lookDownStart, lookDown, lookDownEnd;
     SerializedProperty shoot, lookUpShoot, lookDownShoot;
-    SerializedProperty melee, airMelee, upMelee, airUpMelee, downMelee;
+    SerializedProperty melee, airMelee, upMelee, airUpMelee, downMelee, special;
     SerializedProperty throwClip, airThrow, weaponSwitch;
     SerializedProperty crouch, crouchStart, crouchMove, crouchTurn;
     SerializedProperty crouchShoot, crouchMelee, crouchThrow, crouchWeaponSwitch;
@@ -53,6 +53,7 @@ public class WeaponDefinitionEditor : Editor
         upMelee = serializedObject.FindProperty("upMelee");
         airUpMelee = serializedObject.FindProperty("airUpMelee");
         downMelee = serializedObject.FindProperty("downMelee");
+        special = serializedObject.FindProperty("special");
         throwClip = serializedObject.FindProperty("throwClip");
         airThrow = serializedObject.FindProperty("airThrow");
         weaponSwitch = serializedObject.FindProperty("weaponSwitch");
@@ -138,6 +139,13 @@ public class WeaponDefinitionEditor : Editor
         DrawClip(upMelee, "向上攻击 Up", "地面向上 · default_up_melee · *_upattack");
         DrawClip(airUpMelee, "空中向上攻击 Air Up", "空中向上 · default_air_up_melee · *_jump_upattack");
         DrawClip(downMelee, "向下攻击 Down", "向下 · default_down_melee（可空，空中回退跳跃攻击）");
+
+        EditorGUILayout.Space(4);
+        EditorGUILayout.LabelField("特技（Ability1 / U）", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox(
+            "对应 melee_full 状态 Special。仅 rush / whip / buzzsaw 配置；空手无特技。",
+            MessageType.Info);
+        DrawClip(special, "特技 Special", "default_special · *_special");
 
         EditorGUILayout.Space(4);
         EditorGUILayout.LabelField("其它全身", EditorStyles.boldLabel);

@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 单 Animator 全身动画（近战角色 / Bob）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
 /// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove,
-/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, CrouchMelee, Die, WeaponSwitch。
+/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, CrouchMelee, Special, Die, WeaponSwitch。
 /// 推荐 AnimatorController：<c>Assets/Animations/melee/melee_full.controller</c>。
 /// 切枪：Apply 目标姿后，按 from→to 覆盖 default_switch（三武器六边；空手相关用 to.weaponSwitch）。
 /// </summary>
@@ -22,6 +22,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string AirUpMeleeStateName = "AirUpMelee";
     const string DownMeleeStateName = "DownMelee";
     const string CrouchMeleeStateName = "CrouchMelee";
+    const string SpecialStateName = "Special";
     const string DieStateName = "Die";
     const string WeaponSwitchStateName = "WeaponSwitch";
     const string DefaultSwitchClipName = "default_switch";
@@ -101,6 +102,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public bool IsUpwardMelee =>
         isMelee
         && (activeMeleeStateName == UpMeleeStateName || activeMeleeStateName == AirUpMeleeStateName);
+    /// <summary>当前是否为武器特技（Special）。</summary>
+    public override bool IsSpecial =>
+        isMelee && activeMeleeStateName == SpecialStateName;
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
     public override bool IsLookingUp => isLookingUp;
@@ -370,6 +374,35 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         activeMeleeStateName = stateName;
         meleeStartedAt = Time.time;
         bodyAnimator.Play(stateName, 0, 0f);
+        return true;
+    }
+
+    /// <summary>
+    /// 播放当前武器特技（Special）。仅 weaponId 1/2/3 且 WeaponDefinition.special 已配置时可用。
+    /// 走与近战相同的 IsMelee / 完成检测，便于 Bob_Controller 复用命中窗。
+    /// </summary>
+    public override bool TryPlaySpecialAnim()
+    {
+        if (isSwitchingWeapon || isDead || bodyAnimator == null)
+            return false;
+
+        if (appliedWeaponDef == null
+            || appliedWeaponDef.weaponId == 0
+            || appliedWeaponDef.special == null)
+            return false;
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (IsTurning)
+            InterruptTurn();
+
+        if (isCrouching && bodyAnimator != null)
+            bodyAnimator.SetBool("IsRun", false);
+
+        isMelee = true;
+        activeMeleeStateName = SpecialStateName;
+        meleeStartedAt = Time.time;
+        bodyAnimator.Play(SpecialStateName, 0, 0f);
         return true;
     }
 

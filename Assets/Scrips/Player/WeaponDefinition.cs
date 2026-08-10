@@ -56,6 +56,8 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip airUpMelee;
     [Tooltip("向下攻击 · 替换动画机 default_down_melee；未填则空中攻击回退 airMelee")]
     public AnimationClip downMelee;
+    [Tooltip("特技 · 替换动画机 default_special（rush/whip/buzzsaw；空手无）")]
+    public AnimationClip special;
 
     [Header("蓄力射击（分轨；基座 clip 名 charge_*）")]
     public AnimationClip chargeStart;
@@ -179,6 +181,7 @@ public class WeaponDefinition : ScriptableObject
             case "default_up_melee": return upMelee;
             case "default_air_up_melee": return airUpMelee != null ? airUpMelee : upMelee;
             case "default_down_melee": return downMelee;
+            case "default_special": return special;
             case "default_attack": return melee;
             case "crouch": return crouch;
             case "crouch_start": return crouchStart;

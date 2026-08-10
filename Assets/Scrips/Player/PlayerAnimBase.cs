@@ -28,6 +28,8 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsPlayingLoadBullet => false;
     public virtual bool IsThrowing => false;
     public virtual bool IsMelee => false;
+    /// <summary>近战特技（Ability1）播放中；默认实现为 false。</summary>
+    public virtual bool IsSpecial => false;
     public virtual bool IsSwitchingWeapon => false;
     public virtual bool IsDead => false;
     public virtual bool IsLookingUp => false;
@@ -95,6 +97,9 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool TryPlayThrowAnim() => false;
 
     public virtual bool TryPlayMeleeAnim() => false;
+
+    /// <summary>近战特技（Ability1 / U）。仅有 special 动画的武器可用。</summary>
+    public virtual bool TryPlaySpecialAnim() => false;
 
     public virtual void ApplyWeaponDefinition(WeaponDefinition def) { }
 

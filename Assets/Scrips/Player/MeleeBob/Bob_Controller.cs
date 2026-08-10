@@ -32,6 +32,21 @@ public class Bob_Controller : MonoBehaviour
         [Range(0f, 1f)] public float hitEnd;
     }
 
+    [System.Serializable]
+    public struct WeaponSpecialProfile
+    {
+        public int weaponId;
+        public int damage;
+        [Tooltip("特技 Hitbox 本地尺寸")]
+        public Vector2 hitboxSize;
+        [Tooltip("特技 Hitbox 本地偏移（面向右为正 X）")]
+        public Vector2 hitboxOffset;
+        [Tooltip("0 = 不限制命中数；>0 为单次特技最多命中敌人数")]
+        public int maxTargets;
+        [Range(0f, 1f)] public float hitStart;
+        [Range(0f, 1f)] public float hitEnd;
+    }
+
     [Header("二段跳")]
     [Tooltip("二段跳目标高度；若勾选下方选项则改用 PlayerMovement.jumpHeight")]
     [SerializeField] float doubleJumpHeight = 4.5f;
@@ -85,6 +100,31 @@ public class Bob_Controller : MonoBehaviour
         },
     };
 
+    [Header("特技（U / Ability1 · 仅武器 1/2/3）")]
+    [Tooltip("发动特技消耗的 AbilityPower；0 表示不消耗")]
+    [SerializeField] int specialAbilityCost = 25;
+    [SerializeField] WeaponSpecialProfile[] specialProfiles =
+    {
+        new WeaponSpecialProfile
+        {
+            weaponId = 1, damage = 80,
+            hitboxSize = new Vector2(3.2f, 1.4f), hitboxOffset = new Vector2(1.6f, 0f),
+            maxTargets = 0, hitStart = 0.2f, hitEnd = 0.7f,
+        },
+        new WeaponSpecialProfile
+        {
+            weaponId = 2, damage = 70,
+            hitboxSize = new Vector2(4.5f, 0.6f), hitboxOffset = new Vector2(2.2f, 0f),
+            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.75f,
+        },
+        new WeaponSpecialProfile
+        {
+            weaponId = 3, damage = 100,
+            hitboxSize = new Vector2(2.0f, 1.6f), hitboxOffset = new Vector2(1.0f, 0f),
+            maxTargets = 4, hitStart = 0.2f, hitEnd = 0.65f,
+        },
+    };
+
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
     [SerializeField] Vector2 defaultUpHitboxOffset = new Vector2(0f, 1.2f);
@@ -113,6 +153,8 @@ public class Bob_Controller : MonoBehaviour
 
     int activeWeaponId = -1;
     WeaponMeleeProfile activeProfile;
+    WeaponSpecialProfile activeSpecialProfile;
+    bool hasSpecialProfile;
     readonly HashSet<Character> swingHitTargets = new();
     readonly List<Character> overlapCharacters = new();
     readonly Collider2D[] overlapBuffer = new Collider2D[24];
@@ -172,6 +214,7 @@ public class Bob_Controller : MonoBehaviour
             jumpPressedThisFrame = true;
 
         TryStartMeleeAttack();
+        TryStartSpecialAttack();
         UpdateMeleeHitbox();
     }
 
@@ -209,6 +252,7 @@ public class Bob_Controller : MonoBehaviour
 
         activeWeaponId = weaponId;
         activeProfile = FindProfile(weaponId);
+        hasSpecialProfile = TryFindSpecialProfile(weaponId, out activeSpecialProfile);
         ApplyActiveProfileToColliders();
     }
 
@@ -255,6 +299,40 @@ public class Bob_Controller : MonoBehaviour
         {
             profile.hitStart = hitStart;
             profile.hitEnd = hitEnd;
+        }
+
+        return profile;
+    }
+
+    bool TryFindSpecialProfile(int weaponId, out WeaponSpecialProfile profile)
+    {
+        if (specialProfiles != null)
+        {
+            for (int i = 0; i < specialProfiles.Length; i++)
+            {
+                if (specialProfiles[i].weaponId != weaponId)
+                    continue;
+
+                profile = NormalizeSpecialProfile(specialProfiles[i], weaponId);
+                return weaponId != 0;
+            }
+        }
+
+        profile = default;
+        return false;
+    }
+
+    WeaponSpecialProfile NormalizeSpecialProfile(WeaponSpecialProfile profile, int weaponId)
+    {
+        profile.weaponId = weaponId;
+        if (profile.damage <= 0)
+            profile.damage = Mathf.Max(meleeDamage, 1);
+        if (profile.hitboxSize.x <= 0.01f || profile.hitboxSize.y <= 0.01f)
+            profile.hitboxSize = new Vector2(2f, 1.2f);
+        if (profile.hitEnd <= profile.hitStart)
+        {
+            profile.hitStart = 0.2f;
+            profile.hitEnd = 0.7f;
         }
 
         return profile;
@@ -308,7 +386,8 @@ public class Bob_Controller : MonoBehaviour
 
     void ApplyActiveProfileToColliders()
     {
-        ApplyHitboxShape(upward: false);
+        bool special = IsCurrentSwingSpecial();
+        ApplyHitboxShape(upward: false, special: special);
 
         if (detectZoneCollider != null)
         {
@@ -318,18 +397,32 @@ public class Bob_Controller : MonoBehaviour
 
         if (meleeAttack != null)
         {
-            meleeAttack.damage = activeProfile.damage > 0 ? activeProfile.damage : meleeDamage;
+            int damage = special && hasSpecialProfile
+                ? activeSpecialProfile.damage
+                : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
+            int maxTargets = special && hasSpecialProfile
+                ? activeSpecialProfile.maxTargets
+                : activeProfile.maxTargets;
+
+            meleeAttack.damage = damage;
             meleeAttack.attackType = AttackType.Melee;
             meleeAttack.ignoreTag = "Player";
             // 有命中上限时改由本脚本结算，避免 Attack 触发器打满所有重叠目标
-            meleeAttack.enabled = activeProfile.maxTargets <= 0;
+            meleeAttack.enabled = maxTargets <= 0;
         }
     }
 
-    void ApplyHitboxShape(bool upward)
+    void ApplyHitboxShape(bool upward, bool special = false)
     {
         if (meleeHitboxCollider == null)
             return;
+
+        if (special && hasSpecialProfile)
+        {
+            meleeHitboxCollider.size = activeSpecialProfile.hitboxSize;
+            meleeHitboxCollider.offset = activeSpecialProfile.hitboxOffset;
+            return;
+        }
 
         if (upward)
         {
@@ -350,12 +443,18 @@ public class Bob_Controller : MonoBehaviour
     bool IsCurrentSwingUpward()
         => fullBodyAnim != null && fullBodyAnim.IsUpwardMelee;
 
+    bool IsCurrentSwingSpecial()
+        => playerAnim != null && playerAnim.IsSpecial;
+
     void TryStartMeleeAttack()
     {
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
         if (playerAnim == null || playerAnim.IsDead)
+            return;
+
+        if (playerAnim.IsSpecial)
             return;
 
         if (!actions.Player.Attack.WasPressedThisFrame())
@@ -378,6 +477,51 @@ public class Bob_Controller : MonoBehaviour
         swingHitTargets.Clear();
         playerAnim.InterruptTurn();
         playerAnim.TryPlayMeleeAnim();
+        ApplyActiveProfileToColliders();
+    }
+
+    void TryStartSpecialAttack()
+    {
+        if (playerMovement != null && playerMovement.IsActionLocked)
+            return;
+
+        if (playerAnim == null || playerAnim.IsDead || playerAnim.IsSwitchingWeapon)
+            return;
+
+        if (!actions.Player.Ability1.WasPressedThisFrame())
+            return;
+
+        int weaponId = ResolveCurrentWeaponId();
+        if (weaponId == 0 || !hasSpecialProfile || activeSpecialProfile.weaponId != weaponId)
+            return;
+
+        if (fullBodyAnim != null
+            && (fullBodyAnim.AppliedWeaponDefinition == null
+                || fullBodyAnim.AppliedWeaponDefinition.special == null))
+            return;
+
+        if (specialAbilityCost > 0)
+        {
+            if (selfCharacter == null || selfCharacter.AbilityPower < specialAbilityCost)
+                return;
+        }
+
+        if (detectZone != null && detectZone.HasValidTarget)
+        {
+            var target = detectZone.GetNearestTarget(transform.position);
+            if (target != null && playerMovement != null)
+                playerMovement.FaceTowardWorldX(target.position.x);
+        }
+
+        swingHitTargets.Clear();
+        playerAnim.InterruptTurn();
+        if (!playerAnim.TryPlaySpecialAnim())
+            return;
+
+        if (specialAbilityCost > 0 && selfCharacter != null)
+            selfCharacter.OnAbility(specialAbilityCost);
+
+        ApplyActiveProfileToColliders();
     }
 
     void UpdateMeleeHitbox()
@@ -389,15 +533,27 @@ public class Bob_Controller : MonoBehaviour
         {
             if (meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(false);
-            ApplyHitboxShape(upward: false);
+            ApplyHitboxShape(upward: false, special: false);
             return;
         }
 
+        bool special = IsCurrentSwingSpecial();
         SyncHitboxAnchor();
-        ApplyHitboxShape(IsCurrentSwingUpward());
+        ApplyHitboxShape(upward: !special && IsCurrentSwingUpward(), special: special);
 
-        float windowStart = activeProfile.hitStart;
-        float windowEnd = activeProfile.hitEnd;
+        float windowStart = special && hasSpecialProfile ? activeSpecialProfile.hitStart : activeProfile.hitStart;
+        float windowEnd = special && hasSpecialProfile ? activeSpecialProfile.hitEnd : activeProfile.hitEnd;
+        int maxTargets = special && hasSpecialProfile ? activeSpecialProfile.maxTargets : activeProfile.maxTargets;
+
+        if (meleeAttack != null)
+        {
+            int damage = special && hasSpecialProfile
+                ? activeSpecialProfile.damage
+                : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
+            meleeAttack.damage = damage;
+            meleeAttack.enabled = maxTargets <= 0;
+        }
+
         bool inHitWindow = playerAnim.TryGetMeleeAnimProgress(out float t)
             && t >= windowStart && t <= windowEnd;
 
@@ -406,8 +562,8 @@ public class Bob_Controller : MonoBehaviour
             if (!meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(true);
 
-            if (activeProfile.maxTargets > 0)
-                ProcessLimitedHitTargets();
+            if (maxTargets > 0)
+                ProcessLimitedHitTargets(maxTargets);
         }
         else if (meleeHitbox.activeSelf)
         {
@@ -415,12 +571,12 @@ public class Bob_Controller : MonoBehaviour
         }
     }
 
-    void ProcessLimitedHitTargets()
+    void ProcessLimitedHitTargets(int maxTargets)
     {
         if (meleeAttack == null || meleeHitboxCollider == null)
             return;
 
-        if (swingHitTargets.Count >= activeProfile.maxTargets)
+        if (swingHitTargets.Count >= maxTargets)
             return;
 
         Bounds bounds = meleeHitboxCollider.bounds;
@@ -461,7 +617,7 @@ public class Bob_Controller : MonoBehaviour
             return da.CompareTo(db);
         });
 
-        int slots = activeProfile.maxTargets - swingHitTargets.Count;
+        int slots = maxTargets - swingHitTargets.Count;
         for (int i = 0; i < overlapCharacters.Count && slots > 0; i++)
         {
             var target = overlapCharacters[i];
@@ -553,15 +709,17 @@ public class Bob_Controller : MonoBehaviour
             return;
 
         WeaponMeleeProfile drawProfile;
+        int drawWeaponId = 0;
         if (Application.isPlaying)
         {
             drawProfile = activeProfile;
+            drawWeaponId = activeWeaponId;
         }
         else
         {
             var wc = weaponController != null ? weaponController : GetComponent<PlayerWeaponController>();
-            int wid = wc != null ? wc.CurrentWeaponId : 0;
-            drawProfile = FindProfile(wid);
+            drawWeaponId = wc != null ? wc.CurrentWeaponId : 0;
+            drawProfile = FindProfile(drawWeaponId);
         }
 
         DrawLocalBoxGizmo(
@@ -575,13 +733,25 @@ public class Bob_Controller : MonoBehaviour
         Color hitColor = hitboxLive ? hitboxActiveGizmoColor : hitboxIdleGizmoColor;
         Matrix4x4 hitMatrix = GetHitboxDrawMatrix(meleeHitbox != null ? meleeHitbox.transform : null);
 
-        bool drawUp = Application.isPlaying && IsCurrentSwingUpward();
-        Vector2 hitSize = drawUp
-            ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize)
-            : drawProfile.hitboxSize;
-        Vector2 hitOffset = drawUp
-            ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset)
-            : drawProfile.hitboxOffset;
+        bool drawSpecial = Application.isPlaying && IsCurrentSwingSpecial();
+        bool drawUp = !drawSpecial && Application.isPlaying && IsCurrentSwingUpward();
+
+        Vector2 hitSize;
+        Vector2 hitOffset;
+        if (drawSpecial && hasSpecialProfile)
+        {
+            hitSize = activeSpecialProfile.hitboxSize;
+            hitOffset = activeSpecialProfile.hitboxOffset;
+        }
+        else
+        {
+            hitSize = drawUp
+                ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize)
+                : drawProfile.hitboxSize;
+            hitOffset = drawUp
+                ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset)
+                : drawProfile.hitboxOffset;
+        }
 
         DrawLocalBoxGizmo(hitMatrix, hitOffset, hitSize, hitColor, filled: true);
         DrawLocalBoxGizmo(
@@ -592,7 +762,7 @@ public class Bob_Controller : MonoBehaviour
             filled: false);
 
         // 非向上挥击时额外用半透明线框标出上方判定，方便对照
-        if (!drawUp)
+        if (!drawUp && !drawSpecial)
         {
             Vector2 upSize = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize;
             Vector2 upOffset = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset;
@@ -601,6 +771,29 @@ public class Bob_Controller : MonoBehaviour
                 upOffset,
                 upSize,
                 new Color(0.4f, 1f, 0.5f, 0.2f),
+                filled: false);
+        }
+
+        // 额外标出当前武器特技判定（粉线框）
+        WeaponSpecialProfile specialDraw = default;
+        bool showSpecialOutline = false;
+        if (Application.isPlaying && hasSpecialProfile && !drawSpecial)
+        {
+            specialDraw = activeSpecialProfile;
+            showSpecialOutline = true;
+        }
+        else if (!Application.isPlaying && TryFindSpecialProfile(drawWeaponId, out specialDraw))
+        {
+            showSpecialOutline = true;
+        }
+
+        if (showSpecialOutline)
+        {
+            DrawLocalBoxGizmo(
+                hitMatrix,
+                specialDraw.hitboxOffset,
+                specialDraw.hitboxSize,
+                new Color(1f, 0.45f, 0.9f, 0.22f),
                 filled: false);
         }
     }
