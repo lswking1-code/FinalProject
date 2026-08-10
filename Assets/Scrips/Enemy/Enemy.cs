@@ -70,12 +70,19 @@ public class Enemy : MonoBehaviour
     public GameObject ammoDropPrefab;
     [Tooltip("相对敌人当前位置的掉落偏移")]
     public Vector3 ammoDropOffset;
+    [Tooltip("开启后死亡时掉落回血包")]
+    public bool dropHealthOnDeath;
+    [Tooltip("掉落的回血包 Prefab（HealthPack）")]
+    public GameObject healthDropPrefab;
+    [Tooltip("相对敌人当前位置的回血包掉落偏移")]
+    public Vector3 healthDropOffset;
 
     [HideInInspector] public Transform player;
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
 
     bool ammoDropped;
+    bool healthDropped;
 
     protected Character character;
 
@@ -563,6 +570,7 @@ public class Enemy : MonoBehaviour
         isHurt = false;
 
         TryDropAmmo();
+        TryDropHealth();
     }
 
     void TryDropAmmo()
@@ -572,6 +580,15 @@ public class Enemy : MonoBehaviour
 
         ammoDropped = true;
         Instantiate(ammoDropPrefab, transform.position + ammoDropOffset, Quaternion.identity);
+    }
+
+    void TryDropHealth()
+    {
+        if (healthDropped || !dropHealthOnDeath || healthDropPrefab == null)
+            return;
+
+        healthDropped = true;
+        Instantiate(healthDropPrefab, transform.position + healthDropOffset, Quaternion.identity);
     }
 
     /// <summary>
@@ -608,6 +625,12 @@ public class Enemy : MonoBehaviour
         {
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position + ammoDropOffset, 0.15f);
+        }
+
+        if (dropHealthOnDeath)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position + healthDropOffset, 0.15f);
         }
     }
 }

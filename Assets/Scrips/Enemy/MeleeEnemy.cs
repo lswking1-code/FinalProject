@@ -101,10 +101,13 @@ public class MeleeEnemy : Enemy
 
     protected override bool ShouldAutoMove() => false;
 
+    /// <summary>靠近状态停下的水平距离（盾兵有盾时用 holdRange）。</summary>
+    public virtual float GetApproachStopRange() => meleeRange;
+
     /// <summary>
     /// 每轮循环：巡逻闸门 → 飞扑预留 → GetClose 或 MeleeAttack
     /// </summary>
-    public void EvaluateCycle()
+    public virtual void EvaluateCycle()
     {
         if (isDead)
             return;
@@ -130,8 +133,9 @@ public class MeleeEnemy : Enemy
         }
 
         float dist = GetHorizontalDistanceToPlayer();
+        float stopRange = GetApproachStopRange();
 
-        if (dist > meleeRange)
+        if (dist > stopRange)
         {
             // 冲刺飞扑预留：enablePounce 且 CanPounce() 时进入 Skill
             if (enablePounce && CanPounce())

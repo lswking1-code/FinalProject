@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 8176860469796530371}
   m_Layer: 14
   m_Name: PlayerMSpecialBulletM
-  m_TagString: Untagged
+  m_TagString: Electric
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -172,6 +172,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!114 &8176860469796530371
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -129,6 +129,13 @@ public class Character : MonoBehaviour,ISaveable
         if (isDead || invulnerable || forcedInvulnerable)
             return;
 
+        if (attacker != null)
+        {
+            var absorb = GetComponentInChildren<IDamageAbsorb>();
+            if (absorb != null && absorb.TryAbsorb(attacker))
+                return;
+        }
+
         if (currentHealth - attacker.damage > 0)
         {
             currentHealth -= attacker.damage;
@@ -216,6 +223,19 @@ public class Character : MonoBehaviour,ISaveable
     {
         currentHealth += HP;
         NotifyStatsChanged();
+    }
+
+    /// <summary>
+    /// 回复生命。无效、已死亡或已满血时返回 false。
+    /// </summary>
+    public bool TryHeal(float amount)
+    {
+        if (amount <= 0 || isDead || currentHealth >= maxHealth)
+            return false;
+
+        currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        NotifyStatsChanged();
+        return true;
     }
 
     /// <summary>

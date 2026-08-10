@@ -1,0 +1,87 @@
+using UnityEngine;
+
+/// <summary>
+/// 挂在 Shield 子物体上：吸收正面非 Electric 伤害；上方/背后穿透；盾血归零后销毁。
+/// </summary>
+public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
+{
+    const string ElectricTag = "Electric";
+
+    [Header("护盾")]
+    [Tooltip("护盾生命上限")]
+    public float maxShieldHealth = 30f;
+    [Tooltip("当前护盾生命")]
+    public float currentShieldHealth = 30f;
+    [Tooltip("攻击源相对敌人中心高于此值视为上方攻击，不吸收")]
+    public float aboveHeightThreshold = 0.8f;
+
+    ShieldEnemy shieldEnemy;
+    Enemy enemy;
+
+    void Awake()
+    {
+        currentShieldHealth = maxShieldHealth;
+        shieldEnemy = GetComponentInParent<ShieldEnemy>();
+        enemy = shieldEnemy != null ? shieldEnemy : GetComponentInParent<Enemy>();
+    }
+
+    public bool TryAbsorb(Attack attacker)
+    {
+        if (attacker == null || enemy == null || enemy.isDead)
+            return false;
+
+        if (IsElectric(attacker.transform))
+            return false;
+
+        Vector3 attackPos = attacker.transform.position;
+        float dy = attackPos.y - enemy.transform.position.y;
+        if (dy >= aboveHeightThreshold)
+            return false;
+
+        float toAttackX = attackPos.x - enemy.transform.position.x;
+        // 与 faceDir 同号 = 攻击来自面朝一侧（正面）
+        if (toAttackX * enemy.faceDir.x <= 0f)
+            return false;
+
+        float damage = Mathf.Max(0, attacker.damage);
+        currentShieldHealth -= damage;
+
+        NotifyAggroIfNeeded();
+
+        if (currentShieldHealth <= 0f)
+            BreakShield();
+
+        return true;
+    }
+
+    static bool IsElectric(Transform root)
+    {
+        for (Transform t = root; t != null; t = t.parent)
+        {
+            if (t.CompareTag(ElectricTag))
+                return true;
+        }
+
+        return false;
+    }
+
+    void NotifyAggroIfNeeded()
+    {
+        if (shieldEnemy == null)
+            return;
+
+        if (shieldEnemy.isPatrol && !shieldEnemy.isAggro)
+        {
+            shieldEnemy.EnterPatrolCombat();
+            shieldEnemy.EvaluateCycle();
+        }
+    }
+
+    void BreakShield()
+    {
+        if (shieldEnemy != null)
+            shieldEnemy.NotifyShieldBroken();
+
+        Destroy(gameObject);
+    }
+}

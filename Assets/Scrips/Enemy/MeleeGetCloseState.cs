@@ -23,7 +23,7 @@ public class MeleeGetCloseState : BaseState
         if (meleeEnemy == null || currentEnemy.isDead)
             return;
 
-        if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.meleeRange)
+        if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.GetApproachStopRange())
             meleeEnemy.EvaluateCycle();
     }
 
