@@ -1,6 +1,7 @@
-using UnityEngine;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 /// <summary>
 /// 飞行敌人：追入玩家头顶扇区后，先随机水平走位，再按相对位置选择向下或斜向单发射击，
@@ -40,9 +41,22 @@ public class FlyingEnemy : Enemy
     [Tooltip("高度偏差持续超过该时长后才跟随玩家调整悬停高度（忽略短暂跳跃）")]
     public float hoverHeightHoldTime = 0.5f;
 
+    [Header("单向平台避让")]
+    [Tooltip("扫描单向平台的层；留空则默认 Platform")]
+    [SerializeField] LayerMask oneWayPlatformLayer;
+    [Tooltip("悬停中心需高于平台顶面的距离（约等于碰撞半径 + 余量）")]
+    [SerializeField] float platformClearance = 1.1f;
+    [Tooltip("IgnoreCollision 预扫描半径相对碰撞体的额外距离")]
+    [SerializeField] float oneWayScanPadding = 3f;
+
     [HideInInspector] public float hoverBaseY;
     float bobPhase;
     float hoverHeightOutOfRangeTimer;
+
+    Collider2D bodyCollider;
+    ContactFilter2D oneWayPlatformFilter;
+    readonly Collider2D[] oneWayOverlapBuffer = new Collider2D[16];
+    readonly HashSet<Collider2D> ignoredOneWayPlatforms = new HashSet<Collider2D>();
     // #region agent log
     float _dbgAnimLogTimer;
     string _dbgLastState;
@@ -54,6 +68,16 @@ public class FlyingEnemy : Enemy
 
         if (Rb != null)
             Rb.gravityScale = 0f;
+
+        bodyCollider = GetComponent<Collider2D>();
+        if (oneWayPlatformLayer.value == 0)
+            oneWayPlatformLayer = LayerMask.GetMask("Platform");
+        oneWayPlatformFilter = new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = oneWayPlatformLayer,
+            useTriggers = false,
+        };
 
         patroState = new FlyingIdleGuardState();
         returnState = new FlyingReturnHomeState();
@@ -76,10 +100,17 @@ public class FlyingEnemy : Enemy
         // #endregion
     }
 
+    protected override void FixedUpdate()
+    {
+        UpdateOneWayPlatformIgnores();
+        hoverBaseY = RaiseYAboveOneWayPlatforms(transform.position.x, hoverBaseY);
+        base.FixedUpdate();
+    }
+
     protected override void OnEnable()
     {
         CacheHome();
-        hoverBaseY = homePosition.y;
+        hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
         bobPhase = 0f;
         hoverHeightOutOfRangeTimer = 0f;
         isReturning = false;
@@ -236,7 +267,10 @@ public class FlyingEnemy : Enemy
         isAggro = false;
         isReturning = false;
         transform.position = homePosition;
-        hoverBaseY = homePosition.y;
+        hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
+        var raisedPos = transform.position;
+        raisedPos.y = RaiseYAboveOneWayPlatforms(raisedPos.x, raisedPos.y);
+        transform.position = raisedPos;
         bobPhase = 0f;
         hoverHeightOutOfRangeTimer = 0f;
 
@@ -409,6 +443,7 @@ public class FlyingEnemy : Enemy
         bobPhase += bobSpeed * Time.fixedDeltaTime;
         float targetY = hoverBaseY + Mathf.Sin(bobPhase) * bobAmplitude;
         targetY = Mathf.Clamp(targetY, hoverBaseY - bobAmplitude, hoverBaseY + bobAmplitude);
+        targetY = RaiseYAboveOneWayPlatforms(transform.position.x, targetY);
 
         float dy = targetY - transform.position.y;
         bool hasHorizontal = Mathf.Abs(moveDirX) > 0.001f && speed > 0.001f;
@@ -462,9 +497,10 @@ public class FlyingEnemy : Enemy
             return;
 
         float desired = player.position.y + Mathf.Max(0.5f, preferredHoverHeight);
+        float raiseX = player.position.x;
         if (forceImmediate)
         {
-            hoverBaseY = desired;
+            hoverBaseY = RaiseYAboveOneWayPlatforms(raiseX, desired);
             hoverHeightOutOfRangeTimer = 0f;
             return;
         }
@@ -473,6 +509,7 @@ public class FlyingEnemy : Enemy
         if (error <= Mathf.Max(0f, hoverHeightErrorThreshold))
         {
             hoverHeightOutOfRangeTimer = 0f;
+            hoverBaseY = RaiseYAboveOneWayPlatforms(raiseX, hoverBaseY);
             return;
         }
 
@@ -480,7 +517,7 @@ public class FlyingEnemy : Enemy
         if (hoverHeightOutOfRangeTimer < Mathf.Max(0f, hoverHeightHoldTime))
             return;
 
-        hoverBaseY = desired;
+        hoverBaseY = RaiseYAboveOneWayPlatforms(raiseX, desired);
         hoverHeightOutOfRangeTimer = 0f;
     }
 
@@ -518,13 +555,14 @@ public class FlyingEnemy : Enemy
         float height = Mathf.Max(0.5f, preferredHoverHeight);
         float maxX = GetFanHalfWidthAtHeight(height);
         float x = Mathf.Clamp(transform.position.x, player.position.x - maxX, player.position.x + maxX);
-        Vector2 ideal = new Vector2(x, hoverBaseY);
+        float idealY = RaiseYAboveOneWayPlatforms(x, hoverBaseY);
+        Vector2 ideal = new Vector2(x, idealY);
 
         bobPhase += bobSpeed * Time.fixedDeltaTime;
         float bobOffset = Mathf.Sin(bobPhase) * bobAmplitude;
-        Vector2 target = new Vector2(
-            ideal.x,
-            Mathf.Clamp(ideal.y + bobOffset, ideal.y - bobAmplitude, ideal.y + bobAmplitude));
+        float targetY = Mathf.Clamp(ideal.y + bobOffset, ideal.y - bobAmplitude, ideal.y + bobAmplitude);
+        targetY = RaiseYAboveOneWayPlatforms(ideal.x, targetY);
+        Vector2 target = new Vector2(ideal.x, targetY);
 
         Vector2 toTarget = target - (Vector2)transform.position;
         float dist = toTarget.magnitude;
@@ -556,7 +594,9 @@ public class FlyingEnemy : Enemy
         if (isHurt || isDead || Rb == null)
             return;
 
-        Vector2 toHome = (Vector2)homePosition - (Vector2)transform.position;
+        Vector2 homeTarget = homePosition;
+        homeTarget.y = RaiseYAboveOneWayPlatforms(homeTarget.x, homeTarget.y);
+        Vector2 toHome = homeTarget - (Vector2)transform.position;
         float dist = toHome.magnitude;
         if (dist <= returnArriveDistance)
         {
@@ -576,6 +616,99 @@ public class FlyingEnemy : Enemy
     public float GetDistanceToHome()
     {
         return Vector2.Distance(transform.position, homePosition);
+    }
+
+    void UpdateOneWayPlatformIgnores()
+    {
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
+        if (bodyCollider == null)
+            return;
+
+        if (oneWayPlatformLayer.value == 0)
+            oneWayPlatformLayer = LayerMask.GetMask("Platform");
+
+        oneWayPlatformFilter.layerMask = oneWayPlatformLayer;
+
+        float probeRadius = GetBodyProbeRadius() + Mathf.Max(0f, oneWayScanPadding);
+        int count = Physics2D.OverlapCircle(
+            bodyCollider.bounds.center,
+            probeRadius,
+            oneWayPlatformFilter,
+            oneWayOverlapBuffer);
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D platform = oneWayOverlapBuffer[i];
+            if (platform == null || platform == bodyCollider)
+                continue;
+            if (!IsOneWayPlatform(platform))
+                continue;
+            if (!ignoredOneWayPlatforms.Add(platform))
+                continue;
+
+            Physics2D.IgnoreCollision(bodyCollider, platform, true);
+        }
+    }
+
+    /// <summary>
+    /// 若 (x,y) 处身体探测圆与单向板重叠，将 Y 抬到板顶 + clearance。
+    /// </summary>
+    public float RaiseYAboveOneWayPlatforms(float x, float y)
+    {
+        if (oneWayPlatformLayer.value == 0)
+            oneWayPlatformLayer = LayerMask.GetMask("Platform");
+
+        oneWayPlatformFilter.layerMask = oneWayPlatformLayer;
+
+        float probeRadius = GetBodyProbeRadius();
+        int count = Physics2D.OverlapCircle(
+            new Vector2(x, y),
+            probeRadius,
+            oneWayPlatformFilter,
+            oneWayOverlapBuffer);
+
+        float result = y;
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D platform = oneWayOverlapBuffer[i];
+            if (platform == null || platform == bodyCollider)
+                continue;
+            if (!IsOneWayPlatform(platform))
+                continue;
+
+            float raised = platform.bounds.max.y + Mathf.Max(0.05f, platformClearance);
+            if (raised > result)
+                result = raised;
+        }
+
+        return result;
+    }
+
+    float GetBodyProbeRadius()
+    {
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
+
+        if (bodyCollider is CircleCollider2D circle)
+        {
+            float scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+            return Mathf.Max(0.1f, circle.radius * scale);
+        }
+
+        if (bodyCollider != null)
+        {
+            Vector2 extents = bodyCollider.bounds.extents;
+            return Mathf.Max(0.1f, Mathf.Max(extents.x, extents.y));
+        }
+
+        return Mathf.Max(0.1f, platformClearance);
+    }
+
+    static bool IsOneWayPlatform(Collider2D col)
+    {
+        var effector = col.GetComponent<PlatformEffector2D>();
+        return effector != null && effector.useOneWay;
     }
 
     void OnDrawGizmosSelected()

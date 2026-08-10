@@ -683,15 +683,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3407642271933610316, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 9.04
+      value: 14.51
       objectReference: {fileID: 0}
     - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.65
       objectReference: {fileID: 0}
+    - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3.57
+      objectReference: {fileID: 0}
     - target: {fileID: 4388819349686918843, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Size.x
-      value: 19.09962
+      value: 22.702816
       objectReference: {fileID: 0}
     - target: {fileID: 4388819349686918843, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Size.y
@@ -699,7 +703,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4388819349686918843, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Offset.x
-      value: -0.8758464
+      value: 0.9257512
       objectReference: {fileID: 0}
     - target: {fileID: 4388819349686918843, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Offset.y
@@ -711,7 +715,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4653038309187140398, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.06
+      value: 3.17
       objectReference: {fileID: 0}
     - target: {fileID: 5210998869008272370, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1261,6 +1265,7 @@ MonoBehaviour:
   spawnPoints:
   - {fileID: 798759396}
   - {fileID: 644121037}
+  alwaysDrawSpawnPoints: 1
   encounterZone: {fileID: 513412062}
   spawnOnStart: 0
   OnWaveSpawned:
@@ -9671,6 +9676,7 @@ MonoBehaviour:
   spawnPoints:
   - {fileID: 1191447930}
   - {fileID: 1215786184}
+  alwaysDrawSpawnPoints: 1
   encounterZone: {fileID: 2080068285}
   spawnOnStart: 0
   OnWaveSpawned:

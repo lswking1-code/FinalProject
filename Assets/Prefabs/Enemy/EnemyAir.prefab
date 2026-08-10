@@ -603,6 +603,11 @@ MonoBehaviour:
   bobSpeed: 2
   hoverHeightErrorThreshold: 1.5
   hoverHeightHoldTime: 3
+  oneWayPlatformLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  platformClearance: 1.1
+  oneWayScanPadding: 3
   hoverBaseY: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:

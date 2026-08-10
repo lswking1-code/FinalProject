@@ -1,34 +1,43 @@
 fileFormatVersion: 2
-guid: 68a7d6f5dd92fa344ad303898f50e80d
+guid: f8b032bea9f8a87479e81559a4e0f30a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4916117003165345785
-    second: PlayerM_JumpEXShoot_0
+      213: -3857332907544711302
+    second: PlayerM_UpDownEletricShoot_0
   - first:
-      213: -464402812044675365
-    second: PlayerM_JumpEXShoot_1
+      213: -6354818956408683442
+    second: PlayerM_UpDownEletricShoot_1
   - first:
-      213: 7579678002188351149
-    second: PlayerM_JumpEXShoot_2
+      213: 4466334151838421740
+    second: PlayerM_UpDownEletricShoot_2
   - first:
-      213: -1812191640389744312
-    second: PlayerM_JumpEXShoot_3
+      213: -2678734240130379718
+    second: PlayerM_UpDownEletricShoot_3
   - first:
-      213: -5073035936638665203
-    second: PlayerM_JumpEXShoot_4
+      213: 7625219997548483768
+    second: PlayerM_UpDownEletricShoot_4
   - first:
-      213: 6091473249671867013
-    second: PlayerM_JumpEXShoot_5
+      213: 6459890839316715928
+    second: PlayerM_UpDownEletricShoot_5
   - first:
-      213: 3376769804095949582
-    second: PlayerM_JumpEXShoot_6
+      213: -6185053653742034832
+    second: PlayerM_UpDownEletricShoot_6
   - first:
-      213: -1380153081856043661
-    second: PlayerM_JumpEXShoot_7
+      213: 2508602384738122870
+    second: PlayerM_UpDownEletricShoot_7
   - first:
-      213: 6331719782351718237
-    second: PlayerM_JumpEXShoot_8
+      213: -3696232289464905508
+    second: PlayerM_UpDownEletricShoot_8
+  - first:
+      213: 2984658369219623276
+    second: PlayerM_UpDownEletricShoot_9
+  - first:
+      213: -8817335526940870667
+    second: PlayerM_UpDownEletricShoot_10
+  - first:
+      213: -492555951165418216
+    second: PlayerM_UpDownEletricShoot_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -150,79 +159,233 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_2
-      rect:
-        serializedVersion: 2
-        x: 14
-        y: 201
-        width: 55
-        height: 50
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.04}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: da67740fbfc603960800000000000000
-      internalID: 7579678002188351149
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_4
-      rect:
-        serializedVersion: 2
-        x: 78
-        y: 201
-        width: 55
-        height: 45
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.044444446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d0e7cd791b4f899b0800000000000000
-      internalID: -5073035936638665203
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_5
-      rect:
-        serializedVersion: 2
-        x: 142
-        y: 201
-        width: 55
-        height: 45
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.044444446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 58a6c7585a2498450800000000000000
-      internalID: 6091473249671867013
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_6
+      name: PlayerM_UpDownEletricShoot_0
       rect:
         serializedVersion: 2
         x: 15
-        y: 160
+        y: 200
         width: 40
-        height: 32
+        height: 55
+      alignment: 9
+      pivot: {x: 0.475, y: 0.18181817}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7f6f595820087ac0800000000000000
+      internalID: -3857332907544711302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_1
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 200
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.475, y: 0.18181817}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e44875314d52fc7a0800000000000000
+      internalID: -6354818956408683442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_2
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 200
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.475, y: 0.18181817}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce256885f3b9bfd30800000000000000
+      internalID: 4466334151838421740
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_3
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 200
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.475, y: 0.18181817}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a305a51b66933dad0800000000000000
+      internalID: -2678734240130379718
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_4
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 200
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.475, y: 0.18181817}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8b41518003932d960800000000000000
+      internalID: 7625219997548483768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_5
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 124
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.4, y: 0.6}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 899d54d0e7426a950800000000000000
+      internalID: 6459890839316715928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_6
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 124
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.4, y: 0.59999996}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07069f3c8764a2aa0800000000000000
+      internalID: -6185053653742034832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_7
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 124
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.4, y: 0.59999996}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67c7309e39850d220800000000000000
+      internalID: 2508602384738122870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_8
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 124
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.4, y: 0.59999996}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd09d13f05854bcc0800000000000000
+      internalID: -3696232289464905508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_9
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 60
+        width: 40
+        height: 55
+      alignment: 9
+      pivot: {x: 0.4, y: 0.59999996}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c697b3139f2ab6920800000000000000
+      internalID: 2984658369219623276
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerM_UpDownEletricShoot_10
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 75
+        width: 27
+        height: 39
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -231,184 +394,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e0b8765fe32bcde20800000000000000
-      internalID: 3376769804095949582
+      spriteID: 5f7f143fd0882a580800000000000000
+      internalID: -8817335526940870667
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_7
+      name: PlayerM_UpDownEletricShoot_11
       rect:
         serializedVersion: 2
-        x: 78
-        y: 153
-        width: 55
-        height: 45
+        x: 16
+        y: 8
+        width: 40
+        height: 55
       alignment: 9
-      pivot: {x: 0.3272727, y: 0.044444446}
+      pivot: {x: 0.475, y: 0.18181817}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3755f4c9516b8dce0800000000000000
-      internalID: -1380153081856043661
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_8
-      rect:
-        serializedVersion: 2
-        x: 142
-        y: 153
-        width: 55
-        height: 45
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.044444446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d57436c5899ced750800000000000000
-      internalID: 6331719782351718237
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_0
-      rect:
-        serializedVersion: 2
-        x: 14
-        y: 58
-        width: 55
-        height: 50
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.04}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 22b6dd813ea3f534b963cca3b43dfaad
-      internalID: 4916117003165345785
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_1
-      rect:
-        serializedVersion: 2
-        x: 14
-        y: 106
-        width: 55
-        height: 45
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.044444446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b61267f92c27493409693ca737c8571c
-      internalID: -464402812044675365
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_3
-      rect:
-        serializedVersion: 2
-        x: 78
-        y: 108
-        width: 56
-        height: 43
-      alignment: 9
-      pivot: {x: 0.3214286, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c3e46b799f288e54ebf7fd2792974fe3
-      internalID: -1812191640389744312
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_9
-      rect:
-        serializedVersion: 2
-        x: 142
-        y: 106
-        width: 61
-        height: 45
-      alignment: 9
-      pivot: {x: 0.29508194, y: 0.044444446}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 937c9963d26f27b4aa87e41b5e3a2ca3
-      internalID: -642381569
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_10
-      rect:
-        serializedVersion: 2
-        x: 78
-        y: 58
-        width: 55
-        height: 50
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.04}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 6410d700af25d6c48ae87b913910b711
-      internalID: -682233777
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: PlayerM_JumpEXShoot_11
-      rect:
-        serializedVersion: 2
-        x: 142
-        y: 58
-        width: 55
-        height: 50
-      alignment: 9
-      pivot: {x: 0.3272727, y: 0.04}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: ee5b6f2f4388e504fbc94b4030a67aff
-      internalID: -843537470
+      spriteID: 815d7cad8f61a29f0800000000000000
+      internalID: -492555951165418216
       vertices: []
       indices: 
       edges: []
@@ -417,7 +426,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 59dc61f27aaff6140856bd7e55886b4e
+    spriteID: 71d99bed81441cc439e9a505686294e6
     internalID: 0
     vertices: []
     indices: 
@@ -427,18 +436,18 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      PlayerM_JumpEXShoot_0: 4916117003165345785
-      PlayerM_JumpEXShoot_1: -464402812044675365
-      PlayerM_JumpEXShoot_10: -682233777
-      PlayerM_JumpEXShoot_11: -843537470
-      PlayerM_JumpEXShoot_2: 7579678002188351149
-      PlayerM_JumpEXShoot_3: -1812191640389744312
-      PlayerM_JumpEXShoot_4: -5073035936638665203
-      PlayerM_JumpEXShoot_5: 6091473249671867013
-      PlayerM_JumpEXShoot_6: 3376769804095949582
-      PlayerM_JumpEXShoot_7: -1380153081856043661
-      PlayerM_JumpEXShoot_8: 6331719782351718237
-      PlayerM_JumpEXShoot_9: -642381569
+      PlayerM_UpDownEletricShoot_0: -3857332907544711302
+      PlayerM_UpDownEletricShoot_1: -6354818956408683442
+      PlayerM_UpDownEletricShoot_10: -8817335526940870667
+      PlayerM_UpDownEletricShoot_11: -492555951165418216
+      PlayerM_UpDownEletricShoot_2: 4466334151838421740
+      PlayerM_UpDownEletricShoot_3: -2678734240130379718
+      PlayerM_UpDownEletricShoot_4: 7625219997548483768
+      PlayerM_UpDownEletricShoot_5: 6459890839316715928
+      PlayerM_UpDownEletricShoot_6: -6185053653742034832
+      PlayerM_UpDownEletricShoot_7: 2508602384738122870
+      PlayerM_UpDownEletricShoot_8: -3696232289464905508
+      PlayerM_UpDownEletricShoot_9: 2984658369219623276
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
