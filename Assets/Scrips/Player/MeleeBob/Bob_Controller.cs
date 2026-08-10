@@ -14,10 +14,14 @@ public class Bob_Controller : MonoBehaviour
     {
         public int weaponId;
         public int damage;
-        [Tooltip("攻击 Hitbox 本地尺寸")]
+        [Tooltip("前方攻击 Hitbox 本地尺寸")]
         public Vector2 hitboxSize;
-        [Tooltip("攻击 Hitbox 本地偏移（面向右为正 X）")]
+        [Tooltip("前方攻击 Hitbox 本地偏移（面向右为正 X）")]
         public Vector2 hitboxOffset;
+        [Tooltip("向上攻击（upattack / jump_upattack）Hitbox 尺寸；为 0 则用默认上方盒")]
+        public Vector2 upHitboxSize;
+        [Tooltip("向上攻击 Hitbox 偏移（正 Y 为上方）")]
+        public Vector2 upHitboxOffset;
         [Tooltip("索敌区尺寸")]
         public Vector2 detectSize;
         [Tooltip("索敌区偏移")]
@@ -51,6 +55,7 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 0, damage = 40,
             hitboxSize = new Vector2(1.2f, 1f), hitboxOffset = Vector2.zero,
+            upHitboxSize = new Vector2(1.3f, 1.8f), upHitboxOffset = new Vector2(0f, 1.2f),
             detectSize = new Vector2(2f, 2f), detectOffset = new Vector2(0.5f, 0f),
             maxTargets = 0, hitStart = 0.15f, hitEnd = 0.45f,
         },
@@ -58,6 +63,7 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 1, damage = 55,
             hitboxSize = new Vector2(2.6f, 1.25f), hitboxOffset = new Vector2(1.3f, 0f),
+            upHitboxSize = new Vector2(1.5f, 2.6f), upHitboxOffset = new Vector2(0f, 1.5f),
             detectSize = new Vector2(3.2f, 2f), detectOffset = new Vector2(1.4f, 0f),
             maxTargets = 0, hitStart = 0.12f, hitEnd = 0.5f,
         },
@@ -65,6 +71,7 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 2, damage = 45,
             hitboxSize = new Vector2(3.8f, 0.4f), hitboxOffset = new Vector2(1.9f, 0f),
+            upHitboxSize = new Vector2(0.45f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
             detectSize = new Vector2(4.2f, 1.2f), detectOffset = new Vector2(2.0f, 0f),
             maxTargets = 0, hitStart = 0.1f, hitEnd = 0.55f,
         },
@@ -72,10 +79,15 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 3, damage = 70,
             hitboxSize = new Vector2(1.1f, 1.1f), hitboxOffset = new Vector2(0.55f, 0f),
+            upHitboxSize = new Vector2(1.2f, 1.4f), upHitboxOffset = new Vector2(0f, 1.0f),
             detectSize = new Vector2(1.8f, 1.6f), detectOffset = new Vector2(0.7f, 0f),
             maxTargets = 2, hitStart = 0.15f, hitEnd = 0.45f,
         },
     };
+
+    [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
+    [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
+    [SerializeField] Vector2 defaultUpHitboxOffset = new Vector2(0f, 1.2f);
 
     [Header("攻击范围可视化（Scene View）")]
     [Tooltip("运行中/编辑器 Scene 视图始终显示判定框，无需选中角色")]
@@ -232,6 +244,11 @@ public class Bob_Controller : MonoBehaviour
 
         if (profile.hitboxSize.x <= 0.01f || profile.hitboxSize.y <= 0.01f)
             profile.hitboxSize = new Vector2(1.2f, 1f);
+        if (profile.upHitboxSize.x <= 0.01f || profile.upHitboxSize.y <= 0.01f)
+            profile.upHitboxSize = defaultUpHitboxSize;
+        if (Mathf.Approximately(profile.upHitboxOffset.x, 0f)
+            && Mathf.Approximately(profile.upHitboxOffset.y, 0f))
+            profile.upHitboxOffset = defaultUpHitboxOffset;
         if (profile.detectSize.x <= 0.01f || profile.detectSize.y <= 0.01f)
             profile.detectSize = new Vector2(2f, 2f);
         if (profile.hitEnd <= profile.hitStart)
@@ -255,6 +272,7 @@ public class Bob_Controller : MonoBehaviour
                 {
                     weaponId = 1, damage = 55,
                     hitboxSize = new Vector2(2.6f, 1.25f), hitboxOffset = new Vector2(1.3f, 0f),
+                    upHitboxSize = new Vector2(1.5f, 2.6f), upHitboxOffset = new Vector2(0f, 1.5f),
                     detectSize = new Vector2(3.2f, 2f), detectOffset = new Vector2(1.4f, 0f),
                     maxTargets = 0, hitStart = 0.12f, hitEnd = 0.5f,
                 };
@@ -263,6 +281,7 @@ public class Bob_Controller : MonoBehaviour
                 {
                     weaponId = 2, damage = 45,
                     hitboxSize = new Vector2(3.8f, 0.4f), hitboxOffset = new Vector2(1.9f, 0f),
+                    upHitboxSize = new Vector2(0.45f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
                     detectSize = new Vector2(4.2f, 1.2f), detectOffset = new Vector2(2.0f, 0f),
                     maxTargets = 0, hitStart = 0.1f, hitEnd = 0.55f,
                 };
@@ -271,6 +290,7 @@ public class Bob_Controller : MonoBehaviour
                 {
                     weaponId = 3, damage = 70,
                     hitboxSize = new Vector2(1.1f, 1.1f), hitboxOffset = new Vector2(0.55f, 0f),
+                    upHitboxSize = new Vector2(1.2f, 1.4f), upHitboxOffset = new Vector2(0f, 1.0f),
                     detectSize = new Vector2(1.8f, 1.6f), detectOffset = new Vector2(0.7f, 0f),
                     maxTargets = 2, hitStart = 0.15f, hitEnd = 0.45f,
                 };
@@ -279,6 +299,7 @@ public class Bob_Controller : MonoBehaviour
                 {
                     weaponId = 0, damage = 40,
                     hitboxSize = new Vector2(1.2f, 1f), hitboxOffset = Vector2.zero,
+                    upHitboxSize = new Vector2(1.3f, 1.8f), upHitboxOffset = new Vector2(0f, 1.2f),
                     detectSize = new Vector2(2f, 2f), detectOffset = new Vector2(0.5f, 0f),
                     maxTargets = 0, hitStart = 0.15f, hitEnd = 0.45f,
                 };
@@ -287,11 +308,7 @@ public class Bob_Controller : MonoBehaviour
 
     void ApplyActiveProfileToColliders()
     {
-        if (meleeHitboxCollider != null)
-        {
-            meleeHitboxCollider.offset = activeProfile.hitboxOffset;
-            meleeHitboxCollider.size = activeProfile.hitboxSize;
-        }
+        ApplyHitboxShape(upward: false);
 
         if (detectZoneCollider != null)
         {
@@ -308,6 +325,30 @@ public class Bob_Controller : MonoBehaviour
             meleeAttack.enabled = activeProfile.maxTargets <= 0;
         }
     }
+
+    void ApplyHitboxShape(bool upward)
+    {
+        if (meleeHitboxCollider == null)
+            return;
+
+        if (upward)
+        {
+            meleeHitboxCollider.size = activeProfile.upHitboxSize.x > 0.01f
+                ? activeProfile.upHitboxSize
+                : defaultUpHitboxSize;
+            meleeHitboxCollider.offset = activeProfile.upHitboxSize.x > 0.01f
+                ? activeProfile.upHitboxOffset
+                : defaultUpHitboxOffset;
+        }
+        else
+        {
+            meleeHitboxCollider.size = activeProfile.hitboxSize;
+            meleeHitboxCollider.offset = activeProfile.hitboxOffset;
+        }
+    }
+
+    bool IsCurrentSwingUpward()
+        => fullBodyAnim != null && fullBodyAnim.IsUpwardMelee;
 
     void TryStartMeleeAttack()
     {
@@ -327,7 +368,15 @@ public class Bob_Controller : MonoBehaviour
                 playerMovement.FaceTowardWorldX(target.position.x);
         }
 
+        // 攻击前用本帧输入同步仰视/俯视，避免与 PlayerMovement 的 Update 顺序导致站立 upattack 丢方向
+        Vector2 move = actions.Player.Move.ReadValue<Vector2>();
+        bool lookUp = move.y > inputThreshold;
+        bool lookDown = !physicsCheck.isGround && move.y < -inputThreshold;
+        playerAnim.SetLookUp(lookUp);
+        playerAnim.SetLookDown(lookDown);
+
         swingHitTargets.Clear();
+        playerAnim.InterruptTurn();
         playerAnim.TryPlayMeleeAnim();
     }
 
@@ -340,10 +389,12 @@ public class Bob_Controller : MonoBehaviour
         {
             if (meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(false);
+            ApplyHitboxShape(upward: false);
             return;
         }
 
         SyncHitboxAnchor();
+        ApplyHitboxShape(IsCurrentSwingUpward());
 
         float windowStart = activeProfile.hitStart;
         float windowEnd = activeProfile.hitEnd;
@@ -524,13 +575,34 @@ public class Bob_Controller : MonoBehaviour
         Color hitColor = hitboxLive ? hitboxActiveGizmoColor : hitboxIdleGizmoColor;
         Matrix4x4 hitMatrix = GetHitboxDrawMatrix(meleeHitbox != null ? meleeHitbox.transform : null);
 
-        DrawLocalBoxGizmo(hitMatrix, drawProfile.hitboxOffset, drawProfile.hitboxSize, hitColor, filled: true);
+        bool drawUp = Application.isPlaying && IsCurrentSwingUpward();
+        Vector2 hitSize = drawUp
+            ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize)
+            : drawProfile.hitboxSize;
+        Vector2 hitOffset = drawUp
+            ? (drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset)
+            : drawProfile.hitboxOffset;
+
+        DrawLocalBoxGizmo(hitMatrix, hitOffset, hitSize, hitColor, filled: true);
         DrawLocalBoxGizmo(
             hitMatrix,
-            drawProfile.hitboxOffset,
-            drawProfile.hitboxSize,
+            hitOffset,
+            hitSize,
             new Color(hitColor.r, hitColor.g, hitColor.b, Mathf.Clamp01(hitColor.a + 0.35f)),
             filled: false);
+
+        // 非向上挥击时额外用半透明线框标出上方判定，方便对照
+        if (!drawUp)
+        {
+            Vector2 upSize = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize;
+            Vector2 upOffset = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset;
+            DrawLocalBoxGizmo(
+                hitMatrix,
+                upOffset,
+                upSize,
+                new Color(0.4f, 1f, 0.5f, 0.2f),
+                filled: false);
+        }
     }
 
     Matrix4x4 GetDetectDrawMatrix()

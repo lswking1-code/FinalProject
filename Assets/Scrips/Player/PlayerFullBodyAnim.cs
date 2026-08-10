@@ -59,6 +59,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
+    PlayerMovement playerMovement;
 
     AirPhaseType airPhase = AirPhaseType.Ground;
     AirTrack airTrack = AirTrack.None;
@@ -84,14 +85,22 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool lastSyncedRun;
 
     string activeMeleeStateName;
+    float meleeStartedAt = -1f;
+    float oneShotStartedAt = -1f;
     AnimatorOverrideController bodyOverrideController;
     RuntimeAnimatorController bodyBaseController;
     WeaponDefinition appliedWeaponDef;
 
     const string WeaponIdParam = "WeaponID";
+    const float OneShotEnterGrace = 0.08f;
+    const float MeleeMaxDurationFallback = 2f;
 
     public override bool IsCrouching => isCrouching;
     public override bool IsMelee => isMelee;
+    /// <summary>当前是否为站立/空中向上攻击（UpMelee / AirUpMelee）。</summary>
+    public bool IsUpwardMelee =>
+        isMelee
+        && (activeMeleeStateName == UpMeleeStateName || activeMeleeStateName == AirUpMeleeStateName);
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
     public override bool IsLookingUp => isLookingUp;
@@ -113,6 +122,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
+        playerMovement = GetComponent<PlayerMovement>();
         EnsureOverrideController();
     }
 
@@ -161,6 +171,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
             return;
+        }
+
+        // 转身期间若仍按住水平方向：立刻打断，避免 IsTurning 锁死移动
+        // （攻击 FaceToward 后按原方向跑时很容易进 Turn，且 SyncAnimation 在 IsTurning 时不会走 InterruptTurn）
+        if (IsTurning && HasHorizontalMoveInput())
+        {
+            InterruptTurn();
         }
 
         if (!string.IsNullOrEmpty(activeOneShotState))
@@ -351,6 +368,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         isMelee = true;
         activeMeleeStateName = stateName;
+        meleeStartedAt = Time.time;
         bodyAnimator.Play(stateName, 0, 0f);
         return true;
     }
@@ -361,24 +379,46 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             return CrouchMeleeStateName;
 
         bool grounded = airPhase == AirPhaseType.Ground;
+        bool lookUp = IsLookUpHeld();
+        bool lookDown = IsLookDownHeld();
 
         if (grounded)
         {
-            if (isLookingUp && HasClip(appliedWeaponDef != null ? appliedWeaponDef.upMelee : null))
+            // 站立向上攻：不依赖武器 SO 是否填了 upMelee（基座 default_up_melee / Override 均可）
+            if (lookUp)
                 return UpMeleeStateName;
             return MeleeStateName;
         }
 
-        if (isLookingUp && HasClip(appliedWeaponDef != null ? appliedWeaponDef.airUpMelee : null))
+        if (lookUp)
             return AirUpMeleeStateName;
 
-        if (isLookingDown && HasClip(appliedWeaponDef != null ? appliedWeaponDef.downMelee : null))
+        if (lookDown)
             return DownMeleeStateName;
 
         return AirMeleeStateName;
     }
 
-    static bool HasClip(AnimationClip clip) => clip != null;
+    /// <summary>
+    /// 攻击判定时直接读当前移动输入，避免 Bob 比 PlayerMovement.HandleLook 更早 Update 时
+    /// <see cref="isLookingUp"/> 仍为上一帧 false，导致站立 upattack 落成普通 Melee。
+    /// </summary>
+    bool IsLookUpHeld()
+    {
+        if (playerMovement != null
+            && playerMovement.MoveInput.y > playerMovement.InputThreshold)
+            return true;
+        return isLookingUp;
+    }
+
+    bool IsLookDownHeld()
+    {
+        if (playerMovement != null
+            && !physicsCheck.isGround
+            && playerMovement.MoveInput.y < -playerMovement.InputThreshold)
+            return true;
+        return isLookingDown;
+    }
 
     public override bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
@@ -505,8 +545,12 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         isDead = false;
         isSwitchingWeapon = false;
+        isMelee = false;
+        activeMeleeStateName = null;
+        meleeStartedAt = -1f;
         activeOneShotState = null;
         oneShotAutoExit = false;
+        oneShotStartedAt = -1f;
         InvalidateLocomotionCache();
         SyncLocomotion();
     }
@@ -551,6 +595,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         activeOneShotState = stateName;
         oneShotAutoExit = autoExit;
+        oneShotStartedAt = Time.time;
         if (bodyAnimator != null)
             bodyAnimator.Play(stateName, 0, 0f);
     }
@@ -731,6 +776,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     {
         activeOneShotState = null;
         oneShotAutoExit = false;
+        oneShotStartedAt = -1f;
 
         if (bodyAnimator == null)
             return;
@@ -751,6 +797,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         activeOneShotState = null;
         oneShotAutoExit = false;
+        oneShotStartedAt = -1f;
         InvalidateLocomotionCache();
         SyncLocomotion();
     }
@@ -761,7 +808,16 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             return true;
 
         var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
-        return info.IsName(stateName) && info.normalizedTime >= 1f;
+        if (info.IsName(stateName))
+        {
+            // 空 Motion / 长度为 0 时 normalizedTime 可能不涨
+            if (info.length <= 0.0001f)
+                return Time.time - oneShotStartedAt >= OneShotEnterGrace;
+            return info.normalizedTime >= 1f;
+        }
+
+        // Play 后短宽限期内允许尚未切到目标状态；超时仍不在该状态则视为结束，防止 IsTurning 永久锁移动
+        return Time.time - oneShotStartedAt >= OneShotEnterGrace;
     }
 
     void MaintainMeleeCompletion()
@@ -775,6 +831,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             return;
         }
 
+        float elapsed = Time.time - meleeStartedAt;
         var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
         if (!info.IsName(activeMeleeStateName))
         {
@@ -783,20 +840,38 @@ public class PlayerFullBodyAnim : PlayerAnimBase
                 && (info.IsName(CrouchStateName) || info.IsName("CrouchMove")))
                 return;
 
+            // 给 Animator.Play 一帧宽限，避免同帧误 Complete
+            if (elapsed < OneShotEnterGrace)
+                return;
+
             CompleteMelee();
             return;
         }
 
-        if (info.normalizedTime < 1f)
+        if (info.length <= 0.0001f)
+        {
+            if (elapsed >= OneShotEnterGrace)
+                CompleteMelee();
             return;
+        }
 
-        CompleteMelee();
+        if (info.normalizedTime >= 1f)
+        {
+            CompleteMelee();
+            return;
+        }
+
+        // 循环攻击片 / 异常卡住兜底：超过片长一定比例强制结束
+        float maxDuration = Mathf.Max(info.length * 1.25f, MeleeMaxDurationFallback);
+        if (elapsed >= maxDuration)
+            CompleteMelee();
     }
 
     void CompleteMelee()
     {
         isMelee = false;
         activeMeleeStateName = null;
+        meleeStartedAt = -1f;
 
         if (isSwitchingWeapon)
             return;
@@ -810,6 +885,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         InvalidateLocomotionCache();
         SyncLocomotion();
+    }
+
+    bool HasHorizontalMoveInput()
+    {
+        if (playerMovement == null)
+            return false;
+        return Mathf.Abs(playerMovement.MoveInput.x) > playerMovement.InputThreshold;
     }
 
     void MaintainWeaponSwitchCompletion()

@@ -438,6 +438,43 @@ MonoBehaviour:
   meleePoint2: {fileID: 7012345678901234504}
   meleeHitbox: {fileID: 7012345678901234505}
   detectZone: {fileID: 7012345678901234513}
+  weaponProfiles:
+  - weaponId: 0
+    damage: 40
+    hitboxSize: {x: 1.2, y: 1}
+    hitboxOffset: {x: 0, y: 0}
+    detectSize: {x: 2, y: 2}
+    detectOffset: {x: 0.5, y: 0}
+    maxTargets: 6
+    hitStart: 0.15
+    hitEnd: 0.45
+  - weaponId: 1
+    damage: 55
+    hitboxSize: {x: 2.6, y: 1.25}
+    hitboxOffset: {x: 1.3, y: 0}
+    detectSize: {x: 3.2, y: 2}
+    detectOffset: {x: 1.4, y: 0}
+    maxTargets: 6
+    hitStart: 0.12
+    hitEnd: 0.5
+  - weaponId: 2
+    damage: 45
+    hitboxSize: {x: 3.8, y: 0.4}
+    hitboxOffset: {x: 1.9, y: 0}
+    detectSize: {x: 4.2, y: 1.2}
+    detectOffset: {x: 2, y: 0}
+    maxTargets: 6
+    hitStart: 0.1
+    hitEnd: 0.55
+  - weaponId: 3
+    damage: 70
+    hitboxSize: {x: 1.1, y: 1.1}
+    hitboxOffset: {x: 0.55, y: 0}
+    detectSize: {x: 1.8, y: 1.6}
+    detectOffset: {x: 0.7, y: 0}
+    maxTargets: 2
+    hitStart: 0.15
+    hitEnd: 0.45
   showAttackRangesInScene: 1
   detectZoneGizmoColor: {r: 1, g: 0.85, b: 0.2, a: 0.25}
   hitboxIdleGizmoColor: {r: 0.2, g: 0.85, b: 1, a: 0.2}
