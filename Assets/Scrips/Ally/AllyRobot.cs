@@ -203,7 +203,7 @@ public class AllyRobot : MonoBehaviour
     [Tooltip("牵引结束后玩家无敌残留时长（秒）")]
     public float pullInvulnerableLinger = 0.5f;
 
-    public bool IsPulling => currentState == AllyState.Pulling;
+    public bool IsPulling => pullInProgress;
     public bool IsManualMoving =>
         currentState == AllyState.ManualMove || pendingStationOnLand;
     public float PullCooldown => Mathf.Max(0f, pullCooldown);
@@ -226,7 +226,7 @@ public class AllyRobot : MonoBehaviour
     /// </summary>
     bool SuppressAirAnim =>
         currentState == AllyState.Spawning
-        || currentState == AllyState.Pulling
+        || IsPulling
         || IsBusyWithCombo;
 
     const float ManualMoveInputThreshold = 0.5f;
@@ -248,6 +248,9 @@ public class AllyRobot : MonoBehaviour
     Transform currentTarget;
     float attackTimer;
     float pullCooldownTimer;
+    bool pullInProgress;
+    /// <summary>忙碌态并行钩锁：不切 Pulling、不播机器人 pull 动画、结束后不改当前状态。</summary>
+    bool pullOverlayMode;
 
     Transform owner;
     PlayerMovement ownerMovement;
@@ -360,9 +363,11 @@ public class AllyRobot : MonoBehaviour
         if (laserVisualRoutine != null)
             StopCoroutine(laserVisualRoutine);
 
-        if (IsPulling)
+        if (pullInProgress)
         {
             pullVisual?.Cancel();
+            pullInProgress = false;
+            pullOverlayMode = false;
             EndPull();
         }
     }
@@ -375,6 +380,10 @@ public class AllyRobot : MonoBehaviour
         idleFollowing = false;
 
         UpdateAirAndLanding();
+
+        // 并行钩锁（Blast 等忙碌态）需在原状态 Update 之外单独推进
+        if (pullInProgress && currentState != AllyState.Pulling)
+            UpdatePulling();
 
         switch (currentState)
         {
@@ -708,15 +717,6 @@ public class AllyRobot : MonoBehaviour
         if (IsPulling || pullCooldownTimer > 0f)
             return false;
 
-        if (currentState == AllyState.Spawning || IsAirborneBusy)
-            return false;
-
-        if (IsBusyWithCombo)
-            return false;
-
-        if (currentState == AllyState.ManualMove || pendingStationOnLand)
-            return false;
-
         if (owner == null || ownerMovement == null || ownerRb == null)
             return false;
 
@@ -731,15 +731,29 @@ public class AllyRobot : MonoBehaviour
         if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
             return false;
 
-        FaceTarget(owner.position);
-        anim.SetTrigger(pullTriggerName);
+        // 生成 / 空中落地 / 连携 / 手动遥控等：并行钩锁，不切 Pulling、不播机器人 pull、不转身
+        bool overlay = currentState == AllyState.Spawning
+            || IsAirborneBusy
+            || IsBusyWithCombo
+            || currentState == AllyState.ManualMove
+            || pendingStationOnLand;
+
+        if (!overlay)
+            FaceTarget(owner.position);
+        if (!overlay && anim != null)
+            anim.SetTrigger(pullTriggerName);
+
+        pullInProgress = true;
+        pullOverlayMode = overlay;
 
         if (pullVisual != null)
             pullVisual.Begin(owner, pullExtendSpeed, pullSpeed, 0f, pullArriveThreshold);
         else
             BeginPullWithoutVisual();
 
-        SwitchState(AllyState.Pulling);
+        if (!overlay)
+            SwitchState(AllyState.Pulling);
+
         pullCooldownTimer = PullCooldown;
         return true;
     }
@@ -1198,7 +1212,7 @@ public class AllyRobot : MonoBehaviour
     {
         if (ownerRb != null)
             ownerRb.position = ComputeLandingPoint();
-        ResumeStateAfterPull();
+        FinishPullSession();
     }
 
     Vector2 ComputeLandingPoint()
@@ -1217,9 +1231,16 @@ public class AllyRobot : MonoBehaviour
         if (owner == null || ownerMovement == null || ownerCharacter == null)
         {
             pullVisual?.Cancel();
-            anim.Play("Idle", 0, 0f);
+            bool overlay = pullOverlayMode;
+            pullInProgress = false;
+            pullOverlayMode = false;
             EndPull();
-            SwitchState(AllyState.Idle);
+            if (!overlay && currentState == AllyState.Pulling)
+            {
+                if (anim != null)
+                    anim.Play("Idle", 0, 0f);
+                SwitchState(AllyState.Idle);
+            }
             return;
         }
 
@@ -1241,7 +1262,7 @@ public class AllyRobot : MonoBehaviour
         if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
         {
             ownerRb.position = landing;
-            ResumeStateAfterPull();
+            FinishPullSession();
         }
     }
 
@@ -1256,6 +1277,26 @@ public class AllyRobot : MonoBehaviour
 
         if (ownerMovement != null && ownerMovement.IsActionLocked)
             ownerMovement.EndExternalControl();
+    }
+
+    /// <summary>
+    /// 结束钩锁会话。并行模式只释放玩家、保留机器人当前状态（如 Blast 三连）。
+    /// </summary>
+    void FinishPullSession()
+    {
+        if (!pullInProgress)
+            return;
+
+        bool overlay = pullOverlayMode;
+        pullInProgress = false;
+        pullOverlayMode = false;
+        EndPull();
+
+        if (overlay)
+            return;
+
+        if (currentState == AllyState.Pulling)
+            PerformRetarget();
     }
 
     void ResumeStateAfterPull()
@@ -1474,9 +1515,16 @@ public class AllyRobot : MonoBehaviour
     {
         if (state == AllyState.Pulling)
         {
-            pullVisual?.Cancel();
-            anim.Play("Idle", 0, 0f);
-            EndPull();
+            // 正常结束时 FinishPullSession 已清 pullInProgress；此处只处理被其它状态强行切走
+            if (pullInProgress && !pullOverlayMode)
+            {
+                pullVisual?.Cancel();
+                pullInProgress = false;
+                pullOverlayMode = false;
+                EndPull();
+            }
+            if (anim != null)
+                anim.Play("Idle", 0, 0f);
         }
     }
 
@@ -2117,7 +2165,7 @@ public class AllyRobot : MonoBehaviour
             return;
 
         if (currentState == AllyState.Spawning
-            || currentState == AllyState.Pulling
+            || IsPulling
             || currentState == AllyState.Attack
             || currentState == AllyState.ManualMove
             || (IsBusyWithCombo && currentState != AllyState.ComboDashing))

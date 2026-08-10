@@ -33,9 +33,14 @@ public class FlyingEnemy : Enemy
     public float bobAmplitude = 0.35f;
     [Tooltip("浮动角速度（弧度/秒）")]
     public float bobSpeed = 2f;
+    [Tooltip("相对期望高度差的偏差超过此值后开始计时，之后才更新悬停高度")]
+    public float hoverHeightErrorThreshold = 0.5f;
+    [Tooltip("高度偏差持续超过该时长后才跟随玩家调整悬停高度（忽略短暂跳跃）")]
+    public float hoverHeightHoldTime = 0.5f;
 
     [HideInInspector] public float hoverBaseY;
     float bobPhase;
+    float hoverHeightOutOfRangeTimer;
 
     protected override void Awake()
     {
@@ -58,6 +63,7 @@ public class FlyingEnemy : Enemy
 
         hoverBaseY = homePosition.y;
         bobPhase = 0f;
+        hoverHeightOutOfRangeTimer = 0f;
     }
 
     protected override void OnEnable()
@@ -65,6 +71,7 @@ public class FlyingEnemy : Enemy
         CacheHome();
         hoverBaseY = homePosition.y;
         bobPhase = 0f;
+        hoverHeightOutOfRangeTimer = 0f;
         isReturning = false;
 
         if (Rb != null)
@@ -131,6 +138,7 @@ public class FlyingEnemy : Enemy
         transform.position = homePosition;
         hoverBaseY = homePosition.y;
         bobPhase = 0f;
+        hoverHeightOutOfRangeTimer = 0f;
 
         if (Rb != null)
             Rb.linearVelocity = Vector2.zero;
@@ -345,14 +353,35 @@ public class FlyingEnemy : Enemy
 
     /// <summary>
     /// 更新悬停高度为相对玩家的目标高度。
+    /// 默认仅当偏差超过阈值并持续一段时间后才跟随，避免玩家短暂起跳时立刻抬升。
     /// </summary>
-    public void SyncHoverBaseToPlayer()
+    public void SyncHoverBaseToPlayer(bool forceImmediate = false)
     {
         EnsurePlayerReference();
         if (player == null)
             return;
 
-        hoverBaseY = player.position.y + Mathf.Max(0.5f, preferredHoverHeight);
+        float desired = player.position.y + Mathf.Max(0.5f, preferredHoverHeight);
+        if (forceImmediate)
+        {
+            hoverBaseY = desired;
+            hoverHeightOutOfRangeTimer = 0f;
+            return;
+        }
+
+        float error = Mathf.Abs(desired - hoverBaseY);
+        if (error <= Mathf.Max(0f, hoverHeightErrorThreshold))
+        {
+            hoverHeightOutOfRangeTimer = 0f;
+            return;
+        }
+
+        hoverHeightOutOfRangeTimer += Time.deltaTime;
+        if (hoverHeightOutOfRangeTimer < Mathf.Max(0f, hoverHeightHoldTime))
+            return;
+
+        hoverBaseY = desired;
+        hoverHeightOutOfRangeTimer = 0f;
     }
 
     /// <summary>
@@ -364,7 +393,6 @@ public class FlyingEnemy : Enemy
         if (player == null)
             return moveDir;
 
-        SyncHoverBaseToPlayer();
         float halfWidth = GetFanHalfWidthAtHeight(Mathf.Max(0.5f, preferredHoverHeight));
         float minX = player.position.x - halfWidth;
         float maxX = player.position.x + halfWidth;
@@ -378,15 +406,19 @@ public class FlyingEnemy : Enemy
     }
 
     /// <summary>
-    /// 飞向头顶扇区内的悬停点（恒定速率，不瞬移）。
+    /// 飞向头顶扇区内的悬停点（恒定速率，不瞬移）。Y 使用延迟同步后的 hoverBaseY。
     /// </summary>
     public void MoveTowardOverheadFan(float speed)
     {
         if (isHurt || isDead || Rb == null || player == null)
             return;
 
-        Vector2 ideal = GetOverheadHoverPoint();
-        hoverBaseY = ideal.y;
+        SyncHoverBaseToPlayer();
+
+        float height = Mathf.Max(0.5f, preferredHoverHeight);
+        float maxX = GetFanHalfWidthAtHeight(height);
+        float x = Mathf.Clamp(transform.position.x, player.position.x - maxX, player.position.x + maxX);
+        Vector2 ideal = new Vector2(x, hoverBaseY);
 
         bobPhase += bobSpeed * Time.fixedDeltaTime;
         float bobOffset = Mathf.Sin(bobPhase) * bobAmplitude;

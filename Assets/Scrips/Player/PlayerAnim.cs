@@ -1603,11 +1603,15 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition def) // 先全量换姿，再播切枪；可打断射击/投掷/近战/转身/着陆
     {
-        if (def == null || isDead || isRolling)
+        if (def == null || isDead)
             return false;
 
-        if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
-            return false;
+        // 无法打断的动画中：只换姿，不播切枪动画
+        if (isRolling || isDispatching || IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
+        {
+            ApplyWeaponDefinition(def);
+            return true;
+        }
 
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();

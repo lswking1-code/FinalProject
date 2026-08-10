@@ -13,6 +13,7 @@ public class FlyingChaseState : BaseState
         flyingEnemy = enemy as FlyingEnemy;
         currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
         currentEnemy.FacePlayer();
+        flyingEnemy?.SyncHoverBaseToPlayer(forceImmediate: true);
 
         if (currentEnemy.anim != null)
             currentEnemy.anim.SetBool("walk", true);

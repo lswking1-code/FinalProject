@@ -580,6 +580,12 @@ MonoBehaviour:
   isMarked: 0
   isAggro: 0
   isReturning: 0
+  dropAmmoOnDeath: 0
+  ammoDropPrefab: {fileID: 0}
+  ammoDropOffset: {x: 0, y: 0, z: 0}
+  dropHealthOnDeath: 0
+  healthDropPrefab: {fileID: 0}
+  healthDropOffset: {x: 0, y: 0, z: 0}
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
@@ -595,6 +601,8 @@ MonoBehaviour:
   downFirePoint: {fileID: 6539236226052418689}
   bobAmplitude: 0.35
   bobSpeed: 2
+  hoverHeightErrorThreshold: 1.5
+  hoverHeightHoldTime: 3
   hoverBaseY: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:

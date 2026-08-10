@@ -20,7 +20,7 @@ public class FlyingMoveState : BaseState
         moveDir = Random.value < 0.5f ? -1f : 1f;
         actionTimer = flyingEnemy.actionDuration;
         currentEnemy.currentSpeed = currentEnemy.normalSpeed;
-        flyingEnemy.SyncHoverBaseToPlayer();
+        flyingEnemy.SyncHoverBaseToPlayer(forceImmediate: true);
         moveDir = flyingEnemy.ClampMoveDirInsideFan(moveDir);
 
         if (currentEnemy.anim != null)

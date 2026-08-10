@@ -64,7 +64,8 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
-        if (playerAnim != null && (playerAnim.IsDead || playerAnim.IsSwitchingWeapon || playerAnim.IsRolling))
+        // 死亡外随时可换枪：翻滚/切枪中等由 TryPlayWeaponSwitchAnim 决定是否播切枪动画
+        if (playerAnim != null && playerAnim.IsDead)
             return;
 
         HandleWeaponInput(actions.Player.Previous, ref prevWasPressed, ref prevHoldTime, ref prevLongFired, -1);
