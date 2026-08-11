@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 单 Animator 全身动画（近战角色 / Bob）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
 /// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove,
-/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, CrouchMelee, Special, Die, WeaponSwitch。
+/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, JumpDownAttack, CrouchMelee, Special, Die, WeaponSwitch。
 /// 推荐 AnimatorController：<c>Assets/Animations/melee/melee_full.controller</c>。
 /// 切枪：Apply 目标姿后，按 from→to 覆盖 default_switch（三武器六边；空手相关用 to.weaponSwitch）。
 /// </summary>
@@ -21,6 +21,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string UpMeleeStateName = "UpMelee";
     const string AirUpMeleeStateName = "AirUpMelee";
     const string DownMeleeStateName = "DownMelee";
+    const string JumpDownAttackStateName = "JumpDownAttack";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string SpecialStateName = "Special";
     const string DieStateName = "Die";
@@ -102,6 +103,14 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public bool IsUpwardMelee =>
         isMelee
         && (activeMeleeStateName == UpMeleeStateName || activeMeleeStateName == AirUpMeleeStateName);
+    /// <summary>当前是否为空中向下砸地攻击（JumpDownAttack）。</summary>
+    public bool IsJumpDownAttack =>
+        isMelee && activeMeleeStateName == JumpDownAttackStateName;
+    /// <summary>兼容旧名：空中下攻即 JumpDownAttack。</summary>
+    public bool IsDownwardMelee => IsJumpDownAttack;
+    /// <summary>当前是否为蹲伏攻击（CrouchMelee）。</summary>
+    public bool IsCrouchMelee =>
+        isMelee && activeMeleeStateName == CrouchMeleeStateName;
     /// <summary>当前是否为武器特技（Special）。</summary>
     public override bool IsSpecial =>
         isMelee && activeMeleeStateName == SpecialStateName;
@@ -427,7 +436,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             return AirUpMeleeStateName;
 
         if (lookDown)
-            return DownMeleeStateName;
+            return JumpDownAttackStateName;
 
         return AirMeleeStateName;
     }
@@ -465,6 +474,16 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         normalizedTime = info.normalizedTime;
         return true;
+    }
+
+    /// <summary>落地砸地等：重新从 0 播放当前近战片，并重置完成计时。</summary>
+    public void RestartCurrentMeleeAnim()
+    {
+        if (!isMelee || bodyAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
+            return;
+
+        meleeStartedAt = Time.time;
+        bodyAnimator.Play(activeMeleeStateName, 0, 0f);
     }
 
     public override void ApplyWeaponDefinition(WeaponDefinition def)
@@ -866,6 +885,17 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         float elapsed = Time.time - meleeStartedAt;
         var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
+
+        // 砸地未落地前不结束近战（动画播完也先卡在末帧）
+        if (IsJumpDownAttack && physicsCheck != null && !physicsCheck.isGround)
+        {
+            if (info.IsName(JumpDownAttackStateName)
+                && info.length > 0.0001f
+                && info.normalizedTime >= 1f)
+                bodyAnimator.Play(JumpDownAttackStateName, 0, 0.99f);
+            return;
+        }
+
         if (!info.IsName(activeMeleeStateName))
         {
             if (isCrouching
@@ -896,6 +926,8 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         // 循环攻击片 / 异常卡住兜底：超过片长一定比例强制结束
         float maxDuration = Mathf.Max(info.length * 1.25f, MeleeMaxDurationFallback);
+        if (IsJumpDownAttack)
+            maxDuration = Mathf.Max(maxDuration, MeleeMaxDurationFallback * 2f);
         if (elapsed >= maxDuration)
             CompleteMelee();
     }

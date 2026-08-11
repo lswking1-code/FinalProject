@@ -539,6 +539,13 @@ MonoBehaviour:
     rushPushSpeed: 0
     knockbackForce: 0
     knockbackDuration: 0
+  shortMeleeDashSpeed: 10
+  shortMeleeDashStart: 0.08
+  shortMeleeDashEnd: 0.38
+  jumpDownSlamSpeed: 28
+  jumpDownImpactDamage: 70
+  jumpDownImpactRadius: 1.35
+  jumpDownImpactOffset: {x: 0, y: 0}
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1

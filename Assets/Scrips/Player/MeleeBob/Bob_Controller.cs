@@ -160,6 +160,22 @@ public class Bob_Controller : MonoBehaviour
         },
     };
 
+    [Header("短距冲刺（CrouchMelee · 无推怪）")]
+    [Tooltip("蹲攻短距冲刺速度；应明显短于 rush_special")]
+    [SerializeField] float shortMeleeDashSpeed = 10f;
+    [Range(0f, 1f)] [SerializeField] float shortMeleeDashStart = 0.08f;
+    [Range(0f, 1f)] [SerializeField] float shortMeleeDashEnd = 0.38f;
+
+    [Header("JumpDownAttack · 高速落地砸地")]
+    [Tooltip("空中下砸下落速度")]
+    [SerializeField] float jumpDownSlamSpeed = 28f;
+    [Tooltip("落地冲击伤害")]
+    [SerializeField] int jumpDownImpactDamage = 70;
+    [Tooltip("落地冲击圆半径")]
+    [SerializeField] float jumpDownImpactRadius = 1.35f;
+    [Tooltip("冲击中心相对脚底锚点的偏移")]
+    [SerializeField] Vector2 jumpDownImpactOffset = Vector2.zero;
+
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
     [SerializeField] Vector2 defaultUpHitboxOffset = new Vector2(0f, 1.2f);
@@ -182,6 +198,7 @@ public class Bob_Controller : MonoBehaviour
     BoxCollider2D meleeHitboxCollider;
     BoxCollider2D detectZoneCollider;
     Character selfCharacter;
+    PlayerRoll playerRoll;
 
     bool jumpPressedThisFrame;
     bool hasUsedDoubleJump;
@@ -201,6 +218,12 @@ public class Bob_Controller : MonoBehaviour
     float savedAttackKnockbackForce;
     float savedAttackKnockbackDuration;
     bool hasSavedAttackKnockback;
+    bool holdingDashInputLock;
+    bool restoredMovementEnabled;
+    bool restoredRollEnabled;
+    bool restoredWeaponControllerEnabled;
+    bool jumpDownAttackActive;
+    bool jumpDownImpactApplied;
 
     void Awake()
     {
@@ -211,6 +234,7 @@ public class Bob_Controller : MonoBehaviour
         fullBodyAnim = playerAnim as PlayerFullBodyAnim;
         weaponController = GetComponent<PlayerWeaponController>();
         selfCharacter = GetComponent<Character>();
+        playerRoll = GetComponent<PlayerRoll>();
         actions = new InputSystem_Actions();
 
         if (meleeHitbox != null)
@@ -241,6 +265,8 @@ public class Bob_Controller : MonoBehaviour
 
     void OnDisable()
     {
+        EndJumpDownAttack();
+        EndDashInputLock();
         EndRushSpecialState();
         actions.Player.Disable();
     }
@@ -254,6 +280,10 @@ public class Bob_Controller : MonoBehaviour
     {
         RefreshWeaponProfile(force: false);
 
+        // 冲刺锁期间关掉了 PlayerMovement，需自行推进空中/近战完成检测，否则 Special 永不结束
+        if (holdingDashInputLock)
+            MaintainDashLockAnimation();
+
         if (actions.Player.Jump.WasPressedThisFrame())
             jumpPressedThisFrame = true;
 
@@ -266,7 +296,8 @@ public class Bob_Controller : MonoBehaviour
 
     void FixedUpdate()
     {
-        UpdateRushSpecialDash();
+        UpdateJumpDownAttack();
+        UpdateDashAttacks();
 
         if (physicsCheck.isGround)
         {
@@ -533,11 +564,23 @@ public class Bob_Controller : MonoBehaviour
     bool IsCurrentSwingUpward()
         => fullBodyAnim != null && fullBodyAnim.IsUpwardMelee;
 
+    bool IsCurrentSwingJumpDownAttack()
+        => fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack;
+
+    bool IsCurrentSwingCrouchMelee()
+        => fullBodyAnim != null && fullBodyAnim.IsCrouchMelee;
+
+    bool IsCurrentShortDashMelee()
+        => IsCurrentSwingCrouchMelee();
+
     bool IsCurrentSwingSpecial()
         => playerAnim != null && playerAnim.IsSpecial;
 
     void TryStartMeleeAttack()
     {
+        if (holdingDashInputLock)
+            return;
+
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
@@ -570,10 +613,18 @@ public class Bob_Controller : MonoBehaviour
         playerAnim.InterruptTurn();
         playerAnim.TryPlayMeleeAnim();
         ApplyActiveProfileToColliders();
+
+        if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
+            BeginDashInputLock();
+        else if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
+            BeginJumpDownAttack();
     }
 
     void TryStartSpecialAttack()
     {
+        if (holdingDashInputLock)
+            return;
+
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
@@ -615,6 +666,10 @@ public class Bob_Controller : MonoBehaviour
             selfCharacter.TrySpendAmmo(ammoType, specialAmmoCost);
 
         ApplyActiveProfileToColliders();
+
+        // 仅 rush（武器1）冲刺特技锁输入；whip/buzzsaw 不锁
+        if (weaponId == 1)
+            BeginDashInputLock();
     }
 
     static AmmoType ResolveSpecialAmmoType(int weaponId) => weaponId switch
@@ -650,11 +705,23 @@ public class Bob_Controller : MonoBehaviour
                 meleeHitbox.SetActive(false);
             ApplyHitboxShape(upward: false, special: false);
             EndRushSpecialState();
+            EndJumpDownAttack();
+            EndDashInputLock();
             return;
         }
 
         bool special = IsCurrentSwingSpecial();
         SyncHitboxAnchor();
+
+        // 砸地：下落中无近战盒，落地由 ApplyJumpDownImpact 结算
+        if (IsCurrentSwingJumpDownAttack())
+        {
+            if (meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(false);
+            if (meleeAttack != null)
+                meleeAttack.enabled = false;
+            return;
+        }
 
         if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 3)
         {
@@ -957,38 +1024,212 @@ public class Bob_Controller : MonoBehaviour
             maxTargets);
     }
 
-    void UpdateRushSpecialDash()
+    void UpdateDashAttacks()
     {
-        bool wantDash = IsCurrentSwingSpecial()
-            && hasSpecialProfile
-            && activeSpecialProfile.weaponId == 1
-            && activeSpecialProfile.rushSpeed > 0.01f
-            && playerAnim != null
-            && playerAnim.TryGetMeleeAnimProgress(out float t)
-            && t >= activeSpecialProfile.rushStart
-            && t <= activeSpecialProfile.rushEnd;
+        // 砸地期间由 UpdateJumpDownAttack 接管速度
+        if (jumpDownAttackActive)
+            return;
 
-        if (!wantDash)
+        if (playerAnim == null || !playerAnim.IsMelee)
         {
             if (rushDashActive)
                 rushDashActive = false;
+            if (holdingDashInputLock)
+            {
+                // 锁定期但近战已结束：刹停水平速度，等待 Update 解锁
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            }
+
             return;
         }
 
-        rushDashActive = true;
-        float dir = playerMovement != null ? playerMovement.FaceDirection : Mathf.Sign(transform.localScale.x);
+        float dir = playerMovement != null
+            ? playerMovement.FaceDirection
+            : Mathf.Sign(transform.localScale.x);
         if (Mathf.Approximately(dir, 0f))
             dir = 1f;
 
-        bool blocked = physicsCheck != null && physicsCheck.IsBlockedHorizontally(dir);
-        if (blocked)
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-        else
-            rb.linearVelocity = new Vector2(dir * activeSpecialProfile.rushSpeed, rb.linearVelocity.y);
+        bool hasProgress = playerAnim.TryGetMeleeAnimProgress(out float t);
 
-        // 敌人 AI 会每帧覆写速度，且 Character 击退在重叠时方向不可靠；
-        // 因此冲刺窗内主动沿面向推动命中盒内敌人（伤害仍由 Attack 结算）。
-        PushEnemiesAlongRushPath(dir);
+        bool rushDash = hasProgress
+            && IsCurrentSwingSpecial()
+            && hasSpecialProfile
+            && activeSpecialProfile.weaponId == 1
+            && activeSpecialProfile.rushSpeed > 0.01f
+            && t >= activeSpecialProfile.rushStart
+            && t <= activeSpecialProfile.rushEnd;
+
+        bool shortDash = hasProgress
+            && IsCurrentShortDashMelee()
+            && shortMeleeDashSpeed > 0.01f
+            && t >= shortMeleeDashStart
+            && t <= shortMeleeDashEnd;
+
+        if (physicsCheck != null)
+            physicsCheck.Check();
+
+        // 锁定期全程接管水平速度：冲刺窗内加速，窗外刹停，避免其它输入改速度
+        if (holdingDashInputLock || rushDash || shortDash)
+        {
+            bool wantDash = rushDash || shortDash;
+            float speed = rushDash ? activeSpecialProfile.rushSpeed : shortMeleeDashSpeed;
+            bool blocked = physicsCheck != null && physicsCheck.IsBlockedHorizontally(dir);
+
+            if (wantDash && !blocked)
+            {
+                rushDashActive = true;
+                rb.linearVelocity = new Vector2(dir * speed, rb.linearVelocity.y);
+                if (rushDash)
+                    PushEnemiesAlongRushPath(dir);
+            }
+            else
+            {
+                rushDashActive = false;
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            }
+
+            return;
+        }
+
+        if (rushDashActive)
+            rushDashActive = false;
+    }
+
+    void BeginJumpDownAttack()
+    {
+        jumpDownAttackActive = true;
+        jumpDownImpactApplied = false;
+        BeginDashInputLock();
+
+        if (rb != null)
+            rb.linearVelocity = new Vector2(0f, -Mathf.Abs(jumpDownSlamSpeed));
+    }
+
+    void EndJumpDownAttack()
+    {
+        jumpDownAttackActive = false;
+        jumpDownImpactApplied = false;
+    }
+
+    void UpdateJumpDownAttack()
+    {
+        if (!jumpDownAttackActive)
+            return;
+
+        if (playerAnim == null || !playerAnim.IsMelee || !IsCurrentSwingJumpDownAttack())
+        {
+            EndJumpDownAttack();
+            return;
+        }
+
+        if (physicsCheck != null)
+            physicsCheck.Check();
+
+        bool grounded = physicsCheck != null && physicsCheck.isGround;
+        if (!grounded)
+        {
+            rb.linearVelocity = new Vector2(0f, -Mathf.Abs(jumpDownSlamSpeed));
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+        if (!jumpDownImpactApplied)
+        {
+            ApplyJumpDownImpact();
+            jumpDownImpactApplied = true;
+            fullBodyAnim?.RestartCurrentMeleeAnim();
+        }
+    }
+
+    void ApplyJumpDownImpact()
+    {
+        if (meleeAttack == null)
+            return;
+
+        Vector2 center = ResolveSpecialCenter() + jumpDownImpactOffset;
+        float radius = Mathf.Max(0.1f, jumpDownImpactRadius);
+        int count = Physics2D.OverlapCircleNonAlloc(center, radius, overlapBuffer);
+        if (count <= 0)
+            return;
+
+        int previousDamage = meleeAttack.damage;
+        meleeAttack.damage = Mathf.Max(1, jumpDownImpactDamage);
+        meleeAttack.enabled = false;
+
+        swingHitTargets.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            if (!TryResolveAttackTarget(overlapBuffer[i], swingHitTargets, out Character target))
+                continue;
+
+            target.TakeDamage(meleeAttack);
+            swingHitTargets.Add(target);
+        }
+
+        meleeAttack.damage = previousDamage;
+    }
+
+    void MaintainDashLockAnimation()
+    {
+        if (physicsCheck != null)
+            physicsCheck.Check();
+
+        float velocityY = rb != null ? rb.linearVelocity.y : 0f;
+        bool grounded = physicsCheck != null && physicsCheck.isGround;
+        playerAnim?.UpdateAirState(grounded, velocityY);
+
+        if (playerAnim == null || !playerAnim.IsMelee)
+        {
+            EndJumpDownAttack();
+            EndDashInputLock();
+        }
+    }
+
+    void BeginDashInputLock()
+    {
+        if (holdingDashInputLock)
+            return;
+
+        holdingDashInputLock = true;
+
+        // 不改 PlayerMovement 逻辑：临时禁用组件以屏蔽移动/跳跃输入；
+        // 近战完成改由 MaintainDashLockAnimation 驱动。
+        if (playerMovement != null)
+        {
+            restoredMovementEnabled = playerMovement.enabled;
+            playerMovement.enabled = false;
+        }
+
+        if (playerRoll != null)
+        {
+            restoredRollEnabled = playerRoll.enabled;
+            playerRoll.enabled = false;
+        }
+
+        if (weaponController != null)
+        {
+            restoredWeaponControllerEnabled = weaponController.enabled;
+            weaponController.enabled = false;
+        }
+    }
+
+    void EndDashInputLock()
+    {
+        if (!holdingDashInputLock)
+            return;
+
+        holdingDashInputLock = false;
+        rushDashActive = false;
+
+        if (playerMovement != null && restoredMovementEnabled)
+            playerMovement.enabled = true;
+
+        if (playerRoll != null && restoredRollEnabled)
+            playerRoll.enabled = true;
+
+        if (weaponController != null && restoredWeaponControllerEnabled)
+            weaponController.enabled = true;
     }
 
     void PushEnemiesAlongRushPath(float dir)
@@ -1135,6 +1376,9 @@ public class Bob_Controller : MonoBehaviour
 
     void TryDoubleJump()
     {
+        if (holdingDashInputLock)
+            return;
+
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
@@ -1193,6 +1437,18 @@ public class Bob_Controller : MonoBehaviour
             drawProfile.detectSize,
             detectZoneGizmoColor,
             filled: true);
+
+        // JumpDownAttack 落地冲击预览
+        {
+            Vector3 center = Application.isPlaying
+                ? (Vector3)(ResolveSpecialCenter() + jumpDownImpactOffset)
+                : (meleePoint1 != null ? meleePoint1.position : transform.position)
+                    + (Vector3)jumpDownImpactOffset;
+            Color c = Application.isPlaying && jumpDownAttackActive
+                ? new Color(1f, 0.35f, 0.1f, 0.45f)
+                : new Color(1f, 0.55f, 0.2f, 0.18f);
+            DrawWireCircleGizmo(center, jumpDownImpactRadius, c);
+        }
 
         bool hitboxLive = Application.isPlaying && meleeHitbox != null && meleeHitbox.activeInHierarchy;
         Color hitColor = hitboxLive ? hitboxActiveGizmoColor : hitboxIdleGizmoColor;
