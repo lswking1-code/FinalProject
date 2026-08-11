@@ -1,0 +1,780 @@
+fileFormatVersion: 2
+guid: d31783670954745eea0705fdc3e02cd3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5602367511282742794
+    second: whip_upattack_0
+  - first:
+      213: 8145433242024562789
+    second: whip_upattack_1
+  - first:
+      213: -4580557705266208762
+    second: whip_upattack_2
+  - first:
+      213: 347512624576596061
+    second: whip_upattack_3
+  - first:
+      213: 9093052068037285450
+    second: whip_upattack_4
+  - first:
+      213: 4051053891713280563
+    second: whip_upattack_5
+  - first:
+      213: 1979468490814929225
+    second: whip_upattack_6
+  - first:
+      213: -1613972540706205164
+    second: whip_upattack_7
+  - first:
+      213: 461413041242782797
+    second: whip_upattack_8
+  - first:
+      213: 3829367138625583477
+    second: whip_upattack_9
+  - first:
+      213: 969553320099569649
+    second: whip_upattack_10
+  - first:
+      213: -834471531476372926
+    second: whip_upattack_11
+  - first:
+      213: -4176013677807784439
+    second: whip_upattack_12
+  - first:
+      213: -1714401074194834383
+    second: whip_upattack_13
+  - first:
+      213: -783388257755732435
+    second: whip_upattack_14
+  - first:
+      213: 2868958213221271402
+    second: whip_upattack_15
+  - first:
+      213: 4538313522677534771
+    second: whip_upattack_16
+  - first:
+      213: 6112910035637959811
+    second: whip_upattack_17
+  - first:
+      213: 8337795769742702983
+    second: whip_upattack_18
+  - first:
+      213: -7927533655916850893
+    second: whip_upattack_19
+  - first:
+      213: -2854482364515965033
+    second: whip_upattack_20
+  - first:
+      213: 8010231481731685117
+    second: whip_upattack_21
+  - first:
+      213: 8821140981234805999
+    second: whip_upattack_22
+  - first:
+      213: 3201524956679959333
+    second: whip_upattack_23
+  - first:
+      213: -4338364366170449120
+    second: whip_upattack_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: whip_upattack_0
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 204
+        width: 23
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a067233a19b9fbd40800000000000000
+      internalID: 5602367511282742794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_1
+      rect:
+        serializedVersion: 2
+        x: 81
+        y: 204
+        width: 24
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 560588490646a0170800000000000000
+      internalID: 8145433242024562789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_2
+      rect:
+        serializedVersion: 2
+        x: 151
+        y: 204
+        width: 35
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 600ed6039079e60c0800000000000000
+      internalID: -4580557705266208762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_3
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 204
+        width: 33
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d580ade04ec92d400800000000000000
+      internalID: 347512624576596061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_4
+      rect:
+        serializedVersion: 2
+        x: 13
+        y: 140
+        width: 38
+        height: 44
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a465e77cda2013e70800000000000000
+      internalID: 9093052068037285450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_5
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 140
+        width: 38
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33aa8851d0c383830800000000000000
+      internalID: 4051053891713280563
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_6
+      rect:
+        serializedVersion: 2
+        x: 141
+        y: 140
+        width: 36
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9493a1fca1c787b10800000000000000
+      internalID: 1979468490814929225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_7
+      rect:
+        serializedVersion: 2
+        x: 205
+        y: 140
+        width: 34
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 412d8f186840a99e0800000000000000
+      internalID: -1613972540706205164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_8
+      rect:
+        serializedVersion: 2
+        x: 24
+        y: 76
+        width: 36
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d4c320267b4476600800000000000000
+      internalID: 461413041242782797
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_9
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 76
+        width: 36
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 579f45caf15a42530800000000000000
+      internalID: 3829367138625583477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_10
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 82
+        width: 34
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1ffd5539b9b847d00800000000000000
+      internalID: 969553320099569649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_11
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 82
+        width: 42
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 242bc27309c5b64f0800000000000000
+      internalID: -834471531476372926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_12
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 112
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 90e281d7fa1db06c0800000000000000
+      internalID: -4176013677807784439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_13
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 76
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13c911a6e493538e0800000000000000
+      internalID: -1714401074194834383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_14
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 76
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d26e147b788d025f0800000000000000
+      internalID: -783388257755732435
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_15
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 76
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a674e766b4690d720800000000000000
+      internalID: 2868958213221271402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_16
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 76
+        width: 10
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 330db869a145bfe30800000000000000
+      internalID: 4538313522677534771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_17
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 76
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 38cfe123a4b65d450800000000000000
+      internalID: 6112910035637959811
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_18
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 76
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 789b449b31dc5b370800000000000000
+      internalID: 8337795769742702983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_19
+      rect:
+        serializedVersion: 2
+        x: 9
+        y: 12
+        width: 41
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3315f1e442ebbf190800000000000000
+      internalID: -7927533655916850893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_20
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 12
+        width: 35
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 797a865c967d268d0800000000000000
+      internalID: -2854482364515965033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_21
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 12
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfa9445b71f0a2f60800000000000000
+      internalID: 8010231481731685117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_22
+      rect:
+        serializedVersion: 2
+        x: 154
+        y: 12
+        width: 34
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fec242c6cfcfa6a70800000000000000
+      internalID: 8821140981234805999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_23
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 12
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 523f4765cf91e6c20800000000000000
+      internalID: 3201524956679959333
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: whip_upattack_24
+      rect:
+        serializedVersion: 2
+        x: 215
+        y: 10
+        width: 39
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02b923838980bc3c0800000000000000
+      internalID: -4338364366170449120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      whip_upattack_0: 5602367511282742794
+      whip_upattack_1: 8145433242024562789
+      whip_upattack_10: 969553320099569649
+      whip_upattack_11: -834471531476372926
+      whip_upattack_12: -4176013677807784439
+      whip_upattack_13: -1714401074194834383
+      whip_upattack_14: -783388257755732435
+      whip_upattack_15: 2868958213221271402
+      whip_upattack_16: 4538313522677534771
+      whip_upattack_17: 6112910035637959811
+      whip_upattack_18: 8337795769742702983
+      whip_upattack_19: -7927533655916850893
+      whip_upattack_2: -4580557705266208762
+      whip_upattack_20: -2854482364515965033
+      whip_upattack_21: 8010231481731685117
+      whip_upattack_22: 8821140981234805999
+      whip_upattack_23: 3201524956679959333
+      whip_upattack_24: -4338364366170449120
+      whip_upattack_3: 347512624576596061
+      whip_upattack_4: 9093052068037285450
+      whip_upattack_5: 4051053891713280563
+      whip_upattack_6: 1979468490814929225
+      whip_upattack_7: -1613972540706205164
+      whip_upattack_8: 461413041242782797
+      whip_upattack_9: 3829367138625583477
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
