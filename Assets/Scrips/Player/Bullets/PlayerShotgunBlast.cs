@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 霰弹枪枪焰：停在枪口、不飞行；碰撞体由 Animation Event 开启，动画结束销毁。
+/// Player 霰弹普通枪焰：停在枪口、不飞行；碰撞体由 Animation Event 开启，动画结束销毁。
+/// 仅此路径带击退（绑定子弹 Attack，命中敌人/箱子时触发）；蓄力龙息与机械师 L 不加击退。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Attack))]
@@ -9,6 +10,9 @@ using UnityEngine;
 public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
 {
     [SerializeField] int damage = 70;
+    [SerializeField] bool enableKnockback = true;
+    [SerializeField] float knockbackForce = 10f;
+    [SerializeField] float knockbackDuration = 0.15f;
 
     Rigidbody2D rb;
     Attack attack;
@@ -30,6 +34,9 @@ public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
         attack.damage = damage;
         attack.attackType = AttackType.Melee;
         attack.ignoreTag = "Player";
+        attack.enableKnockback = enableKnockback;
+        attack.knockbackForce = knockbackForce;
+        attack.knockbackDuration = knockbackDuration;
 
         if (hitCollider != null)
             hitCollider.enabled = false;

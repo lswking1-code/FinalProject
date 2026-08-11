@@ -28,6 +28,9 @@ public class PlayerMLChargeBullet : MonoBehaviour, IPlayerAmmo
         attack.damage = damage;
         attack.attackType = AttackType.Projectile;
         attack.ignoreTag = "Player";
+        // L 蓄力弹：不带击退
+        attack.enableKnockback = false;
+        attack.knockbackForce = 0f;
     }
 
     void Start()

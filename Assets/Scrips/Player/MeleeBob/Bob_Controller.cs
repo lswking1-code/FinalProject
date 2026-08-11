@@ -192,6 +192,7 @@ public class Bob_Controller : MonoBehaviour
     bool hasSpecialProfile;
     readonly HashSet<Character> swingHitTargets = new();
     readonly HashSet<Character> specialRearHitTargets = new();
+    readonly HashSet<IHitCountable> swingHitCountables = new();
     readonly List<Character> overlapCharacters = new();
     readonly Collider2D[] overlapBuffer = new Collider2D[48];
 
@@ -565,6 +566,7 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        swingHitCountables.Clear();
         playerAnim.InterruptTurn();
         playerAnim.TryPlayMeleeAnim();
         ApplyActiveProfileToColliders();
@@ -604,6 +606,7 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        swingHitCountables.Clear();
         playerAnim.InterruptTurn();
         if (!playerAnim.TryPlaySpecialAnim())
             return;
@@ -792,6 +795,9 @@ public class Bob_Controller : MonoBehaviour
         if (count <= 0)
             return;
 
+        for (int i = 0; i < count; i++)
+            TryRegisterHitCountable(overlapBuffer[i]);
+
         overlapCharacters.Clear();
         for (int i = 0; i < count; i++)
         {
@@ -851,6 +857,9 @@ public class Bob_Controller : MonoBehaviour
         int count = Physics2D.OverlapBoxNonAlloc(center, worldSize, angle, overlapBuffer);
         if (count <= 0)
             return;
+
+        for (int i = 0; i < count; i++)
+            TryRegisterHitCountable(overlapBuffer[i]);
 
         overlapCharacters.Clear();
         for (int i = 0; i < count; i++)
@@ -917,6 +926,22 @@ public class Bob_Controller : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    void TryRegisterHitCountable(Collider2D col)
+    {
+        if (col == null || meleeAttack == null)
+            return;
+
+        if (col.transform == transform || col.transform.IsChildOf(transform))
+            return;
+
+        var hitCountable = col.GetComponentInParent<IHitCountable>();
+        if (hitCountable == null || swingHitCountables.Contains(hitCountable))
+            return;
+
+        if (hitCountable.RegisterHit(meleeAttack))
+            swingHitCountables.Add(hitCountable);
     }
 
     void ProcessLimitedHitTargets(int maxTargets)

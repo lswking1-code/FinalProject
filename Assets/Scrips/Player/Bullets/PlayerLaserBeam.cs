@@ -28,6 +28,7 @@ public class PlayerLaserBeam : MonoBehaviour
 
     Attack attackSource;
     readonly Dictionary<Character, float> nextHitTime = new();
+    readonly Dictionary<IHitCountable, float> nextHitCountableTime = new();
     readonly RaycastHit2D[] hitBuffer = new RaycastHit2D[32];
     readonly List<RaycastHit2D> sortedHits = new(32);
 
@@ -73,6 +74,7 @@ public class PlayerLaserBeam : MonoBehaviour
         ending = false;
         endAt = -1f;
         nextHitTime.Clear();
+        nextHitCountableTime.Clear();
 
         attackSource.damage = damage;
         transform.rotation = PlayerProjectile.GetRotation(dir, faceYaw);
@@ -163,12 +165,16 @@ public class PlayerLaserBeam : MonoBehaviour
 
             Enemy enemy = col.GetComponentInParent<Enemy>();
             Character character = col.GetComponentInParent<Character>();
+            IHitCountable hitCountable = col.GetComponentInParent<IHitCountable>();
 
             bool isBlockSurface = IsBlockLayer(col.gameObject.layer);
             bool isEliteBlock = enemy != null && enemy.blocksLaser;
 
             if (dealDamage && enemy != null && character != null && character != owner)
                 TryTickDamage(character);
+
+            if (dealDamage && hitCountable != null)
+                TryTickHitCountable(hitCountable);
 
             if (isBlockSurface || isEliteBlock)
             {
@@ -184,7 +190,9 @@ public class PlayerLaserBeam : MonoBehaviour
 
     bool ShouldIgnoreCollider(Collider2D col)
     {
-        if (col.isTrigger && col.GetComponentInParent<Enemy>() == null)
+        if (col.isTrigger
+            && col.GetComponentInParent<Enemy>() == null
+            && col.GetComponentInParent<IHitCountable>() == null)
             return true;
 
         if (owner != null)
@@ -218,6 +226,20 @@ public class PlayerLaserBeam : MonoBehaviour
         attackSource.damage = damage;
         target.TakeDamage(attackSource);
         nextHitTime[target] = Time.time + Mathf.Max(0.01f, tickInterval);
+    }
+
+    void TryTickHitCountable(IHitCountable target)
+    {
+        if (target == null)
+            return;
+
+        if (nextHitCountableTime.TryGetValue(target, out float next) && Time.time < next)
+            return;
+
+        if (!target.RegisterHit(attackSource))
+            return;
+
+        nextHitCountableTime[target] = Time.time + Mathf.Max(0.01f, tickInterval);
     }
 
     void ApplyVisualLength(float length, Vector2 tipWorld)

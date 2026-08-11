@@ -172,7 +172,10 @@ MonoBehaviour:
   attackRate: 0
   attackType: 0
   requireTag: 
-  ignoreTag: 
+  ignoreTag: Player
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
 --- !u!114 &340545589965268769
 MonoBehaviour:
   m_ObjectHideFlags: 0

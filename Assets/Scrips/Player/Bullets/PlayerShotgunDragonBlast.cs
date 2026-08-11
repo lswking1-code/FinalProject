@@ -38,6 +38,9 @@ public class PlayerShotgunDragonBlast : MonoBehaviour, IPlayerAmmo
         attack.attackType = AttackType.Melee;
         attack.attackRate = hitsPerSecond > 0f ? hitsPerSecond : 0f;
         attack.ignoreTag = "Player";
+        // L 蓄力龙息：不带击退
+        attack.enableKnockback = false;
+        attack.knockbackForce = 0f;
 
         if (hitCollider != null)
             hitCollider.enabled = false;

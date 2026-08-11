@@ -17,7 +17,7 @@ public class Attack : MonoBehaviour
     public string ignoreTag;
 
     [Header("推动")]
-    [Tooltip("开启后对受击 Character 施加水平击退")]
+    [Tooltip("开启后对受击目标施加击退（方向为攻击面朝）")]
     public bool enableKnockback;
     [Tooltip("击退冲量大小（Dynamic 为 Impulse；Kinematic 为位移总量）")]
     public float knockbackForce;
@@ -26,12 +26,51 @@ public class Attack : MonoBehaviour
 
     readonly HashSet<Character> hitTargets = new();
     readonly Dictionary<Character, float> nextHitTime = new();
+    readonly HashSet<IHitCountable> hitCountables = new();
+    readonly Dictionary<IHitCountable, float> nextHitCountableTime = new();
+    readonly HashSet<IKnockbackable> knockbackTargets = new();
     readonly List<Collider2D> overlapBuffer = new();
 
     void OnEnable()
     {
         hitTargets.Clear();
+        nextHitTime.Clear();
+        hitCountables.Clear();
+        nextHitCountableTime.Clear();
+        knockbackTargets.Clear();
         WakeRelatedRigidbodies();
+    }
+
+    /// <summary>
+    /// 击退方向：优先攻击面朝（transform.right），失败则用目标相对攻击者的水平方向。
+    /// </summary>
+    public static Vector2 ResolveKnockbackDir(Attack attacker, Vector2 targetPos)
+    {
+        if (attacker != null)
+        {
+            Vector2 facing = attacker.transform.right;
+            if (facing.sqrMagnitude > 0.0001f)
+                return facing.normalized;
+        }
+
+        if (attacker != null)
+        {
+            Vector2 fallback = new Vector2(targetPos.x - attacker.transform.position.x, 0f);
+            if (fallback.sqrMagnitude > 0.0001f)
+                return fallback.normalized;
+        }
+
+        return Vector2.right;
+    }
+
+    /// <summary>有效击退力 = knockbackForce / max(1, resistance)。</summary>
+    public static float EffectiveKnockbackForce(Attack attacker, float resistance)
+    {
+        if (attacker == null || !attacker.enableKnockback || attacker.knockbackForce <= 0f)
+            return 0f;
+
+        float res = Mathf.Max(1f, resistance);
+        return attacker.knockbackForce / res;
     }
 
     /// <summary>
@@ -86,22 +125,69 @@ public class Attack : MonoBehaviour
             return;
 
         var target = collision.GetComponentInParent<Character>();
-        if (target == null)
-            return;
+        bool hitSomething = false;
 
-        bool useRateLimit = attackRate > 0f;
-        if (!useRateLimit && hitTargets.Contains(target))
-            return;
-        if (useRateLimit && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
-            return;
+        if (target != null)
+        {
+            bool useRateLimit = attackRate > 0f;
+            if (!useRateLimit && hitTargets.Contains(target))
+                return;
+            if (useRateLimit && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
+                return;
 
-        target.TakeDamage(this);
-        if (!useRateLimit)
-            hitTargets.Add(target);
-        if (useRateLimit)
-            nextHitTime[target] = Time.time + 1f / attackRate;
+            target.TakeDamage(this);
+            if (!useRateLimit)
+                hitTargets.Add(target);
+            if (useRateLimit)
+                nextHitTime[target] = Time.time + 1f / attackRate;
 
-        if (attackType == AttackType.Projectile)
+            hitSomething = true;
+        }
+        else
+        {
+            var hitCountable = collision.GetComponentInParent<IHitCountable>();
+            if (hitCountable != null && CanHitCountable(hitCountable))
+            {
+                if (hitCountable.RegisterHit(this))
+                {
+                    MarkHitCountable(hitCountable);
+                    hitSomething = true;
+                }
+            }
+
+            if (enableKnockback && knockbackForce > 0f)
+            {
+                var knockable = collision.GetComponentInParent<IKnockbackable>();
+                if (knockable != null && !knockbackTargets.Contains(knockable))
+                {
+                    knockable.ApplyKnockback(this);
+                    knockbackTargets.Add(knockable);
+                    hitSomething = true;
+                }
+            }
+        }
+
+        if (hitSomething && attackType == AttackType.Projectile)
             Destroy(gameObject);
+    }
+
+    bool CanHitCountable(IHitCountable target)
+    {
+        bool useRateLimit = attackRate > 0f;
+        if (!useRateLimit)
+            return !hitCountables.Contains(target);
+
+        if (nextHitCountableTime.TryGetValue(target, out float next) && Time.time < next)
+            return false;
+
+        return true;
+    }
+
+    void MarkHitCountable(IHitCountable target)
+    {
+        if (attackRate > 0f)
+            nextHitCountableTime[target] = Time.time + 1f / attackRate;
+        else
+            hitCountables.Add(target);
     }
 }

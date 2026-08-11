@@ -15,6 +15,8 @@ public class EnemyWaveEntry
     [Min(0)] public int count = 1;
     [Tooltip("本种敌人专用刷怪点；为空则回退到本波 spawnPoints，再空则用组件级点")]
     public Transform[] spawnPoints;
+    [Tooltip("勾选后：本批清光再刷下一批，直至遭遇结束/StopSpawning；不计入遭遇清敌结算与 maxTotalSpawns")]
+    public bool infiniteRefresh;
 }
 
 /// <summary>
@@ -37,7 +39,7 @@ public class EnemyWaveConfig
     [Tooltip("波内相邻两个敌人的间隔（秒）；0 表示本波瞬间刷完")]
     [Min(0f)] public float intraWaveInterval;
 
-    [Tooltip("本波结束后等待（秒）；<=0 时回退组件级 spawnInterval")]
+    [Tooltip("本波结束后等待（秒）；<=0 时回退组件级 spawnInterval。无限刷新条目在两批之间也用此间隔")]
     public float delayAfterWave;
 
     [Tooltip("生成后血量倍率（作用于 Character.maxHealth / currentHealth）")]
@@ -49,16 +51,17 @@ public class EnemyWaveConfig
 
 /// <summary>
 /// 按波次列表刷怪：每波可指定多种敌人、数量、刷怪点与节奏，支持总刷怪上限。
-/// 遭遇战：spawnOnStart=false，由 EncounterZone.OnEncounterStarted 调用 StartSpawning。
+/// 遭遇战：spawnOnStart=false，由 EncounterZone.OnEncounterStarted 调用 StartSpawning；
+/// OnEncounterEnded 调用 StopSpawning。条目勾选 infiniteRefresh 则循环刷且不登记遭遇结算。
 /// </summary>
 public class EnemyGenerate : MonoBehaviour
 {
     [Header("波次列表")]
-    [Tooltip("按顺序刷怪；每波可配置多种敌人。无有效条目的波会跳过")]
+    [Tooltip("按顺序刷怪；每波可配置多种敌人。无有效条目的波会跳过。无限条目由独立协程处理")]
     [SerializeField] EnemyWaveConfig[] waves;
 
     [Header("数量与间隔")]
-    [Tooltip("总刷怪上限；0 表示不额外限制（实际总数 = 各波敌人数量之和）")]
+    [Tooltip("有限刷怪总上限；0 表示不额外限制（实际总数 = 各波有限敌人数量之和）。不含无限条目")]
     [SerializeField] int maxTotalSpawns;
     [Tooltip("相邻两波之间的默认等待时间（秒）；波的 delayAfterWave<=0 时使用此值")]
     [SerializeField] float spawnInterval = 3f;
@@ -66,7 +69,8 @@ public class EnemyGenerate : MonoBehaviour
     [SerializeField] float initialDelay;
 
     [Header("生成点")]
-    [Tooltip("默认刷怪位置列表；波未配置专用点时使用。为空则在本物体位置生成")]
+    [Tooltip("默认刷怪位置列表；波未配置专用点时使用。为空则在本物体位置生成。" +
+             "遭遇战建议放在空气墙外侧/相机视野外：Enemy 可穿空气墙进入区内，玩家仍被挡住")]
     [SerializeField] Transform[] spawnPoints;
 
     [Header("编辑器显示")]
@@ -74,7 +78,7 @@ public class EnemyGenerate : MonoBehaviour
     [SerializeField] bool alwaysDrawSpawnPoints = true;
 
     [Header("遭遇战（可选）")]
-    [Tooltip("若指定，生成的敌人会自动 RegisterEnemy 到该遭遇区，用于清敌结束判定")]
+    [Tooltip("若指定，有限生成的敌人会 RegisterEnemy 到该遭遇区。无限刷新敌人不登记")]
     [SerializeField] EncounterZone encounterZone;
 
     [Header("启动")]
@@ -82,19 +86,22 @@ public class EnemyGenerate : MonoBehaviour
     [SerializeField] bool spawnOnStart = true;
 
     [Header("事件")]
-    [Tooltip("每一波敌人生成完毕时触发（跳过的空波不触发）")]
+    [Tooltip("每一波有限敌人生成完毕时触发（跳过的空波不触发）")]
     public UnityEvent OnWaveSpawned;
-    [Tooltip("全部波次刷完（或达到总上限）时触发")]
+    [Tooltip("全部有限波次刷完（或达到总上限）时触发；无限循环不停该事件")]
     public UnityEvent OnSpawningCompleted;
 
     Coroutine spawnRoutine;
+    readonly List<Coroutine> infiniteRoutines = new();
     int totalSpawned;
+    int finiteSpawned;
     bool reportedSpawningToZone;
+    bool isSpawningActive;
 
     public int WaveCount => waves != null ? waves.Length : 0;
     public int TotalSpawned => totalSpawned;
     public int MaxTotalSpawns => GetEffectiveTotalLimit();
-    public bool IsSpawning => spawnRoutine != null;
+    public bool IsSpawning => isSpawningActive;
 
     void Start()
     {
@@ -151,27 +158,77 @@ public class EnemyGenerate : MonoBehaviour
     {
         // #region agent log
         AgentDebugLog.Write("A", "EnemyGenerate.cs:StartSpawning", "StartSpawning called",
-            "{\"name\":\"" + name + "\",\"waveCount\":" + WaveCount + ",\"totalLimit\":" + GetEffectiveTotalLimit() + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + "}");
+            "{\"name\":\"" + name + "\",\"waveCount\":" + WaveCount + ",\"totalLimit\":" + GetEffectiveTotalLimit() + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + ",\"hasFinite\":" + (HasAnyFiniteValidWave() ? "true" : "false") + "}");
         // #endregion
         // 重启时不要先 NotifyCompleted，否则波间空窗会误触发遭遇区解锁
         StopSpawningInternal(releaseZone: false);
         totalSpawned = 0;
-        NotifyZoneSpawningStarted();
-        spawnRoutine = StartCoroutine(SpawnRoutine());
+        finiteSpawned = 0;
+        isSpawningActive = true;
+
+        if (HasAnyFiniteValidWave())
+            NotifyZoneSpawningStarted();
+
+        StartInfiniteRoutines();
+
+        if (HasAnyFiniteValidWave())
+            spawnRoutine = StartCoroutine(SpawnRoutine());
+        else if (!HasAnyInfiniteEntry())
+        {
+            Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
+            FinishFiniteSpawning();
+        }
     }
 
     public void StopSpawning() => StopSpawningInternal(releaseZone: true);
 
     void StopSpawningInternal(bool releaseZone)
     {
+        isSpawningActive = false;
+
         if (spawnRoutine != null)
         {
             StopCoroutine(spawnRoutine);
             spawnRoutine = null;
         }
 
+        StopInfiniteRoutines();
+
         if (releaseZone)
             NotifyZoneSpawningCompleted();
+    }
+
+    void StartInfiniteRoutines()
+    {
+        if (waves == null)
+            return;
+
+        for (int w = 0; w < waves.Length; w++)
+        {
+            var wave = waves[w];
+            if (wave == null)
+                continue;
+
+            var infiniteEntries = ResolveEntries(wave, infiniteOnly: true);
+            for (int e = 0; e < infiniteEntries.Count; e++)
+            {
+                var entry = infiniteEntries[e];
+                if (entry == null || entry.enemyPrefab == null || entry.count <= 0)
+                    continue;
+                infiniteRoutines.Add(StartCoroutine(InfiniteEntryRoutine(wave, entry)));
+            }
+        }
+    }
+
+    void StopInfiniteRoutines()
+    {
+        for (int i = 0; i < infiniteRoutines.Count; i++)
+        {
+            if (infiniteRoutines[i] != null)
+                StopCoroutine(infiniteRoutines[i]);
+        }
+
+        infiniteRoutines.Clear();
     }
 
     void NotifyZoneSpawningStarted()
@@ -192,42 +249,53 @@ public class EnemyGenerate : MonoBehaviour
         encounterZone.NotifySpawningCompleted();
     }
 
-    void FinishSpawning()
+    void FinishFiniteSpawning()
     {
         spawnRoutine = null;
         NotifyZoneSpawningCompleted();
         OnSpawningCompleted?.Invoke();
+
+        if (!HasAnyInfiniteEntryRunning())
+            isSpawningActive = false;
     }
+
+    bool HasAnyInfiniteEntryRunning() => infiniteRoutines.Count > 0 && isSpawningActive;
 
     IEnumerator SpawnRoutine()
     {
         if (initialDelay > 0f)
             yield return new WaitForSeconds(initialDelay);
 
+        if (!isSpawningActive)
+            yield break;
+
         int waveLen = WaveCount;
         int totalLimit = GetEffectiveTotalLimit();
 
-        if (waveLen <= 0 || totalLimit <= 0 || !HasAnyValidWave())
+        if (waveLen <= 0 || totalLimit <= 0 || !HasAnyFiniteValidWave())
         {
             // #region agent log
-            AgentDebugLog.Write("D", "EnemyGenerate.cs:SpawnRoutine", "early exit invalid waves",
-                "{\"name\":\"" + name + "\",\"waveLen\":" + waveLen + ",\"totalLimit\":" + totalLimit + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + "}");
+            AgentDebugLog.Write("D", "EnemyGenerate.cs:SpawnRoutine", "early exit invalid finite waves",
+                "{\"name\":\"" + name + "\",\"waveLen\":" + waveLen + ",\"totalLimit\":" + totalLimit + ",\"hasFinite\":" + (HasAnyFiniteValidWave() ? "true" : "false") + "}");
             // #endregion
             if (waveLen <= 0 || !HasAnyValidWave())
                 Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
 
-            FinishSpawning();
+            FinishFiniteSpawning();
             yield break;
         }
 
         for (int waveIndex = 0; waveIndex < waveLen; waveIndex++)
         {
-            int remaining = totalLimit - totalSpawned;
+            if (!isSpawningActive)
+                yield break;
+
+            int remaining = totalLimit - finiteSpawned;
             if (remaining <= 0)
                 break;
 
             var wave = waves[waveIndex];
-            if (!IsValidWave(wave))
+            if (!IsValidFiniteWave(wave))
             {
                 yield return WaitAfterWave(wave, waveIndex, waveLen);
                 continue;
@@ -235,12 +303,15 @@ public class EnemyGenerate : MonoBehaviour
 
             // #region agent log
             AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnRoutine", "spawning wave",
-                "{\"name\":\"" + name + "\",\"waveIndex\":" + waveIndex + ",\"waveLen\":" + waveLen + ",\"remaining\":" + remaining + ",\"waveEnemyCount\":" + GetWaveTotalCount(wave) + "}");
+                "{\"name\":\"" + name + "\",\"waveIndex\":" + waveIndex + ",\"waveLen\":" + waveLen + ",\"remaining\":" + remaining + ",\"waveEnemyCount\":" + GetWaveFiniteCount(wave) + "}");
             // #endregion
             yield return SpawnWaveRoutine(wave, remaining);
+            if (!isSpawningActive)
+                yield break;
+
             OnWaveSpawned?.Invoke();
 
-            if (totalSpawned >= totalLimit)
+            if (finiteSpawned >= totalLimit)
                 break;
 
             yield return WaitAfterWave(wave, waveIndex, waveLen);
@@ -248,14 +319,91 @@ public class EnemyGenerate : MonoBehaviour
 
         // #region agent log
         AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnRoutine", "spawning completed",
-            "{\"name\":\"" + name + "\",\"totalSpawned\":" + totalSpawned + ",\"waveLen\":" + waveLen + "}");
+            "{\"name\":\"" + name + "\",\"finiteSpawned\":" + finiteSpawned + ",\"totalSpawned\":" + totalSpawned + ",\"waveLen\":" + waveLen + "}");
         // #endregion
-        FinishSpawning();
+        FinishFiniteSpawning();
+    }
+
+    IEnumerator InfiniteEntryRoutine(EnemyWaveConfig wave, EnemyWaveEntry entry)
+    {
+        if (initialDelay > 0f)
+            yield return new WaitForSeconds(initialDelay);
+
+        while (isSpawningActive)
+        {
+            var aliveBatch = new HashSet<Character>();
+            int spawnedThisBatch = 0;
+
+            for (int i = 0; i < entry.count; i++)
+            {
+                if (!isSpawningActive)
+                    yield break;
+
+                var instance = SpawnEnemyAt(
+                    entry.enemyPrefab,
+                    wave,
+                    GetSpawnPosition(wave, entry, i),
+                    registerWithZone: false,
+                    countTowardFiniteBudget: false);
+
+                if (instance != null)
+                {
+                    spawnedThisBatch++;
+                    TrackBatchEnemy(instance, aliveBatch);
+                }
+
+                bool moreInBatch = i < entry.count - 1;
+                if (wave.intraWaveInterval > 0f && moreInBatch && isSpawningActive)
+                    yield return new WaitForSeconds(wave.intraWaveInterval);
+            }
+
+            if (spawnedThisBatch <= 0)
+            {
+                Debug.LogWarning("EnemyGenerate: 无限刷新条目无法生成敌人，已停止该循环。", this);
+                yield break;
+            }
+
+            while (isSpawningActive && aliveBatch.Count > 0)
+            {
+                aliveBatch.RemoveWhere(c => c == null || c.IsDead);
+                if (aliveBatch.Count == 0)
+                    break;
+                yield return null;
+            }
+
+            if (!isSpawningActive)
+                yield break;
+
+            float delay = GetDelayAfterWave(wave);
+            if (delay > 0f)
+                yield return new WaitForSeconds(delay);
+        }
+    }
+
+    void TrackBatchEnemy(GameObject instance, HashSet<Character> aliveBatch)
+    {
+        if (instance == null || aliveBatch == null)
+            return;
+
+        var character = instance.GetComponent<Character>();
+        if (character == null)
+            character = instance.GetComponentInChildren<Character>();
+        if (character == null)
+            character = instance.GetComponentInParent<Character>();
+        if (character == null || character.IsDead)
+            return;
+
+        aliveBatch.Add(character);
+
+        var tracker = instance.GetComponent<InfiniteBatchTracker>();
+        if (tracker == null)
+            tracker = instance.AddComponent<InfiniteBatchTracker>();
+        tracker.Bind(aliveBatch, character);
     }
 
     IEnumerator SpawnWaveRoutine(EnemyWaveConfig wave, int remainingBudget)
     {
-        List<EnemyWaveEntry> entries = ResolveEntries(wave);
+        List<EnemyWaveEntry> entries = ResolveEntries(wave, infiniteOnly: false);
         int spawnedInWave = 0;
         int totalToSpawn = 0;
         for (int i = 0; i < entries.Count; i++)
@@ -264,6 +412,9 @@ public class EnemyGenerate : MonoBehaviour
 
         for (int e = 0; e < entries.Count; e++)
         {
+            if (!isSpawningActive)
+                yield break;
+
             var entry = entries[e];
             int countThisEntry = Mathf.Min(entry.count, remainingBudget - spawnedInWave);
             if (countThisEntry <= 0)
@@ -271,7 +422,15 @@ public class EnemyGenerate : MonoBehaviour
 
             for (int i = 0; i < countThisEntry; i++)
             {
-                SpawnEnemyAt(entry.enemyPrefab, wave, GetSpawnPosition(wave, entry, i));
+                if (!isSpawningActive)
+                    yield break;
+
+                SpawnEnemyAt(
+                    entry.enemyPrefab,
+                    wave,
+                    GetSpawnPosition(wave, entry, i),
+                    registerWithZone: true,
+                    countTowardFiniteBudget: true);
                 spawnedInWave++;
 
                 bool moreInWave = spawnedInWave < totalToSpawn;
@@ -298,7 +457,12 @@ public class EnemyGenerate : MonoBehaviour
         return spawnInterval;
     }
 
-    void SpawnEnemyAt(GameObject prefab, EnemyWaveConfig wave, Vector3 position)
+    GameObject SpawnEnemyAt(
+        GameObject prefab,
+        EnemyWaveConfig wave,
+        Vector3 position,
+        bool registerWithZone,
+        bool countTowardFiniteBudget)
     {
         if (prefab == null)
         {
@@ -306,22 +470,30 @@ public class EnemyGenerate : MonoBehaviour
             AgentDebugLog.Write("D", "EnemyGenerate.cs:SpawnEnemyAt", "prefab null skip",
                 "{\"name\":\"" + name + "\"}");
             // #endregion
-            return;
+            return null;
         }
 
         var instance = Instantiate(prefab, position, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(instance, this);
         totalSpawned++;
+        if (countTowardFiniteBudget)
+            finiteSpawned++;
 
         ApplyScales(instance, wave);
 
         if (encounterZone != null)
-            encounterZone.RegisterEnemy(instance);
+        {
+            if (registerWithZone)
+                encounterZone.RegisterEnemy(instance);
+            encounterZone.PrepareSpawnedEnemy(instance);
+        }
 
         // #region agent log
         AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnEnemyAt", "enemy spawned",
-            "{\"name\":\"" + name + "\",\"prefab\":\"" + prefab.name + "\",\"totalSpawned\":" + totalSpawned + ",\"pos\":\"" + position.x.ToString("F1") + "," + position.y.ToString("F1") + "\"}");
+            "{\"name\":\"" + name + "\",\"prefab\":\"" + prefab.name + "\",\"totalSpawned\":" + totalSpawned + ",\"finiteSpawned\":" + finiteSpawned + ",\"register\":" + (registerWithZone ? "true" : "false") + ",\"pos\":\"" + position.x.ToString("F1") + "," + position.y.ToString("F1") + "\"}");
         // #endregion
+
+        return instance;
     }
 
     static void ApplyScales(GameObject instance, EnemyWaveConfig wave)
@@ -355,8 +527,9 @@ public class EnemyGenerate : MonoBehaviour
 
     /// <summary>
     /// 解析本波敌人条目；优先用 enemies，为空则回退旧版单 prefab/count。
+    /// infiniteOnly=true 时仅无限条目；false 时仅有限条目。
     /// </summary>
-    static List<EnemyWaveEntry> ResolveEntries(EnemyWaveConfig wave)
+    static List<EnemyWaveEntry> ResolveEntries(EnemyWaveConfig wave, bool infiniteOnly)
     {
         var result = new List<EnemyWaveEntry>();
         if (wave == null)
@@ -367,35 +540,88 @@ public class EnemyGenerate : MonoBehaviour
             for (int i = 0; i < wave.enemies.Length; i++)
             {
                 var entry = wave.enemies[i];
-                if (entry != null && entry.enemyPrefab != null && entry.count > 0)
-                    result.Add(entry);
+                if (entry == null || entry.enemyPrefab == null || entry.count <= 0)
+                    continue;
+                if (entry.infiniteRefresh != infiniteOnly)
+                    continue;
+                result.Add(entry);
             }
         }
 
-        if (result.Count == 0 && wave.enemyPrefab != null && wave.count > 0)
+        if (result.Count == 0 && !infiniteOnly && wave.enemyPrefab != null && wave.count > 0)
         {
             result.Add(new EnemyWaveEntry
             {
                 enemyPrefab = wave.enemyPrefab,
-                count = wave.count
+                count = wave.count,
+                infiniteRefresh = false
             });
         }
 
         return result;
     }
 
-    static int GetWaveTotalCount(EnemyWaveConfig wave)
+    static int GetWaveFiniteCount(EnemyWaveConfig wave)
     {
-        var entries = ResolveEntries(wave);
+        var entries = ResolveEntries(wave, infiniteOnly: false);
         int total = 0;
         for (int i = 0; i < entries.Count; i++)
             total += entries[i].count;
         return total;
     }
 
-    static bool IsValidWave(EnemyWaveConfig wave)
+    static int GetWaveTotalCount(EnemyWaveConfig wave)
     {
-        return GetWaveTotalCount(wave) > 0;
+        if (wave == null)
+            return 0;
+
+        int total = 0;
+        if (wave.enemies != null)
+        {
+            for (int i = 0; i < wave.enemies.Length; i++)
+            {
+                var entry = wave.enemies[i];
+                if (entry != null && entry.enemyPrefab != null && entry.count > 0)
+                    total += entry.count;
+            }
+        }
+
+        if (total == 0 && wave.enemyPrefab != null && wave.count > 0)
+            total = wave.count;
+
+        return total;
+    }
+
+    static bool IsValidFiniteWave(EnemyWaveConfig wave) => GetWaveFiniteCount(wave) > 0;
+
+    static bool IsValidWave(EnemyWaveConfig wave) => GetWaveTotalCount(wave) > 0;
+
+    bool HasAnyFiniteValidWave()
+    {
+        if (waves == null)
+            return false;
+
+        for (int i = 0; i < waves.Length; i++)
+        {
+            if (IsValidFiniteWave(waves[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool HasAnyInfiniteEntry()
+    {
+        if (waves == null)
+            return false;
+
+        for (int w = 0; w < waves.Length; w++)
+        {
+            if (ResolveEntries(waves[w], infiniteOnly: true).Count > 0)
+                return true;
+        }
+
+        return false;
     }
 
     bool HasAnyValidWave()
@@ -412,21 +638,21 @@ public class EnemyGenerate : MonoBehaviour
         return false;
     }
 
-    int GetConfiguredTotalFromWaves()
+    int GetConfiguredFiniteTotalFromWaves()
     {
         if (waves == null)
             return 0;
 
         int total = 0;
         for (int i = 0; i < waves.Length; i++)
-            total += GetWaveTotalCount(waves[i]);
+            total += GetWaveFiniteCount(waves[i]);
 
         return total;
     }
 
     int GetEffectiveTotalLimit()
     {
-        int fromWaves = GetConfiguredTotalFromWaves();
+        int fromWaves = GetConfiguredFiniteTotalFromWaves();
         if (maxTotalSpawns <= 0)
             return fromWaves;
 
@@ -511,7 +737,9 @@ public class EnemyGenerate : MonoBehaviour
                 if (entry == null || entry.spawnPoints == null)
                     continue;
 
-                Color entryColor = Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
+                Color entryColor = entry.infiniteRefresh
+                    ? new Color(1f, 0.55f, 0.15f, 1f)
+                    : Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
                 for (int i = 0; i < entry.spawnPoints.Length; i++)
                 {
                     if (entry.spawnPoints[i] == null)
@@ -536,5 +764,49 @@ public class EnemyGenerate : MonoBehaviour
         float arm = radius * 1.35f;
         Gizmos.DrawLine(pos + Vector3.left * arm, pos + Vector3.right * arm);
         Gizmos.DrawLine(pos + Vector3.up * arm, pos + Vector3.down * arm);
+    }
+
+    /// <summary>
+    /// 无限批次死亡/销毁时从存活集合移除。
+    /// </summary>
+    class InfiniteBatchTracker : MonoBehaviour
+    {
+        HashSet<Character> batch;
+        Character character;
+        UnityAction dieHandler;
+
+        public void Bind(HashSet<Character> aliveBatch, Character target)
+        {
+            Unbind();
+            batch = aliveBatch;
+            character = target;
+            if (character == null || batch == null)
+                return;
+
+            dieHandler = OnDied;
+            character.OnDie.AddListener(dieHandler);
+        }
+
+        void Unbind()
+        {
+            if (character != null && dieHandler != null)
+                character.OnDie.RemoveListener(dieHandler);
+            dieHandler = null;
+            batch = null;
+            character = null;
+        }
+
+        void OnDied()
+        {
+            if (batch != null && character != null)
+                batch.Remove(character);
+        }
+
+        void OnDestroy()
+        {
+            if (batch != null && character != null)
+                batch.Remove(character);
+            Unbind();
+        }
     }
 }

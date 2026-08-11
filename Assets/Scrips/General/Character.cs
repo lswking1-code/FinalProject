@@ -33,11 +33,17 @@ public class Character : MonoBehaviour,ISaveable
     [Header("受伤无敌")]
     public float invulnerableDuration;
 
+    [Header("击退")]
+    [Tooltip("击退阻力，越大越难推（≥1）；敌人默认 1，重物可更大")]
+    [SerializeField] float knockbackResistance = 1f;
+
     private float invulnerableCounter;// 无敌剩余时间
     public bool invulnerable;
     bool forcedInvulnerable;
     bool isDead;
     Coroutine knockbackRoutine;
+
+    public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
     public bool IsDead => isDead;
     public bool IsForcedInvulnerable => forcedInvulnerable;
@@ -152,19 +158,17 @@ public class Character : MonoBehaviour,ISaveable
 
     void ApplyKnockback(Attack attacker)
     {
-        if (attacker == null || !attacker.enableKnockback || attacker.knockbackForce <= 0f)
+        float force = Attack.EffectiveKnockbackForce(attacker, KnockbackResistance);
+        if (force <= 0f)
             return;
 
         var rb = GetComponent<Rigidbody2D>();
         if (rb == null)
             return;
 
-        Vector2 dir = new Vector2(transform.position.x - attacker.transform.position.x, 0f).normalized;
-        if (dir.sqrMagnitude < 0.01f)
-            dir = Vector2.right;
-
+        Vector2 dir = Attack.ResolveKnockbackDir(attacker, transform.position);
         float duration = Mathf.Max(0.05f, attacker.knockbackDuration);
-        Vector2 impulse = dir * attacker.knockbackForce;
+        Vector2 impulse = dir * force;
 
         var movement = GetComponent<PlayerMovement>();
         if (movement != null)
@@ -177,11 +181,12 @@ public class Character : MonoBehaviour,ISaveable
         {
             if (knockbackRoutine != null)
                 StopCoroutine(knockbackRoutine);
-            knockbackRoutine = StartCoroutine(KnockbackKinematic(rb, dir, attacker.knockbackForce, duration));
+            knockbackRoutine = StartCoroutine(KnockbackKinematic(rb, dir, force, duration));
             return;
         }
 
-        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        // 垂直分量也生效时清零线速度，避免叠加速度被 AI 移动残留干扰
+        rb.linearVelocity = Vector2.zero;
         rb.AddForce(impulse, ForceMode2D.Impulse);
     }
 

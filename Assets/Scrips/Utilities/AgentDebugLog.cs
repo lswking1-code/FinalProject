@@ -1,54 +1,30 @@
 using System.IO;
 using UnityEngine;
 
-/// <summary>
-/// Debug-session NDJSON logger (session f06fd1). Folded via #region at call sites.
-/// </summary>
+/// <summary>Optional NDJSON debug logger used by temporary instrumentation.</summary>
 public static class AgentDebugLog
 {
-    const string SessionId = "f06fd1";
-    static readonly object Gate = new object();
-    static string cachedPath;
+    static readonly object Sync = new object();
 
-    static string LogPath
-    {
-        get
-        {
-            if (cachedPath != null)
-                return cachedPath;
-            cachedPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "debug-f06fd1.log"));
-            return cachedPath;
-        }
-    }
-
-    public static void Write(string hypothesisId, string location, string message, string dataJsonObject)
+    public static void Write(string hypothesisId, string location, string message, string dataJsonObject = "{}")
     {
         try
         {
             long ts = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             string line =
-                "{\"sessionId\":\"" + SessionId +
-                "\",\"hypothesisId\":\"" + hypothesisId +
-                "\",\"location\":\"" + location +
-                "\",\"message\":\"" + Escape(message) +
-                "\",\"data\":" + (string.IsNullOrEmpty(dataJsonObject) ? "{}" : dataJsonObject) +
-                ",\"timestamp\":" + ts +
-                ",\"runId\":\"pre-fix\"}";
-            lock (Gate)
-            {
-                File.AppendAllText(LogPath, line + "\n");
-            }
+                "{\"hypothesisId\":\"" + hypothesisId
+                + "\",\"location\":\"" + location
+                + "\",\"message\":\"" + message
+                + "\",\"data\":" + (string.IsNullOrEmpty(dataJsonObject) ? "{}" : dataJsonObject)
+                + ",\"timestamp\":" + ts + "}\n";
+
+            string path = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "debug-agent.log"));
+            lock (Sync)
+                File.AppendAllText(path, line);
         }
         catch
         {
-            // ignore IO failures during debug
+            // ignore IO errors
         }
-    }
-
-    static string Escape(string s)
-    {
-        if (string.IsNullOrEmpty(s))
-            return "";
-        return s.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }

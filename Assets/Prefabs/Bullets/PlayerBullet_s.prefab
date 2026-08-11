@@ -186,6 +186,9 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: Player
+  enableKnockback: 1
+  knockbackForce: 10
+  knockbackDuration: 0.15
 --- !u!95 &1578916695786253071
 Animator:
   serializedVersion: 7

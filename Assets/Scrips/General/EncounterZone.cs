@@ -5,8 +5,11 @@ using UnityEngine.Events;
 
 /// <summary>
 /// 遭遇战锁区：玩家进入后限制相机 Bounds 并启用空气墙。
-/// 刷怪由外部脚本负责；通过 RegisterEnemy 登记遭遇中生成的敌人，清敌后可自动结束。
-/// 也可由外部调用 EndEncounter 手动结束（事件型遭遇战）。
+/// 刷怪由外部脚本负责；通过 RegisterEnemy 登记的有限敌人清光后可自动结束。
+/// EnemyGenerate 中勾选 infiniteRefresh 的敌人不会登记，不影响清敌结算。
+/// 机关/独立事件等可 UnityEvent 调用 EndEncounter() 强制结算；
+/// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
+/// 敌人空气墙为单向：区外可穿入，进入后锁定不让出区；敌人弹不能穿过空气墙。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(DataDefination))]
@@ -15,7 +18,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Header("锁区")]
     [Tooltip("本区域相机限制碰撞体（不要使用 Bounds 标签）")]
     [SerializeField] Collider2D encounterBounds;
-    [Tooltip("空气墙根节点，启用后阻挡玩家离开区域")]
+    [Tooltip("空气墙根节点，启用后阻挡玩家离开区域；敌人弹会命中销毁")]
     [SerializeField] GameObject airWallsRoot;
 
     [Header("行为")]
@@ -23,6 +26,11 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] bool autoEndWhenCleared = true;
     [Tooltip("启用空气墙后先与玩家忽略碰撞，直到玩家不再与空气墙重叠，避免卡在墙外")]
     [SerializeField] bool delaySealAirWalls = true;
+    [Tooltip("允许敌人从区外单向穿入空气墙；完全进入后恢复碰撞，不可再穿出")]
+    [SerializeField] bool allowEnemiesThroughAirWalls = true;
+
+    /// <summary>当前激活的遭遇空气墙碰撞体，供敌人弹判定销毁。</summary>
+    static readonly HashSet<Collider2D> s_activeAirWalls = new();
 
     [Header("事件")]
     public UnityEvent OnEncounterStarted;
@@ -35,6 +43,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     readonly HashSet<Character> aliveRegistered = new();
     readonly Dictionary<Character, UnityAction> dieHandlers = new();
     readonly List<Collider2D> airWallColliders = new();
+    readonly List<int> airWallOriginalExcludeBits = new();
 
     bool isActive;
     bool hasCompleted;
@@ -48,6 +57,12 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public bool IsActive => isActive;
     public bool HasCompleted => hasCompleted;
     public int AliveRegisteredCount => aliveRegistered.Count;
+
+    /// <summary>是否为当前遭遇战启用中的空气墙碰撞体。</summary>
+    public static bool IsAirWallCollider(Collider2D col)
+    {
+        return col != null && s_activeAirWalls.Contains(col);
+    }
 
     void Awake()
     {
@@ -132,6 +147,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
         OnEncounterStarted?.Invoke();
     }
 
+    /// <summary>
+    /// 结束遭遇战（清敌自动结束或机关/Timeline 等外部事件均可调用）。
+    /// 触发 OnEncounterEnded（通常用于 StopSpawning 停刷）。
+    /// </summary>
     public void EndEncounter()
     {
         if (!isActive)
@@ -197,6 +216,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         airWallsRoot.SetActive(true);
         CacheAirWallColliders();
+        PublishActiveAirWalls(true);
         CachePlayerColliders(playerCollider);
 
         if (!delaySealAirWalls || playerColliders.Count == 0)
@@ -221,12 +241,90 @@ public class EncounterZone : MonoBehaviour, ISaveable
         }
 
         SetPlayerAirWallCollisionIgnored(false);
+        RestoreAirWallExcludeLayers();
+        PublishActiveAirWalls(false);
         playerColliders.Clear();
         airWallsSealed = false;
         airWallColliders.Clear();
+        airWallOriginalExcludeBits.Clear();
 
         if (airWallsRoot != null)
             airWallsRoot.SetActive(false);
+    }
+
+    /// <summary>
+    /// 遭遇刷怪后调用：给敌人挂单向穿墙门控（区外可入，进区后不可出）。
+    /// 有限/无限生成都可调用；不负责 RegisterEnemy。
+    /// </summary>
+    public void PrepareSpawnedEnemy(GameObject enemyObject)
+    {
+        if (!isActive || enemyObject == null)
+            return;
+        if (!allowEnemiesThroughAirWalls || airWallColliders.Count == 0)
+            return;
+
+        var gate = enemyObject.GetComponent<EnemyOneWayAirWallGate>();
+        if (gate == null)
+            gate = enemyObject.AddComponent<EnemyOneWayAirWallGate>();
+        gate.Bind(this);
+    }
+
+    void PublishActiveAirWalls(bool publish)
+    {
+        for (int i = 0; i < airWallColliders.Count; i++)
+        {
+            var wall = airWallColliders[i];
+            if (wall == null)
+                continue;
+
+            if (publish)
+                s_activeAirWalls.Add(wall);
+            else
+                s_activeAirWalls.Remove(wall);
+        }
+    }
+
+    internal IReadOnlyList<Collider2D> GetAirWallColliders() => airWallColliders;
+
+    internal bool IsEnemyFullyInsideCombatArea(Vector2 worldPoint, Collider2D bodyCollider)
+    {
+        if (!IsPointInsideEncounterBounds(worldPoint))
+            return false;
+
+        if (bodyCollider != null && IsColliderOverlappingAirWalls(bodyCollider))
+            return false;
+
+        return true;
+    }
+
+    internal bool IsPointInsideEncounterBounds(Vector2 worldPoint)
+    {
+        if (encounterBounds == null)
+            return true;
+
+        if (encounterBounds.OverlapPoint(worldPoint))
+            return true;
+
+        return encounterBounds.bounds.Contains(worldPoint);
+    }
+
+    internal bool IsColliderOverlappingAirWalls(Collider2D body)
+    {
+        if (body == null)
+            return false;
+
+        for (int i = 0; i < airWallColliders.Count; i++)
+        {
+            var wall = airWallColliders[i];
+            if (wall == null || !wall.enabled)
+                continue;
+
+            var distance = Physics2D.Distance(body, wall);
+            if (distance.isOverlapped || distance.distance <= 0.01f)
+                return true;
+        }
+
+        return false;
     }
 
     IEnumerator SealAirWallsWhenPlayerClear()
@@ -271,14 +369,31 @@ public class EncounterZone : MonoBehaviour, ISaveable
     void CacheAirWallColliders()
     {
         airWallColliders.Clear();
+        airWallOriginalExcludeBits.Clear();
         if (airWallsRoot == null)
             return;
 
         var cols = airWallsRoot.GetComponentsInChildren<Collider2D>(true);
         for (int i = 0; i < cols.Length; i++)
         {
-            if (cols[i] != null && cols[i].enabled && !cols[i].isTrigger)
-                airWallColliders.Add(cols[i]);
+            var col = cols[i];
+            if (col == null || !col.enabled || col.isTrigger)
+                continue;
+
+            airWallColliders.Add(col);
+            airWallOriginalExcludeBits.Add(col.excludeLayers.value);
+        }
+    }
+
+    void RestoreAirWallExcludeLayers()
+    {
+        int count = Mathf.Min(airWallColliders.Count, airWallOriginalExcludeBits.Count);
+        for (int i = 0; i < count; i++)
+        {
+            var wall = airWallColliders[i];
+            if (wall == null)
+                continue;
+            wall.excludeLayers = airWallOriginalExcludeBits[i];
         }
     }
 
@@ -341,7 +456,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 登记遭遇战中生成的敌人。区域原本存在的敌人不要登记。
+    /// 登记遭遇战中生成的、计入清敌结算的敌人。
+    /// 无限刷新敌人勿调用；区域原本存在的敌人也不要登记。
     /// </summary>
     public void RegisterEnemy(GameObject enemyObject)
     {
@@ -358,7 +474,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 登记遭遇战中生成的敌人。区域原本存在的敌人不要登记。
+    /// 登记遭遇战中生成的、计入清敌结算的敌人。
+    /// 无限刷新敌人勿调用；区域原本存在的敌人也不要登记。
     /// </summary>
     public void RegisterEnemy(Character character)
     {
@@ -464,6 +581,115 @@ public class EncounterZone : MonoBehaviour, ISaveable
         }
     }
 
+    /// <summary>
+    /// 敌人单向空气墙：区外/穿墙过程中 IgnoreCollision，完全进入 EncounterBounds 后恢复碰撞锁区。
+    /// </summary>
+    class EnemyOneWayAirWallGate : MonoBehaviour
+    {
+        EncounterZone zone;
+        readonly List<Collider2D> bodyColliders = new();
+        bool sealedInside;
+
+        public void Bind(EncounterZone owner)
+        {
+            zone = owner;
+            sealedInside = false;
+            CacheBodyColliders();
+            EvaluateGate();
+        }
+
+        void CacheBodyColliders()
+        {
+            bodyColliders.Clear();
+            var cols = GetComponentsInChildren<Collider2D>(true);
+            for (int i = 0; i < cols.Length; i++)
+            {
+                var col = cols[i];
+                if (col == null || !col.enabled || col.isTrigger)
+                    continue;
+                bodyColliders.Add(col);
+            }
+        }
+
+        void FixedUpdate()
+        {
+            if (sealedInside)
+                return;
+
+            if (zone == null || !zone.IsActive)
+            {
+                SetIgnoringWalls(false);
+                Destroy(this);
+                return;
+            }
+
+            EvaluateGate();
+        }
+
+        void EvaluateGate()
+        {
+            if (zone == null)
+                return;
+
+            if (bodyColliders.Count == 0)
+                CacheBodyColliders();
+
+            Vector2 pos = transform.position;
+            bool fullyInside = zone.IsPointInsideEncounterBounds(pos);
+            if (fullyInside)
+            {
+                for (int i = 0; i < bodyColliders.Count; i++)
+                {
+                    if (zone.IsColliderOverlappingAirWalls(bodyColliders[i]))
+                    {
+                        fullyInside = false;
+                        break;
+                    }
+                }
+            }
+
+            if (fullyInside)
+            {
+                SetIgnoringWalls(false);
+                sealedInside = true;
+                return;
+            }
+
+            SetIgnoringWalls(true);
+        }
+
+        void SetIgnoringWalls(bool ignore)
+        {
+            if (zone == null)
+                return;
+
+            var walls = zone.GetAirWallColliders();
+            if (walls == null)
+                return;
+
+            for (int b = 0; b < bodyColliders.Count; b++)
+            {
+                var body = bodyColliders[b];
+                if (body == null)
+                    continue;
+
+                for (int w = 0; w < walls.Count; w++)
+                {
+                    var wall = walls[w];
+                    if (wall == null)
+                        continue;
+                    Physics2D.IgnoreCollision(body, wall, ignore);
+                }
+            }
+        }
+
+        void OnDestroy()
+        {
+            SetIgnoringWalls(false);
+            zone = null;
+        }
+    }
+
     void EnsureCameraControl()
     {
         if (cameraControl != null)
@@ -528,7 +754,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
                 new Color(0.2f, 0.85f, 1f, 0.9f));
         }
 
-        // 空气墙位置，辅助判断刷兵是否落在锁区内
+        // 空气墙：挡住玩家；默认允许敌人从墙外刷点进入
         if (airWallsRoot != null)
         {
             var walls = airWallsRoot.GetComponentsInChildren<Collider2D>(true);
