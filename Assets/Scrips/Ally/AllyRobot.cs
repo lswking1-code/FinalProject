@@ -2394,21 +2394,47 @@ public class AllyRobot : MonoBehaviour
     {
         Transform closestMarked = null;
         Transform closestUnmarked = null;
+        float minMarkedDistY = float.MaxValue;
         float minMarkedDistX = float.MaxValue;
+        float minUnmarkedDistY = float.MaxValue;
         float minUnmarkedDistX = float.MaxValue;
 
-        ConsiderEnemiesWithTag("Enemy", ref closestMarked, ref closestUnmarked, ref minMarkedDistX, ref minUnmarkedDistX);
+        ConsiderEnemiesWithTag(
+            "Enemy",
+            ref closestMarked, ref closestUnmarked,
+            ref minMarkedDistY, ref minMarkedDistX,
+            ref minUnmarkedDistY, ref minUnmarkedDistX);
         if (includeAirEnemy)
-            ConsiderEnemiesWithTag(AirEnemyTag, ref closestMarked, ref closestUnmarked, ref minMarkedDistX, ref minUnmarkedDistX);
+        {
+            ConsiderEnemiesWithTag(
+                AirEnemyTag,
+                ref closestMarked, ref closestUnmarked,
+                ref minMarkedDistY, ref minMarkedDistX,
+                ref minUnmarkedDistY, ref minUnmarkedDistX);
+        }
 
         return closestMarked != null ? closestMarked : closestUnmarked;
+    }
+
+    /// <summary>
+    /// 同标记层级内：更小 |ΔY| 优先；Y 相等时更小 |ΔX| 优先。
+    /// </summary>
+    static bool IsBetterAcquireCandidate(float distY, float distX, float bestY, float bestX)
+    {
+        if (distY < bestY)
+            return true;
+        if (distY > bestY)
+            return false;
+        return distX < bestX;
     }
 
     void ConsiderEnemiesWithTag(
         string tag,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
+        ref float minMarkedDistY,
         ref float minMarkedDistX,
+        ref float minUnmarkedDistY,
         ref float minUnmarkedDistX)
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(tag);
@@ -2430,14 +2456,16 @@ public class AllyRobot : MonoBehaviour
             bool marked = enemy != null && enemy.isMarked;
             if (marked)
             {
-                if (distX < minMarkedDistX)
+                if (IsBetterAcquireCandidate(distY, distX, minMarkedDistY, minMarkedDistX))
                 {
+                    minMarkedDistY = distY;
                     minMarkedDistX = distX;
                     closestMarked = e.transform;
                 }
             }
-            else if (distX < minUnmarkedDistX)
+            else if (IsBetterAcquireCandidate(distY, distX, minUnmarkedDistY, minUnmarkedDistX))
             {
+                minUnmarkedDistY = distY;
                 minUnmarkedDistX = distX;
                 closestUnmarked = e.transform;
             }
