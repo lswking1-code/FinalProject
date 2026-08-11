@@ -11,6 +11,7 @@ public class PhysicsCheck : MonoBehaviour
     private CapsuleCollider2D capsuleColl;
     private Rigidbody2D rb;
     PlatformDropThrough platformDropThrough;
+    RobotOneWayPlatformPass robotOneWayPlatformPass;
 
     [Header("检测参数")]
     [Tooltip("勾选后使用手动配置的偏移量，否则根据碰撞体自动计算左右偏移")]
@@ -54,6 +55,8 @@ public class PhysicsCheck : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         if (isPlayer)
             platformDropThrough = GetComponent<PlatformDropThrough>();
+        else
+            robotOneWayPlatformPass = GetComponent<RobotOneWayPlatformPass>();
         RecalculateOffsets();
 
         if (isPlayer && capsuleColl != null && capsuleColl.sharedMaterial == null)
@@ -178,6 +181,9 @@ public class PhysicsCheck : MonoBehaviour
         if (platformDropThrough != null)
             return platformDropThrough.ShouldCountAsGround(col, normal);
 
+        if (robotOneWayPlatformPass != null)
+            return robotOneWayPlatformPass.ShouldCountAsGround(col, normal);
+
         return true;
     }
 
@@ -221,9 +227,16 @@ public class PhysicsCheck : MonoBehaviour
 
     bool CountsAsSolidObstacle(Collider2D obstacle)
     {
-        if (platformDropThrough == null || obstacle == null)
+        if (obstacle == null)
             return true;
-        return platformDropThrough.ShouldCollideWith(obstacle);
+
+        if (platformDropThrough != null)
+            return platformDropThrough.ShouldCollideWith(obstacle);
+
+        if (robotOneWayPlatformPass != null)
+            return robotOneWayPlatformPass.ShouldCollideWith(obstacle);
+
+        return true;
     }
 
     bool CountsAsGroundHit(RaycastHit2D hit)
@@ -231,10 +244,13 @@ public class PhysicsCheck : MonoBehaviour
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
 
-        if (platformDropThrough == null)
-            return true;
+        if (platformDropThrough != null)
+            return platformDropThrough.ShouldCountAsGround(hit.collider, hit.normal);
 
-        return platformDropThrough.ShouldCountAsGround(hit.collider, hit.normal);
+        if (robotOneWayPlatformPass != null)
+            return robotOneWayPlatformPass.ShouldCountAsGround(hit.collider, hit.normal);
+
+        return true;
     }
 
     /// <summary>

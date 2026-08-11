@@ -67,7 +67,7 @@ public class AllyRobot : MonoBehaviour
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
-    [Tooltip("停刀/到位的最大 Y 距离（地面敌与 AirEnemy 共用；应明显小于 attackDistance，避免偏低打空）")]
+    [Tooltip("停刀/到位的最大 Y 距离；同时作为地面连携/Blast 是否改竖直冲锋的阈值（|ΔY| 超出则二维冲锋）。应明显小于 attackDistance，避免偏低打空")]
     [SerializeField] float airAttackDistanceY = 0.65f;
     [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出则冲刺，否则直接近战连击")]
     public float dashDecideDistance = 2.5f;
@@ -220,6 +220,8 @@ public class AllyRobot : MonoBehaviour
         || currentState == AllyState.ComboDashWindup
         || currentState == AllyState.ComboDashing;
 
+    public bool IsComboDashing => currentState == AllyState.ComboDashing;
+
     bool IsAirborneBusy =>
         airPhase != RobotAirPhase.Ground || isLanding;
 
@@ -245,6 +247,7 @@ public class AllyRobot : MonoBehaviour
 
     Rigidbody2D rb;
     CapsuleCollider2D bodyCollider;
+    RobotOneWayPlatformPass oneWayPlatformPass;
 
     Vector3 spawnPoint;
     Transform currentTarget;
@@ -294,6 +297,8 @@ public class AllyRobot : MonoBehaviour
     bool comboAirHanging;
     /// <summary>本次连携曾以空中敌为目标时锁存 Boost，目标死亡也不关，直到连携结束。</summary>
     bool airComboBoostLatched;
+    /// <summary>本次连携冲锋因 Y 差距启用二维冲锋后锁存，避免贴近高度后切回水平受重力下落抖动。</summary>
+    bool verticalComboDashLatched;
     /// <summary>
     /// 自动跳起后，在障碍仍被探测到前禁止再次自动跳，避免贴墙连跳。
     /// </summary>
@@ -307,6 +312,7 @@ public class AllyRobot : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         bodyCollider = GetComponent<CapsuleCollider2D>();
+        oneWayPlatformPass = GetComponent<RobotOneWayPlatformPass>();
         if (anim == null)
             anim = GetComponent<Animator>();
         if (physicsCheck == null)
@@ -357,6 +363,7 @@ public class AllyRobot : MonoBehaviour
         if (robotBlastComboEvent != null)
             robotBlastComboEvent.OnEventRaised -= BlastCombo;
         airComboBoostLatched = false;
+        verticalComboDashLatched = false;
         SetBoostActive(false);
     }
 
@@ -401,11 +408,15 @@ public class AllyRobot : MonoBehaviour
             case AllyState.ManualMove:       UpdateManualMove();       break;
         }
 
-        UpdateAirEnemyBoostVisual();
+        UpdateComboBoostVisual();
     }
 
     void FixedUpdate()
     {
+        // 单向平台 Ignore 须在接地检测与物理步进前完成。
+        if (oneWayPlatformPass != null)
+            oneWayPlatformPass.UpdateCollisions();
+
         // 跳跃判定在 FixedUpdate；同步刷新接地，避免只靠 Update 的一帧延迟。
         if (physicsCheck != null)
             physicsCheck.Check();
@@ -456,7 +467,7 @@ public class AllyRobot : MonoBehaviour
                         StopMoving();
                     break;
                 case AllyState.ComboDashing:
-                    if (TryApplyAirEnemyComboDash())
+                    if (TryApplyVerticalComboDash())
                     {
                         movingHorizontally = Mathf.Abs(rb.linearVelocity.x) > 0.01f;
                         moveDir = Mathf.Sign(rb.linearVelocity.x);
@@ -508,10 +519,10 @@ public class AllyRobot : MonoBehaviour
         if (movingHorizontally)
         {
             CancelVelocityIntoWall(moveDir);
-            // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳；对空中敌的连携冲刺禁用自动跳
+            // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳；竖直/二维连携冲刺禁用自动跳
             if (currentState != AllyState.ManualMove
                 && !attackLungeActive
-                && !(currentState == AllyState.ComboDashing && IsAirEnemyTarget(currentTarget)))
+                && !(currentState == AllyState.ComboDashing && NeedsVerticalComboDash(currentTarget)))
                 TryAutoJump(moveDir);
         }
         else if (airPhase != RobotAirPhase.Ground)
@@ -1320,6 +1331,7 @@ public class AllyRobot : MonoBehaviour
             EndAttackLunge();
             EndComboAirHang();
             airComboBoostLatched = false;
+            verticalComboDashLatched = false;
             SetBoostActive(false);
             SyncAirVisualAfterBusy();
         }
@@ -1434,6 +1446,31 @@ public class AllyRobot : MonoBehaviour
     bool IsAirEnemyTarget(Transform target)
     {
         return target != null && target.CompareTag(AirEnemyTag);
+    }
+
+    /// <summary>
+    /// 空中敌，或地面敌 Y 差距超出到位阈值时，连携/Blast 冲锋走二维飞冲。
+    /// 冲锋期间锁存，避免 |ΔY| 刚落入阈值后切回水平冲锋导致空中下落抖动。
+    /// </summary>
+    bool NeedsVerticalComboDash(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        if (IsAirEnemyTarget(target))
+            return true;
+
+        if (verticalComboDashLatched)
+            return true;
+
+        if (GetDistYTo(target) <= airAttackDistanceY)
+            return false;
+
+        if (currentState != AllyState.ComboDashWindup && currentState != AllyState.ComboDashing)
+            return false;
+
+        verticalComboDashLatched = true;
+        return true;
     }
 
     /// <summary>
@@ -1839,11 +1876,11 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 对 AirEnemy 连携冲刺：按二维方向飞向碰撞体中心；已在攻击距离则停住。
+    /// 连携/Blast 竖直冲锋：空中敌或地面敌 Y 差距过大时，按二维方向飞向碰撞体中心；已在攻击距离则停住。
     /// </summary>
-    bool TryApplyAirEnemyComboDash()
+    bool TryApplyVerticalComboDash()
     {
-        if (!IsAirEnemyTarget(currentTarget) || !IsValidCombatTarget(currentTarget))
+        if (!NeedsVerticalComboDash(currentTarget) || !IsValidCombatTarget(currentTarget))
             return false;
 
         if (IsInAttackRange(currentTarget))
@@ -1870,8 +1907,8 @@ public class AllyRobot : MonoBehaviour
         if (rb == null)
             return;
 
-        // 空中连携冲刺停步时清掉竖直速度，避免冲刺惯性残留
-        if (currentState == AllyState.ComboDashing && IsAirEnemyTarget(currentTarget))
+        // 竖直/二维连携冲刺停步时清掉竖直速度，避免冲刺惯性残留
+        if (currentState == AllyState.ComboDashing && NeedsVerticalComboDash(currentTarget))
             rb.linearVelocity = Vector2.zero;
         else
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -1930,10 +1967,9 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 对空中敌人进行连携冲刺 / 连携 / 爆裂时显示 Boost。
-    /// 一旦以空中敌开打则锁存，目标死亡也不关，直到本次连携结束。
+    /// 连携 Boost：空中敌整段连携锁存；地面目标仅在竖直冲锋（Windup/Dashing）期间显示。
     /// </summary>
-    void UpdateAirEnemyBoostVisual()
+    void UpdateComboBoostVisual()
     {
         if (IsBusyWithCombo)
         {
@@ -1945,7 +1981,13 @@ public class AllyRobot : MonoBehaviour
             airComboBoostLatched = false;
         }
 
-        SetBoostActive(airComboBoostLatched);
+        bool groundVerticalDashBoost =
+            !airComboBoostLatched
+            && currentTarget != null
+            && NeedsVerticalComboDash(currentTarget)
+            && (currentState == AllyState.ComboDashWindup || currentState == AllyState.ComboDashing);
+
+        SetBoostActive(airComboBoostLatched || groundVerticalDashBoost);
     }
 
     void SetBoostActive(bool active)

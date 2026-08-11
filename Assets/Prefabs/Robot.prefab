@@ -615,13 +615,13 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: 3.103891, y: 2.8131237}
-      - {x: 1.3440814, y: 3.0655067}
-      - {x: 0.16106457, y: 1.9668958}
-      - {x: 0.17207533, y: 1.2236512}
-      - {x: 1.3956228, y: 0.05804205}
-      - {x: 2.504807, y: 0.70473254}
-      - {x: 3.6490173, y: 1.8845243}
+    - - {x: 3.9701667, y: 3.8057306}
+      - {x: 0.9893346, y: 3.893252}
+      - {x: -2.401003, y: 2.5778506}
+      - {x: -1.3651648, y: 0.15940785}
+      - {x: 4.588425, y: -0.89979935}
+      - {x: 3.1679273, y: 0.8275324}
+      - {x: 4.443103, y: 2.0108562}
   m_UseDelaunayMesh: 0
 --- !u!114 &279142597796619701
 MonoBehaviour:
@@ -985,6 +985,7 @@ GameObject:
   - component: {fileID: 6134133150522201173}
   - component: {fileID: 7103856813796321060}
   - component: {fileID: 8203856712345678901}
+  - component: {fileID: 9103856813796321061}
   m_Layer: 11
   m_Name: Robot
   m_TagString: Robot
@@ -1210,7 +1211,7 @@ MonoBehaviour:
   detectRangeX: 14.5
   detectRangeY: 6
   attackDistance: 2.2
-  airAttackDistanceY: 0.65
+  airAttackDistanceY: 0.25
   dashDecideDistance: 4.5
   attackCooldown: 1
   attackLungeSpeed: 4
@@ -1302,6 +1303,23 @@ MonoBehaviour:
   onWall: 0
   groundNormal: {x: 0, y: 1}
   isOnSlope: 0
+--- !u!114 &9103856813796321061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5818673389914477433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4e8a91b3f7d4e2a9b0c1d2e3f4a5b6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  surfaceMargin: 0.05
+  oneWayPlatformLayer:
+    serializedVersion: 2
+    m_Bits: 4096
+  dashScanPadding: 1.25
 --- !u!1 &6250385081535608555
 GameObject:
   m_ObjectHideFlags: 0
