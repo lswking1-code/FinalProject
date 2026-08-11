@@ -269,6 +269,9 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         OnRobotRemoved();
     }
 
+    /// <summary>立刻收回当前机器人（能量耗尽 / 死亡区等外部调用）。</summary>
+    public void RecallRobot() => DestroyActiveRobot();
+
     void BeginPress()
     {
         if (playerMovement.IsActionLocked)

@@ -14,6 +14,8 @@ public class PlayerMLChargeBullet : MonoBehaviour, IPlayerAmmo
     [SerializeField] float abilityPowerRestore = 5f;
     [SerializeField] GameObject markBombPrefab;
     [SerializeField] Vector3 bombLocalOffset = Vector3.zero;
+    [Tooltip("挂到盾牌上时的本地偏移（相对 Shield）；盾牌常有非均匀缩放，Y 通常要比身体附着点更小/更负才会视觉偏低")]
+    [SerializeField] Vector3 shieldBombLocalOffset = new Vector3(0f, -0.15f, 0f);
 
     Rigidbody2D rb;
     Attack attack;
@@ -80,8 +82,18 @@ public class PlayerMLChargeBullet : MonoBehaviour, IPlayerAmmo
 
         if (markBombPrefab != null)
         {
-            GameObject bombGo = Instantiate(markBombPrefab, enemy.transform);
-            bombGo.transform.localPosition = bombLocalOffset;
+            // 盾兵：炸弹挂在盾牌上，正面 Blast 被盾吸收时也能引爆
+            Transform bombParent = enemy.transform;
+            Vector3 localOffset = bombLocalOffset;
+            EnemyShieldAbsorb shield = enemy.GetComponentInChildren<EnemyShieldAbsorb>();
+            if (shield != null)
+            {
+                bombParent = shield.transform;
+                localOffset = shieldBombLocalOffset;
+            }
+
+            GameObject bombGo = Instantiate(markBombPrefab, bombParent);
+            bombGo.transform.localPosition = localOffset;
             bombGo.transform.localRotation = Quaternion.identity;
 
             EnemyMarkBomb bomb = bombGo.GetComponent<EnemyMarkBomb>();

@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 附着在被 L 蓄力弹标记的敌人身上的炸弹。
-/// 宿主受到 Tag 为 Blast 的 Attack 攻击时引爆，播放爆炸动画并造成范围伤害。
+/// 附着在被 L 蓄力弹标记的敌人（或盾兵盾牌）上的炸弹。
+/// 宿主受到 / 盾牌吸收 Tag 为 Blast 的 Attack 时引爆，播放爆炸动画并造成范围伤害。
 /// </summary>
 [RequireComponent(typeof(Attack))]
 public class EnemyMarkBomb : MonoBehaviour
@@ -70,16 +70,36 @@ public class EnemyMarkBomb : MonoBehaviour
 
     void OnHostTakeDamage(Transform attackTrans)
     {
+        TryDetonateFromBlast(attackTrans);
+    }
+
+    /// <summary>
+    /// 宿主受伤或盾牌吸收 Blast 时调用；确认是 Blast Attack 后引爆。
+    /// </summary>
+    public void TryDetonateFromBlast(Transform attackTrans)
+    {
         if (hasDetonated || attackTrans == null)
             return;
 
-        if (!attackTrans.CompareTag(BlastTag))
+        if (!HasBlastTag(attackTrans))
             return;
 
-        if (attackTrans.GetComponent<Attack>() == null)
+        if (attackTrans.GetComponent<Attack>() == null
+            && attackTrans.GetComponentInParent<Attack>() == null)
             return;
 
         Detonate();
+    }
+
+    static bool HasBlastTag(Transform root)
+    {
+        for (Transform t = root; t != null; t = t.parent)
+        {
+            if (t.CompareTag(BlastTag))
+                return true;
+        }
+
+        return false;
     }
 
     void OnHostDie()

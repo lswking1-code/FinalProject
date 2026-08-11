@@ -1504,8 +1504,22 @@ public class AllyRobot : MonoBehaviour
         if (target.CompareTag(AirEnemyTag) && !allowAirEnemy && !IsBusyWithCombo)
             return false;
 
+        if (!IsAllowedByActiveEncounter(GetCombatAimPoint(target)))
+            return false;
+
         Enemy enemy = target.GetComponent<Enemy>();
         return enemy == null || !enemy.isDead;
+    }
+
+    /// <summary>
+    /// 遭遇战进行中时，只允许锁定 EncounterBounds 内的敌人；平时不限制。
+    /// </summary>
+    static bool IsAllowedByActiveEncounter(Vector2 worldPoint)
+    {
+        if (!EncounterZone.HasActiveEncounter)
+            return true;
+
+        return EncounterZone.IsPointInsideAnyActiveEncounter(worldPoint);
     }
 
     bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false)
@@ -2451,6 +2465,9 @@ public class AllyRobot : MonoBehaviour
             float distX = Mathf.Abs(transform.position.x - aim.x);
             float distY = Mathf.Abs(transform.position.y - aim.y);
             if (distX > detectRangeX || distY > detectRangeY)
+                continue;
+
+            if (!IsAllowedByActiveEncounter(aim))
                 continue;
 
             bool marked = enemy != null && enemy.isMarked;

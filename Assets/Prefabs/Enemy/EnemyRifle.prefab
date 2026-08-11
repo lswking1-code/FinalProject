@@ -290,7 +290,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   isPatrol: 0
-  patrolDetectRange: 6
+  patrolDetectRange: 10
   returnArriveDistance: 0.15
   waitTime: 0
   waitTimeCounter: 0
@@ -302,6 +302,12 @@ MonoBehaviour:
   isMarked: 0
   isAggro: 0
   isReturning: 0
+  dropAmmoOnDeath: 0
+  ammoDropPrefab: {fileID: 0}
+  ammoDropOffset: {x: 0, y: 0, z: 0}
+  dropHealthOnDeath: 0
+  healthDropPrefab: {fileID: 0}
+  healthDropOffset: {x: 0, y: 0, z: 0}
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
@@ -348,6 +354,7 @@ MonoBehaviour:
   maxBulletM: 0
   maxBulletL: 0
   invulnerableDuration: 0.1
+  knockbackResistance: 1
   invulnerable: 0
   OnHealthChange:
     m_PersistentCalls:

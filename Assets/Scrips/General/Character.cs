@@ -216,6 +216,9 @@ public class Character : MonoBehaviour,ISaveable
         OnDie?.Invoke();
     }
 
+    /// <summary>立即死亡（无视无敌/护盾），已死亡则忽略。</summary>
+    public void Kill() => Die();
+
     public void Revive()
     {
         isDead = false;

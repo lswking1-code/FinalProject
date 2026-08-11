@@ -31,6 +31,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     /// <summary>当前激活的遭遇空气墙碰撞体，供敌人弹判定销毁。</summary>
     static readonly HashSet<Collider2D> s_activeAirWalls = new();
+    /// <summary>当前激活中的遭遇区，供盟友索敌等按区域过滤。</summary>
+    static readonly List<EncounterZone> s_activeZones = new();
 
     [Header("事件")]
     public UnityEvent OnEncounterStarted;
@@ -58,10 +60,32 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public bool HasCompleted => hasCompleted;
     public int AliveRegisteredCount => aliveRegistered.Count;
 
+    /// <summary>是否存在进行中的遭遇战。</summary>
+    public static bool HasActiveEncounter => s_activeZones.Count > 0;
+
     /// <summary>是否为当前遭遇战启用中的空气墙碰撞体。</summary>
     public static bool IsAirWallCollider(Collider2D col)
     {
         return col != null && s_activeAirWalls.Contains(col);
+    }
+
+    /// <summary>世界坐标是否落在任一激活遭遇区的 EncounterBounds 内。</summary>
+    public static bool IsPointInsideAnyActiveEncounter(Vector2 worldPoint)
+    {
+        for (int i = s_activeZones.Count - 1; i >= 0; i--)
+        {
+            EncounterZone zone = s_activeZones[i];
+            if (zone == null)
+            {
+                s_activeZones.RemoveAt(i);
+                continue;
+            }
+
+            if (zone.IsActive && zone.IsPointInsideEncounterBounds(worldPoint))
+                return true;
+        }
+
+        return false;
     }
 
     void Awake()
@@ -132,6 +156,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
         airWallsSealed = false;
         pendingSpawnSources = 0;
         ClearRegistrations();
+        RegisterActiveZone(this);
 
         SetEncounterBoundsVisible(true);
         ActivateAirWalls(ResolvePlayerCollider(playerCollider));
@@ -167,6 +192,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
         isActive = false;
         hasCompleted = true;
         pendingSpawnSources = 0;
+        UnregisterActiveZone(this);
 
         ClearRegistrations();
         DeactivateAirWalls();
@@ -297,7 +323,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
         return true;
     }
 
-    internal bool IsPointInsideEncounterBounds(Vector2 worldPoint)
+    /// <summary>世界坐标是否落在本遭遇区的 EncounterBounds 内。</summary>
+    public bool IsPointInsideEncounterBounds(Vector2 worldPoint)
     {
         if (encounterBounds == null)
             return true;
@@ -306,6 +333,22 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return true;
 
         return encounterBounds.bounds.Contains(worldPoint);
+    }
+
+    static void RegisterActiveZone(EncounterZone zone)
+    {
+        if (zone == null || s_activeZones.Contains(zone))
+            return;
+
+        s_activeZones.Add(zone);
+    }
+
+    static void UnregisterActiveZone(EncounterZone zone)
+    {
+        if (zone == null)
+            return;
+
+        s_activeZones.Remove(zone);
     }
 
     internal bool IsColliderOverlappingAirWalls(Collider2D body)
@@ -700,6 +743,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     void OnDestroy()
     {
+        UnregisterActiveZone(this);
         DeactivateAirWalls();
         ClearRegistrations();
     }

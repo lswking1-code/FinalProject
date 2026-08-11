@@ -6,6 +6,7 @@ using UnityEngine;
 public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
 {
     const string ElectricTag = "Electric";
+    const string BlastTag = "Blast";
 
     [Header("护盾")]
     [Tooltip("护盾生命上限")]
@@ -43,6 +44,9 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         if (toAttackX * enemy.faceDir.x <= 0f)
             return false;
 
+        // 正面 Blast 虽被盾吸收、不会进 Character.OnTakeDamage，但仍需引爆盾上标记炸弹
+        TryDetonateMarkBombsFromBlast(attacker);
+
         float damage = Mathf.Max(0, attacker.damage);
         currentShieldHealth -= damage;
 
@@ -54,11 +58,35 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         return true;
     }
 
+    void TryDetonateMarkBombsFromBlast(Attack attacker)
+    {
+        if (attacker == null || !IsBlast(attacker.transform))
+            return;
+
+        var bombs = GetComponentsInChildren<EnemyMarkBomb>();
+        for (int i = 0; i < bombs.Length; i++)
+        {
+            if (bombs[i] != null)
+                bombs[i].TryDetonateFromBlast(attacker.transform);
+        }
+    }
+
     static bool IsElectric(Transform root)
     {
         for (Transform t = root; t != null; t = t.parent)
         {
             if (t.CompareTag(ElectricTag))
+                return true;
+        }
+
+        return false;
+    }
+
+    static bool IsBlast(Transform root)
+    {
+        for (Transform t = root; t != null; t = t.parent)
+        {
+            if (t.CompareTag(BlastTag))
                 return true;
         }
 
@@ -79,9 +107,28 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
 
     void BreakShield()
     {
+        // 破盾前把标记炸弹转挂到敌人，避免随盾销毁丢失标记
+        ReparentMarkBombsToEnemy();
+
         if (shieldEnemy != null)
             shieldEnemy.NotifyShieldBroken();
 
         Destroy(gameObject);
+    }
+
+    void ReparentMarkBombsToEnemy()
+    {
+        if (enemy == null)
+            return;
+
+        var bombs = GetComponentsInChildren<EnemyMarkBomb>();
+        for (int i = 0; i < bombs.Length; i++)
+        {
+            EnemyMarkBomb bomb = bombs[i];
+            if (bomb == null)
+                continue;
+
+            bomb.transform.SetParent(enemy.transform, true);
+        }
     }
 }
