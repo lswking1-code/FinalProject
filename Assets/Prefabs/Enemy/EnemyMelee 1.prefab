@@ -585,7 +585,7 @@ MonoBehaviour:
   isMarked: 0
   isAggro: 0
   isReturning: 0
-  dropAmmoOnDeath: 1
+  dropAmmoOnDeath: 0
   ammoDropPrefab: {fileID: 2051788991309760816, guid: c67900e55696ef542a650c6adf474fb7, type: 3}
   ammoDropOffset: {x: 0, y: 1, z: 0}
   dropHealthOnDeath: 0
@@ -634,6 +634,7 @@ MonoBehaviour:
   maxBulletM: 0
   maxBulletL: 0
   invulnerableDuration: 0.1
+  knockbackResistance: 1
   invulnerable: 0
   OnHealthChange:
     m_PersistentCalls:
