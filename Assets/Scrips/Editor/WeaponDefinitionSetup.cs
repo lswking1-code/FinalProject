@@ -110,9 +110,9 @@ public static class WeaponDefinitionSetup
         if (created || forceFill)
             fill(def);
 
-        // 手枪恒启用；其它按调用方传入的 enabledInCycle（未填 Clip 会沿用基座动画）
+        // 基础武器 (id 0) 不进 Q/E 轮换，仅长按切回；其它按调用方传入
         if (id == 0)
-            def.enabledInCycle = true;
+            def.enabledInCycle = false;
         else if (forceFill || created)
             def.enabledInCycle = enabledInCycle;
 

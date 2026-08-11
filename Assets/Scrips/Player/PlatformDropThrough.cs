@@ -300,6 +300,11 @@ public class PlatformDropThrough : MonoBehaviour
         Vector2 feetPos,
         float vy)
     {
+        // 脚底已低于碰撞体 AABB 底边：整块体积已穿过，不可再当落地目标（防止下穿复位时弹回）
+        Collider2D platformCol = slope.Collider;
+        if (platformCol != null && feetPos.y < platformCol.bounds.min.y - surfaceMargin)
+            return false;
+
         float margin = slope.SurfaceMargin;
         float standMargin = slope.StandMargin;
         float signedDist = slope.GetSignedDistanceToSurface(feetPos);
@@ -408,18 +413,21 @@ public class PlatformDropThrough : MonoBehaviour
         }
 
         float playerFeet = capsuleCollider.bounds.min.y;
+        float platformBottom = activeDropPlatform.bounds.min.y;
         var slope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>();
+
+        // 斜坡与平地统一：脚底过碰撞体底边后再恢复碰撞。
+        // 旧斜坡逻辑用 signedDist + standMargin/2，脚刚出底边仍在 stand 带内会 shouldCollide=true 被顶回。
+        bool clearOfPlatform = playerFeet < platformBottom - dropThroughResetMargin;
         if (slope != null)
         {
             Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, playerFeet);
-            float clearMargin = dropThroughResetMargin + slope.StandMargin * 0.5f;
-            if (slope.GetSignedDistanceToSurface(feetPos) < -clearMargin)
-                ResetDropThrough();
-            return;
+            float signedDist = slope.GetSignedDistanceToSurface(feetPos);
+            float airClear = slope.SurfaceMargin + slope.StandMargin + dropThroughResetMargin;
+            clearOfPlatform = clearOfPlatform || signedDist < -airClear;
         }
 
-        float platformBottom = activeDropPlatform.bounds.min.y;
-        if (playerFeet < platformBottom - dropThroughResetMargin)
+        if (clearOfPlatform)
             ResetDropThrough();
     }
 

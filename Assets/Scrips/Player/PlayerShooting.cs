@@ -45,6 +45,10 @@ public class WeaponFireConfig
     public float chargeHoldThreshold = 0.35f;
     [Tooltip("蓄满松手时的子弹 prefab（如龙息）；为空则回退普通 projectilePrefab")]
     public GameObject chargedProjectilePrefab;
+    [Tooltip("每次出弹消耗弹药数；weaponId 0 永远不耗弹。1/2/3 对应 BulletS/M/L")]
+    public int ammoCost = 1;
+    [Tooltip("holdToFire 时每隔该秒数再耗弹一次；0 表示仅开束时耗一次")]
+    public float holdAmmoInterval = 0.1f;
 }
 
 [DefaultExecutionOrder(100)]
@@ -86,6 +90,7 @@ public class PlayerShooting : MonoBehaviour
     ChargeShootPhase chargePhase = ChargeShootPhase.Idle;
     float chargePressTime;
     int chargeWeaponId = -1;
+    float laserNextAmmoTime;
 
     void Awake()
     {
@@ -197,6 +202,9 @@ public class PlayerShooting : MonoBehaviour
             && playerMelee.TryMelee())
             return;
 
+        if (!HasAmmo(config))
+            return;
+
         TryFireNormalShot(config);
     }
 
@@ -217,6 +225,9 @@ public class PlayerShooting : MonoBehaviour
 
                 if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
                     && playerMelee.TryMelee())
+                    return;
+
+                if (!HasAmmo(config))
                     return;
 
                 chargePressTime = Time.time;
@@ -277,6 +288,9 @@ public class PlayerShooting : MonoBehaviour
         if (fireInterval > 0f && Time.time < nextFireTime)
             return false;
 
+        if (!HasAmmo(config))
+            return false;
+
         if (playerAnim == null || !playerAnim.TryPlayShootAnim())
             return false;
 
@@ -289,6 +303,13 @@ public class PlayerShooting : MonoBehaviour
     {
         float fireInterval = config != null ? Mathf.Max(0f, config.fireInterval) : 0f;
         if (fireInterval > 0f && Time.time < nextFireTime)
+        {
+            playerAnim?.CancelCharge();
+            return false;
+        }
+
+        // 先扣弹再播释放动画，避免空放
+        if (!TryConsumeAmmo(config))
         {
             playerAnim?.CancelCharge();
             return false;
@@ -380,6 +401,9 @@ public class PlayerShooting : MonoBehaviour
                 return;
 
             if (burstRoutine != null)
+                return;
+
+            if (!HasAmmo(config))
                 return;
 
             if (!playerAnim.TryPlayShootAnim())
@@ -475,8 +499,19 @@ public class PlayerShooting : MonoBehaviour
         if (Time.time < spinNextFireTime)
             return;
 
+        if (!HasAmmo(config))
+        {
+            ExitSpinUp();
+            return;
+        }
+
         float spreadOffset = Mathf.Max(0f, config.spreadOffset);
-        FireOnce(spreadOffset, config);
+        if (!FireOnce(spreadOffset, config))
+        {
+            ExitSpinUp();
+            return;
+        }
+
         spinNextFireTime = Time.time + interval;
         nextFireTime = spinNextFireTime;
     }
@@ -537,6 +572,12 @@ public class PlayerShooting : MonoBehaviour
         if (activeLaser == null || activeLaser.IsEnding)
             return;
 
+        if (!TryDrainHoldAmmo(config))
+        {
+            EndLaser(immediate: false);
+            return;
+        }
+
         FireDir dir = ResolveFireDir();
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
@@ -553,6 +594,9 @@ public class PlayerShooting : MonoBehaviour
     {
         GameObject prefab = config != null ? config.projectilePrefab : null;
         if (prefab == null)
+            return false;
+
+        if (!TryConsumeAmmo(config))
             return false;
 
         if (playerAnim == null || !playerAnim.TryPlayShootAnim())
@@ -577,6 +621,25 @@ public class PlayerShooting : MonoBehaviour
         }
 
         activeLaser.Begin(point, dir, faceY, character);
+        float holdInterval = config != null ? Mathf.Max(0f, config.holdAmmoInterval) : 0f;
+        laserNextAmmoTime = holdInterval > 0f ? Time.time + holdInterval : float.PositiveInfinity;
+        return true;
+    }
+
+    /// <summary>镭射持续按住时的周期性耗弹；弹药不足返回 false。</summary>
+    bool TryDrainHoldAmmo(WeaponFireConfig config)
+    {
+        float holdInterval = config != null ? Mathf.Max(0f, config.holdAmmoInterval) : 0f;
+        if (holdInterval <= 0f)
+            return true;
+
+        while (Time.time >= laserNextAmmoTime)
+        {
+            if (!TryConsumeAmmo(config))
+                return false;
+            laserNextAmmoTime += holdInterval;
+        }
+
         return true;
     }
 
@@ -627,7 +690,8 @@ public class PlayerShooting : MonoBehaviour
             if (playerAnim != null && playerAnim.IsRolling)
                 break;
 
-            FireOnce(spreadOffset, config);
+            if (!FireOnce(spreadOffset, config))
+                break;
 
             if (i < burstCount - 1 && burstInterval > 0f)
                 yield return new WaitForSeconds(burstInterval);
@@ -645,11 +709,15 @@ public class PlayerShooting : MonoBehaviour
         burstRoutine = null;
     }
 
-    void FireOnce(float spreadOffset, WeaponFireConfig config)
+    bool FireOnce(float spreadOffset, WeaponFireConfig config)
     {
+        if (!TryConsumeAmmo(config))
+            return false;
+
         FireDir dir = ResolveFireDir();
         float offset = NextSpreadOffset(spreadOffset);
         Fire(dir, offset, config);
+        return true;
     }
 
     float NextSpreadOffset(float spreadOffset)
@@ -716,6 +784,65 @@ public class PlayerShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
+    }
+
+    /// <summary>
+    /// weaponId：0 无限手枪；1/2/3 → BulletS/M/L（与 BulletUI 一致）。
+    /// </summary>
+    static bool TryResolveAmmoType(int weaponId, out AmmoType ammoType)
+    {
+        switch (weaponId)
+        {
+            case 1:
+                ammoType = AmmoType.S;
+                return true;
+            case 2:
+                ammoType = AmmoType.M;
+                return true;
+            case 3:
+                ammoType = AmmoType.L;
+                return true;
+            default:
+                ammoType = default;
+                return false;
+        }
+    }
+
+    int ResolveAmmoCost(WeaponFireConfig config)
+    {
+        if (config == null)
+            return 0;
+        if (!TryResolveAmmoType(config.weaponId, out _))
+            return 0;
+        return Mathf.Max(0, config.ammoCost);
+    }
+
+    bool HasAmmo(WeaponFireConfig config)
+    {
+        int cost = ResolveAmmoCost(config);
+        if (cost <= 0)
+            return true;
+        if (character == null || !TryResolveAmmoType(config.weaponId, out AmmoType type))
+            return false;
+
+        return type switch
+        {
+            AmmoType.S => character.BulletS >= cost,
+            AmmoType.M => character.BulletM >= cost,
+            AmmoType.L => character.BulletL >= cost,
+            _ => false,
+        };
+    }
+
+    bool TryConsumeAmmo(WeaponFireConfig config)
+    {
+        int cost = ResolveAmmoCost(config);
+        if (cost <= 0)
+            return true;
+        if (character == null || !TryResolveAmmoType(config.weaponId, out AmmoType type))
+            return false;
+
+        return character.TrySpendAmmo(type, cost);
     }
 
     WeaponFireConfig ResolveFireConfig()

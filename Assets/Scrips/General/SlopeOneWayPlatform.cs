@@ -78,12 +78,15 @@ public class SlopeOneWayPlatform : MonoBehaviour
         (feetPos - TopJunctionWorld).sqrMagnitude <= junctionRadius * junctionRadius;
 
     /// <summary>
-    /// 脚底相对坡面的有符号距离；正值表示在可行走面上方。
+    /// 脚底相对坡面（顶边可行走面）的有符号距离；正值表示在可行走面上方。
+    /// 使用顶边平面而非 ClosestPoint：脚在碰撞体内部/下方时 ClosestPoint 会归零或贴底面，
+    /// 导致 standMargin 把「已钻穿平台」误判为「仍可站立」。
     /// </summary>
     public float GetSignedDistanceToSurface(Vector2 feetPos)
     {
-        Vector2 closest = boxCollider.ClosestPoint(feetPos);
-        return Vector2.Dot(feetPos - closest, SurfaceNormal);
+        GetSurfaceEndpoints(out Vector2 endA, out Vector2 endB);
+        Vector2 onSurface = (endA + endB) * 0.5f;
+        return Vector2.Dot(feetPos - onSurface, SurfaceNormal);
     }
 
     /// <summary>脚底是否站在坡面可行走侧（含嵌入容差）。</summary>
