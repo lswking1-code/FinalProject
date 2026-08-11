@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1417579415570001547}
   - component: {fileID: 6252149467317826677}
   - component: {fileID: 5858714515024943077}
+  - component: {fileID: 9012345678901234609}
   m_Layer: 12
   m_Name: FallingPlatform
   m_TagString: Untagged
@@ -65,7 +66,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 0
-  m_UsedByEffector: 0
+  m_UsedByEffector: 1
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
@@ -94,12 +95,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fallDelay: 2
   minTopNormal: 0.5
+  oneWay: 1
+  surfaceArc: 180
   warnFlashColor: {r: 1, g: 0.25, b: 0.25, a: 1}
   warnFlashFrequency: 2
   visualRoot: {fileID: 3010000000000000001}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+--- !u!251 &9012345678901234609
+PlatformEffector2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2213547426642677676}
+  m_Enabled: 1
+  m_UseColliderMask: 1
+  m_ColliderMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RotationalOffset: 0
+  m_UseOneWay: 1
+  m_UseOneWayGrouping: 0
+  m_SurfaceArc: 180
+  m_UseSideFriction: 0
+  m_UseSideBounce: 0
+  m_SideArc: 1
 --- !u!1 &3010000000000000002
 GameObject:
   m_ObjectHideFlags: 0

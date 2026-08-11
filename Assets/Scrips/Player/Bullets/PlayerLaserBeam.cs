@@ -167,7 +167,7 @@ public class PlayerLaserBeam : MonoBehaviour
             Character character = col.GetComponentInParent<Character>();
             IHitCountable hitCountable = col.GetComponentInParent<IHitCountable>();
 
-            bool isBlockSurface = IsBlockLayer(col.gameObject.layer);
+            bool isBlockSurface = IsBlockSurface(col);
             bool isEliteBlock = enemy != null && enemy.blocksLaser;
 
             if (dealDamage && enemy != null && character != null && character != owner)
@@ -208,11 +208,20 @@ public class PlayerLaserBeam : MonoBehaviour
         return false;
     }
 
-    bool IsBlockLayer(int layer)
+    bool IsBlockSurface(Collider2D col)
     {
-        // Ground / Platform 始终截断（即使也在 hitMask 的 Enemy 中）
-        string layerName = LayerMask.LayerToName(layer);
-        return layerName == "Ground" || layerName == "Platform";
+        if (col == null)
+            return false;
+
+        // Ground 始终截断；Platform 中单向平台可被穿透
+        string layerName = LayerMask.LayerToName(col.gameObject.layer);
+        if (layerName == "Ground")
+            return true;
+
+        if (layerName == "Platform")
+            return !FallingPlatform.IsOneWayPlatformCollider(col);
+
+        return false;
     }
 
     void TryTickDamage(Character target)

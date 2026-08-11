@@ -1,9 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 掉落平台：玩家碰撞一次后开始倒计时，时间到后播放摧毁动画并禁用碰撞，动画结束后销毁自身。
-/// 倒计时期间连续闪红，提示已被踩中。
-/// 视觉与 Animator 放在子物体上：待机继承根缩放；销毁前对视觉做逆缩放补偿，避免摧毁动画被压扁。
+/// 掉落平台：玩家从上踩上后进入倒计时，播放摧毁动画后销毁。
+/// 可选单向平台：玩家可上穿/下穿，射线类子弹不截断于该碰撞体。
 /// </summary>
 public class FallingPlatform : MonoBehaviour
 {
@@ -14,6 +13,12 @@ public class FallingPlatform : MonoBehaviour
     [SerializeField] float fallDelay = 1f;
     [Tooltip("判定「从上踩上」的法线阈值。仅 contact.normal.y 小于 -该值时触发（平台侧：法线从玩家指向本平台）")]
     [SerializeField, Range(0.1f, 1f)] float minTopNormal = 0.5f;
+
+    [Header("单向平台")]
+    [Tooltip("开启后同单向平台：玩家可从下/侧上穿与主动下穿；激光等射线不视为实体遮挡")]
+    [SerializeField] bool oneWay = true;
+    [Tooltip("PlatformEffector2D 表面弧角（度）；180 为常见单向平台顶部")]
+    [SerializeField, Range(1f, 360f)] float surfaceArc = 180f;
 
     [Header("踩中警示")]
     [Tooltip("被踩后销毁前的闪红颜色")]
@@ -31,6 +36,21 @@ public class FallingPlatform : MonoBehaviour
     [Tooltip("无 Animator 或状态名无效时的销毁延迟（秒）")]
     [SerializeField] float fallbackDestroyDelay = 0.5f;
 
+    public bool OneWay => oneWay;
+
+    /// <summary>与 PlatformDropThrough / 单向平台一致：启用中的 one-way PlatformEffector2D。</summary>
+    public static bool IsOneWayPlatformCollider(Collider2D col)
+    {
+        if (col == null)
+            return false;
+
+        var effector = col.GetComponent<PlatformEffector2D>();
+        if (effector == null)
+            effector = col.GetComponentInParent<PlatformEffector2D>();
+
+        return effector != null && effector.enabled && effector.useOneWay;
+    }
+
     /// <summary>编辑器 Bake 等外部写入配置；不改变运行时流程。</summary>
     public void ApplyEditorSettings(float fallDelay, string destroyStateName, float fallbackDestroyDelay)
     {
@@ -40,6 +60,7 @@ public class FallingPlatform : MonoBehaviour
     }
 
     Animator animator;
+    PlatformEffector2D platformEffector;
     Collider2D[] colliders;
     SpriteRenderer[] spriteRenderers;
     Color[] originalColors;
@@ -54,6 +75,7 @@ public class FallingPlatform : MonoBehaviour
 
     void Awake()
     {
+        ApplyOneWayMode();
         ResolveVisualRoot();
         animator = visualRoot != null
             ? visualRoot.GetComponentInChildren<Animator>(true)
@@ -69,6 +91,54 @@ public class FallingPlatform : MonoBehaviour
         {
             if (spriteRenderers[i] != null)
                 originalColors[i] = spriteRenderers[i].color;
+        }
+    }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        ApplyOneWayMode();
+    }
+#endif
+
+    void ApplyOneWayMode()
+    {
+        platformEffector = GetComponent<PlatformEffector2D>();
+        if (platformEffector == null)
+        {
+            // 仅运行时自动补组件；编辑器请在 Prefab 上预挂 PlatformEffector2D
+            if (!Application.isPlaying || !oneWay)
+            {
+                SetRootCollidersUsedByEffector(false);
+                return;
+            }
+
+            platformEffector = gameObject.AddComponent<PlatformEffector2D>();
+        }
+
+        if (oneWay)
+        {
+            platformEffector.enabled = true;
+            platformEffector.useOneWay = true;
+            platformEffector.surfaceArc = surfaceArc;
+            platformEffector.useOneWayGrouping = false;
+            SetRootCollidersUsedByEffector(true);
+        }
+        else
+        {
+            platformEffector.useOneWay = false;
+            platformEffector.enabled = false;
+            SetRootCollidersUsedByEffector(false);
+        }
+    }
+
+    void SetRootCollidersUsedByEffector(bool used)
+    {
+        var rootColliders = GetComponents<Collider2D>();
+        for (int i = 0; i < rootColliders.Length; i++)
+        {
+            if (rootColliders[i] != null)
+                rootColliders[i].usedByEffector = used;
         }
     }
 

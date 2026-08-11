@@ -10,6 +10,7 @@ using UnityEngine.Events;
 /// 机关/独立事件等可 UnityEvent 调用 EndEncounter() 强制结算；
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
 /// 敌人空气墙为单向：区外可穿入，进入后锁定不让出区；敌人弹不能穿过空气墙。
+/// 可选弹药援助：停留过久且 S/M/L 全空时在固定点刷 BulletBox。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(DataDefination))]
@@ -29,6 +30,16 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Tooltip("允许敌人从区外单向穿入空气墙；完全进入后恢复碰撞，不可再穿出")]
     [SerializeField] bool allowEnemiesThroughAirWalls = true;
 
+    [Header("弹药援助")]
+    [Tooltip("开启后：遭遇中每隔一段时间检测玩家 S/M/L 是否全空，是则在固定点位刷弹药包")]
+    [SerializeField] bool enableAmmoAssist;
+    [Tooltip("遭遇开始后每隔多少秒检查一次（首检也需等待此间隔）")]
+    [SerializeField] float assistInterval = 25f;
+    [Tooltip("援助弹药包预制体（BulletBoxS/M/L，需挂 BulletBox）")]
+    [SerializeField] GameObject ammoDropPrefab;
+    [Tooltip("固定刷新点；无效或空点会跳过")]
+    [SerializeField] Transform[] ammoDropPoints;
+
     /// <summary>当前激活的遭遇空气墙碰撞体，供敌人弹判定销毁。</summary>
     static readonly HashSet<Collider2D> s_activeAirWalls = new();
     /// <summary>当前激活中的遭遇区，供盟友索敌等按区域过滤。</summary>
@@ -46,6 +57,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     readonly Dictionary<Character, UnityAction> dieHandlers = new();
     readonly List<Collider2D> airWallColliders = new();
     readonly List<int> airWallOriginalExcludeBits = new();
+    readonly List<GameObject> assistSpawned = new();
 
     bool isActive;
     bool hasCompleted;
@@ -55,6 +67,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     CameraControl cameraControl;
     readonly List<Collider2D> playerColliders = new();
     Coroutine sealAirWallsRoutine;
+    Coroutine ammoAssistRoutine;
 
     public bool IsActive => isActive;
     public bool HasCompleted => hasCompleted;
@@ -170,6 +183,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
             "{\"zone\":\"" + name + "\",\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
         // #endregion
         OnEncounterStarted?.Invoke();
+        StartAmmoAssist();
     }
 
     /// <summary>
@@ -193,6 +207,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
         hasCompleted = true;
         pendingSpawnSources = 0;
         UnregisterActiveZone(this);
+        StopAmmoAssist();
 
         ClearRegistrations();
         DeactivateAirWalls();
@@ -221,6 +236,109 @@ public class EncounterZone : MonoBehaviour, ISaveable
     {
         pendingSpawnSources = Mathf.Max(0, pendingSpawnSources - 1);
         TryAutoEnd();
+    }
+
+    void StartAmmoAssist()
+    {
+        StopAmmoAssist();
+        if (!enableAmmoAssist)
+            return;
+
+        ammoAssistRoutine = StartCoroutine(AmmoAssistRoutine());
+    }
+
+    void StopAmmoAssist()
+    {
+        if (ammoAssistRoutine != null)
+        {
+            StopCoroutine(ammoAssistRoutine);
+            ammoAssistRoutine = null;
+        }
+
+        // 只清跟踪列表，不销毁已落地的援助包
+        assistSpawned.Clear();
+    }
+
+    IEnumerator AmmoAssistRoutine()
+    {
+        float interval = Mathf.Max(0.1f, assistInterval);
+
+        while (isActive)
+        {
+            yield return new WaitForSeconds(interval);
+            if (!isActive)
+                yield break;
+
+            if (!IsPlayerOutOfAllAmmo())
+                continue;
+
+            if (HasLiveAssistDrops())
+                continue;
+
+            SpawnAssistAmmoDrops();
+        }
+    }
+
+    bool IsPlayerOutOfAllAmmo()
+    {
+        var character = ResolvePlayerCharacter();
+        if (character == null)
+            return false;
+
+        return character.BulletS <= 0
+            && character.BulletM <= 0
+            && character.BulletL <= 0;
+    }
+
+    Character ResolvePlayerCharacter()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+            return null;
+
+        var character = player.GetComponent<Character>();
+        if (character == null)
+            character = player.GetComponentInParent<Character>();
+        if (character == null)
+            character = player.GetComponentInChildren<Character>();
+        return character;
+    }
+
+    bool HasLiveAssistDrops()
+    {
+        for (int i = assistSpawned.Count - 1; i >= 0; i--)
+        {
+            if (assistSpawned[i] == null)
+                assistSpawned.RemoveAt(i);
+        }
+
+        return assistSpawned.Count > 0;
+    }
+
+    void SpawnAssistAmmoDrops()
+    {
+        if (ammoDropPrefab == null)
+        {
+            Debug.LogWarning("EncounterZone: 弹药援助已启用但 ammoDropPrefab 未配置。", this);
+            return;
+        }
+
+        if (ammoDropPoints == null || ammoDropPoints.Length == 0)
+        {
+            Debug.LogWarning("EncounterZone: 弹药援助已启用但 ammoDropPoints 为空。", this);
+            return;
+        }
+
+        for (int i = 0; i < ammoDropPoints.Length; i++)
+        {
+            var point = ammoDropPoints[i];
+            if (point == null)
+                continue;
+
+            var instance = Instantiate(ammoDropPrefab, point.position, point.rotation);
+            EnemySceneCleanup.PlaceInSourceScene(instance, this);
+            assistSpawned.Add(instance);
+        }
     }
 
     Collider2D ResolvePlayerCollider(Collider2D playerCollider)
@@ -744,6 +862,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     void OnDestroy()
     {
         UnregisterActiveZone(this);
+        StopAmmoAssist();
         DeactivateAirWalls();
         ClearRegistrations();
     }
@@ -808,6 +927,21 @@ public class EncounterZone : MonoBehaviour, ISaveable
                     walls[i],
                     new Color(1f, 0.2f, 0.25f, 0.2f),
                     new Color(1f, 0.25f, 0.3f, 0.9f));
+            }
+        }
+
+        // 弹药援助刷新点
+        if (enableAmmoAssist && ammoDropPoints != null)
+        {
+            Gizmos.color = new Color(0.2f, 1f, 0.45f, 0.9f);
+            for (int i = 0; i < ammoDropPoints.Length; i++)
+            {
+                if (ammoDropPoints[i] == null)
+                    continue;
+                Vector3 p = ammoDropPoints[i].position;
+                Gizmos.DrawWireSphere(p, 0.22f);
+                Gizmos.DrawLine(p + Vector3.left * 0.18f, p + Vector3.right * 0.18f);
+                Gizmos.DrawLine(p + Vector3.up * 0.18f, p + Vector3.down * 0.18f);
             }
         }
     }

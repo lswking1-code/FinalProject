@@ -6850,6 +6850,26 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: -25.1
       objectReference: {fileID: 0}
+    - target: {fileID: 1135614538045203894, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: ammoDropPrefab
+      value: 
+      objectReference: {fileID: 8601159937776506679, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+    - target: {fileID: 1135614538045203894, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: assistInterval
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1135614538045203894, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: enableAmmoAssist
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1135614538045203894, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: ammoDropPoints.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1135614538045203894, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: 'ammoDropPoints.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1806423458}
     - target: {fileID: 1551970150448701065, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
       value: -19.81
