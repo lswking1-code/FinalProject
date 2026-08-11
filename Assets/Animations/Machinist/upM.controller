@@ -2140,7 +2140,7 @@ AnimatorStateMachine:
     m_Position: {x: 1880, y: -510, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 8618682959597655722}
-    m_Position: {x: 1400, y: -510, z: 0}
+    m_Position: {x: 1390, y: -520, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5783092127955138104}
     m_Position: {x: 1400, y: -170, z: 0}
@@ -2155,16 +2155,22 @@ AnimatorStateMachine:
     m_Position: {x: 1430, y: -110, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9102001001001004001}
-    m_Position: {x: 940, y: -380, z: 0}
+    m_Position: {x: 1520, y: -620, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9102001001001004002}
-    m_Position: {x: 940, y: -450, z: 0}
+    m_Position: {x: 1520, y: -670, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9102001001001004008}
-    m_Position: {x: 1300, y: -580, z: 0}
+    m_Position: {x: 1320, y: -620, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9102001001001004009}
-    m_Position: {x: 1300, y: -640, z: 0}
+    m_Position: {x: 1320, y: -670, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 9102001001001004010}
+    m_Position: {x: 1120, y: -620, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 9102001001001004011}
+    m_Position: {x: 1120, y: -670, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions:
   - {fileID: 4918993384787935926}
@@ -3096,6 +3102,58 @@ AnimatorState:
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
   m_Motion: {fileID: 7400000, guid: 45a8e1fc3746a094fa1c9eb37bc2af12, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &9102001001001004010
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LookUpMachineShoot
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: 905b641fb58f0544880039276e7449eb, type: 2}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
+--- !u!1102 &9102001001001004011
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LookDownMachineShoot
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 7400000, guid: e7eb41cbe04b5eb4b9e882bec11f9b3a, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

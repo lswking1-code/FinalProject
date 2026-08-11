@@ -23,8 +23,12 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsDispatching => false;
     public virtual MachinistChargeAim ActiveChargeAim => MachinistChargeAim.Forward;
     public virtual bool IsPlayingMachinistComboShoot => false;
+    /// <summary>机械师 MachineShoot（特殊弹 S 连射）播放中；可被下一次射击打断，不属于 Combo 硬锁。</summary>
+    public virtual bool IsPlayingMachineShoot => false;
     public virtual bool IsForcedCrouchCombo => false;
     public virtual bool IsForcedAirCombo => false;
+    /// <summary>空中需满强度维持滞空（空中全身特殊弹，或特殊弹俯视射击）。</summary>
+    public virtual bool IsSustainingAirHang => IsForcedAirCombo;
     public virtual bool IsPlayingLoadBullet => false;
     public virtual bool IsThrowing => false;
     public virtual bool IsMelee => false;
@@ -72,6 +76,9 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool TryPlayMachinistShootAnim(MachinistShootKind kind) => false;
 
     public virtual void InterruptMachinistComboShootFromInput() { }
+
+    /// <summary>取消当前机械师射击动画（含 Machine / Combo / 普通点射）。</summary>
+    public virtual void CancelMachinistShootAnim() { }
 
     public virtual bool TryPlayLoadBulletAnim() => false;
 

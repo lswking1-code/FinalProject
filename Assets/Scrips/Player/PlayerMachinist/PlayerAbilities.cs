@@ -196,7 +196,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (playerMovement.IsActionLocked || phase != RobotAbilityPhase.Idle)
             return;
 
-        if (playerAnim.IsPlayingLoadBullet || playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsDispatching)
+        if (playerAnim.IsPlayingLoadBullet
+            || playerAnim.IsPlayingMachinistComboShoot
+            || playerAnim.IsPlayingMachineShoot
+            || playerAnim.IsDispatching)
             return;
 
         if (!actions.Player.Ability1.WasPressedThisFrame())

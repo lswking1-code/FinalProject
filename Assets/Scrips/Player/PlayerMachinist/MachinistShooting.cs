@@ -39,6 +39,15 @@ public class MachinistShooting : MonoBehaviour
     [Tooltip("特殊弹 M / ElectricShoot：动画开始后延迟多久再生成子弹；<0 则复用 blastFireDelay（再回退 comboFireDelay）")]
     [SerializeField] float electricFireDelay = -1f;
 
+    [Header("MachineShoot（特殊弹 S）")]
+    [SerializeField] int machineBurstCount = 4;
+    [Tooltip("同一段 MachineShoot 内连续出弹的发间间隔（秒）")]
+    [SerializeField] float machineFireInterval = 0.1f;
+    [Tooltip("再次进入 MachineShoot 的最短间隔（秒），0 表示不限制")]
+    [SerializeField] float machineReentryInterval = 0.2f;
+    [Tooltip("MachineShoot 第一发相对动画开播延迟；<0 则复用 comboFireDelay")]
+    [SerializeField] float machineFireDelay = -1f;
+
     [Header("蓄力")]
     [SerializeField] float chargeHoldThreshold = 0.3f;
     [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次蓄力消耗的 BulletS/M/L 数量")]
@@ -63,7 +72,12 @@ public class MachinistShooting : MonoBehaviour
     bool hasPendingFire;
     float pendingFireAt;
     FireDir pendingFireDir;
-    PlayerMNormalBullet pendingPrefab;
+    GameObject pendingProjectilePrefab;
+
+    bool machineBurstActive;
+    int machineBurstRemaining;
+    float machineBurstNextFireAt;
+    FireDir machineBurstDir;
 
     void Awake()
     {
@@ -84,6 +98,7 @@ public class MachinistShooting : MonoBehaviour
     void Update()
     {
         TrySpawnPendingProjectile();
+        TrySpawnMachineBurstProjectile();
 
         if (playerMovement.IsActionLocked || playerAnim.IsDispatching || playerAnim.IsPlayingLoadBullet)
             return;
@@ -102,15 +117,15 @@ public class MachinistShooting : MonoBehaviour
                 break;
 
             case ShootPhase.Pressing:
-                if (Time.time - pressTime >= chargeHoldThreshold)
-                {
-                    phase = ShootPhase.Charging;
-                    playerAnim.BeginMachinistCharge();
-                }
-                else if (actions.Player.Attack.WasReleasedThisFrame())
+                if (actions.Player.Attack.WasReleasedThisFrame())
                 {
                     FireTapShot();
                     phase = ShootPhase.Idle;
+                }
+                else if (Time.time - pressTime >= chargeHoldThreshold
+                    && playerAnim.BeginMachinistCharge())
+                {
+                    phase = ShootPhase.Charging;
                 }
                 break;
 
@@ -138,8 +153,24 @@ public class MachinistShooting : MonoBehaviour
             return;
 
         hasPendingFire = false;
-        Fire(pendingFireDir, pendingPrefab);
-        pendingPrefab = null;
+        FireProjectile(pendingFireDir, pendingProjectilePrefab);
+        pendingProjectilePrefab = null;
+    }
+
+    void TrySpawnMachineBurstProjectile()
+    {
+        if (!machineBurstActive || Time.time < machineBurstNextFireAt)
+            return;
+
+        FireProjectile(machineBurstDir, specialProjectilePrefabS);
+        machineBurstRemaining--;
+        if (machineBurstRemaining <= 0)
+        {
+            CancelMachineBurst();
+            return;
+        }
+
+        machineBurstNextFireAt = Time.time + Mathf.Max(0f, machineFireInterval);
     }
 
     bool IsComboExpired() =>
@@ -161,7 +192,7 @@ public class MachinistShooting : MonoBehaviour
             && specialMagazine.TryPeek(out peek)
             && peek == SpecialAmmoType.M;
 
-        bool forceComboFromSpecialS =
+        bool forceMachineFromSpecialS =
             !forceBlastFromSpecialL
             && !forceElectricFromSpecialM
             && specialMagazine != null
@@ -171,13 +202,21 @@ public class MachinistShooting : MonoBehaviour
         bool isHorizontalForward = IsHorizontalForwardAim();
         bool isFinisherNext = forceBlastFromSpecialL
             || forceElectricFromSpecialM
-            || forceComboFromSpecialS
+            || forceMachineFromSpecialS
             || comboCount + 1 >= comboFinisherCount;
-        if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
+
+        if (forceMachineFromSpecialS)
+        {
+            if (machineReentryInterval > 0f && Time.time - lastShotTime < machineReentryInterval)
+                return;
+        }
+        else if (!isFinisherNext && normalFireInterval > 0f && Time.time - lastShotTime < normalFireInterval)
+        {
             return;
+        }
 
         bool advancesComboCount =
-            !forceBlastFromSpecialL && !forceElectricFromSpecialM && !forceComboFromSpecialS;
+            !forceBlastFromSpecialL && !forceElectricFromSpecialM && !forceMachineFromSpecialS;
         if (advancesComboCount)
             comboCount++;
 
@@ -186,8 +225,10 @@ public class MachinistShooting : MonoBehaviour
             kind = MachinistShootKind.Blast;
         else if (forceElectricFromSpecialM)
             kind = MachinistShootKind.Electric;
+        else if (forceMachineFromSpecialS)
+            kind = MachinistShootKind.Machine;
         else
-            kind = ResolveTapShootKind(forceComboFromSpecialS, isHorizontalForward);
+            kind = ResolveTapShootKind(isHorizontalForward);
 
         if (!playerAnim.TryPlayMachinistShootAnim(kind))
         {
@@ -196,49 +237,121 @@ public class MachinistShooting : MonoBehaviour
             return;
         }
 
+        // 新射击成功开播后再取消上一段 Machine 连射（失败的普通射击不得取消）
+        CancelMachineBurst();
+        CancelPendingFire();
+
         lastShotTime = Time.time;
         bool isCombo = kind == MachinistShootKind.Combo;
         bool isBlast = kind == MachinistShootKind.Blast;
         bool isElectric = kind == MachinistShootKind.Electric;
+        bool isMachine = kind == MachinistShootKind.Machine;
 
-        // 终结 / Blast：射击动画一开始就触发机器人连携，不等子弹生成（Electric/M 不触发）
-        if (isBlast)
-            robotBlastComboEvent?.RaiseEvent();
-        else if (isCombo)
+        FireDir fireDir = ResolveFireDir();
+        if ((isCombo || isBlast || isElectric || isMachine) && isHorizontalForward)
+        {
+            // 空中水平终结/Blast/Electric 用前方水平弹；地面/蹲姿/Machine 仍蹲射点
+            fireDir = playerAnim.IsForcedAirCombo ? FireDir.Forward : FireDir.Crouch;
+        }
+
+        // 特殊弹：进入射击即消耗，出弹只用锁定 Prefab
+        if (isMachine)
+        {
+            if (!TryConsumeSpecial(SpecialAmmoType.S))
+            {
+                Debug.LogWarning("MachinistShooting: MachineShoot 消耗特殊弹 S 失败，取消连射。", this);
+                playerAnim.CancelMachinistShootAnim();
+                return;
+            }
+
             robotComboEvent?.RaiseEvent();
+            comboCount = 0;
 
-        // 动画开始即滞空：下射，或空中水平终结/Blast/Electric
-        if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
-            playerMovement.NotifyAirHangFromDownShot();
+            if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
+                playerMovement.NotifyAirHangFromDownShot();
 
-        var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
-        float delay;
+            StartMachineBurst(fireDir);
+            return;
+        }
+
+        if (isBlast)
+        {
+            if (!TryConsumeSpecial(SpecialAmmoType.L))
+            {
+                Debug.LogWarning("MachinistShooting: BlastShoot 消耗特殊弹 L 失败，取消出弹。", this);
+                playerAnim.CancelMachinistShootAnim();
+                return;
+            }
+
+            robotBlastComboEvent?.RaiseEvent();
+            comboCount = 0;
+
+            if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
+                playerMovement.NotifyAirHangFromDownShot();
+
+            float delay = blastFireDelay >= 0f ? blastFireDelay : comboFireDelay;
+            ScheduleFire(fireDir, specialProjectilePrefabL, delay);
+            return;
+        }
+
         if (isElectric)
         {
+            if (!TryConsumeSpecial(SpecialAmmoType.M))
+            {
+                Debug.LogWarning("MachinistShooting: ElectricShoot 消耗特殊弹 M 失败，取消出弹。", this);
+                playerAnim.CancelMachinistShootAnim();
+                return;
+            }
+
+            comboCount = 0;
+
+            if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
+                playerMovement.NotifyAirHangFromDownShot();
+
+            float delay;
             if (electricFireDelay >= 0f)
                 delay = electricFireDelay;
             else if (blastFireDelay >= 0f)
                 delay = blastFireDelay;
             else
                 delay = comboFireDelay;
-        }
-        else if (isBlast)
-            delay = blastFireDelay >= 0f ? blastFireDelay : comboFireDelay;
-        else
-            delay = isCombo ? comboFireDelay : normalFireDelay;
 
-        FireDir fireDir = ResolveFireDir();
-        if ((isCombo || isBlast || isElectric) && isHorizontalForward)
+            ScheduleFire(fireDir, specialProjectilePrefabM, delay);
+            return;
+        }
+
+        // 普通 / 终结连击
+        if (isCombo)
+            robotComboEvent?.RaiseEvent();
+
+        if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
+            playerMovement.NotifyAirHangFromDownShot();
+
+        var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
+        float normalDelay = isCombo ? comboFireDelay : normalFireDelay;
+        ScheduleFire(fireDir, prefab != null ? prefab.gameObject : null, normalDelay);
+
+        if (isCombo)
+            comboCount = 0;
+    }
+
+    bool TryConsumeSpecial(SpecialAmmoType expected)
+    {
+        if (specialMagazine == null)
+            return false;
+
+        if (!specialMagazine.TryConsume(out SpecialAmmoType consumed))
+            return false;
+
+        if (consumed != expected)
         {
-            // 空中水平终结/Blast/Electric 用前方水平弹；地面/蹲姿仍蹲射点
-            fireDir = playerAnim.IsForcedAirCombo ? FireDir.Forward : FireDir.Crouch;
+            Debug.LogWarning(
+                $"MachinistShooting: 期望消耗 {expected}，实际为 {consumed}。",
+                this);
+            return false;
         }
-        ScheduleFire(fireDir, prefab, delay);
 
-        if (isCombo && !forceComboFromSpecialS)
-            comboCount = 0;
-        else if (isBlast || isElectric)
-            comboCount = 0;
+        return true;
     }
 
     bool IsHorizontalForwardAim()
@@ -252,11 +365,8 @@ public class MachinistShooting : MonoBehaviour
         return true;
     }
 
-    MachinistShootKind ResolveTapShootKind(bool forceComboFromSpecialS, bool isHorizontalForward)
+    MachinistShootKind ResolveTapShootKind(bool isHorizontalForward)
     {
-        if (forceComboFromSpecialS)
-            return MachinistShootKind.Combo;
-
         if (isHorizontalForward && comboFinisherCount >= 3)
         {
             if (comboCount >= comboFinisherCount)
@@ -273,31 +383,56 @@ public class MachinistShooting : MonoBehaviour
             : MachinistShootKind.Normal;
     }
 
-    void ScheduleFire(FireDir dir, PlayerMNormalBullet prefab, float delay)
+    void StartMachineBurst(FireDir dir)
+    {
+        CancelPendingFire();
+
+        int count = Mathf.Max(1, machineBurstCount);
+        machineBurstActive = true;
+        machineBurstRemaining = count;
+        machineBurstDir = dir;
+
+        float delay = machineFireDelay >= 0f ? machineFireDelay : comboFireDelay;
+        machineBurstNextFireAt = Time.time + Mathf.Max(0f, delay);
+    }
+
+    void CancelMachineBurst()
+    {
+        machineBurstActive = false;
+        machineBurstRemaining = 0;
+    }
+
+    void CancelPendingFire()
+    {
+        hasPendingFire = false;
+        pendingProjectilePrefab = null;
+    }
+
+    void ScheduleFire(FireDir dir, GameObject prefab, float delay)
     {
         if (prefab == null)
         {
-            hasPendingFire = false;
-            pendingPrefab = null;
+            CancelPendingFire();
             return;
         }
 
         if (delay <= 0f)
         {
-            hasPendingFire = false;
-            pendingPrefab = null;
-            Fire(dir, prefab);
+            CancelPendingFire();
+            FireProjectile(dir, prefab);
             return;
         }
 
         hasPendingFire = true;
         pendingFireAt = Time.time + delay;
         pendingFireDir = dir;
-        pendingPrefab = prefab;
+        pendingProjectilePrefab = prefab;
     }
 
     void FireChargeShot()
     {
+        CancelMachineBurst();
+        CancelPendingFire();
         comboCount = 0;
         // Release 会清 ActiveChargeAim，须先解析方向
         var fireDir = ResolveChargeFireDir();
@@ -308,7 +443,7 @@ public class MachinistShooting : MonoBehaviour
         if (fireDir == FireDir.Down)
             playerMovement.NotifyAirHangFromDownShot();
 
-        FireCharge(fireDir, ResolveChargePrefab());
+        FireProjectile(fireDir, ResolveChargePrefab());
     }
 
     GameObject ResolveChargePrefab()
@@ -355,25 +490,6 @@ public class MachinistShooting : MonoBehaviour
         return chargeProjectilePrefabs[index];
     }
 
-    void FireCharge(FireDir dir, GameObject prefab)
-    {
-        if (prefab == null)
-            return;
-
-        Transform point = GetFirePoint(dir);
-        float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
-        var projectile = Instantiate(prefab, point.position, Quaternion.identity);
-        var ammo = projectile.GetComponent<IPlayerAmmo>();
-        if (ammo == null)
-        {
-            Debug.LogError($"Charge prefab '{prefab.name}' is missing IPlayerAmmo.", prefab);
-            Destroy(projectile);
-            return;
-        }
-
-        ammo.Init(dir, faceY, character);
-    }
-
     FireDir ResolveChargeFireDir() => playerAnim.ActiveChargeAim switch
     {
         MachinistChargeAim.Up => FireDir.Up,
@@ -393,23 +509,10 @@ public class MachinistShooting : MonoBehaviour
         return FireDir.Forward;
     }
 
-    void Fire(FireDir dir, PlayerMNormalBullet fallbackPrefab)
+    void FireProjectile(FireDir dir, GameObject prefabGo)
     {
-        if (fallbackPrefab == null)
+        if (prefabGo == null)
             return;
-
-        GameObject prefabGo = fallbackPrefab.gameObject;
-
-        if (specialMagazine != null && specialMagazine.TryConsume(out SpecialAmmoType specialType))
-        {
-            GameObject specialGo = ResolveSpecialPrefab(specialType);
-            if (specialGo != null && specialGo.GetComponent<IPlayerAmmo>() != null)
-                prefabGo = specialGo;
-            else
-                Debug.LogWarning(
-                    $"MachinistShooting: 特殊弹 {specialType} 的 Prefab 未配置或缺少 IPlayerAmmo，回退普通/连击弹。",
-                    this);
-        }
 
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
@@ -424,14 +527,6 @@ public class MachinistShooting : MonoBehaviour
 
         ammo.Init(dir, faceY, character);
     }
-
-    GameObject ResolveSpecialPrefab(SpecialAmmoType type) => type switch
-    {
-        SpecialAmmoType.S => specialProjectilePrefabS,
-        SpecialAmmoType.M => specialProjectilePrefabM,
-        SpecialAmmoType.L => specialProjectilePrefabL,
-        _ => null,
-    };
 
     Transform GetFirePoint(FireDir dir) => dir switch
     {

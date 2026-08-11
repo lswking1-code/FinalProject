@@ -746,6 +746,10 @@ MonoBehaviour:
   comboFireDelay: 0.15
   blastFireDelay: 0.25
   electricFireDelay: -1
+  machineBurstCount: 4
+  machineFireInterval: 0.15
+  machineReentryInterval: 0.65
+  machineFireDelay: 0.05
   chargeHoldThreshold: 0.4
   chargeAmmoCosts: 00000000000000000000000000000000
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}

@@ -394,6 +394,10 @@ public static class PlayerAnimControllerSetup
     const string MachinistLookUpElectricClipPath = "Assets/Animations/Machinist/EXShoot/lookup_BlastShoot.anim";
     const string MachinistLookDownElectricClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_BlastShoot.anim";
     const string MachinistAirElectricClipPath = "Assets/Animations/Machinist/EXShoot/AirBlastShoot.anim";
+    const string MachinistCrouchMachineClipPath = "Assets/Animations/Machinist/EXShoot/CrouchMachineShoot.anim";
+    const string MachinistLookUpMachineClipPath = "Assets/Animations/Machinist/EXShoot/lookup_MachineShoot.anim";
+    const string MachinistLookDownMachineClipPath = "Assets/Animations/Machinist/EXShoot/lookdown_MachineShoot.anim";
+    const string MachinistAirMachineClipPath = "Assets/Animations/Machinist/EXShoot/AirMachineShoot.anim";
     const string MachinistCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/combo1_shoot.anim";
     const string MachinistCombo2ClipPath = "Assets/Animations/Machinist/EXShoot/combo2_shoot.anim";
     const string MachinistCrouchCombo1ClipPath = "Assets/Animations/Machinist/EXShoot/crouch_combo1_shoot.anim";
@@ -426,6 +430,10 @@ public static class PlayerAnimControllerSetup
     const string LookDownElectricShootStateName = "LookDownElectricShoot";
     const string CrouchElectricShootStateName = "CrouchElectricShoot";
     const string AirElectricShootStateName = "AirElectricShoot";
+    const string LookUpMachineShootStateName = "LookUpMachineShoot";
+    const string LookDownMachineShootStateName = "LookDownMachineShoot";
+    const string CrouchMachineShootStateName = "CrouchMachineShoot";
+    const string AirMachineShootStateName = "AirMachineShoot";
     const string LoadBulletStateName = "LoadBullet";
     const string CrouchStateName = "Crouch";
     const string ChargeStartStateName = "ChargeStart";
@@ -564,6 +572,9 @@ public static class PlayerAnimControllerSetup
         // ElectricShoot：仰视/俯视暂用 Blast clip 占位
         changed |= EnsureMachinistState(sm, states, LookUpElectricShootStateName, MachinistLookUpElectricClipPath, new Vector3(900f, 360f, 0f));
         changed |= EnsureMachinistState(sm, states, LookDownElectricShootStateName, MachinistLookDownElectricClipPath, new Vector3(900f, -360f, 0f));
+        // MachineShoot：仰视/俯视
+        changed |= EnsureMachinistState(sm, states, LookUpMachineShootStateName, MachinistLookUpMachineClipPath, new Vector3(900f, 480f, 0f));
+        changed |= EnsureMachinistState(sm, states, LookDownMachineShootStateName, MachinistLookDownMachineClipPath, new Vector3(900f, -480f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, ShootClipPath, new Vector3(1050f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, ShootClipPath, new Vector3(1200f, 0f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistChargeShootClipPath, new Vector3(1350f, 0f, 0f));
@@ -584,11 +595,13 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureTriggerSelfTransition(states, ComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookUpComboShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookDownComboShootStateName, ShootTriggerParam);
-        // Blast / Electric 仅靠代码 Play，不挂 AnyState/Look→专用态的 Shoot Trigger，避免与 Combo 抢过渡
+        // Blast / Electric / Machine 仅靠代码 Play，不挂 AnyState/Look→专用态的 Shoot Trigger，避免与 Combo 抢过渡
         changed |= EnsureTriggerSelfTransition(states, LookUpBlastShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookDownBlastShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookUpElectricShootStateName, ShootTriggerParam);
         changed |= EnsureTriggerSelfTransition(states, LookDownElectricShootStateName, ShootTriggerParam);
+        changed |= EnsureTriggerSelfTransition(states, LookUpMachineShootStateName, ShootTriggerParam);
+        changed |= EnsureTriggerSelfTransition(states, LookDownMachineShootStateName, ShootTriggerParam);
 
         if (changed)
             EditorUtility.SetDirty(controller);
@@ -641,6 +654,9 @@ public static class PlayerAnimControllerSetup
         // ElectricShoot：蹲姿用正式 clip；空中暂用 Blast/Air clip 占位
         changed |= EnsureMachinistState(sm, states, CrouchElectricShootStateName, MachinistCrouchElectricClipPath, new Vector3(750f, 900f, 0f));
         changed |= EnsureMachinistState(sm, states, AirElectricShootStateName, MachinistAirElectricClipPath, new Vector3(750f, 1050f, 0f));
+        // MachineShoot：蹲姿/空中；可打断连射；无 ExitTime，由 MaintainShootCompletion 结束
+        changed |= EnsureMachinistState(sm, states, CrouchMachineShootStateName, MachinistCrouchMachineClipPath, new Vector3(750f, 1200f, 0f));
+        changed |= EnsureMachinistState(sm, states, AirMachineShootStateName, MachinistAirMachineClipPath, new Vector3(750f, 1350f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeStartStateName, MachinistCrouchShootClipPath, new Vector3(900f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeLoopStateName, MachinistCrouchShootClipPath, new Vector3(1050f, 300f, 0f));
         changed |= EnsureMachinistState(sm, states, ChargeShootStateName, MachinistCrouchChargeShootClipPath, new Vector3(1200f, 300f, 0f));
@@ -651,7 +667,7 @@ public static class PlayerAnimControllerSetup
         changed |= EnsureExitTimeTransition(states, CrouchComboShootStateName, CrouchStateName, 0.95f);
         changed |= EnsureExitTimeTransition(states, CrouchBlastShootStateName, CrouchStateName, 0.95f);
         changed |= EnsureExitTimeTransition(states, CrouchElectricShootStateName, CrouchStateName, 0.95f);
-        // CrouchCombo1/2 / AirBlast / AirElectric 不设 ExitTime：由 MaintainShootCompletion 按 normalizedTime 结束
+        // CrouchCombo1/2 / AirBlast / AirElectric / CrouchMachine / AirMachine 不设 ExitTime：由 MaintainShootCompletion 按 normalizedTime 结束
 
         if (changed)
             EditorUtility.SetDirty(controller);

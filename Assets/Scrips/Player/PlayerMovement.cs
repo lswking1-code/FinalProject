@@ -53,7 +53,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public bool IsActionLocked { get; private set; }
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
-    public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsForcedAirCombo;
+    public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsSustainingAirHang;
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -231,13 +231,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (physicsCheck.isGround
             || (platformDropThrough != null && platformDropThrough.IsDroppingThrough))
         {
-            if (airHangTimer > 0f || playerAnim.IsForcedAirCombo || airHangSustainElapsed > 0f)
+            if (airHangTimer > 0f || playerAnim.IsSustainingAirHang || airHangSustainElapsed > 0f)
                 ClearAirHang(restoreGravity: true);
             return;
         }
 
-        // 空中全身终结：整段动画维持满强度滞空，不参与衰减
-        if (playerAnim.IsForcedAirCombo)
+        // 空中全身特殊弹 / 特殊弹俯视：整段动画维持满强度滞空，不参与衰减
+        if (playerAnim.IsSustainingAirHang)
         {
             ApplyAirHangPhysics(fadeHang: false);
             return;
@@ -259,7 +259,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyAirHangPhysics()
     {
-        ApplyAirHangPhysics(fadeHang: !playerAnim.IsForcedAirCombo);
+        ApplyAirHangPhysics(fadeHang: !playerAnim.IsSustainingAirHang);
     }
 
     void ApplyAirHangPhysics(bool fadeHang)
@@ -399,8 +399,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround)
             return;
 
-        // 连击终结期间禁止站起/换蹲
-        if (playerAnim.IsPlayingMachinistComboShoot)
+        // 连击终结 / MachineShoot 期间禁止站起/换蹲
+        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
         {
             jumpBufferCounter = 0f;
             return;
@@ -484,7 +484,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
             return;
 
-        if (playerAnim.IsPlayingMachinistComboShoot)
+        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
             return;
 
         // 蹲姿召唤期间不转身、不移动
@@ -513,10 +513,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgIsGroundInFixed = physicsCheck.isGround;
         dbgDidJump = false;
 
-        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsHeavySpinFiring)
+        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot || playerAnim.IsHeavySpinFiring)
         {
             jumpBufferCounter = 0f;
-            dbgResult = playerAnim.IsHeavySpinFiring ? "机枪蓄力中禁止跳跃" : "连击终结中禁止跳跃";
+            dbgResult = playerAnim.IsHeavySpinFiring
+                ? "机枪蓄力中禁止跳跃"
+                : playerAnim.IsPlayingMachineShoot
+                    ? "MachineShoot 中禁止跳跃"
+                    : "连击终结中禁止跳跃";
             return false;
         }
 
@@ -630,7 +634,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
-        if (playerAnim.IsPlayingMachinistComboShoot)
+        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
