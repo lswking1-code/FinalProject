@@ -212,6 +212,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EncounterZone
       objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3407642271933610316, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalScale.x
       value: 26.156803
@@ -346,6 +350,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyShield (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -472,6 +480,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_Name
       value: EnemyShield (6)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -695,6 +707,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_Name
       value: EnemyShield (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1046,6 +1062,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyShield (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1210,6 +1230,10 @@ PrefabInstance:
     - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Name
       value: EncounterZone (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1410,6 +1434,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy (5)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1633,11 +1661,103 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyRifle (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+--- !u!1 &406253898
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 406253900}
+  - component: {fileID: 406253899}
+  m_Layer: 12
+  m_Name: Square (14)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!212 &406253899
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 406253898}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
+  m_SpriteSortPoint: 0
+--- !u!4 &406253900
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 406253898}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 50, y: -26.2, z: 0}
+  m_LocalScale: {x: 10, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1772214776}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &409220664
 GameObject:
   m_ObjectHideFlags: 0
@@ -1911,6 +2031,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       propertyPath: m_Name
       value: EnemyAir (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8822001100220033001, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       propertyPath: isPatrol
@@ -2190,7 +2314,7 @@ Transform:
   m_GameObject: {fileID: 498297201}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.24, y: -29.35, z: 0}
+  m_LocalPosition: {x: 15.24, y: -30.1, z: 0}
   m_LocalScale: {x: 10, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2257,6 +2381,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2343,6 +2471,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyShield
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2403,6 +2535,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: m_Name
       value: EnemyRifle (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2741,7 +2877,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 103.000244, y: 12.423271}
+  m_Offset: {x: 103.000244, y: 10.421261}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -2751,7 +2887,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 277.14133, y: 45.401108}
+  m_Size: {x: 277.14133, y: 49.40513}
   m_EdgeRadius: 0
 --- !u!4 &701856953
 Transform:
@@ -3310,6 +3446,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyRifle (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3672,6 +3812,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EncounterZone (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10.45
@@ -3997,6 +4141,8 @@ MonoBehaviour:
   junctionRadius: 0.4
   surfaceMargin: 0.05
   standMargin: 0.45
+  autoCreateJunctionTriggers: 1
+  junctionTriggerSizeScale: 2.2
 --- !u!251 &916570697
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -4071,6 +4217,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4245,6 +4395,8 @@ MonoBehaviour:
   junctionRadius: 0.4
   surfaceMargin: 0.05
   standMargin: 0.45
+  autoCreateJunctionTriggers: 1
+  junctionTriggerSizeScale: 2.2
 --- !u!251 &948660541
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -4327,6 +4479,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_Name
       value: EnemyShield (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4738,6 +4894,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EncounterZone (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5210998869008272370, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
       value: 197.8
@@ -5077,6 +5237,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5523,6 +5687,8 @@ MonoBehaviour:
   junctionRadius: 0.55
   surfaceMargin: 0.05
   standMargin: 0.45
+  autoCreateJunctionTriggers: 1
+  junctionTriggerSizeScale: 2.2
 --- !u!1 &1301025655
 GameObject:
   m_ObjectHideFlags: 0
@@ -5901,6 +6067,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyShield (7)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6096,6 +6266,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyMelee
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6156,6 +6330,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6567,6 +6745,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyAir
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8822001100220033001, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       propertyPath: isPatrol
       value: 1
@@ -6788,7 +6970,7 @@ Transform:
   m_GameObject: {fileID: 1579374175}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 27.18, y: -26.5, z: 0}
+  m_LocalPosition: {x: 27.18, y: -29.3, z: 0}
   m_LocalScale: {x: 10, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6864,6 +7046,8 @@ MonoBehaviour:
   junctionRadius: 0.55
   surfaceMargin: 0.05
   standMargin: 0.45
+  autoCreateJunctionTriggers: 1
+  junctionTriggerSizeScale: 2.2
 --- !u!1001 &1710198092
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7113,11 +7297,81 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyMelee (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+--- !u!1001 &1772214775
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 406253900}
+    m_Modifications:
+    - target: {fileID: 9012345678901234600, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_Name
+      value: OneWayPlatform (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.0004999161
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.27000046
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+--- !u!4 &1772214776 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
+  m_PrefabInstance: {fileID: 1772214775}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1806423457
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7201,6 +7455,10 @@ PrefabInstance:
     - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_Name
       value: EncounterZone (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
@@ -7429,6 +7687,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: m_Name
       value: EnemyRifle (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7903,7 +8165,7 @@ Transform:
   m_GameObject: {fileID: 1985527862}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 41.35, y: -27.34, z: 0}
+  m_LocalPosition: {x: 39, y: -28.4, z: 0}
   m_LocalScale: {x: 10, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -8164,6 +8426,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GrenadeEnemy (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8239,6 +8505,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_Name
       value: EnemyShield (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8370,6 +8640,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: m_Name
       value: EnemyRifle
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8743,6 +9017,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyRifle (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8883,6 +9161,7 @@ SceneRoots:
   - {fileID: 498297203}
   - {fileID: 1579374177}
   - {fileID: 1985527864}
+  - {fileID: 406253900}
   - {fileID: 907904567}
   - {fileID: 455810847}
   - {fileID: 1221329899}
