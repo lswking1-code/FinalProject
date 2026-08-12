@@ -2760,10 +2760,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lockYWhileAirborne: 1
-  airborneYInfluence: 0.25
-  airborneYSmoothTime: 0.18
+  riseYInfluence: 0.18
+  riseYSmoothTime: 0.2
+  fallYInfluence: 0.85
+  fallYSmoothTime: 0
+  fallLookAheadMax: 6
+  fallLookAheadMinSpeed: 10
+  fallLookAheadFullSpeed: 20
+  landReturnSmoothTime: 0.35
+  landReturnSettleEpsilon: 0.015
+  enableLandRebound: 0
+  landReboundMinLookAhead: 0.02
+  landReboundKick: 5
   cameraControl: {fileID: 1412501365}
   physicsCheck: {fileID: 0}
+  playerBody: {fileID: 0}
   afterSceneLoadEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
 --- !u!1 &1418901971
 GameObject:
