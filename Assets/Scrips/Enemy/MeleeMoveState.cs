@@ -1,57 +1,57 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人随机移动状态：持续 actionDuration 秒，随机水平走位。
+/// 近战敌人随机移动状态：持续 actionDuration 秒，随机水平走位。
 /// 朝向与移动方向同步，并在墙体 / 平台边缘处转身，避免倒着走出平台。
 /// </summary>
-public class RangedMoveState : BaseState
+public class MeleeMoveState : BaseState
 {
-    RangedEnemy rangedEnemy;
+    MeleeEnemy meleeEnemy;
     float actionTimer;
     float moveDir;
 
     public override void OnEnter(Enemy enemy)
     {
         currentEnemy = enemy;
-        rangedEnemy = enemy as RangedEnemy;
+        meleeEnemy = enemy as MeleeEnemy;
 
-        if (rangedEnemy == null)
+        if (meleeEnemy == null)
             return;
 
-        rangedEnemy.OnActionEntered(EnemyAction.Move);
+        meleeEnemy.OnActionEntered(EnemyAction.Move);
         moveDir = PickSafeMoveDir();
-        rangedEnemy.FaceDirection(moveDir);
-        actionTimer = rangedEnemy.actionDuration;
+        meleeEnemy.FaceDirection(moveDir);
+        actionTimer = meleeEnemy.actionDuration;
         currentEnemy.currentSpeed = currentEnemy.normalSpeed;
         currentEnemy.anim.SetBool("walk", true);
     }
 
     public override void LogicUpdate()
     {
-        if (rangedEnemy == null || currentEnemy.isDead)
+        if (meleeEnemy == null || currentEnemy.isDead)
             return;
 
         actionTimer -= Time.deltaTime;
 
         if (actionTimer <= 0f)
-            rangedEnemy.EvaluateCycle();
+            meleeEnemy.EvaluateCycle();
     }
 
     public override void PhysicsUpdate()
     {
-        if (rangedEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
+        if (meleeEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
 
-        if (rangedEnemy.TryFlipOnObstacleOrLedge(moveDir))
+        if (meleeEnemy.TryFlipOnObstacleOrLedge(moveDir))
             moveDir = -moveDir;
-        else if (!rangedEnemy.HasGroundAhead(moveDir))
+        else if (!meleeEnemy.HasGroundAhead(moveDir))
         {
             // 两侧都无地面（窄台边缘等）：停步，避免来回抖动掉下
-            rangedEnemy.MoveHorizontal(0f);
+            meleeEnemy.MoveHorizontal(0f);
             return;
         }
 
-        rangedEnemy.MoveHorizontal(moveDir);
+        meleeEnemy.MoveHorizontal(moveDir);
     }
 
     public override void OnExit()
@@ -62,7 +62,7 @@ public class RangedMoveState : BaseState
     float PickSafeMoveDir()
     {
         float prefer = Random.value < 0.5f ? -1f : 1f;
-        if (rangedEnemy.HasGroundAhead(prefer) || !rangedEnemy.HasGroundAhead(-prefer))
+        if (meleeEnemy.HasGroundAhead(prefer) || !meleeEnemy.HasGroundAhead(-prefer))
             return prefer;
 
         return -prefer;

@@ -67,7 +67,7 @@ public class AllyRobot : MonoBehaviour
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
-    [Tooltip("停刀/到位的最大 Y 距离；同时作为地面连携/Blast 是否改竖直冲锋的阈值（|ΔY| 超出则二维冲锋）。应明显小于 attackDistance，避免偏低打空")]
+    [Tooltip("停刀/到位的最大 Y 距离；|ΔY| 超出则与空中敌相同：不追击/近战，仅连携与激光可响应；同时作为地面连携/Blast 是否改竖直冲锋的阈值。应明显小于 attackDistance，避免偏低打空")]
     [SerializeField] float airAttackDistanceY = 0.65f;
     [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出则冲刺，否则直接近战连击")]
     public float dashDecideDistance = 2.5f;
@@ -96,6 +96,8 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] LayerMask laserHitMask = ~0;
     [Tooltip("可替换的激光视觉 Prefab（需挂 AllyRobotPierceLaserVisual）；为空时回退 LineRenderer")]
     [SerializeField] GameObject pierceLaserVisualPrefab;
+    [Tooltip("激光伤害源 Tag；设为 Electric 可穿透护盾直击盾兵")]
+    [SerializeField] string laserAttackTag = "Electric";
     [Tooltip("瞄准时最小水平距离；近距垫高 |dx| 避免高度差把角度推过 11.25° 误锁斜向")]
     [SerializeField] float laserMinAimHorizontal = 2f;
 
@@ -839,8 +841,8 @@ public class AllyRobot : MonoBehaviour
             aimTarget = currentTarget;
         else if (TryAcquireTarget(out Transform acquired, includeAirEnemy: true))
         {
-            // 空中敌不写入 currentTarget，避免激光后误入追击/近战
-            if (!IsAirEnemyTarget(acquired))
+            // 空中敌 / Y 差距过大：不写入 currentTarget，避免激光后误入追击/近战
+            if (CanPersistAsChaseTarget(acquired))
                 currentTarget = acquired;
             aimTarget = acquired;
         }
@@ -942,6 +944,8 @@ public class AllyRobot : MonoBehaviour
 
         var go = new GameObject("PierceLaserAttack");
         go.transform.SetParent(transform, false);
+        if (!string.IsNullOrEmpty(laserAttackTag))
+            go.tag = laserAttackTag;
         laserAttackSource = go.AddComponent<Attack>();
         laserAttackSource.attackType = AttackType.Melee;
         laserAttackSource.ignoreTag = "Player";
@@ -1449,6 +1453,24 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
+    /// 与空中敌相同：|ΔY| 超出到位阈值时不可普通追击/近战，仅连携（及显式 allow）可响应。
+    /// </summary>
+    bool IsBeyondGroundChaseHeight(Transform target)
+    {
+        return target != null && GetDistYTo(target) > airAttackDistanceY;
+    }
+
+    /// <summary>
+    /// 可写入 currentTarget 并进入追击/近战的目标（排除空中敌与过高 Y 差）。
+    /// </summary>
+    bool CanPersistAsChaseTarget(Transform target)
+    {
+        return target != null
+            && !IsAirEnemyTarget(target)
+            && !IsBeyondGroundChaseHeight(target);
+    }
+
+    /// <summary>
     /// 空中敌，或地面敌 Y 差距超出到位阈值时，连携/Blast 冲锋走二维飞冲。
     /// 冲锋期间锁存，避免 |ΔY| 刚落入阈值后切回水平冲锋导致空中下落抖动。
     /// </summary>
@@ -1463,7 +1485,7 @@ public class AllyRobot : MonoBehaviour
         if (verticalComboDashLatched)
             return true;
 
-        if (GetDistYTo(target) <= airAttackDistanceY)
+        if (!IsBeyondGroundChaseHeight(target))
             return false;
 
         if (currentState != AllyState.ComboDashWindup && currentState != AllyState.ComboDashing)
@@ -1500,8 +1522,9 @@ public class AllyRobot : MonoBehaviour
         if (target == null || !target.gameObject.activeInHierarchy)
             return false;
 
-        // 空中敌默认仅连携期间有效；激光等可显式允许
-        if (target.CompareTag(AirEnemyTag) && !allowAirEnemy && !IsBusyWithCombo)
+        // 空中敌 / Y 差距过大：默认仅连携期间有效；激光等可显式允许
+        if ((IsAirEnemyTarget(target) || IsBeyondGroundChaseHeight(target))
+            && !allowAirEnemy && !IsBusyWithCombo)
             return false;
 
         if (!IsAllowedByActiveEncounter(GetCombatAimPoint(target)))
@@ -2413,8 +2436,11 @@ public class AllyRobot : MonoBehaviour
         float minUnmarkedDistY = float.MaxValue;
         float minUnmarkedDistX = float.MaxValue;
 
+        // 普通索敌：Y 不得超过到位阈值（过高只走连携）；连携/激光放宽到 detectRangeY
+        float groundMaxY = includeAirEnemy ? detectRangeY : airAttackDistanceY;
         ConsiderEnemiesWithTag(
             "Enemy",
+            groundMaxY,
             ref closestMarked, ref closestUnmarked,
             ref minMarkedDistY, ref minMarkedDistX,
             ref minUnmarkedDistY, ref minUnmarkedDistX);
@@ -2422,6 +2448,7 @@ public class AllyRobot : MonoBehaviour
         {
             ConsiderEnemiesWithTag(
                 AirEnemyTag,
+                detectRangeY,
                 ref closestMarked, ref closestUnmarked,
                 ref minMarkedDistY, ref minMarkedDistX,
                 ref minUnmarkedDistY, ref minUnmarkedDistX);
@@ -2444,6 +2471,7 @@ public class AllyRobot : MonoBehaviour
 
     void ConsiderEnemiesWithTag(
         string tag,
+        float maxDistY,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
         ref float minMarkedDistY,
@@ -2464,7 +2492,7 @@ public class AllyRobot : MonoBehaviour
             Vector2 aim = GetCombatAimPoint(e.transform);
             float distX = Mathf.Abs(transform.position.x - aim.x);
             float distY = Mathf.Abs(transform.position.y - aim.y);
-            if (distX > detectRangeX || distY > detectRangeY)
+            if (distX > detectRangeX || distY > maxDistY)
                 continue;
 
             if (!IsAllowedByActiveEncounter(aim))

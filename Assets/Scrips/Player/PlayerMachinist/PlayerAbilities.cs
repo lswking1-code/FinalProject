@@ -272,6 +272,21 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     /// <summary>立刻收回当前机器人（能量耗尽 / 死亡区等外部调用）。</summary>
     public void RecallRobot() => DestroyActiveRobot();
 
+    /// <summary>
+    /// 若当前有机器人且不在任一激活遭遇区的 EncounterBounds 内，则收回。
+    /// </summary>
+    public void RecallRobotIfOutsideActiveEncounter()
+    {
+        if (!HasActiveRobot())
+            return;
+
+        Vector2 robotPos = activeRobot.transform.position;
+        if (EncounterZone.IsPointInsideAnyActiveEncounter(robotPos))
+            return;
+
+        RecallRobot();
+    }
+
     void BeginPress()
     {
         if (playerMovement.IsActionLocked)

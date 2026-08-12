@@ -372,6 +372,51 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// 按水平移动方向更新朝向（与 FacePlayer 的 scale 约定一致）。
+    /// </summary>
+    public void FaceDirection(float direction)
+    {
+        float dir = Mathf.Sign(direction);
+        if (Mathf.Approximately(dir, 0f))
+            return;
+
+        transform.localScale = new Vector3(dir > 0f ? -1f : 1f, 1f, 1f);
+    }
+
+    /// <summary>
+    /// 移动方向前方是否仍有地面；PhysicsCheck 未配置时视为有地面。
+    /// </summary>
+    public bool HasGroundAhead(float moveDir)
+    {
+        if (physicsCheck == null || !IsPhysicsCheckConfigured())
+            return true;
+
+        return physicsCheck.HasGroundAhead(moveDir);
+    }
+
+    /// <summary>
+    /// 遇墙壁或平台边缘时转身。仅因悬崖且反方向也无地面时不转身，避免边缘抖动。
+    /// </summary>
+    public bool TryFlipOnObstacleOrLedge(float moveDir)
+    {
+        if (physicsCheck == null || !IsPhysicsCheckConfigured())
+            return false;
+
+        bool hitWall = (physicsCheck.touchLeftWall && moveDir < 0f)
+            || (physicsCheck.touchRightWall && moveDir > 0f);
+        bool noGroundAhead = !physicsCheck.HasGroundAhead(moveDir);
+
+        if (!hitWall && !noGroundAhead)
+            return false;
+
+        if (!hitWall && noGroundAhead && !physicsCheck.HasGroundAhead(-moveDir))
+            return false;
+
+        FaceDirection(-moveDir);
+        return true;
+    }
+
+    /// <summary>
     /// 朝玩家水平移动
     /// </summary>
     public void MoveTowardPlayer()

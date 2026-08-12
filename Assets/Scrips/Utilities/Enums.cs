@@ -22,7 +22,8 @@ public enum EnemyAction
     Move,
     Crouch,
     CrouchShoot,
-    Jump
+    Jump,
+    MeleeAttack
 }
 
 /// <summary>场景类型</summary>

@@ -24,6 +24,12 @@ public class Attack : MonoBehaviour
     [Tooltip("玩家水平移动门控时长 / Kinematic 位移时长（秒）")]
     public float knockbackDuration = 0.15f;
 
+    [Header("命中横向震屏（opt-in）")]
+    [Tooltip("仅对 Character 成功造成伤害时触发；与动画事件旧震屏独立")]
+    [SerializeField] bool enableHitCameraShake;
+    [SerializeField] FloatEventSO hitCameraShakeEvent;
+    [SerializeField] float hitCameraShakeForce = 0.12f;
+
     readonly HashSet<Character> hitTargets = new();
     readonly Dictionary<Character, float> nextHitTime = new();
     readonly HashSet<IHitCountable> hitCountables = new();
@@ -135,11 +141,14 @@ public class Attack : MonoBehaviour
             if (useRateLimit && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
                 return;
 
-            target.TakeDamage(this);
+            bool damaged = target.TakeDamage(this);
             if (!useRateLimit)
                 hitTargets.Add(target);
             if (useRateLimit)
                 nextHitTime[target] = Time.time + 1f / attackRate;
+
+            if (damaged)
+                RaiseHitCameraShakeIfEnabled();
 
             hitSomething = true;
         }
@@ -189,5 +198,16 @@ public class Attack : MonoBehaviour
             nextHitCountableTime[target] = Time.time + 1f / attackRate;
         else
             hitCountables.Add(target);
+    }
+
+    /// <summary>
+    /// 成功命中 Character 后触发横向震屏。Trigger 路径与 Bob 手动 Overlap 共用。
+    /// </summary>
+    public void RaiseHitCameraShakeIfEnabled()
+    {
+        if (!enableHitCameraShake || hitCameraShakeEvent == null || hitCameraShakeForce <= 0f)
+            return;
+
+        hitCameraShakeEvent.RaiseEvent(hitCameraShakeForce);
     }
 }

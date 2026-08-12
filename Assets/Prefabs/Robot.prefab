@@ -108,6 +108,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &1035323908920430394
 GameObject:
   m_ObjectHideFlags: 0
@@ -264,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 35
+  damage: 20
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -273,6 +276,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &1049432881507766606
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,6 +650,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 3
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &1970019182183070184
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,6 +761,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &4116885368811100457
 GameObject:
   m_ObjectHideFlags: 0
@@ -861,6 +873,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 3
   knockbackDuration: 0.15
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.2
 --- !u!1 &4254878822918393790
 GameObject:
   m_ObjectHideFlags: 0
@@ -969,6 +984,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.2
 --- !u!1 &5818673389914477433
 GameObject:
   m_ObjectHideFlags: 0
@@ -1112,7 +1130,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5818673389914477433}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -1228,6 +1246,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   pierceLaserVisualPrefab: {fileID: 8100000000000000001, guid: f1a2b3c4d5e678901234567890abcdef, type: 3}
+  laserAttackTag: Electric
   laserMinAimHorizontal: 2
   maxChaseRange: 16
   physicsCheck: {fileID: 8203856712345678901}
@@ -1428,6 +1447,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.2
 --- !u!1 &6508870273959205457
 GameObject:
   m_ObjectHideFlags: 0
@@ -1734,6 +1756,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 4
   knockbackDuration: 0.25
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.2
 --- !u!1 &7794252293549558152
 GameObject:
   m_ObjectHideFlags: 0

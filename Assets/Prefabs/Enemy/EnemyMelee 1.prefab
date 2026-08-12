@@ -398,6 +398,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 2
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!1 &8190837749373279148
 GameObject:
   m_ObjectHideFlags: 0
@@ -597,6 +600,9 @@ MonoBehaviour:
   meleeRange: 1.2
   windupDuration: 0.3
   recoveryDuration: 2
+  actionDuration: 1.5
+  meleeAttackWeight: 0.5
+  moveWeight: 0.5
   enablePounce: 0
   pounceMinRange: 3
   pounceMaxRange: 6
@@ -618,8 +624,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 0}
-  maxHealth: 50
-  currentHealth: 50
+  maxHealth: 20
+  currentHealth: 20
   maxPower: 0
   currentPower: 0
   powerRecoverSpeed: 0

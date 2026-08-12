@@ -25,6 +25,11 @@ public class CameraControl : MonoBehaviour
     public CinemachineImpulseSource impulseSource;
     public FloatEventSO cameraShakeEvent;
 
+    [Header("横向命中震屏（独立通道）")]
+    [Tooltip("仅左右抖；方向由 horizontalImpulseSource.DefaultVelocity 决定")]
+    public CinemachineImpulseSource horizontalImpulseSource;
+    public FloatEventSO cameraHorizontalShakeEvent;
+
     Coroutine boundsTransitionRoutine;
     float cachedConfinerDamping;
     float cachedConfinerSlowingDistance;
@@ -43,6 +48,8 @@ public class CameraControl : MonoBehaviour
     {
         if (cameraShakeEvent != null)
             cameraShakeEvent.OnEventRaised += OnCameraShakeEvent;
+        if (cameraHorizontalShakeEvent != null)
+            cameraHorizontalShakeEvent.OnEventRaised += OnCameraHorizontalShakeEvent;
         if (afterSceneLoadEvent != null)
             afterSceneLoadEvent.OnEventRaised += OnAfterSceneLoadEvent;
 
@@ -53,6 +60,8 @@ public class CameraControl : MonoBehaviour
     {
         if (cameraShakeEvent != null)
             cameraShakeEvent.OnEventRaised -= OnCameraShakeEvent;
+        if (cameraHorizontalShakeEvent != null)
+            cameraHorizontalShakeEvent.OnEventRaised -= OnCameraHorizontalShakeEvent;
         if (afterSceneLoadEvent != null)
             afterSceneLoadEvent.OnEventRaised -= OnAfterSceneLoadEvent;
 
@@ -113,6 +122,14 @@ public class CameraControl : MonoBehaviour
             return;
 
         impulseSource.GenerateImpulseWithForce(force);
+    }
+
+    private void OnCameraHorizontalShakeEvent(float force)
+    {
+        if (horizontalImpulseSource == null || force <= 0f)
+            return;
+
+        horizontalImpulseSource.GenerateImpulseWithForce(force);
     }
 
     /// <summary>

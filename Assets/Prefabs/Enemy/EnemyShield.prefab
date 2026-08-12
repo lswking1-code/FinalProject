@@ -265,8 +265,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 907fa8550dec75243822ae3b3db5018b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxShieldHealth: 100
-  currentShieldHealth: 100
+  maxShieldHealth: 150
+  currentShieldHealth: 150
   aboveHeightThreshold: 0.8
 --- !u!1 &3762796804431752814
 GameObject:
@@ -548,6 +548,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 2
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!1 &8190837749373279148
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,8 +739,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 0}
-  maxHealth: 50
-  currentHealth: 50
+  maxHealth: 20
+  currentHealth: 20
   maxPower: 0
   currentPower: 0
   powerRecoverSpeed: 0

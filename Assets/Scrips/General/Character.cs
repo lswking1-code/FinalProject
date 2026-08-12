@@ -130,17 +130,18 @@ public class Character : MonoBehaviour,ISaveable
             Die();
     }
 
-    public void TakeDamage(Attack attacker)
+    /// <returns>true 表示本次确实扣血或击杀；无敌/吸收等情况返回 false。</returns>
+    public bool TakeDamage(Attack attacker)
     {
         if (isDead || invulnerable || forcedInvulnerable)
-            return;
+            return false;
 
-        if (attacker != null)
-        {
-            var absorb = GetComponentInChildren<IDamageAbsorb>();
-            if (absorb != null && absorb.TryAbsorb(attacker))
-                return;
-        }
+        if (attacker == null)
+            return false;
+
+        var absorb = GetComponentInChildren<IDamageAbsorb>();
+        if (absorb != null && absorb.TryAbsorb(attacker))
+            return false;
 
         if (currentHealth - attacker.damage > 0)
         {
@@ -149,11 +150,11 @@ public class Character : MonoBehaviour,ISaveable
             OnTakeDamage?.Invoke(attacker.transform);
             ApplyKnockback(attacker);
             NotifyStatsChanged();
+            return true;
         }
-        else
-        {
-            Die();
-        }
+
+        Die();
+        return true;
     }
 
     void ApplyKnockback(Attack attacker)

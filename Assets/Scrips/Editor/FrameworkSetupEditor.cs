@@ -80,6 +80,7 @@ public static class FrameworkSetupEditor
             gameClear = CreateAsset<VoidLike, VoidEventSO>(EventFolder, "GameClearEvent SO"),
             health = CreateAsset<VoidLike, CharacterEventSO>(EventFolder, "CharacterEventSO"),
             cameraShake = CreateAsset<VoidLike, FloatEventSO>(EventFolder, "CameraShakeSO"),
+            cameraHorizontalShake = CreateAsset<VoidLike, FloatEventSO>(EventFolder, "CameraHorizontalShakeSO"),
         };
     }
 
@@ -252,12 +253,16 @@ public static class FrameworkSetupEditor
 
         var confiner = vcamGo.AddComponent<CinemachineConfiner2D>();
         var impulse = vcamGo.AddComponent<CinemachineImpulseSource>();
+        var horizontalImpulse = vcamGo.AddComponent<CinemachineImpulseSource>();
+        horizontalImpulse.DefaultVelocity = new Vector3(1f, 0f, 0f);
         var impulseListener = vcamGo.AddComponent<CinemachineImpulseListener>();
         impulseListener.Use2DDistance = true;
         var cameraControl = vcamGo.AddComponent<CameraControl>();
         cameraControl.afterSceneLoadEvent = events.afterSceneLoaded;
         cameraControl.cameraShakeEvent = events.cameraShake;
         cameraControl.impulseSource = impulse;
+        cameraControl.cameraHorizontalShakeEvent = events.cameraHorizontalShake;
+        cameraControl.horizontalImpulseSource = horizontalImpulse;
 
         return mainCameraGo;
     }
@@ -492,6 +497,7 @@ public static class FrameworkSetupEditor
         public VoidEventSO gameClear;
         public CharacterEventSO health;
         public FloatEventSO cameraShake;
+        public FloatEventSO cameraHorizontalShake;
     }
 
     private class GameSceneAssets

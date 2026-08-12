@@ -429,6 +429,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 2
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!1 &8190837749373279148
 GameObject:
   m_ObjectHideFlags: 0
@@ -623,8 +626,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 0}
-  maxHealth: 50
-  currentHealth: 50
+  maxHealth: 40
+  currentHealth: 40
   maxPower: 0
   currentPower: 0
   powerRecoverSpeed: 0

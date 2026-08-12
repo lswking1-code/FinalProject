@@ -894,7 +894,8 @@ public class Bob_Controller : MonoBehaviour
 
             float distSq = ((Vector2)target.transform.position - center).sqrMagnitude;
             meleeAttack.damage = distSq <= innerSq ? innerDamage : outerDamage;
-            target.TakeDamage(meleeAttack);
+            if (target.TakeDamage(meleeAttack))
+                meleeAttack.RaiseHitCameraShakeIfEnabled();
             swingHitTargets.Add(target);
             slots--;
         }
@@ -957,7 +958,8 @@ public class Bob_Controller : MonoBehaviour
             if (hitSet.Contains(target))
                 continue;
 
-            target.TakeDamage(meleeAttack);
+            if (target.TakeDamage(meleeAttack))
+                meleeAttack.RaiseHitCameraShakeIfEnabled();
             hitSet.Add(target);
             slots--;
         }
@@ -1163,7 +1165,8 @@ public class Bob_Controller : MonoBehaviour
             if (!TryResolveAttackTarget(overlapBuffer[i], swingHitTargets, out Character target))
                 continue;
 
-            target.TakeDamage(meleeAttack);
+            if (target.TakeDamage(meleeAttack))
+                meleeAttack.RaiseHitCameraShakeIfEnabled();
             swingHitTargets.Add(target);
         }
 

@@ -1,11 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 近战敌人：追击进入 meleeRange 后前摇 → 挥刀动画 → 后摇；可选巡逻脱战回位。
+/// 近战敌人：进入 meleeRange 后按权重在 MeleeAttack / Move 间循环；可选巡逻脱战回位。
 /// 冲刺飞扑通过 enablePounce / CanPounce / Skill 状态预留，当前 CanPounce 恒为 false。
 /// </summary>
 public class MeleeEnemy : Enemy
 {
+    const float ProbabilityStep = 0.1f;
+
     [Header("近战参数")]
     [Tooltip("进入近战攻击的水平距离")]
     public float meleeRange = 0.8f;
@@ -13,6 +16,14 @@ public class MeleeEnemy : Enemy
     public float windupDuration = 0.3f;
     [Tooltip("挥刀后摇时长，期间无法移动与攻击")]
     public float recoveryDuration = 0.6f;
+    [Tooltip("Move 等走位 Action 持续时间（秒）")]
+    public float actionDuration = 2f;
+
+    [Header("行为权重（初始）")]
+    [Tooltip("近战攻击权重")]
+    [Min(0f)] public float meleeAttackWeight = 0.7f;
+    [Tooltip("移动权重")]
+    [Min(0f)] public float moveWeight = 0.3f;
 
     [Header("冲刺飞扑（预留）")]
     [Tooltip("开启后才会尝试进入飞扑判定（当前 CanPounce 仍返回 false）")]
@@ -29,6 +40,8 @@ public class MeleeEnemy : Enemy
     public float pounceLandStunDuration = 1.1f;
 
     [HideInInspector] public float lastPounceTime = -999f;
+    [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
+    [HideInInspector] public EnemyAction? lastAction;
 
     protected override void Awake()
     {
@@ -37,6 +50,7 @@ public class MeleeEnemy : Enemy
         returnState = new MeleeReturnHomeState();
         getCloseState = new MeleeGetCloseState();
         meleeAttackState = new MeleeAttackState();
+        moveState = new MeleeMoveState();
         skillState = new MeleePounceState();
 
         if (normalSpeed <= 0f)
@@ -65,6 +79,8 @@ public class MeleeEnemy : Enemy
 
     protected override void OnEnable()
     {
+        ResetActionProbabilities();
+        lastAction = null;
         CacheHome();
         isReturning = false;
 
@@ -104,8 +120,33 @@ public class MeleeEnemy : Enemy
     /// <summary>靠近状态停下的水平距离（盾兵有盾时用 holdRange）。</summary>
     public virtual float GetApproachStopRange() => meleeRange;
 
+    void ResetActionProbabilities()
+    {
+        actionProbabilities.Clear();
+
+        var weights = new List<(EnemyAction action, float weight)>
+        {
+            (EnemyAction.MeleeAttack, meleeAttackWeight),
+            (EnemyAction.Move, moveWeight)
+        };
+
+        float total = 0f;
+        foreach (var (_, weight) in weights)
+            total += Mathf.Max(0f, weight);
+
+        if (total <= 0f)
+        {
+            actionProbabilities[EnemyAction.MeleeAttack] = 0.5f;
+            actionProbabilities[EnemyAction.Move] = 0.5f;
+            return;
+        }
+
+        foreach (var (action, weight) in weights)
+            actionProbabilities[action] = Mathf.Max(0f, weight) / total;
+    }
+
     /// <summary>
-    /// 每轮循环：巡逻闸门 → 飞扑预留 → GetClose 或 MeleeAttack
+    /// 每轮循环：巡逻闸门 → 飞扑预留 → GetClose 或按权重选择 MeleeAttack / Move
     /// </summary>
     public virtual void EvaluateCycle()
     {
@@ -148,7 +189,69 @@ public class MeleeEnemy : Enemy
             return;
         }
 
-        SwitchState(NPCState.MeleeAttack);
+        RollAndEnterAction();
+    }
+
+    void RollAndEnterAction()
+    {
+        if (actionProbabilities == null || actionProbabilities.Count == 0)
+            ResetActionProbabilities();
+
+        float roll = Random.value;
+        float cumulative = 0f;
+        EnemyAction selected = EnemyAction.MeleeAttack;
+
+        foreach (var pair in actionProbabilities)
+        {
+            selected = pair.Key;
+            cumulative += pair.Value;
+            if (roll <= cumulative)
+                break;
+        }
+
+        SwitchState(ActionToState(selected));
+    }
+
+    static NPCState ActionToState(EnemyAction action) => action switch
+    {
+        EnemyAction.MeleeAttack => NPCState.MeleeAttack,
+        _ => NPCState.Move
+    };
+
+    /// <summary>
+    /// 进入权重 Action 时更新下次触发概率
+    /// </summary>
+    public void OnActionEntered(EnemyAction action)
+    {
+        if (lastAction.HasValue && lastAction.Value == action)
+        {
+            if (actionProbabilities.TryGetValue(action, out float current))
+            {
+                actionProbabilities[action] = Mathf.Max(0f, current - ProbabilityStep);
+                NormalizeProbabilities();
+            }
+        }
+        else
+            ResetActionProbabilities();
+
+        lastAction = action;
+    }
+
+    void NormalizeProbabilities()
+    {
+        float total = 0f;
+        foreach (var value in actionProbabilities.Values)
+            total += value;
+
+        if (total <= 0f)
+        {
+            ResetActionProbabilities();
+            return;
+        }
+
+        var keys = new List<EnemyAction>(actionProbabilities.Keys);
+        foreach (var key in keys)
+            actionProbabilities[key] /= total;
     }
 
     /// <summary>

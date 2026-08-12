@@ -135,6 +135,31 @@ public class PhysicsCheck : MonoBehaviour
         return touchRightWall;
     }
 
+    /// <summary>
+    /// 指定水平方向前方脚底是否仍有地面，用于防止走出平台边缘。
+    /// </summary>
+    public bool HasGroundAhead(float direction, float lookAheadPadding = -1f)
+    {
+        if (coll == null)
+            ResolveCollider();
+        if (coll == null || groundLayer.value == 0)
+            return true;
+        if (Mathf.Approximately(direction, 0f))
+            return true;
+
+        float dir = Mathf.Sign(direction);
+        Bounds bounds = coll.bounds;
+        float padding = lookAheadPadding >= 0f
+            ? lookAheadPadding
+            : Mathf.Max(0.12f, bounds.extents.x * 0.35f);
+        float probeX = (dir > 0f ? bounds.max.x : bounds.min.x) + dir * padding;
+        Vector2 origin = new Vector2(probeX, bounds.min.y + 0.05f);
+        float castDist = Mathf.Max(checkRaduis + 0.15f, 0.35f);
+
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, castDist, groundLayer);
+        return hit.collider != null && CountsAsGroundHit(hit);
+    }
+
     void OnCollisionStay2D(Collision2D collision)
     {
         if (((1 << collision.gameObject.layer) & groundLayer) == 0)

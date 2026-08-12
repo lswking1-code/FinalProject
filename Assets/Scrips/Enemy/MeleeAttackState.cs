@@ -31,6 +31,8 @@ public class MeleeAttackState : BaseState
         if (meleeEnemy == null)
             return;
 
+        meleeEnemy.OnActionEntered(EnemyAction.MeleeAttack);
+
         attacker1 = currentEnemy.transform.Find(AttackerChildName);
         SetAttackerActive(false);
 

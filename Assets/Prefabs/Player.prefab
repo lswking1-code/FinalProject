@@ -1271,6 +1271,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &7012345678901234510
 GameObject:
   m_ObjectHideFlags: 0

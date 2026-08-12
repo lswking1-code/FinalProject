@@ -178,12 +178,25 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (cameraControl != null && encounterBounds != null)
             cameraControl.SetCameraBounds(encounterBounds);
 
+        // 机器人若未进入遭遇锁区，开战时收回，避免锁区外残留
+        TryRecallRobotOutsideEncounter();
+
         // #region agent log
         AgentDebugLog.Write("A", "EncounterZone.cs:StartEncounter", "invoking OnEncounterStarted",
             "{\"zone\":\"" + name + "\",\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
         // #endregion
         OnEncounterStarted?.Invoke();
         StartAmmoAssist();
+    }
+
+    void TryRecallRobotOutsideEncounter()
+    {
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+            return;
+
+        var abilities = player.GetComponent<PlayerAbilities>();
+        abilities?.RecallRobotIfOutsideActiveEncounter();
     }
 
     /// <summary>
