@@ -22,6 +22,7 @@ public class CameraControl : MonoBehaviour
     private CinemachineCamera cinemachineCamera;
     private CinemachineConfiner2D confiner2D;
     private CinemachinePositionComposer positionComposer;
+    private CameraAirborneYLock airborneYLock;
     public CinemachineImpulseSource impulseSource;
     public FloatEventSO cameraShakeEvent;
 
@@ -115,8 +116,21 @@ public class CameraControl : MonoBehaviour
                 playerTransform = player.transform;
         }
 
-        if (cinemachineCamera != null && playerTransform != null)
-            cinemachineCamera.Target.TrackingTarget = playerTransform;
+        if (cinemachineCamera == null || playerTransform == null)
+            return;
+
+        if (airborneYLock == null)
+            airborneYLock = GetComponent<CameraAirborneYLock>();
+
+        Transform trackingTarget = playerTransform;
+        if (airborneYLock != null && airborneYLock.isActiveAndEnabled)
+        {
+            Transform anchor = airborneYLock.FollowAnchor;
+            if (anchor != null)
+                trackingTarget = anchor;
+        }
+
+        cinemachineCamera.Target.TrackingTarget = trackingTarget;
     }
 
     private void OnAfterSceneLoadEvent()

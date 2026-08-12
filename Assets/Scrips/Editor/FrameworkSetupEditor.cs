@@ -269,6 +269,12 @@ public static class FrameworkSetupEditor
         cameraControl.cameraRecoilShakeEvent = events.cameraRecoilShake;
         cameraControl.recoilImpulseSource = recoilImpulse;
 
+        var idleRecenter = vcamGo.AddComponent<CameraIdleRecenter>();
+        idleRecenter.afterSceneLoadEvent = events.afterSceneLoaded;
+
+        var airborneYLock = vcamGo.AddComponent<CameraAirborneYLock>();
+        airborneYLock.afterSceneLoadEvent = events.afterSceneLoaded;
+
         return mainCameraGo;
     }
 

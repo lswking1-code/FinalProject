@@ -677,6 +677,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EncounterZone (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3377360540569093516, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1226,12 +1230,15 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
     count: 5
     spawnPoints: []
@@ -1243,15 +1250,19 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 2000000000000000001, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 1
       spawnPoints: []
+      infiniteRefresh: 0
     enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 5
     spawnPoints: []
@@ -9640,12 +9651,15 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 1
       spawnPoints: []
+      infiniteRefresh: 0
     enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
     count: 3
     spawnPoints: []
@@ -9657,12 +9671,15 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       count: 2
       spawnPoints: []
+      infiniteRefresh: 0
     enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 3
     spawnPoints: []

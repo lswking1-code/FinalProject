@@ -2202,7 +2202,7 @@ MonoBehaviour:
   unloadedSceneEvent: {fileID: 11400000, guid: 3c4bec529b6aadf4d959deb3648300ab, type: 2}
   firstLoadScene: {fileID: 11400000, guid: 64a5216639bc0c64fa5dd585ff5a8d05, type: 2}
   menuScene: {fileID: 11400000, guid: 4195e70b8ad30c94d8015c7196410f1c, type: 2}
-  developMode: 0
+  developMode: 1
   testScene: {fileID: 11400000, guid: 33a89633cd4f6d2429606a9b86fdcdbc, type: 2}
   testPosition: {x: -5, y: -25, z: 0}
   enableDevelopCharacterSwitch: 1
@@ -2403,6 +2403,8 @@ GameObject:
   - component: {fileID: 1412501370}
   - component: {fileID: 1412501371}
   - component: {fileID: 1412501369}
+  - component: {fileID: 1412501372}
+  - component: {fileID: 1412501373}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -2526,22 +2528,22 @@ MonoBehaviour:
   CameraDistance: 10
   DeadZoneDepth: 0
   Composition:
-    ScreenPosition: {x: -0.1, y: 0.15}
+    ScreenPosition: {x: 0, y: 0.15}
     DeadZone:
       Enabled: 1
-      Size: {x: 0.1, y: 0.5}
+      Size: {x: 0.2, y: 0}
     HardLimits:
       Enabled: 0
       Size: {x: 0.8, y: 0.8}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 1, y: 1, z: 1}
+  Damping: {x: 0.7, y: 1, z: 1}
   Lookahead:
     Enabled: 0
-    Time: 0
-    Smoothing: 0
-    IgnoreY: 0
+    Time: 1
+    Smoothing: 9
+    IgnoreY: 1
 --- !u!114 &1412501368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2725,6 +2727,44 @@ MonoBehaviour:
     DissipationDistance: 100
     PropagationSpeed: 343
   DefaultVelocity: {x: 0.3, y: -0.3, z: 0}
+--- !u!114 &1412501372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412501362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8e1a2b34d5f67890abcde1234567890, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraControl: {fileID: 1412501365}
+  playerBody: {fileID: 0}
+  positionComposer: {fileID: 1412501367}
+  afterSceneLoadEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
+  recenterCameraWhenIdle: 1
+  velocityIdleThreshold: 0.05
+  idleExtraDamping: 2
+  disableLookaheadWhileIdle: 1
+--- !u!114 &1412501373
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1412501362}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c4a91f2b8d4e6a9f0c1d2e3a4b5c6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockYWhileAirborne: 1
+  airborneYInfluence: 0.25
+  airborneYSmoothTime: 0.18
+  cameraControl: {fileID: 1412501365}
+  physicsCheck: {fileID: 0}
+  afterSceneLoadEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
 --- !u!1 &1418901971
 GameObject:
   m_ObjectHideFlags: 0
