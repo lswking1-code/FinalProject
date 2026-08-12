@@ -1480,7 +1480,12 @@ public class AllyRobot : MonoBehaviour
             return false;
 
         if (IsAirEnemyTarget(target))
+        {
+            // 冲锋期间锁存，目标中途死亡后仍可据此清掉竖直速度
+            if (currentState == AllyState.ComboDashWindup || currentState == AllyState.ComboDashing)
+                verticalComboDashLatched = true;
             return true;
+        }
 
         if (verticalComboDashLatched)
             return true;
@@ -1944,8 +1949,10 @@ public class AllyRobot : MonoBehaviour
         if (rb == null)
             return;
 
-        // 竖直/二维连携冲刺停步时清掉竖直速度，避免冲刺惯性残留
-        if (currentState == AllyState.ComboDashing && NeedsVerticalComboDash(currentTarget))
+        // 竖直/二维连携冲刺停步时清掉竖直速度，避免冲刺惯性残留。
+        // 用 verticalComboDashLatched：目标已死导致 currentTarget 为空时 NeedsVerticalComboDash 会失败。
+        if (verticalComboDashLatched
+            || (currentState == AllyState.ComboDashing && NeedsVerticalComboDash(currentTarget)))
             rb.linearVelocity = Vector2.zero;
         else
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);

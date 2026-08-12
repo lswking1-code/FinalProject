@@ -641,14 +641,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 60
+  damage: 40
   attackRange: 0
   attackRate: 0
   attackType: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
-  knockbackForce: 3
+  knockbackForce: 4
   knockbackDuration: 0.15
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
@@ -864,7 +864,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 40
+  damage: 30
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -1747,7 +1747,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 40
+  damage: 30
   attackRange: 0
   attackRate: 0
   attackType: 0
