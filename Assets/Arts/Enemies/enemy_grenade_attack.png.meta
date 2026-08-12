@@ -1,0 +1,598 @@
+fileFormatVersion: 2
+guid: 283587051450241ee888ef799d97834e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2242671418718781373
+    second: enemy_grenade_attack_0
+  - first:
+      213: -3933573926718355840
+    second: enemy_grenade_attack_1
+  - first:
+      213: -750519247738337734
+    second: enemy_grenade_attack_2
+  - first:
+      213: -3594391134093268261
+    second: enemy_grenade_attack_3
+  - first:
+      213: -4321689126040197956
+    second: enemy_grenade_attack_4
+  - first:
+      213: 8801906589484738995
+    second: enemy_grenade_attack_5
+  - first:
+      213: 6862413690775131787
+    second: enemy_grenade_attack_6
+  - first:
+      213: -2170255951930932625
+    second: enemy_grenade_attack_7
+  - first:
+      213: -1380404408465821015
+    second: enemy_grenade_attack_8
+  - first:
+      213: 368078114327102105
+    second: enemy_grenade_attack_9
+  - first:
+      213: -7369753643453383587
+    second: enemy_grenade_attack_10
+  - first:
+      213: -6876379412332376328
+    second: enemy_grenade_attack_11
+  - first:
+      213: 8161699965444849715
+    second: enemy_grenade_attack_12
+  - first:
+      213: 7533866673308732107
+    second: enemy_grenade_attack_13
+  - first:
+      213: 7866140423502541356
+    second: enemy_grenade_attack_14
+  - first:
+      213: -347444988281589940
+    second: enemy_grenade_attack_15
+  - first:
+      213: 7236250782672026764
+    second: enemy_grenade_attack_16
+  - first:
+      213: -1125312085523197450
+    second: enemy_grenade_attack_17
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_grenade_attack_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 204
+        width: 23
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34088531a3e60e0e0800000000000000
+      internalID: -2242671418718781373
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_1
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 204
+        width: 25
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 086c638ca532969c0800000000000000
+      internalID: -3933573926718355840
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_2
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 204
+        width: 28
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a36867978be9595f0800000000000000
+      internalID: -750519247738337734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_3
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 204
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bdaae84be482e1ec0800000000000000
+      internalID: -3594391134093268261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_4
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 140
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cb4a4bc13a64604c0800000000000000
+      internalID: -4321689126040197956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_5
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 140
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b9686c9867a62a70800000000000000
+      internalID: 8801906589484738995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_6
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 140
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b86dd64a4e03c3f50800000000000000
+      internalID: 6862413690775131787
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_7
+      rect:
+        serializedVersion: 2
+        x: 209
+        y: 140
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f62ca71d5b3b1e1e0800000000000000
+      internalID: -2170255951930932625
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_8
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 76
+        width: 30
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a2f2031181d7dce0800000000000000
+      internalID: -1380404408465821015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_9
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 76
+        width: 30
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9920016481dab1500800000000000000
+      internalID: 368078114327102105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_10
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 76
+        width: 31
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d5cf1df9b1069b990800000000000000
+      internalID: -7369753643453383587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_11
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 76
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8fe8e1b6b513290a0800000000000000
+      internalID: -6876379412332376328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_12
+      rect:
+        serializedVersion: 2
+        x: 21
+        y: 12
+        width: 32
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33088a340ee244170800000000000000
+      internalID: 8161699965444849715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_13
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 12
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bca88bfb2dbad8860800000000000000
+      internalID: 7533866673308732107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_14
+      rect:
+        serializedVersion: 2
+        x: 108
+        y: 40
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c22b530e9052a2d60800000000000000
+      internalID: 7866140423502541356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_15
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 12
+        width: 32
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4f6c7ebf90ad2bf0800000000000000
+      internalID: -347444988281589940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_16
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 38
+        width: 13
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8cfece5fb35c6460800000000000000
+      internalID: 7236250782672026764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_grenade_attack_17
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 12
+        width: 43
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6f19fe0de961260f0800000000000000
+      internalID: -1125312085523197450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_grenade_attack_0: -2242671418718781373
+      enemy_grenade_attack_1: -3933573926718355840
+      enemy_grenade_attack_10: -7369753643453383587
+      enemy_grenade_attack_11: -6876379412332376328
+      enemy_grenade_attack_12: 8161699965444849715
+      enemy_grenade_attack_13: 7533866673308732107
+      enemy_grenade_attack_14: 7866140423502541356
+      enemy_grenade_attack_15: -347444988281589940
+      enemy_grenade_attack_16: 7236250782672026764
+      enemy_grenade_attack_17: -1125312085523197450
+      enemy_grenade_attack_2: -750519247738337734
+      enemy_grenade_attack_3: -3594391134093268261
+      enemy_grenade_attack_4: -4321689126040197956
+      enemy_grenade_attack_5: 8801906589484738995
+      enemy_grenade_attack_6: 6862413690775131787
+      enemy_grenade_attack_7: -2170255951930932625
+      enemy_grenade_attack_8: -1380404408465821015
+      enemy_grenade_attack_9: 368078114327102105
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,624 @@
+fileFormatVersion: 2
+guid: 886d9de2caab84574b81e956b1d74cde
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 4948429136777805305
+    second: enemy_gun_attack_0
+  - first:
+      213: 1156380164175126500
+    second: enemy_gun_attack_1
+  - first:
+      213: -1477522592837353687
+    second: enemy_gun_attack_2
+  - first:
+      213: -1644932066399049402
+    second: enemy_gun_attack_3
+  - first:
+      213: 1464100847526056972
+    second: enemy_gun_attack_4
+  - first:
+      213: 8926851410737245015
+    second: enemy_gun_attack_5
+  - first:
+      213: -2191386529798128374
+    second: enemy_gun_attack_6
+  - first:
+      213: -8524768668284073399
+    second: enemy_gun_attack_7
+  - first:
+      213: -5622904659376517023
+    second: enemy_gun_attack_8
+  - first:
+      213: -392890950522419629
+    second: enemy_gun_attack_9
+  - first:
+      213: 1268122208245455681
+    second: enemy_gun_attack_10
+  - first:
+      213: -1582275073932013754
+    second: enemy_gun_attack_11
+  - first:
+      213: -5030886627356015431
+    second: enemy_gun_attack_12
+  - first:
+      213: -7196442420342348895
+    second: enemy_gun_attack_13
+  - first:
+      213: 2209109699089094925
+    second: enemy_gun_attack_14
+  - first:
+      213: -117967810455828875
+    second: enemy_gun_attack_15
+  - first:
+      213: -8226782416272391685
+    second: enemy_gun_attack_16
+  - first:
+      213: 114185009439841948
+    second: enemy_gun_attack_17
+  - first:
+      213: 6559159886829616172
+    second: enemy_gun_attack_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_gun_attack_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 204
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fd75ddf41a5ca440800000000000000
+      internalID: 4948429136777805305
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_1
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 204
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4ef57fee1a94c0010800000000000000
+      internalID: 1156380164175126500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_2
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 204
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92fb052b709ce7be0800000000000000
+      internalID: -1477522592837353687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_3
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 204
+        width: 31
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 649a2a630070c29e0800000000000000
+      internalID: -1644932066399049402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_4
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 140
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c049324b6f7815410800000000000000
+      internalID: 1464100847526056972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_5
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 140
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 75b20b3cf0c82eb70800000000000000
+      internalID: 8926851410737245015
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_6
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 161
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a0d7ec5cf81a691e0800000000000000
+      internalID: -2191386529798128374
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_7
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 140
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 94a4c86ff00f1b980800000000000000
+      internalID: -8524768668284073399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_8
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 140
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 16059f3f00e67f1b0800000000000000
+      internalID: -5622904659376517023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_9
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 161
+        width: 12
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 35645aa13cb2c8af0800000000000000
+      internalID: -392890950522419629
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_10
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 76
+        width: 46
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14b114afd66499110800000000000000
+      internalID: 1268122208245455681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_11
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 76
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64fc3591431aa0ae0800000000000000
+      internalID: -1582275073932013754
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_12
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 76
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b48e276443be2ab0800000000000000
+      internalID: -5030886627356015431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_13
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 76
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a321f04fb9112c90800000000000000
+      internalID: -7196442420342348895
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_14
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 97
+        width: 11
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d095314219558ae10800000000000000
+      internalID: 2209109699089094925
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_15
+      rect:
+        serializedVersion: 2
+        x: 18
+        y: 12
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57689d2c6e4ec5ef0800000000000000
+      internalID: -117967810455828875
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_16
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 12
+        width: 46
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf187a1daf894dd80800000000000000
+      internalID: -8226782416272391685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_17
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 12
+        width: 46
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9e165e39aaa59100800000000000000
+      internalID: 114185009439841948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_attack_18
+      rect:
+        serializedVersion: 2
+        x: 210
+        y: 12
+        width: 32
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2c78774a21d60b50800000000000000
+      internalID: 6559159886829616172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_gun_attack_0: 4948429136777805305
+      enemy_gun_attack_1: 1156380164175126500
+      enemy_gun_attack_10: 1268122208245455681
+      enemy_gun_attack_11: -1582275073932013754
+      enemy_gun_attack_12: -5030886627356015431
+      enemy_gun_attack_13: -7196442420342348895
+      enemy_gun_attack_14: 2209109699089094925
+      enemy_gun_attack_15: -117967810455828875
+      enemy_gun_attack_16: -8226782416272391685
+      enemy_gun_attack_17: 114185009439841948
+      enemy_gun_attack_18: 6559159886829616172
+      enemy_gun_attack_2: -1477522592837353687
+      enemy_gun_attack_3: -1644932066399049402
+      enemy_gun_attack_4: 1464100847526056972
+      enemy_gun_attack_5: 8926851410737245015
+      enemy_gun_attack_6: -2191386529798128374
+      enemy_gun_attack_7: -8524768668284073399
+      enemy_gun_attack_8: -5622904659376517023
+      enemy_gun_attack_9: -392890950522419629
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

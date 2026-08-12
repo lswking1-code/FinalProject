@@ -1,0 +1,546 @@
+fileFormatVersion: 2
+guid: d8746f3fcefa74e9889cbfcd7b8a7572
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8528835902757658717
+    second: enemy_gun_hurt_0
+  - first:
+      213: -2173899671842019887
+    second: enemy_gun_hurt_1
+  - first:
+      213: 6163618585443319214
+    second: enemy_gun_hurt_2
+  - first:
+      213: -2099340526300092813
+    second: enemy_gun_hurt_3
+  - first:
+      213: -777055514713648172
+    second: enemy_gun_hurt_4
+  - first:
+      213: -5043407618250925777
+    second: enemy_gun_hurt_5
+  - first:
+      213: -4546833373791839898
+    second: enemy_gun_hurt_6
+  - first:
+      213: 6434973731728245573
+    second: enemy_gun_hurt_7
+  - first:
+      213: -4840570677585253096
+    second: enemy_gun_hurt_8
+  - first:
+      213: 2384729960425580910
+    second: enemy_gun_hurt_9
+  - first:
+      213: -8475924090052182758
+    second: enemy_gun_hurt_10
+  - first:
+      213: 8444228044173593150
+    second: enemy_gun_hurt_11
+  - first:
+      213: 8069328275931838411
+    second: enemy_gun_hurt_12
+  - first:
+      213: -5133441560119742935
+    second: enemy_gun_hurt_13
+  - first:
+      213: -5410376560182630337
+    second: enemy_gun_hurt_14
+  - first:
+      213: -1439963012403286224
+    second: enemy_gun_hurt_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_gun_hurt_0
+      rect:
+        serializedVersion: 2
+        x: 19
+        y: 204
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3af18842fec73a980800000000000000
+      internalID: -8528835902757658717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_1
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 204
+        width: 31
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d5a48a24c1c4d1e0800000000000000
+      internalID: -2173899671842019887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_2
+      rect:
+        serializedVersion: 2
+        x: 145
+        y: 204
+        width: 28
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ead385c7272998550800000000000000
+      internalID: 6163618585443319214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_3
+      rect:
+        serializedVersion: 2
+        x: 206
+        y: 204
+        width: 28
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3762d430ae4add2e0800000000000000
+      internalID: -2099340526300092813
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_4
+      rect:
+        serializedVersion: 2
+        x: 11
+        y: 140
+        width: 33
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d31cba50285735f0800000000000000
+      internalID: -777055514713648172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_5
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 140
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f2997a80e77320ab0800000000000000
+      internalID: -5043407618250925777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_6
+      rect:
+        serializedVersion: 2
+        x: 139
+        y: 140
+        width: 28
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6691f3ef22766e0c0800000000000000
+      internalID: -4546833373791839898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_7
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 140
+        width: 27
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 543c1aad38e9d4950800000000000000
+      internalID: 6434973731728245573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_8
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 76
+        width: 28
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81deb5c7d96d2dcb0800000000000000
+      internalID: -4840570677585253096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_9
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 76
+        width: 35
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e69e560a343481120800000000000000
+      internalID: 2384729960425580910
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_10
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 76
+        width: 39
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1d734d82f77f5a80800000000000000
+      internalID: -8475924090052182758
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_11
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 76
+        width: 38
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3acb5faaacef2570800000000000000
+      internalID: 8444228044173593150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_12
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 12
+        width: 32
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc7bee650530cff60800000000000000
+      internalID: 8069328275931838411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_13
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 12
+        width: 29
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92ee5d5691a52c8b0800000000000000
+      internalID: -5133441560119742935
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_14
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 12
+        width: 29
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f38e6351f2b7ae4b0800000000000000
+      internalID: -5410376560182630337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_gun_hurt_15
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 12
+        width: 30
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 03f200cf449340ce0800000000000000
+      internalID: -1439963012403286224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_gun_hurt_0: -8528835902757658717
+      enemy_gun_hurt_1: -2173899671842019887
+      enemy_gun_hurt_10: -8475924090052182758
+      enemy_gun_hurt_11: 8444228044173593150
+      enemy_gun_hurt_12: 8069328275931838411
+      enemy_gun_hurt_13: -5133441560119742935
+      enemy_gun_hurt_14: -5410376560182630337
+      enemy_gun_hurt_15: -1439963012403286224
+      enemy_gun_hurt_2: 6163618585443319214
+      enemy_gun_hurt_3: -2099340526300092813
+      enemy_gun_hurt_4: -777055514713648172
+      enemy_gun_hurt_5: -5043407618250925777
+      enemy_gun_hurt_6: -4546833373791839898
+      enemy_gun_hurt_7: 6434973731728245573
+      enemy_gun_hurt_8: -4840570677585253096
+      enemy_gun_hurt_9: 2384729960425580910
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
