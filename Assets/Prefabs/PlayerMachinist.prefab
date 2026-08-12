@@ -334,7 +334,6 @@ GameObject:
   - component: {fileID: 5187324970600484277}
   - component: {fileID: 5608689080884672807}
   - component: {fileID: 7946869891775321622}
-  - component: {fileID: 6980416693939672948}
   m_Layer: 9
   m_Name: idle_up
   m_TagString: Untagged
@@ -434,20 +433,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &6980416693939672948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5334232945014998360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6789012345678abcdef01, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameraShakeEvent: {fileID: 11400000, guid: 98f75be0dc0b9b24b88c5e440ee4a421, type: 2}
-  forceMultiplier: 1
 --- !u!1 &6572320002224097586
 GameObject:
   m_ObjectHideFlags: 0

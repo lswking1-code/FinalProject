@@ -81,6 +81,7 @@ public static class FrameworkSetupEditor
             health = CreateAsset<VoidLike, CharacterEventSO>(EventFolder, "CharacterEventSO"),
             cameraShake = CreateAsset<VoidLike, FloatEventSO>(EventFolder, "CameraShakeSO"),
             cameraHorizontalShake = CreateAsset<VoidLike, FloatEventSO>(EventFolder, "CameraHorizontalShakeSO"),
+            cameraRecoilShake = CreateAsset<VoidLike, FloatEventSO>(EventFolder, "CameraRecoilShakeSO"),
         };
     }
 
@@ -255,6 +256,8 @@ public static class FrameworkSetupEditor
         var impulse = vcamGo.AddComponent<CinemachineImpulseSource>();
         var horizontalImpulse = vcamGo.AddComponent<CinemachineImpulseSource>();
         horizontalImpulse.DefaultVelocity = new Vector3(1f, 0f, 0f);
+        var recoilImpulse = vcamGo.AddComponent<CinemachineImpulseSource>();
+        recoilImpulse.ImpulseDefinition.ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Recoil;
         var impulseListener = vcamGo.AddComponent<CinemachineImpulseListener>();
         impulseListener.Use2DDistance = true;
         var cameraControl = vcamGo.AddComponent<CameraControl>();
@@ -263,6 +266,8 @@ public static class FrameworkSetupEditor
         cameraControl.impulseSource = impulse;
         cameraControl.cameraHorizontalShakeEvent = events.cameraHorizontalShake;
         cameraControl.horizontalImpulseSource = horizontalImpulse;
+        cameraControl.cameraRecoilShakeEvent = events.cameraRecoilShake;
+        cameraControl.recoilImpulseSource = recoilImpulse;
 
         return mainCameraGo;
     }
@@ -498,6 +503,7 @@ public static class FrameworkSetupEditor
         public CharacterEventSO health;
         public FloatEventSO cameraShake;
         public FloatEventSO cameraHorizontalShake;
+        public FloatEventSO cameraRecoilShake;
     }
 
     private class GameSceneAssets

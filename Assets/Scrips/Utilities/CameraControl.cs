@@ -30,6 +30,11 @@ public class CameraControl : MonoBehaviour
     public CinemachineImpulseSource horizontalImpulseSource;
     public FloatEventSO cameraHorizontalShakeEvent;
 
+    [Header("Recoil Impulse Shape 震屏（独立通道）")]
+    [Tooltip("默认 ImpulseShape = Recoil，可在 ImpulseSource 上调整")]
+    public CinemachineImpulseSource recoilImpulseSource;
+    public FloatEventSO cameraRecoilShakeEvent;
+
     Coroutine boundsTransitionRoutine;
     float cachedConfinerDamping;
     float cachedConfinerSlowingDistance;
@@ -50,6 +55,8 @@ public class CameraControl : MonoBehaviour
             cameraShakeEvent.OnEventRaised += OnCameraShakeEvent;
         if (cameraHorizontalShakeEvent != null)
             cameraHorizontalShakeEvent.OnEventRaised += OnCameraHorizontalShakeEvent;
+        if (cameraRecoilShakeEvent != null)
+            cameraRecoilShakeEvent.OnEventRaised += OnCameraRecoilShakeEvent;
         if (afterSceneLoadEvent != null)
             afterSceneLoadEvent.OnEventRaised += OnAfterSceneLoadEvent;
 
@@ -62,6 +69,8 @@ public class CameraControl : MonoBehaviour
             cameraShakeEvent.OnEventRaised -= OnCameraShakeEvent;
         if (cameraHorizontalShakeEvent != null)
             cameraHorizontalShakeEvent.OnEventRaised -= OnCameraHorizontalShakeEvent;
+        if (cameraRecoilShakeEvent != null)
+            cameraRecoilShakeEvent.OnEventRaised -= OnCameraRecoilShakeEvent;
         if (afterSceneLoadEvent != null)
             afterSceneLoadEvent.OnEventRaised -= OnAfterSceneLoadEvent;
 
@@ -130,6 +139,14 @@ public class CameraControl : MonoBehaviour
             return;
 
         horizontalImpulseSource.GenerateImpulseWithForce(force);
+    }
+
+    private void OnCameraRecoilShakeEvent(float force)
+    {
+        if (recoilImpulseSource == null || force <= 0f)
+            return;
+
+        recoilImpulseSource.GenerateImpulseWithForce(force);
     }
 
     /// <summary>
