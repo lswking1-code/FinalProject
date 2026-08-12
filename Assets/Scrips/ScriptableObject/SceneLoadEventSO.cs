@@ -7,7 +7,7 @@ public class SceneLoadEventSO: ScriptableObject
 
    /// <summary>
    /// 场景加载请求
-   /// </summary>
+    /// </summary>
    /// <param name="locationToLoad">要加载的场景</param>
    /// <param name="posToGo">玩家目标坐标</param>
    /// <param name="fadeScreen">是否使用渐入渐出</param>

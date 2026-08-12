@@ -655,8 +655,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
         Vector2 entryTangent = Vector2.zero;
-        bool slopeEntry = platformDropThrough != null
+        bool bottomEntry = platformDropThrough != null
             && platformDropThrough.TryGetBottomSlopeEntry(out _, out entryTangent);
+        bool topEntry = !bottomEntry
+            && platformDropThrough != null
+            && platformDropThrough.TryGetTopSlopeEntry(out _, out entryTangent);
+        bool slopeEntry = bottomEntry || topEntry;
         if (!physicsCheck.isOnSlope && !slopeEntry && physicsCheck.IsBlockedHorizontally(moveX))
             moveX = 0f;
 
@@ -738,9 +742,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (physicsCheck.isOnSlope)
             return;
 
-        // 坡脚过渡中允许沿切向顶入，不被侧墙速度清除打断
+        // 坡脚/坡顶过渡中允许沿切向顶入，不被侧墙速度清除打断
         if (platformDropThrough != null
-            && platformDropThrough.TryGetBottomSlopeEntry(out _, out _))
+            && (platformDropThrough.TryGetBottomSlopeEntry(out _, out _)
+                || platformDropThrough.TryGetTopSlopeEntry(out _, out _)))
             return;
 
         if (physicsCheck.IsBlockedHorizontally(-1f) && rb.linearVelocity.x < 0f)

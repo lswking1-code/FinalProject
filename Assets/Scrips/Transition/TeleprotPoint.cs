@@ -9,6 +9,14 @@ public class TeleprotPoint : MonoBehaviour, IInteractable
     public GameSceneSO sceneToGo;
     public Vector3 positionToGo;// 玩家进入目标场景后的出生位置
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        TriggerAction();
+    }
+
     public void TriggerAction()
     {
         Debug.Log("GO");

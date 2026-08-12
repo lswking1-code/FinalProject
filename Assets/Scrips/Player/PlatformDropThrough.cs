@@ -161,7 +161,7 @@ public class PlatformDropThrough : MonoBehaviour
     }
 
     /// <summary>
-    /// 平地坡脚入口：站在近似水平地面、位于 BottomJunction、朝上坡输入且非下穿意图。
+    /// 平地坡脚入口：站在近似水平地面、位于 BottomJunction、朝上坡输入且非蹲姿。
     /// 成功时返回与上坡方向对齐的表面切向，供移动在 !isOnSlope 时沿坡抬升。
     /// </summary>
     public bool TryGetBottomSlopeEntry(out SlopeOneWayPlatform slope, out Vector2 ascentTangent)
@@ -189,10 +189,16 @@ public class PlatformDropThrough : MonoBehaviour
             return false;
 
         Vector2 feetPos = GetFeetPosition();
-        if (!TryFindNearbySlope(feetPos, out slope))
+        if (!TryFindNearbySlope(feetPos, preferTop: false, out slope))
             return false;
 
         if (!slope.IsInBottomJunction(feetPos))
+            return false;
+
+        // Trigger 平地路径闩锁时不允许抬升上坡
+        if (slope.BottomTrigger != null
+            && slope.BottomTrigger.TryGetCollisionOverride(capsuleCollider, out bool onSlopePath)
+            && !onSlopePath)
             return false;
 
         Vector2 horizontalMove = new Vector2(moveX, 0f);
@@ -204,30 +210,87 @@ public class PlatformDropThrough : MonoBehaviour
         return true;
     }
 
-    bool TryFindNearbySlope(Vector2 feetPos, out SlopeOneWayPlatform slope)
+    /// <summary>
+    /// 平地坡顶入口：站在上方水平地面、位于 TopJunction、蹲下且朝下坡输入。
+    /// 成功时返回与下坡方向对齐的表面切向。
+    /// </summary>
+    public bool TryGetTopSlopeEntry(out SlopeOneWayPlatform slope, out Vector2 descentTangent)
     {
         slope = null;
+        descentTangent = Vector2.right;
+
+        if (physicsCheck == null || playerMovement == null)
+            return false;
+
+        if (!physicsCheck.isGround || physicsCheck.groundNormal.y <= 0.9f)
+            return false;
+
+        if (physicsCheck.isOnSlope)
+            return false;
+
+        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
+        if (!isCrouching)
+            return false;
+
+        float inputThreshold = playerMovement.InputThreshold;
+        Vector2 moveInput = playerMovement.MoveInput;
+        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
+        if (Mathf.Approximately(moveX, 0f))
+            return false;
+
+        Vector2 feetPos = GetFeetPosition();
+        if (!TryFindNearbySlope(feetPos, preferTop: true, out slope))
+            return false;
+
+        if (!slope.IsInTopJunction(feetPos))
+            return false;
+
+        // Trigger 平地路径闩锁时不允许切入下坡
+        if (slope.TopTrigger != null
+            && slope.TopTrigger.TryGetCollisionOverride(capsuleCollider, out bool onSlopePath)
+            && !onSlopePath)
+            return false;
+
+        Vector2 horizontalMove = new Vector2(moveX, 0f);
+        float towardDescent = Vector2.Dot(horizontalMove, -slope.AscentDirection);
+        if (towardDescent <= inputThreshold)
+            return false;
+
+        descentTangent = slope.GetSurfaceTangentAligned(moveX);
+        return true;
+    }
+
+    bool TryFindNearbySlope(Vector2 feetPos, bool preferTop, out SlopeOneWayPlatform slope)
+    {
+        SlopeOneWayPlatform best = null;
         float bestDistSq = float.MaxValue;
+
+        void Consider(SlopeOneWayPlatform candidate)
+        {
+            if (candidate == null)
+                return;
+
+            Vector2 junction = preferTop ? candidate.TopJunctionWorld : candidate.BottomJunctionWorld;
+            float distSq = (feetPos - junction).sqrMagnitude;
+            if (distSq < bestDistSq)
+            {
+                bestDistSq = distSq;
+                best = candidate;
+            }
+        }
 
         foreach (Collider2D tracked in trackedPlatforms)
         {
             if (!IsColliderAlive(tracked))
                 continue;
-
-            var candidate = tracked.GetComponent<SlopeOneWayPlatform>();
-            if (candidate == null)
-                continue;
-
-            float distSq = (feetPos - candidate.BottomJunctionWorld).sqrMagnitude;
-            if (distSq < bestDistSq)
-            {
-                bestDistSq = distSq;
-                slope = candidate;
-            }
+            Consider(tracked.GetComponent<SlopeOneWayPlatform>());
         }
 
-        if (slope != null)
+        if (best != null)
+        {
+            slope = best;
             return true;
+        }
 
         // tracked 为空时（尚未重叠）用短距扫描，避免必须先顶进碰撞体
         float searchRadius = 0.7f;
@@ -238,20 +301,11 @@ public class PlatformDropThrough : MonoBehaviour
             Collider2D col = overlapBuffer[i];
             if (!IsColliderAlive(col) || col == capsuleCollider)
                 continue;
-
-            var candidate = col.GetComponent<SlopeOneWayPlatform>();
-            if (candidate == null)
-                continue;
-
-            float distSq = (feetPos - candidate.BottomJunctionWorld).sqrMagnitude;
-            if (distSq < bestDistSq)
-            {
-                bestDistSq = distSq;
-                slope = candidate;
-            }
+            Consider(col.GetComponent<SlopeOneWayPlatform>());
         }
 
-        return slope != null;
+        slope = best;
+        return best != null;
     }
 
     Vector2 GetFeetPosition() =>
@@ -310,6 +364,15 @@ public class PlatformDropThrough : MonoBehaviour
         float signedDist = slope.GetSignedDistanceToSurface(feetPos);
         bool baseCollide = ComputeSlopeOneWayCollision(signedDist, vy, margin, standMargin);
 
+        // 交界 Trigger 闩锁：平地路径强制忽略；坡路径走单向/可站立逻辑
+        if (slope.TryGetJunctionCollisionOverride(capsuleCollider, out bool forceCollide))
+        {
+            if (!forceCollide)
+                return false;
+            return baseCollide;
+        }
+
+        // 无 Trigger 覆盖时的兜底（兼容旧场景仅用半径球）
         bool onHorizontalGround = physicsCheck.isGround && physicsCheck.groundNormal.y > 0.9f;
         if (!onHorizontalGround || playerMovement == null)
             return baseCollide;
@@ -317,29 +380,28 @@ public class PlatformDropThrough : MonoBehaviour
         float inputThreshold = playerMovement.InputThreshold;
         Vector2 moveInput = playerMovement.MoveInput;
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (Mathf.Approximately(moveX, 0f))
-            return baseCollide;
-
         bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
         Vector2 horizontalMove = new Vector2(moveX, 0f);
 
         if (slope.IsInBottomJunction(feetPos))
         {
+            // 下方平地：无上坡意图时忽略，避免站起/重叠时被吸上坡
             float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
-            if (towardAscent > inputThreshold)
-            {
-                // 仅在脚已可站面时强制碰撞；尚未上到坡面则走 base，避免端面当墙顶死
-                if (!isCrouching && slope.IsFeetAboveSurface(feetPos))
-                    return true;
-                return baseCollide;
-            }
+            bool wantEnter = !isCrouching
+                && (towardAscent > inputThreshold || vy > 0.15f);
+            if (!wantEnter)
+                return false;
+            return baseCollide;
         }
 
         if (slope.IsInTopJunction(feetPos))
         {
+            // 上方平地：仅蹲+朝下坡才碰撞；否则忽略，避免站走/蹲着不动切入坡
             float towardDescent = Vector2.Dot(horizontalMove, -slope.AscentDirection);
-            if (towardDescent > inputThreshold)
-                return isCrouching;
+            bool wantEnter = isCrouching && towardDescent > inputThreshold;
+            if (!wantEnter)
+                return false;
+            return baseCollide;
         }
 
         return baseCollide;
