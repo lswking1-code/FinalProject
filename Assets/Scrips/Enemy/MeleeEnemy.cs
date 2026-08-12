@@ -7,6 +7,11 @@ using UnityEngine;
 /// </summary>
 public class MeleeEnemy : Enemy
 {
+    /// <summary>
+    /// 新像素精灵默认朝右，与旧 Metal Slug 朝左资源相反。
+    /// </summary>
+    protected override bool SpriteFacesRight => true;
+
     const float ProbabilityStep = 0.1f;
 
     [Header("近战参数")]

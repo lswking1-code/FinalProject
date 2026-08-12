@@ -6,6 +6,11 @@ using UnityEngine;
 /// </summary>
 public class GrenadeEnemy : RangedEnemy
 {
+    /// <summary>
+    /// 新像素精灵默认朝右，与旧 Metal Slug 朝左资源相反。
+    /// </summary>
+    protected override bool SpriteFacesRight => true;
+
     [Header("手雷")]
     public EnemyGrenade grenadePrefab;
     public Transform throwPoint;

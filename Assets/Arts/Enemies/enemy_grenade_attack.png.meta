@@ -50,12 +50,6 @@ TextureImporter:
   - first:
       213: -347444988281589940
     second: enemy_grenade_attack_15
-  - first:
-      213: 7236250782672026764
-    second: enemy_grenade_attack_16
-  - first:
-      213: -1125312085523197450
-    second: enemy_grenade_attack_17
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -88,7 +82,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -102,7 +96,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -125,7 +119,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -160,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -167,12 +174,12 @@ TextureImporter:
       name: enemy_grenade_attack_0
       rect:
         serializedVersion: 2
-        x: 19
-        y: 204
-        width: 23
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -189,12 +196,12 @@ TextureImporter:
       name: enemy_grenade_attack_1
       rect:
         serializedVersion: 2
-        x: 82
-        y: 204
-        width: 25
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -211,12 +218,12 @@ TextureImporter:
       name: enemy_grenade_attack_2
       rect:
         serializedVersion: 2
-        x: 145
-        y: 204
-        width: 28
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -233,12 +240,12 @@ TextureImporter:
       name: enemy_grenade_attack_3
       rect:
         serializedVersion: 2
-        x: 208
-        y: 204
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -255,12 +262,12 @@ TextureImporter:
       name: enemy_grenade_attack_4
       rect:
         serializedVersion: 2
-        x: 16
-        y: 140
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -277,12 +284,12 @@ TextureImporter:
       name: enemy_grenade_attack_5
       rect:
         serializedVersion: 2
-        x: 80
-        y: 140
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -299,12 +306,12 @@ TextureImporter:
       name: enemy_grenade_attack_6
       rect:
         serializedVersion: 2
-        x: 145
-        y: 140
-        width: 29
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -321,12 +328,12 @@ TextureImporter:
       name: enemy_grenade_attack_7
       rect:
         serializedVersion: 2
-        x: 209
-        y: 140
-        width: 29
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -343,12 +350,12 @@ TextureImporter:
       name: enemy_grenade_attack_8
       rect:
         serializedVersion: 2
-        x: 16
-        y: 76
-        width: 30
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -365,12 +372,12 @@ TextureImporter:
       name: enemy_grenade_attack_9
       rect:
         serializedVersion: 2
-        x: 80
-        y: 76
-        width: 30
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -387,12 +394,12 @@ TextureImporter:
       name: enemy_grenade_attack_10
       rect:
         serializedVersion: 2
-        x: 144
-        y: 76
-        width: 31
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -409,12 +416,12 @@ TextureImporter:
       name: enemy_grenade_attack_11
       rect:
         serializedVersion: 2
-        x: 210
-        y: 76
-        width: 32
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -431,12 +438,12 @@ TextureImporter:
       name: enemy_grenade_attack_12
       rect:
         serializedVersion: 2
-        x: 21
-        y: 12
-        width: 32
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -453,12 +460,12 @@ TextureImporter:
       name: enemy_grenade_attack_13
       rect:
         serializedVersion: 2
-        x: 85
-        y: 12
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -475,12 +482,12 @@ TextureImporter:
       name: enemy_grenade_attack_14
       rect:
         serializedVersion: 2
-        x: 108
-        y: 40
-        width: 13
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -497,12 +504,12 @@ TextureImporter:
       name: enemy_grenade_attack_15
       rect:
         serializedVersion: 2
-        x: 149
-        y: 12
-        width: 32
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -511,50 +518,6 @@ TextureImporter:
       bones: []
       spriteID: c4f6c7ebf90ad2bf0800000000000000
       internalID: -347444988281589940
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_grenade_attack_16
-      rect:
-        serializedVersion: 2
-        x: 178
-        y: 38
-        width: 13
-        height: 15
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: c8cfece5fb35c6460800000000000000
-      internalID: 7236250782672026764
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_grenade_attack_17
-      rect:
-        serializedVersion: 2
-        x: 213
-        y: 12
-        width: 43
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6f19fe0de961260f0800000000000000
-      internalID: -1125312085523197450
       vertices: []
       indices: 
       edges: []
@@ -581,8 +544,6 @@ TextureImporter:
       enemy_grenade_attack_13: 7533866673308732107
       enemy_grenade_attack_14: 7866140423502541356
       enemy_grenade_attack_15: -347444988281589940
-      enemy_grenade_attack_16: 7236250782672026764
-      enemy_grenade_attack_17: -1125312085523197450
       enemy_grenade_attack_2: -750519247738337734
       enemy_grenade_attack_3: -3594391134093268261
       enemy_grenade_attack_4: -4321689126040197956

@@ -21,6 +21,10 @@ public class Enemy : MonoBehaviour
     public bool blocksLaser;
 
     public Vector3 faceDir;
+    /// <summary>
+    /// 精灵默认朝右时为 true（新像素图）；旧 Metal Slug 资源朝左则为 false。
+    /// </summary>
+    protected virtual bool SpriteFacesRight => false;
     [System.Obsolete("已废弃，改用 Attack.enableKnockback / knockbackForce")]
     [Tooltip("已废弃，改用 Attack.enableKnockback")]
     public float hurtForce;
@@ -280,7 +284,7 @@ public class Enemy : MonoBehaviour
     protected virtual void Update()
     {
         EnsurePlayerReference();
-        faceDir = new Vector3(-transform.localScale.x, 0, 0);
+        faceDir = new Vector3(GetFacingFromScale(), 0, 0);
 
         currentState.LogicUpdate();
 
@@ -325,7 +329,7 @@ public class Enemy : MonoBehaviour
             {
                 wait = false;
                 waitTimeCounter = waitTime;
-                transform.localScale = new Vector3(faceDir.x, 1, 1);
+                ApplyFacing(-faceDir.x);
             }
         }
 
@@ -364,11 +368,7 @@ public class Enemy : MonoBehaviour
         if (player == null)
             return;
 
-        float dx = player.position.x - transform.position.x;
-        if (dx > 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-        else if (dx < 0)
-            transform.localScale = new Vector3(1, 1, 1);
+        ApplyFacing(player.position.x - transform.position.x);
     }
 
     /// <summary>
@@ -376,11 +376,29 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void FaceDirection(float direction)
     {
-        float dir = Mathf.Sign(direction);
+        ApplyFacing(direction);
+    }
+
+    /// <summary>
+    /// 按世界水平方向设置朝向。正值朝右，负值朝左。
+    /// </summary>
+    public void ApplyFacing(float worldDirX)
+    {
+        float dir = Mathf.Sign(worldDirX);
         if (Mathf.Approximately(dir, 0f))
             return;
 
-        transform.localScale = new Vector3(dir > 0f ? -1f : 1f, 1f, 1f);
+        float scaleX = SpriteFacesRight ? dir : -dir;
+        Vector3 scale = transform.localScale;
+        transform.localScale = new Vector3(scaleX, scale.y, scale.z);
+    }
+
+    float GetFacingFromScale()
+    {
+        float sx = transform.localScale.x;
+        if (Mathf.Approximately(sx, 0f))
+            sx = 1f;
+        return (SpriteFacesRight ? 1f : -1f) * Mathf.Sign(sx);
     }
 
     /// <summary>
@@ -468,7 +486,7 @@ public class Enemy : MonoBehaviour
         if ((physicsCheck.touchLeftWall && moveDir < 0f)
             || (physicsCheck.touchRightWall && moveDir > 0f))
         {
-            transform.localScale = new Vector3(faceDir.x, 1, 1);
+            ApplyFacing(-moveDir);
             return true;
         }
 
@@ -521,10 +539,7 @@ public class Enemy : MonoBehaviour
     {
         attacker = attackTrans;
 
-        if (attackTrans.position.x - transform.position.x > 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-        if (attackTrans.position.x - transform.position.x < 0)
-            transform.localScale = new Vector3(1, 1, 1);
+        ApplyFacing(attackTrans.position.x - transform.position.x);
 
         isHurt = true;
         anim.SetTrigger("hurt");

@@ -50,12 +50,6 @@ TextureImporter:
   - first:
       213: 7686957342876130721
     second: enemy_gun_attack_pro_15
-  - first:
-      213: 4974333503331263841
-    second: enemy_gun_attack_pro_16
-  - first:
-      213: 5057005328118122842
-    second: enemy_gun_attack_pro_17
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -88,7 +82,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -102,7 +96,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -125,7 +119,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -160,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -167,12 +174,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_0
       rect:
         serializedVersion: 2
-        x: 19
-        y: 204
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -189,12 +196,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_1
       rect:
         serializedVersion: 2
-        x: 83
-        y: 204
-        width: 30
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -211,12 +218,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_2
       rect:
         serializedVersion: 2
-        x: 147
-        y: 204
-        width: 31
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -233,12 +240,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_3
       rect:
         serializedVersion: 2
-        x: 211
-        y: 204
-        width: 38
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -255,12 +262,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_4
       rect:
         serializedVersion: 2
-        x: 18
-        y: 140
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -277,12 +284,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_5
       rect:
         serializedVersion: 2
-        x: 82
-        y: 140
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -299,12 +306,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_6
       rect:
         serializedVersion: 2
-        x: 146
-        y: 140
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -321,12 +328,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_7
       rect:
         serializedVersion: 2
-        x: 210
-        y: 140
-        width: 41
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -343,12 +350,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_8
       rect:
         serializedVersion: 2
-        x: 242
-        y: 154
-        width: 14
-        height: 18
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -365,12 +372,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_9
       rect:
         serializedVersion: 2
-        x: 249
-        y: 168
-        width: 7
-        height: 6
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -387,12 +394,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_10
       rect:
         serializedVersion: 2
-        x: 20
-        y: 76
-        width: 44
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -409,12 +416,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_11
       rect:
         serializedVersion: 2
-        x: 84
-        y: 76
-        width: 31
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -431,12 +438,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_12
       rect:
         serializedVersion: 2
-        x: 146
-        y: 76
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -453,12 +460,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_13
       rect:
         serializedVersion: 2
-        x: 210
-        y: 76
-        width: 46
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -475,12 +482,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_14
       rect:
         serializedVersion: 2
-        x: 18
-        y: 12
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -497,12 +504,12 @@ TextureImporter:
       name: enemy_gun_attack_pro_15
       rect:
         serializedVersion: 2
-        x: 82
-        y: 12
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -511,50 +518,6 @@ TextureImporter:
       bones: []
       spriteID: 1ad56b1e9fe8daa60800000000000000
       internalID: 7686957342876130721
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_gun_attack_pro_16
-      rect:
-        serializedVersion: 2
-        x: 146
-        y: 12
-        width: 47
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 165626457f1680540800000000000000
-      internalID: 4974333503331263841
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_gun_attack_pro_17
-      rect:
-        serializedVersion: 2
-        x: 211
-        y: 12
-        width: 32
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a590db18d871e2640800000000000000
-      internalID: 5057005328118122842
       vertices: []
       indices: 
       edges: []
@@ -581,8 +544,6 @@ TextureImporter:
       enemy_gun_attack_pro_13: 4004629767977534200
       enemy_gun_attack_pro_14: -3755144679567173370
       enemy_gun_attack_pro_15: 7686957342876130721
-      enemy_gun_attack_pro_16: 4974333503331263841
-      enemy_gun_attack_pro_17: 5057005328118122842
       enemy_gun_attack_pro_2: 4826109180172653491
       enemy_gun_attack_pro_3: 3128116133715285330
       enemy_gun_attack_pro_4: 3341745481445031831

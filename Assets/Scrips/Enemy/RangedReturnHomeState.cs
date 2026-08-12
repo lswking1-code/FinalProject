@@ -53,11 +53,7 @@ public class RangedReturnHomeState : BaseState
 
         rangedEnemy.MoveHorizontal(dir);
         rangedEnemy.TryFlipOnObstacle(dir);
-
-        if (dir > 0f)
-            currentEnemy.transform.localScale = new Vector3(-1f, 1f, 1f);
-        else
-            currentEnemy.transform.localScale = new Vector3(1f, 1f, 1f);
+        currentEnemy.FaceDirection(dir);
     }
 
     public override void OnExit()

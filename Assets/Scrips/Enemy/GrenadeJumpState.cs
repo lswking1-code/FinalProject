@@ -176,10 +176,7 @@ public class GrenadeJumpState : BaseState
 
     void FaceJumpDirection(float dir)
     {
-        if (dir > 0f)
-            currentEnemy.transform.localScale = new Vector3(-1f, 1f, 1f);
-        else if (dir < 0f)
-            currentEnemy.transform.localScale = new Vector3(1f, 1f, 1f);
+        currentEnemy.FaceDirection(dir);
     }
 
     void ClearLocomotionBools()
