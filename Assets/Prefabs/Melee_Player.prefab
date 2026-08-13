@@ -419,25 +419,6 @@ MonoBehaviour:
     m_Bits: 36864
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
---- !u!114 &5012345678901234601
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3670684932593068974}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50b0f124737d475cb0c9dc2e755e64f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nearbyScanRadius: 2.5
-  upperLayerMask:
-    serializedVersion: 2
-    m_Bits: 131072
-  lowerLayerMask:
-    serializedVersion: 2
-    m_Bits: 262144
 --- !u!114 &8012345678901234501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -608,6 +589,25 @@ MonoBehaviour:
   detectZoneGizmoColor: {r: 1, g: 0.85, b: 0.2, a: 0.25}
   hitboxIdleGizmoColor: {r: 0.2, g: 0.85, b: 1, a: 0.2}
   hitboxActiveGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.45}
+--- !u!114 &5012345678901234601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50b0f124737d475cb0c9dc2e755e64f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nearbyScanRadius: 2.5
+  upperLayerMask:
+    serializedVersion: 2
+    m_Bits: 131072
+  lowerLayerMask:
+    serializedVersion: 2
+    m_Bits: 262144
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0
