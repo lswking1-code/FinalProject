@@ -88,16 +88,45 @@ public class DataManager : MonoBehaviour
         foreach (var saveable in saveableList)
             saveable.GetSaveData(saveData);
 
-        if (!Directory.Exists(jsonFolder))
-            Directory.CreateDirectory(jsonFolder);
-
-        File.WriteAllText(SaveFilePath, JsonConvert.SerializeObject(saveData));
+        SyncLifePointsToData();
+        WriteSaveFile();
     }
 
     public void Load()
     {
         foreach (var saveable in saveableList)
             saveable.LoadSaveData(saveData);
+    }
+
+    public bool HasPlayerCheckpoint(string playerId)
+    {
+        return saveData != null
+            && !string.IsNullOrEmpty(playerId)
+            && saveData.characterPosDict != null
+            && saveData.characterPosDict.ContainsKey(playerId);
+    }
+
+    /// <summary>
+    /// 只更新生命点并写盘，不采集 ISaveable（避免把死亡位置存成存档点）。
+    /// </summary>
+    public void PersistLifePoints() => PersistTransientProgress();
+
+    /// <summary>
+    /// 把当前内存存档写盘，不重新采集角色位置等 ISaveable。
+    /// 用于生命点、已拾取道具等不应随读档回滚的状态。
+    /// </summary>
+    public void PersistTransientProgress()
+    {
+        if (saveData == null)
+            return;
+
+        SyncLifePointsToData();
+
+        bool hasProgress = saveData.characterPosDict != null && saveData.characterPosDict.Count > 0;
+        if (!hasProgress && !File.Exists(SaveFilePath))
+            return;
+
+        WriteSaveFile();
     }
 
     /// <summary>
@@ -109,6 +138,26 @@ public class DataManager : MonoBehaviour
 
         if (File.Exists(SaveFilePath))
             File.Delete(SaveFilePath);
+
+        PlayerLifePoints.Instance?.ResetToDefault();
+    }
+
+    void SyncLifePointsToData()
+    {
+        if (saveData == null)
+            return;
+
+        saveData.lifePoints = PlayerLifePoints.Instance != null
+            ? PlayerLifePoints.Instance.Current
+            : saveData.lifePoints;
+    }
+
+    void WriteSaveFile()
+    {
+        if (!Directory.Exists(jsonFolder))
+            Directory.CreateDirectory(jsonFolder);
+
+        File.WriteAllText(SaveFilePath, JsonConvert.SerializeObject(saveData));
     }
 
     void ReadSavedData()

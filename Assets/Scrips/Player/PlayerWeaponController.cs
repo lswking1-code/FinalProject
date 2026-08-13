@@ -127,6 +127,14 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         }
     }
 
+    public void ResetToInitialWeapon()
+    {
+        currentWeaponId = initialWeaponId;
+        var def = GetDefinition(currentWeaponId);
+        if (def != null && playerAnim != null)
+            playerAnim.ApplyWeaponDefinition(def);
+    }
+
     public bool TrySwitchTo(int weaponId)
     {
         if (weaponId == currentWeaponId)

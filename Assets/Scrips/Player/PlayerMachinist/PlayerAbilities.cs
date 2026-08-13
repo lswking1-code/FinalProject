@@ -97,7 +97,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         actions?.Dispose();
     }
 
-    void ResetForNewGame()
+    public void ResetForNewGame()
     {
         if (phase == RobotAbilityPhase.Aiming)
             ExitAimingMode();

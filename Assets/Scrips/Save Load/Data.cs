@@ -6,6 +6,7 @@ public class Data
 {
     public string sceneToSave;
     public int selectedCharacterIndex = -1;
+    public int lifePoints = 5;
 
     public Dictionary<string, SerializeVector3> characterPosDict = new Dictionary<string, SerializeVector3>();
     public Dictionary<string, float> floatSavedData = new Dictionary<string, float>();

@@ -948,7 +948,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ResetMovementState();
     }
 
-    void ResetMovementState()
+    public void ResetMovementState()
     {
         if (IsActionLocked)
             EndExternalControl();

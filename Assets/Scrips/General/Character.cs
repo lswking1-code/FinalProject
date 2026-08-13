@@ -42,6 +42,9 @@ public class Character : MonoBehaviour,ISaveable
     bool forcedInvulnerable;
     bool isDead;
     Coroutine knockbackRoutine;
+    int initialBulletS;
+    int initialBulletM;
+    int initialBulletL;
 
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
@@ -63,6 +66,10 @@ public class Character : MonoBehaviour,ISaveable
     }
     void Awake()
     {
+        initialBulletS = BulletS;
+        initialBulletM = BulletM;
+        initialBulletL = BulletL;
+
         // 玩家回菜单时会被禁用，newGame 需在禁用期间仍能收到
         if (newGameEvent != null)
             newGameEvent.OnEventRaised += ResetForNewGame;
@@ -74,7 +81,7 @@ public class Character : MonoBehaviour,ISaveable
             newGameEvent.OnEventRaised -= ResetForNewGame;
     }
 
-    /// <summary>新游戏：清空死亡/无敌并回满血、体力、能力值。</summary>
+    /// <summary>新游戏 / 本关重开：清空死亡/无敌并回满血、体力、能力值、初始弹药。</summary>
     public void ResetForNewGame()
     {
         isDead = false;
@@ -85,6 +92,9 @@ public class Character : MonoBehaviour,ISaveable
         currentHealth = maxHealth;
         currentPower = maxPower;
         AbilityPower = maxAbilityPower;
+        BulletS = initialBulletS;
+        BulletM = initialBulletM;
+        BulletL = initialBulletL;
         NotifyStatsChanged();
     }
 

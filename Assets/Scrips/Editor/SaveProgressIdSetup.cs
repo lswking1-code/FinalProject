@@ -24,6 +24,9 @@ public static class SaveProgressIdSetup
         foreach (var savepoint in Object.FindObjectsByType<Savepoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             fixedCount += EnsureComponentId(savepoint.gameObject, $"savepoint-{savepoint.gameObject.scene.name}-{savepoint.name}");
 
+        foreach (var lifePack in Object.FindObjectsByType<LifePack>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            fixedCount += EnsureComponentId(lifePack.gameObject, $"lifepack-{lifePack.gameObject.scene.name}-{lifePack.name}");
+
         AssetDatabase.SaveAssets();
         Debug.Log($"Ensure Save Progress Data IDs: updated {fixedCount} object(s).");
     }

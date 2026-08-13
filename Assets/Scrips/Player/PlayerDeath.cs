@@ -57,7 +57,7 @@ public class PlayerDeath : MonoBehaviour
             return;
 
         if (playerAnim.TryGetDieAnimProgress(out float normalizedTime) && normalizedTime >= 1f)
-            RaiseGameOver();
+            ResolveDeath();
     }
 
     public void HandleDeath()
@@ -77,16 +77,35 @@ public class PlayerDeath : MonoBehaviour
         if (!deathHandled || gameOverRaised)
             return;
 
-        RaiseGameOver();
+        ResolveDeath();
     }
 
-    void RaiseGameOver()
+    void ResolveDeath()
     {
         if (gameOverRaised)
             return;
 
         gameOverRaised = true;
+
+        if (HasPlayerCheckpoint() && PlayerLifePoints.Instance != null && PlayerLifePoints.Instance.TryConsume())
+        {
+            loadDataEvent?.RaiseEvent();
+            return;
+        }
+
         gameOverEvent?.RaiseEvent();
+    }
+
+    bool HasPlayerCheckpoint()
+    {
+        if (DataManager.instance == null || character == null)
+            return false;
+
+        var def = character.GetDataID();
+        if (def == null || string.IsNullOrEmpty(def.ID))
+            return false;
+
+        return DataManager.instance.HasPlayerCheckpoint(def.ID);
     }
 
     /// <summary>读档复活：清死亡态，血量由 Character.LoadSaveData 覆盖。</summary>

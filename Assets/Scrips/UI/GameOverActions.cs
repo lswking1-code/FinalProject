@@ -13,10 +13,12 @@ public class GameOverActions : MonoBehaviour
         newGameEvent = newGame;
     }
 
-    /// <summary>从存档恢复（死亡后 Restart）。</summary>
+    /// <summary>GAME OVER 后 Restart：重开本关并刷新数值。</summary>
     public void OnRestartFromSave()
     {
-        loadDataEvent?.RaiseEvent();
+        var loader = FindFirstObjectByType<SceneLoader>();
+        if (loader != null)
+            loader.RestartCurrentLevel();
     }
 
     /// <summary>返回主菜单。</summary>

@@ -242,13 +242,15 @@ public class UIManage : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(restartBtn);
     }
 
-    private void OnCloseEndGamePanels()
+    public void CloseEndGamePanels()
     {
         if (gameOverPannel != null)
             gameOverPannel.SetActive(false);
         if (gameClearPannel != null)
             gameClearPannel.SetActive(false);
     }
+
+    private void OnCloseEndGamePanels() => CloseEndGamePanels();
 
     private void OnUnLoadedSceneEvent(GameSceneSO sceneToLoad, Vector3 arg1, bool arg2)
     {

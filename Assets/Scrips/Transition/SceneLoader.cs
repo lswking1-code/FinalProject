@@ -58,6 +58,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
     private bool isLoading;
     public float fadeDuration;
 
+    Vector3 currentSceneEntryPosition;
+    bool hasSceneEntry;
+    bool pendingRecordEntry;
+    bool pendingSaveAfterRestart;
+
     private void Awake()
     {
         EnsureSelectedCharacter();
@@ -160,6 +165,43 @@ public class SceneLoader : MonoBehaviour, ISaveable
         ApplyPlayerSelection();
         sceneToLoad = firstLoadScene;
         loadEventSO.RaiseLoadRequestEvent(sceneToLoad, firstPosition, true);
+    }
+
+    /// <summary>
+    /// GAME OVER Restart：清空进度、重置数值，从本关入口重开。
+    /// </summary>
+    public void RestartCurrentLevel()
+    {
+        if (isLoading)
+            return;
+
+        var ui = FindFirstObjectByType<UIManage>();
+        ui?.CloseEndGamePanels();
+
+        if (currentLoadedScene == null || currentLoadedScene.sceneType != SceneType.Loaction)
+        {
+            NewGame();
+            return;
+        }
+
+        DataManager.instance?.ClearForNewGame();
+        ResetPlayerForLevelRestart();
+
+        Vector3 entry = hasSceneEntry ? currentSceneEntryPosition : firstPosition;
+        pendingSaveAfterRestart = true;
+        loadEventSO.RaiseLoadRequestEvent(currentLoadedScene, entry, true);
+    }
+
+    void ResetPlayerForLevelRestart()
+    {
+        if (playerTrans == null)
+            return;
+
+        playerTrans.GetComponent<PlayerDeath>()?.ResetForNewGame();
+        playerTrans.GetComponent<PlayerMovement>()?.ResetMovementState();
+        playerTrans.GetComponent<PlayerAbilities>()?.ResetForNewGame();
+        playerTrans.GetComponent<PlayerWeaponController>()?.ResetToInitialWeapon();
+        playerTrans.GetComponent<SpecialMagazine>()?.Clear();
     }
 
     void EnsureSelectedCharacter()
@@ -327,6 +369,10 @@ public class SceneLoader : MonoBehaviour, ISaveable
             return;
 
         isLoading = true;
+        pendingRecordEntry = locationToLoad != null
+            && locationToLoad.sceneType == SceneType.Loaction
+            && currentLoadedScene != locationToLoad;
+
         sceneToLoad = locationToLoad;
         positionToGo = posToGo;
         this.fadeScreen = fadeScreen;
@@ -377,6 +423,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             Debug.LogError("SceneLoader: 场景加载完成但 playerTrans 为空，无法显示玩家。");
             isLoading = false;
+            pendingRecordEntry = false;
+            pendingSaveAfterRestart = false;
             return;
         }
 
@@ -393,7 +441,27 @@ public class SceneLoader : MonoBehaviour, ISaveable
         isLoading = false;
 
         if (currentLoadedScene.sceneType == SceneType.Loaction)
+        {
+            if (pendingRecordEntry)
+            {
+                currentSceneEntryPosition = positionToGo;
+                hasSceneEntry = true;
+                pendingRecordEntry = false;
+            }
+
             afterSceneLoadedEvent.RaiseEvent();
+
+            if (pendingSaveAfterRestart)
+            {
+                pendingSaveAfterRestart = false;
+                DataManager.instance?.Save();
+            }
+        }
+        else
+        {
+            pendingRecordEntry = false;
+            pendingSaveAfterRestart = false;
+        }
     }
 
     public DataDefination GetDataID()
