@@ -193,6 +193,9 @@ public class PhysicsCheck : MonoBehaviour
 
     bool TryRegisterCollisionGround(Collider2D col, Vector2 normal)
     {
+        if (IsCollisionIgnored(col))
+            return false;
+
         var slope = col.GetComponent<SlopeOneWayPlatform>();
         if (slope != null)
         {
@@ -269,6 +272,9 @@ public class PhysicsCheck : MonoBehaviour
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
 
+        if (IsCollisionIgnored(hit.collider))
+            return false;
+
         if (platformDropThrough != null)
             return platformDropThrough.ShouldCountAsGround(hit.collider, hit.normal);
 
@@ -276,6 +282,11 @@ public class PhysicsCheck : MonoBehaviour
             return robotOneWayPlatformPass.ShouldCountAsGround(hit.collider, hit.normal);
 
         return true;
+    }
+
+    bool IsCollisionIgnored(Collider2D other)
+    {
+        return coll != null && other != null && Physics2D.GetIgnoreCollision(coll, other);
     }
 
     /// <summary>

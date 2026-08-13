@@ -77,6 +77,12 @@ public class CameraAirborneYLock : MonoBehaviour
         }
     }
 
+    /// <summary>将跟随锚点立刻放到玩家位置，并清掉空中 Y 缓动状态。</summary>
+    public void SnapToPlayerImmediate()
+    {
+        SnapAnchorToPlayer(unlockY: true);
+    }
+
     void Awake()
     {
         EnsureFollowAnchor();

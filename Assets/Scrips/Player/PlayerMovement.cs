@@ -45,6 +45,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float normalGravityScale;
     /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
     float slopeDetachTimer;
+    /// <summary>从机器人顶板起跳后的短暂脱离，避免接触求解/携带把竖直速度清掉。</summary>
+    float robotPlatformDetachTimer;
+    Collider2D ignoredRobotTopCollider;
     float airHangTimer;
     /// <summary>当前连续滞空已持续时长，用于衰减浮空强度。</summary>
     float airHangSustainElapsed;
@@ -116,6 +119,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             EndExternalControl();
 
+        RestoreRobotTopCollision();
         ((ISaveable)this).UnregisterSaveData();
         actions.Player.Disable();
     }
@@ -159,6 +163,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (slopeDetachTimer > 0f)
             slopeDetachTimer -= Time.fixedDeltaTime;
+
+        UpdateRobotPlatformDetach();
 
         if (platformDropThrough != null)
             platformDropThrough.UpdateCollisions();
@@ -579,6 +585,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.linearVelocity = new Vector2(horizontalVelocity, jumpVelocity);
 
+        RobotTopPlatform robotTop = FindRobotTopUnderFeet();
+        if (robotTop != null)
+            BeginRobotPlatformDetach(robotTop);
+
         playerAnim.PlayJumpAnim(hasHorizontalInput);
         ApplyFacing();
 
@@ -603,11 +613,79 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
 
         Vector2 platformVelocity = platform.PlatformVelocity;
+
+        // 起跳脱离、未实站、或相对平台仍在上升：不要携带，避免盖掉起跳速度 / 空中连加水平速度
+        if (applyVertical
+            && (robotPlatformDetachTimer > 0f
+                || !physicsCheck.isSolidGround
+                || rb.linearVelocity.y > platformVelocity.y + 0.05f))
+            return;
+
         Vector2 velocity = rb.linearVelocity;
         velocity.x += platformVelocity.x;
-        if (applyVertical && physicsCheck.isSolidGround)
+        if (applyVertical)
             velocity.y = platformVelocity.y;
         rb.linearVelocity = velocity;
+    }
+
+    void BeginRobotPlatformDetach(RobotTopPlatform platform)
+    {
+        Collider2D platformCollider = platform != null ? platform.GetComponent<Collider2D>() : null;
+        if (capsuleCollider != null && platformCollider != null)
+        {
+            if (ignoredRobotTopCollider != null && ignoredRobotTopCollider != platformCollider)
+                RestoreRobotTopCollision();
+
+            Physics2D.IgnoreCollision(capsuleCollider, platformCollider, true);
+            ignoredRobotTopCollider = platformCollider;
+        }
+
+        robotPlatformDetachTimer = 0.2f;
+        rb.position += Vector2.up * 0.06f;
+    }
+
+    void UpdateRobotPlatformDetach()
+    {
+        if (robotPlatformDetachTimer > 0f)
+            robotPlatformDetachTimer -= Time.fixedDeltaTime;
+
+        if (ignoredRobotTopCollider == null)
+            return;
+
+        if (!ignoredRobotTopCollider)
+        {
+            ignoredRobotTopCollider = null;
+            robotPlatformDetachTimer = 0f;
+            return;
+        }
+
+        if (!IsOverlappingRobotTop(ignoredRobotTopCollider))
+        {
+            RestoreRobotTopCollision();
+            return;
+        }
+
+        // 仍重叠但保护结束且已下落：恢复碰撞以便再次落地
+        if (robotPlatformDetachTimer <= 0f && rb.linearVelocity.y <= 0.05f)
+            RestoreRobotTopCollision();
+    }
+
+    bool IsOverlappingRobotTop(Collider2D platformCollider)
+    {
+        if (capsuleCollider == null || platformCollider == null)
+            return false;
+
+        ColliderDistance2D distance = Physics2D.Distance(capsuleCollider, platformCollider);
+        return distance.isOverlapped || distance.distance <= 0.02f;
+    }
+
+    void RestoreRobotTopCollision()
+    {
+        if (capsuleCollider != null && ignoredRobotTopCollider)
+            Physics2D.IgnoreCollision(capsuleCollider, ignoredRobotTopCollider, false);
+
+        ignoredRobotTopCollider = null;
+        robotPlatformDetachTimer = 0f;
     }
 
     RobotTopPlatform FindRobotTopUnderFeet()
@@ -880,6 +958,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         jumpBufferCounter = 0f;
         lastKPressFrame = -1;
         slopeDetachTimer = 0f;
+        RestoreRobotTopCollision();
         airHangTimer = 0f;
         airHangSustainElapsed = 0f;
 
@@ -904,6 +983,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
 
         ClearAirHang(restoreGravity: false);
+        RestoreRobotTopCollision();
         savedGravityScale = normalGravityScale;
         savedColliderEnabled = capsuleCollider != null && capsuleCollider.enabled;
 

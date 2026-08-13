@@ -74,6 +74,7 @@ public class CameraIdleRecenter : MonoBehaviour
         playerBody = null;
         ResolveRefs();
         EndIdleRecenter(restoreImmediate: true);
+        ResetLookaheadPredictor();
         wasMoving = true;
     }
 

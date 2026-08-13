@@ -688,11 +688,14 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             case AirPhaseType.Fall:
             case AirPhaseType.LeapAir:
                 useDoubleJumpAnim = false;
-                if (grounded)
+                if (IsSolidlyGrounded(grounded))
                     PlayOneShot(LandStateName, autoExit: true);
                 break;
         }
     }
+
+    bool IsSolidlyGrounded(bool grounded) =>
+        physicsCheck != null ? physicsCheck.isSolidGround : grounded;
 
     void SyncLocomotion()
     {

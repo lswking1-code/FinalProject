@@ -2593,11 +2593,14 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
             case AirPhaseType.Fall:
             case AirPhaseType.LeapAir:
-                if (grounded)
+                if (IsSolidlyGrounded(grounded))
                     EnterFullBodyLand();
                 break;
         }
     }
+
+    bool IsSolidlyGrounded(bool grounded) =>
+        physicsCheck != null ? physicsCheck.isSolidGround : grounded;
 
     void SyncSplitAnimators() // 下半身始终同步；Look 期间上半身由代码独占
     {

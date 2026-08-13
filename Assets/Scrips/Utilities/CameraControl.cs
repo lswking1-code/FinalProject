@@ -105,6 +105,7 @@ public class CameraControl : MonoBehaviour
     {
         playerTransform = target;
         BindFollowTarget();
+        SnapCameraToFollowTarget();
     }
 
     private void BindFollowTarget()
@@ -133,10 +134,50 @@ public class CameraControl : MonoBehaviour
         cinemachineCamera.Target.TrackingTarget = trackingTarget;
     }
 
+    /// <summary>
+    /// 取消阻尼/预瞄插值，让相机立刻对齐当前跟随目标（切场景重绑时使用）。
+    /// </summary>
+    public void SnapCameraToFollowTarget()
+    {
+        if (airborneYLock == null)
+            airborneYLock = GetComponent<CameraAirborneYLock>();
+
+        if (airborneYLock != null && airborneYLock.isActiveAndEnabled)
+            airborneYLock.SnapToPlayerImmediate();
+
+        BindFollowTarget();
+
+        if (cinemachineCamera == null)
+            return;
+
+        CinemachineCore.ResetCameraState();
+
+        Vector3 worldUp = Vector3.up;
+        CinemachineBrain brain = null;
+        if (CinemachineBrain.ActiveBrainCount > 0)
+        {
+            brain = CinemachineBrain.GetActiveBrain(0);
+            if (brain != null)
+                worldUp = brain.DefaultWorldUp;
+        }
+
+        // deltaTime < 0 会跳过阻尼，且不受“本帧已更新”限制
+        cinemachineCamera.UpdateCameraState(worldUp, -1f);
+
+        if (brain != null && brain.OutputCamera != null)
+        {
+            var state = cinemachineCamera.State;
+            brain.OutputCamera.transform.SetPositionAndRotation(
+                state.GetFinalPosition(),
+                state.GetFinalOrientation());
+        }
+    }
+
     private void OnAfterSceneLoadEvent()
     {
         BindFollowTarget();
         GetNewCameraBounds(smooth: false);
+        SnapCameraToFollowTarget();
     }
 
     private void OnCameraShakeEvent(float force)
