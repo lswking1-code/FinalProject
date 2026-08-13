@@ -1,15 +1,20 @@
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 在 LifePoint 下按生命点数量生成 / 销毁 Life 图标。
+/// 在 LifeNum 上显示生命点数量（如 X5）。
 /// </summary>
 public class LifePointUI : MonoBehaviour
 {
-    [SerializeField] GameObject lifePrefab;
+    [SerializeField] TMP_Text lifeNum;
 
-    readonly List<GameObject> icons = new List<GameObject>();
     PlayerLifePoints bound;
+
+    void Awake()
+    {
+        if (lifeNum == null)
+            lifeNum = FindLifeNum();
+    }
 
     void OnEnable()
     {
@@ -35,15 +40,15 @@ public class LifePointUI : MonoBehaviour
         var found = PlayerLifePoints.Instance;
         if (found == bound)
         {
-            if (bound != null && icons.Count != bound.Current)
-                Rebuild(bound.Current);
+            if (bound != null)
+                Refresh(bound.Current);
             return;
         }
 
         Unsubscribe(bound);
         bound = found;
         Subscribe(bound);
-        Rebuild(bound != null ? bound.Current : 0);
+        Refresh(bound != null ? bound.Current : 0);
     }
 
     void Subscribe(PlayerLifePoints source)
@@ -51,7 +56,7 @@ public class LifePointUI : MonoBehaviour
         if (source == null)
             return;
 
-        source.Changed += Rebuild;
+        source.Changed += Refresh;
     }
 
     void Unsubscribe(PlayerLifePoints source)
@@ -59,43 +64,28 @@ public class LifePointUI : MonoBehaviour
         if (source == null)
             return;
 
-        source.Changed -= Rebuild;
+        source.Changed -= Refresh;
     }
 
-    void Rebuild(int count)
+    void Refresh(int count)
     {
-        ClearPreviewChildren();
-
-        if (lifePrefab == null)
+        if (lifeNum == null)
+            lifeNum = FindLifeNum();
+        if (lifeNum == null)
             return;
 
-        count = Mathf.Max(0, count);
-
-        while (icons.Count > count)
-        {
-            int last = icons.Count - 1;
-            if (icons[last] != null)
-                Destroy(icons[last]);
-            icons.RemoveAt(last);
-        }
-
-        while (icons.Count < count)
-        {
-            var instance = Instantiate(lifePrefab, transform, false);
-            instance.name = "Life";
-            icons.Add(instance);
-        }
+        lifeNum.text = $"X{Mathf.Max(0, count)}";
     }
 
-    void ClearPreviewChildren()
+    TMP_Text FindLifeNum()
     {
-        for (int i = transform.childCount - 1; i >= 0; i--)
+        var texts = GetComponentsInChildren<TMP_Text>(true);
+        for (int i = 0; i < texts.Length; i++)
         {
-            var child = transform.GetChild(i).gameObject;
-            if (icons.Contains(child))
-                continue;
-
-            Destroy(child);
+            if (texts[i] != null && texts[i].name == "LifeNum")
+                return texts[i];
         }
+
+        return texts.Length > 0 ? texts[0] : null;
     }
 }
