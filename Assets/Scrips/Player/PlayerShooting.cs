@@ -787,26 +787,10 @@ public class PlayerShooting : MonoBehaviour
     }
 
     /// <summary>
-    /// weaponId：0 无限手枪；1/2/3 → BulletS/M/L（与 BulletUI 一致）。
+    /// weaponId：0 无限手枪；1/2/3 → BulletS/M/L（与 Character.TryAmmoFromWeaponId 一致）。
     /// </summary>
-    static bool TryResolveAmmoType(int weaponId, out AmmoType ammoType)
-    {
-        switch (weaponId)
-        {
-            case 1:
-                ammoType = AmmoType.S;
-                return true;
-            case 2:
-                ammoType = AmmoType.M;
-                return true;
-            case 3:
-                ammoType = AmmoType.L;
-                return true;
-            default:
-                ammoType = default;
-                return false;
-        }
-    }
+    static bool TryResolveAmmoType(int weaponId, out AmmoType ammoType) =>
+        Character.TryAmmoFromWeaponId(weaponId, out ammoType);
 
     int ResolveAmmoCost(WeaponFireConfig config)
     {

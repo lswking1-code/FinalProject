@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +24,7 @@ public class BulletUI : MonoBehaviour
 
     Character character;
     PlayerWeaponController weaponController;
+    readonly List<int> cycleIds = new List<int>(4);
 
     public void OnCharacterChange(Character c)
     {
@@ -50,8 +52,14 @@ public class BulletUI : MonoBehaviour
     void Refresh()
     {
         int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        int cycleCount = weaponController != null
+            ? weaponController.GetRuntimeCycleIds(cycleIds)
+            : 0;
 
-        if (weaponId == 0)
+        bool pistolOnly = weaponId == 0
+            && (cycleCount == 0 || (cycleCount == 1 && cycleIds[0] == 0));
+
+        if (pistolOnly)
         {
             SetActive(normalGun, true);
             SetActive(normalGunNumber, true);
@@ -61,35 +69,57 @@ public class BulletUI : MonoBehaviour
         }
 
         SetActive(normalGun, false);
-        SetActive(normalGunNumber, false);
         SetActive(bulletSlot, true);
-        SetActive(bulletNumber != null ? bulletNumber.gameObject : null, true);
 
-        int prevId = weaponId;
-        int nextId = weaponId;
-        if (weaponController != null)
-            weaponController.TryGetCycleNeighbors(weaponId, out prevId, out nextId);
+        ApplyIcon(bulletSlot1, weaponId);
+        SetSlotVisible(bulletSlot1, true);
 
-        ApplyIcon(bulletSlot1, prevId);
-        ApplyIcon(bulletSlot2, weaponId);
-        ApplyIcon(bulletSlot3, nextId);
+        ResolveForwardSlots(weaponId, out int nextId, out int nextNextId);
+        bool showSlot2 = cycleCount >= 2 && nextId >= 0;
+        bool showSlot3 = cycleCount >= 3 && nextNextId >= 0;
+        SetSlotVisible(bulletSlot2, showSlot2);
+        SetSlotVisible(bulletSlot3, showSlot3);
+        if (showSlot2)
+            ApplyIcon(bulletSlot2, nextId);
+        if (showSlot3)
+            ApplyIcon(bulletSlot3, nextNextId);
 
-        if (bulletNumber != null)
+        bool showInfinity = weaponId == 0;
+        SetActive(normalGunNumber, showInfinity);
+        SetActive(bulletNumber != null ? bulletNumber.gameObject : null, !showInfinity);
+        if (!showInfinity && bulletNumber != null)
             bulletNumber.text = GetAmmoCount(weaponId).ToString();
+    }
+
+    void ResolveForwardSlots(int currentId, out int nextId, out int nextNextId)
+    {
+        nextId = -1;
+        nextNextId = -1;
+        int n = cycleIds.Count;
+        if (n == 0)
+            return;
+
+        int index = cycleIds.IndexOf(currentId);
+        if (index < 0)
+        {
+            if (n >= 1)
+                nextId = cycleIds[0];
+            if (n >= 2)
+                nextNextId = cycleIds[1];
+            return;
+        }
+
+        if (n >= 2)
+            nextId = cycleIds[(index + 1) % n];
+        if (n >= 3)
+            nextNextId = cycleIds[(index + 2) % n];
     }
 
     int GetAmmoCount(int weaponId)
     {
         if (character == null)
             return 0;
-
-        return weaponId switch
-        {
-            1 => character.BulletS,
-            2 => character.BulletM,
-            3 => character.BulletL,
-            _ => 0,
-        };
+        return character.GetAmmoForWeapon(weaponId);
     }
 
     void ApplyIcon(Image target, int weaponId)
@@ -113,6 +143,17 @@ public class BulletUI : MonoBehaviour
         }
 
         return null;
+    }
+
+    void SetSlotVisible(Image slot, bool visible)
+    {
+        if (slot == null)
+            return;
+
+        var root = slot.transform.parent != null
+            ? slot.transform.parent.gameObject
+            : slot.gameObject;
+        SetActive(root, visible);
     }
 
     static void SetActive(GameObject go, bool active)

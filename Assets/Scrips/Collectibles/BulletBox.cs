@@ -19,30 +19,9 @@ public class BulletBox : MonoBehaviour
         if (character == null)
             return;
 
-        var weaponController = character.GetComponent<PlayerWeaponController>()
-            ?? character.GetComponentInParent<PlayerWeaponController>();
-
-        bool shouldAutoSwitch = weaponController != null
-            && weaponController.CurrentWeaponId == 0
-            && character.BulletS == 0
-            && character.BulletM == 0
-            && character.BulletL == 0;
-
         if (!character.AddAmmo(ammoType, amount))
             return;
 
-        if (shouldAutoSwitch)
-            weaponController.TrySwitchTo(AmmoTypeToWeaponId(ammoType));
-
         Destroy(gameObject);
     }
-
-    /// <summary>S→机枪(1)，M→电磁/镭射(2)，L→霰弹(3)。</summary>
-    static int AmmoTypeToWeaponId(AmmoType type) => type switch
-    {
-        AmmoType.S => 1,
-        AmmoType.M => 2,
-        AmmoType.L => 3,
-        _ => 0,
-    };
 }

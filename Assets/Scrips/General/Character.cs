@@ -45,11 +45,52 @@ public class Character : MonoBehaviour,ISaveable
     int initialBulletS;
     int initialBulletM;
     int initialBulletL;
+    PlayerWeaponController weaponController;
 
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
     public bool IsDead => isDead;
     public bool IsForcedInvulnerable => forcedInvulnerable;
+    public bool HasAnySpecialAmmo => BulletS > 0 || BulletM > 0 || BulletL > 0;
+
+    public int GetAmmo(AmmoType type) => type switch
+    {
+        AmmoType.S => BulletS,
+        AmmoType.M => BulletM,
+        AmmoType.L => BulletL,
+        _ => 0,
+    };
+
+    /// <summary>S→机枪(1)，M→电磁/镭射(2)，L→霰弹(3)。</summary>
+    public static int WeaponIdFromAmmo(AmmoType type) => type switch
+    {
+        AmmoType.S => 1,
+        AmmoType.M => 2,
+        AmmoType.L => 3,
+        _ => 0,
+    };
+
+    public static bool TryAmmoFromWeaponId(int weaponId, out AmmoType type)
+    {
+        switch (weaponId)
+        {
+            case 1:
+                type = AmmoType.S;
+                return true;
+            case 2:
+                type = AmmoType.M;
+                return true;
+            case 3:
+                type = AmmoType.L;
+                return true;
+            default:
+                type = default;
+                return false;
+        }
+    }
+
+    public int GetAmmoForWeapon(int weaponId) =>
+        TryAmmoFromWeaponId(weaponId, out var type) ? GetAmmo(type) : 0;
 
     public void SetForcedInvulnerable(bool value) => forcedInvulnerable = value;
 
@@ -69,6 +110,7 @@ public class Character : MonoBehaviour,ISaveable
         initialBulletS = BulletS;
         initialBulletM = BulletM;
         initialBulletL = BulletL;
+        weaponController = GetComponent<PlayerWeaponController>();
 
         // 玩家回菜单时会被禁用，newGame 需在禁用期间仍能收到
         if (newGameEvent != null)
@@ -92,9 +134,17 @@ public class Character : MonoBehaviour,ISaveable
         currentHealth = maxHealth;
         currentPower = maxPower;
         AbilityPower = maxAbilityPower;
+
+        int beforeS = BulletS;
+        int beforeM = BulletM;
+        int beforeL = BulletL;
         BulletS = initialBulletS;
         BulletM = initialBulletM;
         BulletL = initialBulletL;
+        NotifyAmmoChanged(AmmoType.S, beforeS, BulletS);
+        NotifyAmmoChanged(AmmoType.M, beforeM, BulletM);
+        NotifyAmmoChanged(AmmoType.L, beforeL, BulletL);
+
         NotifyStatsChanged();
     }
 
@@ -296,9 +346,15 @@ public class Character : MonoBehaviour,ISaveable
     /// </summary>
     public void FillAllAmmo()
     {
+        int beforeS = BulletS;
+        int beforeM = BulletM;
+        int beforeL = BulletL;
         BulletS = maxBulletS;
         BulletM = maxBulletM;
         BulletL = maxBulletL;
+        NotifyAmmoChanged(AmmoType.S, beforeS, BulletS);
+        NotifyAmmoChanged(AmmoType.M, beforeM, BulletM);
+        NotifyAmmoChanged(AmmoType.L, beforeL, BulletL);
     }
 
     /// <summary>
@@ -309,26 +365,30 @@ public class Character : MonoBehaviour,ISaveable
         if (amount <= 0)
             return false;
 
+        int before = GetAmmo(type);
         switch (type)
         {
             case AmmoType.S:
                 if (BulletS >= maxBulletS)
                     return false;
                 BulletS = Mathf.Min(BulletS + amount, maxBulletS);
-                return true;
+                break;
             case AmmoType.M:
                 if (BulletM >= maxBulletM)
                     return false;
                 BulletM = Mathf.Min(BulletM + amount, maxBulletM);
-                return true;
+                break;
             case AmmoType.L:
                 if (BulletL >= maxBulletL)
                     return false;
                 BulletL = Mathf.Min(BulletL + amount, maxBulletL);
-                return true;
+                break;
             default:
                 return false;
         }
+
+        NotifyAmmoChanged(type, before, GetAmmo(type));
+        return true;
     }
 
     /// <summary>
@@ -339,26 +399,39 @@ public class Character : MonoBehaviour,ISaveable
         if (amount <= 0)
             return true;
 
+        int before = GetAmmo(type);
         switch (type)
         {
             case AmmoType.S:
                 if (BulletS < amount)
                     return false;
                 BulletS -= amount;
-                return true;
+                break;
             case AmmoType.M:
                 if (BulletM < amount)
                     return false;
                 BulletM -= amount;
-                return true;
+                break;
             case AmmoType.L:
                 if (BulletL < amount)
                     return false;
                 BulletL -= amount;
-                return true;
+                break;
             default:
                 return false;
         }
+
+        NotifyAmmoChanged(type, before, GetAmmo(type));
+        return true;
+    }
+
+    void NotifyAmmoChanged(AmmoType type, int before, int after)
+    {
+        if (before == after)
+            return;
+        if (weaponController == null)
+            weaponController = GetComponent<PlayerWeaponController>();
+        weaponController?.OnAmmoChanged(type, before, after);
     }
 
     public void OnSlide(int cost)
@@ -440,12 +513,20 @@ public class Character : MonoBehaviour,ISaveable
 
         if (data.floatSavedData.TryGetValue(id + "abilityPower", out float ap))
             AbilityPower = ap;
+
+        int beforeS = BulletS;
+        int beforeM = BulletM;
+        int beforeL = BulletL;
         if (data.floatSavedData.TryGetValue(id + "bulletS", out float s))
             BulletS = Mathf.RoundToInt(s);
         if (data.floatSavedData.TryGetValue(id + "bulletM", out float m))
             BulletM = Mathf.RoundToInt(m);
         if (data.floatSavedData.TryGetValue(id + "bulletL", out float l))
             BulletL = Mathf.RoundToInt(l);
+
+        NotifyAmmoChanged(AmmoType.S, beforeS, BulletS);
+        NotifyAmmoChanged(AmmoType.M, beforeM, BulletM);
+        NotifyAmmoChanged(AmmoType.L, beforeL, BulletL);
 
         NotifyStatsChanged();
     }

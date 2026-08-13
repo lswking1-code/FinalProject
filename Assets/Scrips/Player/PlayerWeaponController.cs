@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -17,6 +18,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
     InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
+    Character character;
 
     float prevHoldTime;
     float nextHoldTime;
@@ -35,6 +37,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         actions = new InputSystem_Actions();
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
+        character = GetComponent<Character>();
         currentWeaponId = initialWeaponId;
     }
 
@@ -43,6 +46,8 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         var def = GetDefinition(currentWeaponId);
         if (def != null && playerAnim != null)
             playerAnim.ApplyWeaponDefinition(def);
+
+        ReconcileCurrentWeapon();
     }
 
     void OnEnable()
@@ -118,7 +123,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         {
             int nextIndex = ((index + dir * step) % count + count) % count;
             var def = weapons[nextIndex];
-            if (def == null || !def.CanEnterCycle)
+            if (!IsInRuntimeCycle(def))
                 continue;
             if (def.weaponId == currentWeaponId)
                 return;
@@ -171,35 +176,122 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 在 CanEnterCycle 武器列表中取环形前一位 / 后一位（与 Q/E 轮换同一过滤规则）。
+    /// 按 weapons 数组顺序收集当前运行时循环（有弹药且允许轮换；全空时仅手枪）。
     /// </summary>
-    public bool TryGetCycleNeighbors(int weaponId, out int prevId, out int nextId)
+    public int GetRuntimeCycleIds(List<int> buffer)
     {
-        prevId = weaponId;
-        nextId = weaponId;
+        if (buffer == null)
+            return 0;
 
-        if (weapons == null || weapons.Length == 0)
-            return false;
+        buffer.Clear();
+        if (weapons == null)
+            return 0;
 
-        var cycleIds = new System.Collections.Generic.List<int>(weapons.Length);
         for (int i = 0; i < weapons.Length; i++)
         {
             var def = weapons[i];
-            if (def != null && def.CanEnterCycle)
-                cycleIds.Add(def.weaponId);
+            if (IsInRuntimeCycle(def))
+                buffer.Add(def.weaponId);
         }
 
-        if (cycleIds.Count == 0)
-            return false;
+        return buffer.Count;
+    }
 
-        int index = cycleIds.IndexOf(weaponId);
+    /// <summary>
+    /// 某类弹药数量变化：0→有弹则入循环并切到该武器；当前武器弹尽则切到 +1 下一把，没有则回手枪。
+    /// </summary>
+    public void OnAmmoChanged(AmmoType type, int before, int after)
+    {
+        if (before == after)
+            return;
+
+        int weaponId = Character.WeaponIdFromAmmo(type);
+        if (weaponId <= 0)
+            return;
+
+        if (before == 0 && after > 0)
+        {
+            SwitchToWeapon(weaponId);
+            return;
+        }
+
+        if (after == 0 && currentWeaponId == weaponId)
+            SwitchToNextRemainingOrPistol();
+    }
+
+    /// <summary>存档/开局纠偏：当前武器已不在循环且不是手枪时，切到下一把或手枪。</summary>
+    public void ReconcileCurrentWeapon()
+    {
+        if (currentWeaponId == initialWeaponId)
+            return;
+        if (IsInRuntimeCycle(GetDefinition(currentWeaponId)))
+            return;
+
+        SwitchToNextRemainingOrPistol();
+    }
+
+    bool IsInRuntimeCycle(WeaponDefinition def)
+    {
+        if (def == null)
+            return false;
+        if (def.weaponId == 0)
+            return !HasAnySpecialAmmo();
+        if (!def.enabledInCycle)
+            return false;
+        return GetAmmoForWeapon(def.weaponId) > 0;
+    }
+
+    bool HasAnySpecialAmmo() => character != null && character.HasAnySpecialAmmo;
+
+    int GetAmmoForWeapon(int weaponId) =>
+        character != null ? character.GetAmmoForWeapon(weaponId) : 0;
+
+    void SwitchToWeapon(int weaponId)
+    {
+        if (weaponId == currentWeaponId)
+            return;
+        if (TrySwitchTo(weaponId))
+            return;
+        ForceSwitchTo(weaponId);
+    }
+
+    void ForceSwitchTo(int weaponId)
+    {
+        var def = GetDefinition(weaponId);
+        if (def == null)
+            return;
+
+        currentWeaponId = weaponId;
+        if (playerAnim != null)
+            playerAnim.ApplyWeaponDefinition(def);
+    }
+
+    void SwitchToNextRemainingOrPistol()
+    {
+        if (weapons == null || weapons.Length == 0)
+        {
+            SwitchToWeapon(initialWeaponId);
+            return;
+        }
+
+        int index = FindIndexByWeaponId(currentWeaponId);
         if (index < 0)
-            return false;
+            index = 0;
 
-        int count = cycleIds.Count;
-        prevId = cycleIds[(index - 1 + count) % count];
-        nextId = cycleIds[(index + 1) % count];
-        return true;
+        int count = weapons.Length;
+        for (int step = 1; step <= count; step++)
+        {
+            int nextIndex = (index + step) % count;
+            var def = weapons[nextIndex];
+            if (!IsInRuntimeCycle(def))
+                continue;
+            if (def.weaponId == currentWeaponId)
+                break;
+            SwitchToWeapon(def.weaponId);
+            return;
+        }
+
+        SwitchToWeapon(initialWeaponId);
     }
 
     int FindIndexByWeaponId(int weaponId)
@@ -244,5 +336,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
         currentWeaponId = weaponId;
         if (playerAnim != null)
             playerAnim.ApplyWeaponDefinition(def);
+
+        ReconcileCurrentWeapon();
     }
 }
