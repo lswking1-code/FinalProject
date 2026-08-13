@@ -324,11 +324,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_Name
-      value: Slope
+      value: LayeredSlope_A
       objectReference: {fileID: 0}
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_Layer
-      value: 12
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_IsActive
@@ -407,14 +407,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 812917862}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3a4b5c6d7e8490123456789abcdef01, type: 3}
+  m_Script: {fileID: 11500000, guid: 9cfc1a29fef1497f9b020af51a684c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  directionMode: 0
+  upperCollider: {fileID: 0}
+  lowerCollider: {fileID: 0}
+  manualAscent: 0
   manualAscentDirection: {x: 1, y: 1}
   junctionRadius: 0.55
-  surfaceMargin: 0.05
-  standMargin: 0.45
+  standMargin: 0.2
+  junctionTriggerWorldSize: 1.2
+  autoCreateJunctionTriggers: 1
 --- !u!251 &812917864
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -422,13 +425,13 @@ PlatformEffector2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812917862}
-  m_Enabled: 1
+  m_Enabled: 0
   m_UseColliderMask: 1
   m_ColliderMask:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RotationalOffset: 0
-  m_UseOneWay: 1
+  m_UseOneWay: 0
   m_UseOneWayGrouping: 0
   m_SurfaceArc: 180
   m_UseSideFriction: 0
@@ -574,7 +577,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 9012345678901234600, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
       propertyPath: m_Name
-      value: OneWayPlatform
+      value: EffectorFlat_B
       objectReference: {fileID: 0}
     - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
       propertyPath: m_LocalScale.x

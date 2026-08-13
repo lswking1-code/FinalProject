@@ -26,7 +26,7 @@ public class SlopeOneWayPlatform : MonoBehaviour
 
     [Header("交界 Trigger")]
     [Tooltip("运行时自动在坡脚/坡顶生成 Trigger（合金弹头式蹲站路径闩锁）")]
-    [SerializeField] bool autoCreateJunctionTriggers = true;
+    [SerializeField] bool autoCreateJunctionTriggers = false;
     [Tooltip("Trigger 世界空间边长（相对 junctionRadius 的倍率）")]
     [SerializeField] float junctionTriggerSizeScale = 2.2f;
 
@@ -49,7 +49,11 @@ public class SlopeOneWayPlatform : MonoBehaviour
         boxCollider = GetComponent<BoxCollider2D>();
         var effector = GetComponent<PlatformEffector2D>();
         if (effector != null)
+        {
+            // SlopeOneWayPlatform 依赖单向碰撞 + IgnoreCollision 交界规则
+            effector.useOneWay = true;
             effector.useSideFriction = true;
+        }
 
         // 确保碰撞体受 PlatformEffector2D 控制（Ground 预制体默认 UsedByEffector=0）
         if (boxCollider != null)
@@ -102,12 +106,10 @@ public class SlopeOneWayPlatform : MonoBehaviour
     }
 
     public bool IsInBottomJunction(Vector2 feetPos) =>
-        bottomTrigger != null && bottomTrigger.PlayerInside
-        || (feetPos - BottomJunctionWorld).sqrMagnitude <= junctionRadius * junctionRadius;
+        (feetPos - BottomJunctionWorld).sqrMagnitude <= junctionRadius * junctionRadius;
 
     public bool IsInTopJunction(Vector2 feetPos) =>
-        topTrigger != null && topTrigger.PlayerInside
-        || (feetPos - TopJunctionWorld).sqrMagnitude <= junctionRadius * junctionRadius;
+        (feetPos - TopJunctionWorld).sqrMagnitude <= junctionRadius * junctionRadius;
 
     /// <summary>
     /// 交界 Trigger 是否对玩家强制覆盖碰撞（在 Trigger 内时）。

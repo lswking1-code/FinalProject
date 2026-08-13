@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 单向平台穿越：通过 Physics2D.IgnoreCollision 动态控制玩家与单向平台的碰撞。
-/// 平台在「从下方/侧方上升且脚底未过顶面」时对玩家等同于空气；
-/// 从上方落下、站在平台上、或在平台顶起跳时保持碰撞。
-/// 由 PlayerMovement 在 FixedUpdate 物理步进前调用 UpdateCollisions()。
+/// 平地单向平台穿越：Physics2D.IgnoreCollision 控制与 Platform 层单向板的碰撞。
+/// 分层斜坡（Terrain_Upper）由 LayeredPathGate 负责，本组件不再处理姿势交界。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
@@ -15,20 +13,14 @@ public class PlatformDropThrough : MonoBehaviour
     const int OverlapBufferSize = 16;
 
     [Header("单向平台判定")]
-    [Tooltip("脚底需高于平台顶面多少才算「越过表面」，避免贴边抖动")]
     [SerializeField] float surfaceMargin = 0.05f;
-    [Tooltip("仅扫描此层的碰撞体；留空则默认 Platform 层")]
     [SerializeField] LayerMask oneWayPlatformLayer;
 
     [Header("主动下穿（下 + 跳）")]
-    [Tooltip("脚底低于平台底边多少时认为已完全穿过，恢复碰撞")]
     [SerializeField] float dropThroughResetMargin = 0.05f;
-    [Tooltip("下穿超时兜底（秒），防止卡死时永久忽略碰撞")]
     [SerializeField] float dropThroughTimeout = 1f;
 
     PhysicsCheck physicsCheck;
-    PlayerMovement playerMovement;
-    PlayerAnimBase playerAnim;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
 
@@ -36,7 +28,6 @@ public class PlatformDropThrough : MonoBehaviour
     readonly HashSet<Collider2D> trackedPlatforms = new HashSet<Collider2D>();
     ContactFilter2D platformFilter;
 
-    // 下+跳触发的强制下穿目标；期间对该平台始终忽略碰撞
     Collider2D activeDropPlatform;
     float dropThroughTimer;
 
@@ -45,8 +36,6 @@ public class PlatformDropThrough : MonoBehaviour
     void Awake()
     {
         physicsCheck = GetComponent<PhysicsCheck>();
-        playerMovement = GetComponent<PlayerMovement>();
-        playerAnim = PlayerAnimBase.Resolve(gameObject);
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
 
@@ -61,9 +50,6 @@ public class PlatformDropThrough : MonoBehaviour
         };
     }
 
-    /// <summary>
-    /// 在 FixedUpdate 物理步进前调用：扫描与玩家重叠的单向平台，按规则忽略/恢复碰撞。
-    /// </summary>
     public void UpdateCollisions()
     {
         UpdateDropThroughState();
@@ -80,6 +66,11 @@ public class PlatformDropThrough : MonoBehaviour
             if (col == null || col == capsuleCollider)
                 continue;
 
+            // 分层斜坡交给 LayeredPathGate
+            if (col.GetComponent<SlopePathSegment>() != null
+                || col.GetComponentInParent<SlopePathSegment>() != null)
+                continue;
+
             if (!IsOneWayPlatform(col))
                 continue;
 
@@ -88,7 +79,6 @@ public class PlatformDropThrough : MonoBehaviour
             trackedPlatforms.Add(col);
         }
 
-        // 离开重叠范围的平台需恢复碰撞，避免 IgnoreCollision 残留
         var toRemove = new List<Collider2D>();
         foreach (Collider2D tracked in trackedPlatforms)
         {
@@ -109,9 +99,6 @@ public class PlatformDropThrough : MonoBehaviour
             trackedPlatforms.Remove(toRemove[i]);
     }
 
-    /// <summary>
-    /// 尝试从所站单向平台主动下落（下方向 + 跳跃）。成功时由 PlayerMovement 消费跳跃缓冲。
-    /// </summary>
     public bool TryBeginDropThrough(Vector2 moveInput, float inputThreshold)
     {
         if (activeDropPlatform != null)
@@ -129,183 +116,48 @@ public class PlatformDropThrough : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// 单向平台当前是否应对玩家产生碰撞（供 PhysicsCheck 过滤地面射线与贴墙判定）。
-    /// 非单向平台始终返回 true，不影响普通 Ground。
-    /// </summary>
     public bool ShouldCollideWith(Collider2D platform)
     {
-        if (platform == null || !IsOneWayPlatform(platform))
+        if (platform == null)
+            return true;
+
+        if (platform.GetComponent<SlopePathSegment>() != null
+            || platform.GetComponentInParent<SlopePathSegment>() != null)
+            return !Physics2D.GetIgnoreCollision(capsuleCollider, platform);
+
+        if (!IsOneWayPlatform(platform))
             return true;
 
         return ShouldCollideForPhysics(platform);
     }
 
-    /// <summary>
-    /// 供 PhysicsCheck 地面射线过滤：斜坡在可站立范围内始终视为实体地面。
-    /// </summary>
     public bool ShouldCountAsGround(Collider2D platform, Vector2 hitNormal)
     {
-        if (platform == null || !IsOneWayPlatform(platform))
+        if (platform == null)
             return true;
 
-        var slope = platform.GetComponent<SlopeOneWayPlatform>();
-        if (slope == null)
-            return ShouldCollideForPhysics(platform);
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+        {
+            if (hitNormal.y <= 0.5f)
+                return false;
+            if (Physics2D.GetIgnoreCollision(capsuleCollider, pathSlope.UpperCollider))
+                return false;
+            return pathSlope.IsFeetAboveSurface(GetFeetPosition());
+        }
+
+        if (!IsOneWayPlatform(platform))
+            return true;
 
         if (hitNormal.y <= 0.5f)
             return false;
 
-        Vector2 feetPos = GetFeetPosition();
-        return slope.IsFeetAboveSurface(feetPos);
-    }
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+            return legacySlope.IsFeetAboveSurface(GetFeetPosition());
 
-    /// <summary>
-    /// 平地坡脚入口：站在近似水平地面、位于 BottomJunction、朝上坡输入且非蹲姿。
-    /// 成功时返回与上坡方向对齐的表面切向，供移动在 !isOnSlope 时沿坡抬升。
-    /// </summary>
-    public bool TryGetBottomSlopeEntry(out SlopeOneWayPlatform slope, out Vector2 ascentTangent)
-    {
-        slope = null;
-        ascentTangent = Vector2.right;
-
-        if (physicsCheck == null || playerMovement == null)
-            return false;
-
-        if (!physicsCheck.isGround || physicsCheck.groundNormal.y <= 0.9f)
-            return false;
-
-        if (physicsCheck.isOnSlope)
-            return false;
-
-        float inputThreshold = playerMovement.InputThreshold;
-        Vector2 moveInput = playerMovement.MoveInput;
-        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (Mathf.Approximately(moveX, 0f))
-            return false;
-
-        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
-        if (isCrouching)
-            return false;
-
-        Vector2 feetPos = GetFeetPosition();
-        if (!TryFindNearbySlope(feetPos, preferTop: false, out slope))
-            return false;
-
-        if (!slope.IsInBottomJunction(feetPos))
-            return false;
-
-        // Trigger 平地路径闩锁时不允许抬升上坡
-        if (slope.BottomTrigger != null
-            && slope.BottomTrigger.TryGetCollisionOverride(capsuleCollider, out bool onSlopePath)
-            && !onSlopePath)
-            return false;
-
-        Vector2 horizontalMove = new Vector2(moveX, 0f);
-        float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
-        if (towardAscent <= inputThreshold)
-            return false;
-
-        ascentTangent = slope.GetSurfaceTangentAligned(moveX);
-        return true;
-    }
-
-    /// <summary>
-    /// 平地坡顶入口：站在上方水平地面、位于 TopJunction、蹲下且朝下坡输入。
-    /// 成功时返回与下坡方向对齐的表面切向。
-    /// </summary>
-    public bool TryGetTopSlopeEntry(out SlopeOneWayPlatform slope, out Vector2 descentTangent)
-    {
-        slope = null;
-        descentTangent = Vector2.right;
-
-        if (physicsCheck == null || playerMovement == null)
-            return false;
-
-        if (!physicsCheck.isGround || physicsCheck.groundNormal.y <= 0.9f)
-            return false;
-
-        if (physicsCheck.isOnSlope)
-            return false;
-
-        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
-        if (!isCrouching)
-            return false;
-
-        float inputThreshold = playerMovement.InputThreshold;
-        Vector2 moveInput = playerMovement.MoveInput;
-        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        if (Mathf.Approximately(moveX, 0f))
-            return false;
-
-        Vector2 feetPos = GetFeetPosition();
-        if (!TryFindNearbySlope(feetPos, preferTop: true, out slope))
-            return false;
-
-        if (!slope.IsInTopJunction(feetPos))
-            return false;
-
-        // Trigger 平地路径闩锁时不允许切入下坡
-        if (slope.TopTrigger != null
-            && slope.TopTrigger.TryGetCollisionOverride(capsuleCollider, out bool onSlopePath)
-            && !onSlopePath)
-            return false;
-
-        Vector2 horizontalMove = new Vector2(moveX, 0f);
-        float towardDescent = Vector2.Dot(horizontalMove, -slope.AscentDirection);
-        if (towardDescent <= inputThreshold)
-            return false;
-
-        descentTangent = slope.GetSurfaceTangentAligned(moveX);
-        return true;
-    }
-
-    bool TryFindNearbySlope(Vector2 feetPos, bool preferTop, out SlopeOneWayPlatform slope)
-    {
-        SlopeOneWayPlatform best = null;
-        float bestDistSq = float.MaxValue;
-
-        void Consider(SlopeOneWayPlatform candidate)
-        {
-            if (candidate == null)
-                return;
-
-            Vector2 junction = preferTop ? candidate.TopJunctionWorld : candidate.BottomJunctionWorld;
-            float distSq = (feetPos - junction).sqrMagnitude;
-            if (distSq < bestDistSq)
-            {
-                bestDistSq = distSq;
-                best = candidate;
-            }
-        }
-
-        foreach (Collider2D tracked in trackedPlatforms)
-        {
-            if (!IsColliderAlive(tracked))
-                continue;
-            Consider(tracked.GetComponent<SlopeOneWayPlatform>());
-        }
-
-        if (best != null)
-        {
-            slope = best;
-            return true;
-        }
-
-        // tracked 为空时（尚未重叠）用短距扫描，避免必须先顶进碰撞体
-        float searchRadius = 0.7f;
-        int count = Physics2D.OverlapCircle(
-            feetPos, searchRadius, platformFilter, overlapBuffer);
-        for (int i = 0; i < count; i++)
-        {
-            Collider2D col = overlapBuffer[i];
-            if (!IsColliderAlive(col) || col == capsuleCollider)
-                continue;
-            Consider(col.GetComponent<SlopeOneWayPlatform>());
-        }
-
-        slope = best;
-        return best != null;
+        return ShouldCollideForPhysics(platform);
     }
 
     Vector2 GetFeetPosition() =>
@@ -317,112 +169,43 @@ public class PlatformDropThrough : MonoBehaviour
         return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
     }
 
-    /// <summary>
-    /// 核心判定：区分「从下方/侧方穿过」与「从上方落下/站在平台上/在平台顶起跳」。
-    /// 旧逻辑要求脚底始终高于顶面才碰撞，落地穿透顶面那一帧会关闭碰撞导致穿板。
-    /// </summary>
     bool ShouldCollide(Collider2D platform, float playerFeet, Vector2 feetPos, float vy)
     {
         if (activeDropPlatform == platform)
             return false;
 
-        var slope = platform.GetComponent<SlopeOneWayPlatform>();
-        if (slope != null)
-            return ShouldCollideWithSlope(slope, feetPos, vy);
+        // 遗留厚盒斜坡：仅单向基线，无姿势交界
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+        {
+            float signedDist = legacySlope.GetSignedDistanceToSurface(feetPos);
+            return ComputeSlopeOneWayCollision(
+                signedDist, vy, legacySlope.SurfaceMargin, legacySlope.StandMargin);
+        }
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
 
-        // 在平台下方：视为空气（从底下往上跳、从侧下方接近）
         if (playerFeet < platformBottom - surfaceMargin)
             return false;
 
-        // 上升且脚底尚未越过顶面：从下方/侧方上穿
         if (vy > 0f && playerFeet < platformTop - surfaceMargin)
             return false;
 
-        // 下落且已进入平台垂直范围（含压过顶面的落地帧）
         if (vy <= 0f && playerFeet >= platformBottom - surfaceMargin)
             return true;
 
-        // 在平台顶面起跳：保持碰撞，避免在平台上跳时穿板
         return playerFeet >= platformTop - surfaceMargin;
     }
 
-    bool ShouldCollideWithSlope(
-        SlopeOneWayPlatform slope,
-        Vector2 feetPos,
-        float vy)
-    {
-        // 脚底已低于碰撞体 AABB 底边：整块体积已穿过，不可再当落地目标（防止下穿复位时弹回）
-        Collider2D platformCol = slope.Collider;
-        if (platformCol != null && feetPos.y < platformCol.bounds.min.y - surfaceMargin)
-            return false;
-
-        float margin = slope.SurfaceMargin;
-        float standMargin = slope.StandMargin;
-        float signedDist = slope.GetSignedDistanceToSurface(feetPos);
-        bool baseCollide = ComputeSlopeOneWayCollision(signedDist, vy, margin, standMargin);
-
-        // 交界 Trigger 闩锁：平地路径强制忽略；坡路径走单向/可站立逻辑
-        if (slope.TryGetJunctionCollisionOverride(capsuleCollider, out bool forceCollide))
-        {
-            if (!forceCollide)
-                return false;
-            return baseCollide;
-        }
-
-        // 无 Trigger 覆盖时的兜底（兼容旧场景仅用半径球）
-        bool onHorizontalGround = physicsCheck.isGround && physicsCheck.groundNormal.y > 0.9f;
-        if (!onHorizontalGround || playerMovement == null)
-            return baseCollide;
-
-        float inputThreshold = playerMovement.InputThreshold;
-        Vector2 moveInput = playerMovement.MoveInput;
-        float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
-        bool isCrouching = playerAnim != null && playerAnim.IsCrouching;
-        Vector2 horizontalMove = new Vector2(moveX, 0f);
-
-        if (slope.IsInBottomJunction(feetPos))
-        {
-            // 下方平地：无上坡意图时忽略，避免站起/重叠时被吸上坡
-            float towardAscent = Vector2.Dot(horizontalMove, slope.AscentDirection);
-            bool wantEnter = !isCrouching
-                && (towardAscent > inputThreshold || vy > 0.15f);
-            if (!wantEnter)
-                return false;
-            return baseCollide;
-        }
-
-        if (slope.IsInTopJunction(feetPos))
-        {
-            // 上方平地：仅蹲+朝下坡才碰撞；否则忽略，避免站走/蹲着不动切入坡
-            float towardDescent = Vector2.Dot(horizontalMove, -slope.AscentDirection);
-            bool wantEnter = isCrouching && towardDescent > inputThreshold;
-            if (!wantEnter)
-                return false;
-            return baseCollide;
-        }
-
-        return baseCollide;
-    }
-
-    /// <summary>
-    /// 斜坡单向：可站立区始终碰撞（含起跳）；从下方上升可穿越；落下可站立。
-    /// </summary>
     static bool ComputeSlopeOneWayCollision(float signedDist, float vy, float margin, float standMargin)
     {
         if (signedDist < -(margin + standMargin))
             return false;
-
-        // 可站立区：保持碰撞，站上起跳不会穿坡
         if (signedDist >= -standMargin)
             return true;
-
-        // 坡体内部：上升穿越，下落接住
         if (vy > 0.15f)
             return false;
-
         return true;
     }
 
@@ -447,6 +230,10 @@ public class PlatformDropThrough : MonoBehaviour
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
 
+        if (hit.collider.GetComponent<SlopePathSegment>() != null
+            || hit.collider.GetComponentInParent<SlopePathSegment>() != null)
+            return false;
+
         if (!IsOneWayPlatform(hit.collider))
             return false;
 
@@ -459,15 +246,7 @@ public class PlatformDropThrough : MonoBehaviour
         if (activeDropPlatform == null)
             return;
 
-        if (!IsColliderAlive(activeDropPlatform))
-        {
-            activeDropPlatform = null;
-            dropThroughTimer = 0f;
-            return;
-        }
-
         dropThroughTimer -= Time.fixedDeltaTime;
-
         if (dropThroughTimer <= 0f)
         {
             ResetDropThrough();
@@ -476,16 +255,14 @@ public class PlatformDropThrough : MonoBehaviour
 
         float playerFeet = capsuleCollider.bounds.min.y;
         float platformBottom = activeDropPlatform.bounds.min.y;
-        var slope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>();
-
-        // 斜坡与平地统一：脚底过碰撞体底边后再恢复碰撞。
-        // 旧斜坡逻辑用 signedDist + standMargin/2，脚刚出底边仍在 stand 带内会 shouldCollide=true 被顶回。
         bool clearOfPlatform = playerFeet < platformBottom - dropThroughResetMargin;
-        if (slope != null)
+
+        var legacySlope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
         {
-            Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, playerFeet);
-            float signedDist = slope.GetSignedDistanceToSurface(feetPos);
-            float airClear = slope.SurfaceMargin + slope.StandMargin + dropThroughResetMargin;
+            Vector2 feetPos = GetFeetPosition();
+            float signedDist = legacySlope.GetSignedDistanceToSurface(feetPos);
+            float airClear = legacySlope.SurfaceMargin + legacySlope.StandMargin + dropThroughResetMargin;
             clearOfPlatform = clearOfPlatform || signedDist < -airClear;
         }
 
@@ -495,17 +272,11 @@ public class PlatformDropThrough : MonoBehaviour
 
     void SetCollisionIgnored(Collider2D platform, bool ignore)
     {
-        if (!IsColliderAlive(capsuleCollider) || !IsColliderAlive(platform))
+        if (capsuleCollider == null || platform == null)
             return;
-
         Physics2D.IgnoreCollision(capsuleCollider, platform, ignore);
     }
 
-    static bool IsColliderAlive(Collider2D col) => col != null;
-
-    /// <summary>
-    /// 带 PlatformEffector2D 且启用 One Way 的碰撞体视为单向平台。
-    /// </summary>
     static bool IsOneWayPlatform(Collider2D col)
     {
         var effector = col.GetComponent<PlatformEffector2D>();
@@ -514,9 +285,8 @@ public class PlatformDropThrough : MonoBehaviour
 
     void ResetDropThrough()
     {
-        if (IsColliderAlive(activeDropPlatform))
+        if (activeDropPlatform != null)
             SetCollisionIgnored(activeDropPlatform, false);
-
         activeDropPlatform = null;
         dropThroughTimer = 0f;
     }
@@ -525,10 +295,9 @@ public class PlatformDropThrough : MonoBehaviour
     {
         foreach (Collider2D tracked in trackedPlatforms)
         {
-            if (IsColliderAlive(tracked))
+            if (tracked != null)
                 SetCollisionIgnored(tracked, false);
         }
-
         trackedPlatforms.Clear();
         ResetDropThrough();
     }

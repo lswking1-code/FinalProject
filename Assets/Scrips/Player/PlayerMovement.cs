@@ -35,6 +35,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
     PlatformDropThrough platformDropThrough;
+    LayeredPathGate layeredPathGate;
     PlayerAnimBase playerAnim;
     InputSystem_Actions actions;
     CapsuleCollider2D capsuleCollider;
@@ -98,6 +99,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
         platformDropThrough = GetComponent<PlatformDropThrough>();
+        layeredPathGate = GetComponent<LayeredPathGate>();
+        if (layeredPathGate == null)
+            layeredPathGate = gameObject.AddComponent<LayeredPathGate>();
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         if (playerAnim == null)
             Debug.LogError("PlayerMovement 需要 PlayerAnim 或 PlayerFullBodyAnim 组件。", this);
@@ -176,6 +180,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             slopeDetachTimer -= Time.fixedDeltaTime;
 
         UpdateRobotPlatformDetach();
+
+        if (layeredPathGate != null)
+            layeredPathGate.UpdatePathCollisions();
 
         if (platformDropThrough != null)
             platformDropThrough.UpdateCollisions();
@@ -342,12 +349,23 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             if (contact.normal.y <= 0.5f)
                 continue;
 
+            var pathSlope = collision.collider.GetComponent<SlopePathSegment>()
+                ?? collision.collider.GetComponentInParent<SlopePathSegment>();
+            if (pathSlope != null)
+            {
+                Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
+                if (!pathSlope.IsFeetAboveSurface(feetPos))
+                    continue;
+                MaintainSlopeContact(contact.normal);
+                return;
+            }
+
             var slope = collision.collider.GetComponent<SlopeOneWayPlatform>();
             if (slope == null)
                 continue;
 
-            Vector2 feetPos = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
-            if (!slope.IsFeetAboveSurface(feetPos))
+            Vector2 legacyFeet = new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
+            if (!slope.IsFeetAboveSurface(legacyFeet))
                 continue;
 
             MaintainSlopeContact(contact.normal);
@@ -776,11 +794,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         float moveX = Mathf.Abs(moveInput.x) > inputThreshold ? Mathf.Sign(moveInput.x) : 0f;
         Vector2 entryTangent = Vector2.zero;
-        bool bottomEntry = platformDropThrough != null
-            && platformDropThrough.TryGetBottomSlopeEntry(out _, out entryTangent);
+        bool bottomEntry = layeredPathGate != null
+            && layeredPathGate.TryGetBottomSlopeEntry(out _, out entryTangent);
         bool topEntry = !bottomEntry
-            && platformDropThrough != null
-            && platformDropThrough.TryGetTopSlopeEntry(out _, out entryTangent);
+            && layeredPathGate != null
+            && layeredPathGate.TryGetTopSlopeEntry(out _, out entryTangent);
         bool slopeEntry = bottomEntry || topEntry;
         if (!physicsCheck.isOnSlope && !slopeEntry && physicsCheck.IsBlockedHorizontally(moveX))
             moveX = 0f;
@@ -824,7 +842,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             }
             else if (slopeEntry)
             {
-                // 坡脚过渡：沿坡面切向抬升，避免纯水平撞厚盒端面
+                // 坡脚/坡顶过渡：沿坡面切向切入，避免纯水平撞厚盒端面
                 rb.linearVelocity = entryTangent * speed;
             }
             else
@@ -864,9 +882,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
 
         // 坡脚/坡顶过渡中允许沿切向顶入，不被侧墙速度清除打断
-        if (platformDropThrough != null
-            && (platformDropThrough.TryGetBottomSlopeEntry(out _, out _)
-                || platformDropThrough.TryGetTopSlopeEntry(out _, out _)))
+        if (layeredPathGate != null
+            && (layeredPathGate.TryGetBottomSlopeEntry(out _, out _)
+                || layeredPathGate.TryGetTopSlopeEntry(out _, out _)))
             return;
 
         if (physicsCheck.IsBlockedHorizontally(-1f) && rb.linearVelocity.x < 0f)

@@ -193,6 +193,16 @@ public class PhysicsCheck : MonoBehaviour
         if (IsCollisionIgnored(col))
             return false;
 
+        var pathSlope = col.GetComponent<SlopePathSegment>()
+            ?? col.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+        {
+            if (coll == null)
+                return false;
+            Vector2 feetPos = new Vector2(coll.bounds.center.x, coll.bounds.min.y);
+            return pathSlope.IsFeetAboveSurface(feetPos);
+        }
+
         var slope = col.GetComponent<SlopeOneWayPlatform>();
         if (slope != null)
         {
@@ -216,6 +226,10 @@ public class PhysicsCheck : MonoBehaviour
     {
         if (hit == null)
             return false;
+
+        if (hit.GetComponent<SlopePathSegment>() != null
+            || hit.GetComponentInParent<SlopePathSegment>() != null)
+            return true;
 
         if (hit.GetComponent<SlopeOneWayPlatform>() != null)
             return true;

@@ -305,6 +305,8 @@ public class CameraAirborneYLock : MonoBehaviour
             return;
 
         var go = new GameObject("CameraFollowAnchor");
+        // 运行时临时物体：勿进场景/Prefab，也避免 Inspector 误持久化
+        go.hideFlags = HideFlags.HideAndDontSave;
         followAnchor = go.transform;
         followAnchor.position = transform.position;
     }
