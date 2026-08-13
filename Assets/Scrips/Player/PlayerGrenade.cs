@@ -9,6 +9,10 @@ public class PlayerGrenade : MonoBehaviour
 
     [SerializeField] float horizontalSpeed = 7f;
     [SerializeField] float verticalSpeed = 5f;
+    [Tooltip("生成时沿面向施加的冲量；0 表示不加力")]
+    [SerializeField] float forwardImpulse = 0f;
+    [Tooltip(">=0 时覆盖碰撞体摩擦，便于贴地滚动；-1 表示不改")]
+    [SerializeField] float rollFriction = -1f;
     [SerializeField] float fuseTime = 2.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
     [SerializeField, Range(0f, 1f)] float playerHorizontalInherit = 0.5f;
@@ -30,6 +34,22 @@ public class PlayerGrenade : MonoBehaviour
         grenadeCollider = GetComponent<CircleCollider2D>();
         animator = GetComponent<Animator>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        ApplyRollFriction();
+    }
+
+    void ApplyRollFriction()
+    {
+        if (rollFriction < 0f)
+            return;
+
+        var mat = new PhysicsMaterial2D("GrenadeRollFriction")
+        {
+            friction = rollFriction,
+            bounciness = 0f
+        };
+        rb.sharedMaterial = mat;
+        if (grenadeCollider != null)
+            grenadeCollider.sharedMaterial = mat;
     }
 
     public void Init(float faceDir, Vector2 playerVelocity, Collider2D playerCollider)
@@ -43,6 +63,8 @@ public class PlayerGrenade : MonoBehaviour
             playerVelocity.x * playerHorizontalInherit,
             playerVelocity.y * playerVerticalInherit);
         rb.linearVelocity = inherited + new Vector2(dir * horizontalSpeed, verticalSpeed);
+        if (forwardImpulse > 0f)
+            rb.AddForce(new Vector2(dir * forwardImpulse, 0f), ForceMode2D.Impulse);
 
         if (playerCollider != null && grenadeCollider != null)
             Physics2D.IgnoreCollision(grenadeCollider, playerCollider);

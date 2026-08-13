@@ -110,6 +110,7 @@ GameObject:
   - component: {fileID: 7012345678901234509}
   - component: {fileID: 1694693321125183778}
   - component: {fileID: 8745291038472619053}
+  - component: {fileID: 7361849205738192641}
   - component: {fileID: 5018437577157129018}
   - component: {fileID: 3610466219504325499}
   - component: {fileID: 7354277962619288622}
@@ -124,7 +125,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &146101076622597715
 Transform:
   m_ObjectHideFlags: 0
@@ -151,6 +152,7 @@ Transform:
   - {fileID: 2800417885547717695}
   - {fileID: 110083845953367507}
   - {fileID: 4872282871612612448}
+  - {fileID: 917219248489920706}
   - {fileID: 7012345678901234502}
   - {fileID: 7012345678901234504}
   m_Father: {fileID: 0}
@@ -198,8 +200,8 @@ MonoBehaviour:
   airHangVelocityY: 0
   airHangFadeDuration: 0.75
   airHangFadedVelocityY: -6
-  newGameEvent: {fileID: 0}
-  afterSceneLoadedEvent: {fileID: 0}
+  newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
+  afterSceneLoadedEvent: {fileID: 11400000, guid: 42cf5fe4fdc9a404a902a319ad945f27, type: 2}
   dbgKPressedThisUpdate: 0
   dbgJumpBuffered: 0
   dbgJumpBufferRemaining: 0
@@ -413,6 +415,25 @@ MonoBehaviour:
   grenadePrefab: {fileID: 2000000000000000006, guid: c3d4e5f6a7b8490123cdef3456789012, type: 3}
   standingThrowPoint: {fileID: 110083845953367507}
   crouchThrowPoint: {fileID: 4872282871612612448}
+--- !u!114 &7361849205738192641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b7c8d9e0f1a234567890bcdef1234567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rollGrenadePrefab: {fileID: 3100000000000000006, guid: e8f9a0b1c2d345678901cdef23456789, type: 3}
+  throwPoint: {fileID: 917219248489920706}
+  abilityPowerCost: 20
+  grenadeBulletPrefab: {fileID: 4100000000000000006, guid: f0a1b2c3d4e556789012cdef3456789a, type: 3}
+  bulletFirePoint: {fileID: 6318182655831269073}
+  bulletAbilityPowerCost: 20
+  holdThreshold: 0.2
 --- !u!114 &5018437577157129018
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476,7 +497,7 @@ MonoBehaviour:
   powerRecoverSpeed: 0
   maxAbilityPower: 100
   AbilityPower: 100
-  AbilityPowerRecoverSpeed: 10
+  AbilityPowerRecoverSpeed: 0
   pauseAbilityPowerRecover: 0
   BulletS: 0
   BulletM: 0
@@ -1386,6 +1407,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f6478990abcdef98765432, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7312439867950521684
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 917219248489920706}
+  m_Layer: 9
+  m_Name: ThrowPoint3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &917219248489920706
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7312439867950521684}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 0.33, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 146101076622597715}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7530103475496482557
 GameObject:
   m_ObjectHideFlags: 0

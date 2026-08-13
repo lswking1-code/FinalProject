@@ -106,15 +106,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Throw",
-                    "type": "Button",
-                    "id": "b8e4f1a2-3c5d-4e6f-9a0b-1c2d3e4f5a6b",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "RobotMove",
                     "type": "Value",
                     "id": "4bd3f48a-e42c-40e9-af62-b2de3d0e8ade",
@@ -463,17 +454,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Ability2",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "c1d2e3f4-a5b6-4789-0cde-f123456789ab",
-                    "path": "<Keyboard>/u",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Keyboard&Mouse",
-                    "action": "Throw",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

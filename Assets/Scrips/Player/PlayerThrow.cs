@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(100)]
 [RequireComponent(typeof(PlayerAnimBase))]
@@ -10,7 +9,6 @@ public class PlayerThrow : MonoBehaviour
     [SerializeField] Transform standingThrowPoint;
     [SerializeField] Transform crouchThrowPoint;
 
-    InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
     Collider2D playerCollider;
@@ -18,36 +16,22 @@ public class PlayerThrow : MonoBehaviour
 
     void Awake()
     {
-        actions = new InputSystem_Actions();
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
         playerCollider = GetComponent<Collider2D>();
         playerRb = GetComponent<Rigidbody2D>();
     }
 
-    void OnEnable() => actions.Player.Enable();
-
-    void OnDisable() => actions.Player.Disable();
-
-    void OnDestroy() => actions?.Dispose();
-
-    void Update()
+    public bool TryThrowGrenade()
     {
-        if (playerMovement.IsActionLocked)
-            return;
+        if (playerMovement.IsActionLocked || playerAnim.IsRolling)
+            return false;
 
-        if (playerAnim.IsRolling)
-            return;
-
-        if (actions.Player.Throw.WasPressedThisFrame()
-            && playerAnim.TryPlayThrowAnim())
-            SpawnGrenade();
-    }
-
-    void SpawnGrenade()
-    {
         if (grenadePrefab == null)
-            return;
+            return false;
+
+        if (!playerAnim.TryPlayThrowAnim())
+            return false;
 
         Transform point = playerAnim.IsCrouching ? crouchThrowPoint : standingThrowPoint;
         if (point == null)
@@ -55,5 +39,6 @@ public class PlayerThrow : MonoBehaviour
 
         var grenade = Instantiate(grenadePrefab, point.position, Quaternion.identity);
         grenade.Init(playerMovement.FaceDirection, playerRb.linearVelocity, playerCollider);
+        return true;
     }
 }
