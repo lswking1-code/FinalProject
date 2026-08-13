@@ -103,8 +103,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         physicsCheck = GetComponent<PhysicsCheck>();
         platformDropThrough = GetComponent<PlatformDropThrough>();
         layeredPathGate = GetComponent<LayeredPathGate>();
-        if (layeredPathGate == null)
-            layeredPathGate = gameObject.AddComponent<LayeredPathGate>();
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         if (playerAnim == null)
             Debug.LogError("PlayerMovement 需要 PlayerAnim 或 PlayerFullBodyAnim 组件。", this);
@@ -183,9 +181,6 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             slopeDetachTimer -= Time.fixedDeltaTime;
 
         UpdateRobotPlatformDetach();
-
-        if (layeredPathGate != null)
-            layeredPathGate.UpdatePathCollisions();
 
         if (platformDropThrough != null)
             platformDropThrough.UpdateCollisions();
@@ -479,7 +474,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                 return;
             }
 
-            // 起跳后脚仍可能扫到地面；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
+            // 起跳后 coyote 期间 isGround 仍为 true；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
             if (playerAnim.CurrentAirPhase != PlayerAnimBase.AirPhaseType.Ground)
                 return;
             if (rb.linearVelocity.y > 0.05f)
@@ -812,7 +807,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (physicsCheck.isGround)
         {
-            // 斜坡起跳后脚仍可能扫到坡面，不能覆盖上升速度
+            // 斜坡起跳后 coyote 仍可能判接地，不能覆盖上升速度
             if (IsSlopeDetached)
             {
                 if (moveX != 0f)
@@ -849,7 +844,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             }
             else if (slopeEntry)
             {
-                // 坡脚/坡顶过渡：沿坡面切向切入，避免纯水平撞厚盒端面
+                // 坡脚/坡顶过渡：沿坡面切向切入
                 rb.linearVelocity = entryTangent * speed;
             }
             else
@@ -1024,6 +1019,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         moveInput = Vector2.zero;
         jumpPressed = false;
         jumpBufferCounter = 0f;
+        coyoteCounter = 0f;
+        jumpedThisAirborne = false;
+        DidGroundJumpThisFixedUpdate = false;
         lastKPressFrame = -1;
         slopeDetachTimer = 0f;
         RestoreRobotTopCollision();

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 平地单向平台穿越：Physics2D.IgnoreCollision 控制与 Platform 层单向板的碰撞。
-/// 分层斜坡（Terrain_Upper）由 LayeredPathGate 负责，本组件不再处理姿势交界。
+/// 单向平台穿越（Platform 层）：通过 Physics2D.IgnoreCollision 控制从下穿过/站上。
+/// 分层斜坡（Terrain_Upper/Lower）改由 LayeredPathGate 处理，本脚本不再管斜坡交界。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
@@ -65,13 +65,11 @@ public class PlatformDropThrough : MonoBehaviour
             Collider2D col = overlapBuffer[i];
             if (col == null || col == capsuleCollider)
                 continue;
-
-            // 分层斜坡交给 LayeredPathGate
+            if (!IsOneWayPlatform(col))
+                continue;
+            // 分层斜坡不走本系统
             if (col.GetComponent<SlopePathSegment>() != null
                 || col.GetComponentInParent<SlopePathSegment>() != null)
-                continue;
-
-            if (!IsOneWayPlatform(col))
                 continue;
 
             activeThisFrame.Add(col);
@@ -103,10 +101,8 @@ public class PlatformDropThrough : MonoBehaviour
     {
         if (activeDropPlatform != null)
             return false;
-
         if (moveInput.y >= -inputThreshold)
             return false;
-
         if (!TryGetOneWayPlatformBelow(out Collider2D platformCollider))
             return false;
 
@@ -118,95 +114,54 @@ public class PlatformDropThrough : MonoBehaviour
 
     public bool ShouldCollideWith(Collider2D platform)
     {
-        if (platform == null)
+        if (platform == null || !IsOneWayPlatform(platform))
             return true;
-
         if (platform.GetComponent<SlopePathSegment>() != null
             || platform.GetComponentInParent<SlopePathSegment>() != null)
-            return !Physics2D.GetIgnoreCollision(capsuleCollider, platform);
-
-        if (!IsOneWayPlatform(platform))
             return true;
 
-        return ShouldCollideForPhysics(platform);
+        Vector2 feetPos = GetFeetPosition();
+        return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
     }
 
     public bool ShouldCountAsGround(Collider2D platform, Vector2 hitNormal)
     {
-        if (platform == null)
-            return true;
-
-        var pathSlope = platform.GetComponent<SlopePathSegment>()
-            ?? platform.GetComponentInParent<SlopePathSegment>();
-        if (pathSlope != null)
-        {
-            if (hitNormal.y <= 0.5f)
-                return false;
-            if (Physics2D.GetIgnoreCollision(capsuleCollider, pathSlope.UpperCollider))
-                return false;
-            return pathSlope.IsFeetAboveSurface(GetFeetPosition());
-        }
-
-        if (!IsOneWayPlatform(platform))
+        if (platform == null || !IsOneWayPlatform(platform))
             return true;
 
         if (hitNormal.y <= 0.5f)
             return false;
 
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return pathSlope.IsFeetAboveSurface(GetFeetPosition());
+
         var legacySlope = platform.GetComponent<SlopeOneWayPlatform>();
         if (legacySlope != null)
             return legacySlope.IsFeetAboveSurface(GetFeetPosition());
 
-        return ShouldCollideForPhysics(platform);
+        return ShouldCollideWith(platform);
     }
 
     Vector2 GetFeetPosition() =>
         new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
-
-    bool ShouldCollideForPhysics(Collider2D platform)
-    {
-        Vector2 feetPos = GetFeetPosition();
-        return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
-    }
 
     bool ShouldCollide(Collider2D platform, float playerFeet, Vector2 feetPos, float vy)
     {
         if (activeDropPlatform == platform)
             return false;
 
-        // 遗留厚盒斜坡：仅单向基线，无姿势交界
-        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>();
-        if (legacySlope != null)
-        {
-            float signedDist = legacySlope.GetSignedDistanceToSurface(feetPos);
-            return ComputeSlopeOneWayCollision(
-                signedDist, vy, legacySlope.SurfaceMargin, legacySlope.StandMargin);
-        }
-
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
 
         if (playerFeet < platformBottom - surfaceMargin)
             return false;
-
         if (vy > 0f && playerFeet < platformTop - surfaceMargin)
             return false;
-
         if (vy <= 0f && playerFeet >= platformBottom - surfaceMargin)
             return true;
-
         return playerFeet >= platformTop - surfaceMargin;
-    }
-
-    static bool ComputeSlopeOneWayCollision(float signedDist, float vy, float margin, float standMargin)
-    {
-        if (signedDist < -(margin + standMargin))
-            return false;
-        if (signedDist >= -standMargin)
-            return true;
-        if (vy > 0.15f)
-            return false;
-        return true;
     }
 
     bool TryGetOneWayPlatformBelow(out Collider2D platformCollider)
@@ -232,12 +187,10 @@ public class PlatformDropThrough : MonoBehaviour
 
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
-
+        if (!IsOneWayPlatform(hit.collider))
+            return false;
         if (hit.collider.GetComponent<SlopePathSegment>() != null
             || hit.collider.GetComponentInParent<SlopePathSegment>() != null)
-            return false;
-
-        if (!IsOneWayPlatform(hit.collider))
             return false;
 
         platformCollider = hit.collider;
@@ -249,6 +202,13 @@ public class PlatformDropThrough : MonoBehaviour
         if (activeDropPlatform == null)
             return;
 
+        if (!activeDropPlatform)
+        {
+            activeDropPlatform = null;
+            dropThroughTimer = 0f;
+            return;
+        }
+
         dropThroughTimer -= Time.fixedDeltaTime;
         if (dropThroughTimer <= 0f)
         {
@@ -258,18 +218,7 @@ public class PlatformDropThrough : MonoBehaviour
 
         float playerFeet = capsuleCollider.bounds.min.y;
         float platformBottom = activeDropPlatform.bounds.min.y;
-        bool clearOfPlatform = playerFeet < platformBottom - dropThroughResetMargin;
-
-        var legacySlope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>();
-        if (legacySlope != null)
-        {
-            Vector2 feetPos = GetFeetPosition();
-            float signedDist = legacySlope.GetSignedDistanceToSurface(feetPos);
-            float airClear = legacySlope.SurfaceMargin + legacySlope.StandMargin + dropThroughResetMargin;
-            clearOfPlatform = clearOfPlatform || signedDist < -airClear;
-        }
-
-        if (clearOfPlatform)
+        if (playerFeet < platformBottom - dropThroughResetMargin)
             ResetDropThrough();
     }
 

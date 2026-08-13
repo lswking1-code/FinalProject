@@ -324,11 +324,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_Name
-      value: LayeredSlope_A
+      value: Slope
       objectReference: {fileID: 0}
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_Layer
-      value: 17
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4556995709887444936, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
       propertyPath: m_IsActive
@@ -407,15 +407,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 812917862}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cfc1a29fef1497f9b020af51a684c2d, type: 3}
+  m_Script: {fileID: 11500000, guid: 13285c50fde4fb34981f495b174eb94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   upperCollider: {fileID: 0}
   lowerCollider: {fileID: 0}
+  autoCreateLowerCollider: 1
+  flattenToThinSurface: 1
+  thinSurfaceHeight: 0.15
   manualAscent: 0
   manualAscentDirection: {x: 1, y: 1}
   junctionRadius: 0.55
-  standMargin: 0.2
+  standMargin: 0.25
   junctionTriggerWorldSize: 1.2
   autoCreateJunctionTriggers: 1
 --- !u!251 &812917864
@@ -577,7 +580,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 9012345678901234600, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
       propertyPath: m_Name
-      value: EffectorFlat_B
+      value: OneWayPlatform
       objectReference: {fileID: 0}
     - target: {fileID: 9012345678901234601, guid: c7d8e9f0a1b2436589abcdef01234567, type: 3}
       propertyPath: m_LocalScale.x

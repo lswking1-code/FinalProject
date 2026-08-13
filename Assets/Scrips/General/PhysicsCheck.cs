@@ -39,7 +39,10 @@ public class PhysicsCheck : MonoBehaviour
     bool collisionGround;
     Vector2 collisionGroundNormal;
     bool wasOnSlope;
+    Vector2 lastGroundNormal;
+    int lastGroundFrame = int.MinValue;
     int lastSlopeFrame = int.MinValue;
+    const int GroundCoyoteFrames = 8;
     const int SlopeCoyoteFrames = 10;
     const float SlopeTransitionCastExtra = 0.45f;
 
@@ -337,11 +340,16 @@ public class PhysicsCheck : MonoBehaviour
                 groundNormal = groundHit.normal;
             else
                 groundNormal = bridgeNormal;
+
+            lastGroundNormal = groundNormal;
+            lastGroundFrame = Time.frameCount;
         }
 
         isSolidGround = rawGround;
-        isGround = rawGround;
-        if (!isGround)
+        isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
+        if (isGround && !rawGround)
+            groundNormal = lastGroundNormal;
+        else if (!isGround)
             groundNormal = Vector2.up;
 
         isOnSlope = isGround && groundNormal.y > 0.5f && groundNormal.y < 0.99f;

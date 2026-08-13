@@ -26,7 +26,7 @@ public class SlopeOneWayPlatform : MonoBehaviour
 
     [Header("交界 Trigger")]
     [Tooltip("运行时自动在坡脚/坡顶生成 Trigger（合金弹头式蹲站路径闩锁）")]
-    [SerializeField] bool autoCreateJunctionTriggers = false;
+    [SerializeField] bool autoCreateJunctionTriggers = true;
     [Tooltip("Trigger 世界空间边长（相对 junctionRadius 的倍率）")]
     [SerializeField] float junctionTriggerSizeScale = 2.2f;
 

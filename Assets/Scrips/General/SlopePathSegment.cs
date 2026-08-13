@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// 分层斜坡路段：薄面 Upper（Terrain_Upper）+ 可选下层路径引用。
-/// 姿势分流由 LayeredPathGate 控制；本组件提供几何、交界 Trigger 与切向。
+/// 分层斜坡路段：同形双碰撞体（Terrain_Upper + Terrain_Lower）。
+/// 站立踩 Upper、蹲下踩 Lower，几何一致故中途改姿势不会掉落。
+/// 姿势层切换由 LayeredPathGate；交界入口闸门也由 Gate 处理。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class SlopePathSegment : MonoBehaviour
@@ -15,8 +16,12 @@ public class SlopePathSegment : MonoBehaviour
 
     [Header("碰撞体")]
     [SerializeField] Collider2D upperCollider;
-    [Tooltip("可选：下层通道地面；多数关卡用普通 Ground，可不填")]
     [SerializeField] Collider2D lowerCollider;
+    [Tooltip("若未指定 lowerCollider，运行时复制 Upper 为同形子物体并设为 Terrain_Lower")]
+    [SerializeField] bool autoCreateLowerCollider = true;
+    [Tooltip("将厚盒压成薄面，减轻端面卡墙")]
+    [SerializeField] bool flattenToThinSurface = true;
+    [SerializeField] float thinSurfaceHeight = 0.15f;
 
     [Header("坡向")]
     [SerializeField] bool manualAscent;
@@ -24,7 +29,7 @@ public class SlopePathSegment : MonoBehaviour
 
     [Header("交界")]
     [SerializeField] float junctionRadius = 0.55f;
-    [SerializeField] float standMargin = 0.2f;
+    [SerializeField] float standMargin = 0.25f;
     [SerializeField] float junctionTriggerWorldSize = 1.2f;
     [SerializeField] bool autoCreateJunctionTriggers = true;
 
@@ -77,32 +82,79 @@ public class SlopePathSegment : MonoBehaviour
         if (upperCollider == null)
             upperCollider = cachedCollider;
 
-        // 确保落在 Terrain_Upper
         int upperLayer = LayerMask.NameToLayer("Terrain_Upper");
+        int lowerLayer = LayerMask.NameToLayer("Terrain_Lower");
+
+        if (flattenToThinSurface && upperCollider is BoxCollider2D upperBox
+            && upperBox.size.y > thinSurfaceHeight + 0.01f)
+        {
+            float oldH = upperBox.size.y;
+            upperBox.size = new Vector2(upperBox.size.x, thinSurfaceHeight);
+            // 顶边对齐：原顶边 y = offset.y + oldH/2，新顶边相同
+            upperBox.offset = new Vector2(
+                upperBox.offset.x,
+                upperBox.offset.y + (oldH - thinSurfaceHeight) * 0.5f);
+        }
+
         if (upperLayer >= 0 && UpperCollider != null)
             UpperCollider.gameObject.layer = upperLayer;
 
-        if (lowerCollider != null)
-        {
-            int lowerLayer = LayerMask.NameToLayer("Terrain_Lower");
-            if (lowerLayer >= 0)
-                lowerCollider.gameObject.layer = lowerLayer;
-        }
+        if (lowerCollider == null && autoCreateLowerCollider && UpperCollider != null)
+            lowerCollider = CreateMirroredLowerCollider(lowerLayer);
+        else if (lowerCollider != null && lowerLayer >= 0)
+            lowerCollider.gameObject.layer = lowerLayer;
 
-        // 分层路径不再用 Effector 做姿势门控
+        // 斜坡本体不要再用 PlatformEffector 单向，改由层矩阵分流
         var effector = GetComponent<PlatformEffector2D>();
         if (effector != null)
             effector.enabled = false;
-        if (upperCollider != null)
-            upperCollider.usedByEffector = false;
-
-        // 薄面：若仍是厚盒，压扁高度，避免端面卡墙
-        if (upperCollider is BoxCollider2D box && box.size.y > 0.25f)
-            box.size = new Vector2(box.size.x, 0.15f);
+        if (UpperCollider != null)
+            UpperCollider.usedByEffector = false;
+        if (LowerCollider != null)
+            LowerCollider.usedByEffector = false;
 
         CacheExistingTriggers();
         if (autoCreateJunctionTriggers)
             EnsureJunctionTriggers();
+    }
+
+    Collider2D CreateMirroredLowerCollider(int lowerLayer)
+    {
+        var go = new GameObject("LowerSurface");
+        go.transform.SetParent(transform, false);
+        go.transform.localPosition = Vector3.zero;
+        go.transform.localRotation = Quaternion.identity;
+        go.transform.localScale = Vector3.one;
+        if (lowerLayer >= 0)
+            go.layer = lowerLayer;
+
+        if (UpperCollider is BoxCollider2D srcBox)
+        {
+            var dst = go.AddComponent<BoxCollider2D>();
+            dst.offset = srcBox.offset;
+            dst.size = srcBox.size;
+            dst.edgeRadius = srcBox.edgeRadius;
+            dst.isTrigger = false;
+            dst.usedByEffector = false;
+            dst.sharedMaterial = srcBox.sharedMaterial;
+            return dst;
+        }
+
+        if (UpperCollider is EdgeCollider2D srcEdge)
+        {
+            var dst = go.AddComponent<EdgeCollider2D>();
+            dst.points = srcEdge.points;
+            dst.edgeRadius = srcEdge.edgeRadius;
+            dst.isTrigger = false;
+            dst.sharedMaterial = srcEdge.sharedMaterial;
+            return dst;
+        }
+
+        // 回退：复制 bounds 为薄盒
+        var box = go.AddComponent<BoxCollider2D>();
+        box.size = new Vector2(1f, thinSurfaceHeight);
+        box.offset = new Vector2(0f, thinSurfaceHeight * 0.5f);
+        return box;
     }
 
     void LateUpdate()
@@ -270,8 +322,9 @@ public class SlopePathSegment : MonoBehaviour
         Gizmos.DrawLine(bottom, top);
         Gizmos.DrawWireSphere(bottom, junctionRadius);
         Gizmos.DrawWireSphere(top, junctionRadius);
-        Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.9f);
+        Gizmos.color = new Color(0.2f, 0.9f, 0.4f, 0.9f);
         Gizmos.DrawWireCube(bottom, Vector3.one * junctionTriggerWorldSize);
+        Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.9f);
         Gizmos.DrawWireCube(top, Vector3.one * junctionTriggerWorldSize);
     }
 }
