@@ -106,6 +106,10 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     /// <summary>当前是否为空中向下砸地攻击（JumpDownAttack）。</summary>
     public bool IsJumpDownAttack =>
         isMelee && activeMeleeStateName == JumpDownAttackStateName;
+    /// <summary>
+    /// 落地冲击未结算前为 true：禁止结束 JumpDownAttack，确保伤害与落地动画完整播完。
+    /// </summary>
+    public bool HoldJumpDownAttackUntilImpact { get; set; }
     /// <summary>兼容旧名：空中下攻即 JumpDownAttack。</summary>
     public bool IsDownwardMelee => IsJumpDownAttack;
     /// <summary>当前是否为蹲伏攻击（CrouchMelee）。</summary>
@@ -889,14 +893,18 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         float elapsed = Time.time - meleeStartedAt;
         var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
 
-        // 砸地未落地前不结束近战（动画播完也先卡在末帧）
-        if (IsJumpDownAttack && physicsCheck != null && !physicsCheck.isGround)
+        // 砸地：未落地，或落地冲击尚未结算 → 不结束近战
+        if (IsJumpDownAttack)
         {
-            if (info.IsName(JumpDownAttackStateName)
-                && info.length > 0.0001f
-                && info.normalizedTime >= 1f)
-                bodyAnimator.Play(JumpDownAttackStateName, 0, 0.99f);
-            return;
+            bool grounded = physicsCheck != null && physicsCheck.isGround;
+            if (!grounded || HoldJumpDownAttackUntilImpact)
+            {
+                if (info.IsName(JumpDownAttackStateName)
+                    && info.length > 0.0001f
+                    && info.normalizedTime >= 1f)
+                    bodyAnimator.Play(JumpDownAttackStateName, 0, 0.99f);
+                return;
+            }
         }
 
         if (!info.IsName(activeMeleeStateName))
@@ -940,6 +948,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         isMelee = false;
         activeMeleeStateName = null;
         meleeStartedAt = -1f;
+        HoldJumpDownAttackUntilImpact = false;
 
         if (isSwitchingWeapon)
             return;

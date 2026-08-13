@@ -77,6 +77,22 @@ public class Bob_Controller : MonoBehaviour
         public float knockbackDuration;
     }
 
+    [System.Serializable]
+    public struct WeaponActionSfx
+    {
+        public int weaponId;
+        [Tooltip("站立/默认近战")]
+        public AudioClip melee;
+        [Tooltip("空中近战；空则回退 melee")]
+        public AudioClip airMelee;
+        [Tooltip("向上近战；空则回退 melee")]
+        public AudioClip upMelee;
+        [Tooltip("蹲攻；空则回退 melee")]
+        public AudioClip crouchMelee;
+        [Tooltip("特技 Ability1")]
+        public AudioClip special;
+    }
+
     [Header("二段跳")]
     [Tooltip("二段跳目标高度；若勾选下方选项则改用 PlayerMovement.jumpHeight")]
     [SerializeField] float doubleJumpHeight = 4.5f;
@@ -171,10 +187,27 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] float jumpDownSlamSpeed = 28f;
     [Tooltip("落地冲击伤害")]
     [SerializeField] int jumpDownImpactDamage = 70;
-    [Tooltip("落地冲击圆半径")]
-    [SerializeField] float jumpDownImpactRadius = 1.35f;
-    [Tooltip("冲击中心相对脚底锚点的偏移")]
-    [SerializeField] Vector2 jumpDownImpactOffset = Vector2.zero;
+    [Tooltip("落地冲击圆半径（相对角色 pivot）")]
+    [SerializeField] float jumpDownImpactRadius = 2.5f;
+    [Tooltip("冲击中心相对角色 pivot 的偏移")]
+    [SerializeField] Vector2 jumpDownImpactOffset = new Vector2(0f, 0.4f);
+
+    [Header("音效")]
+    [Tooltip("留空则运行时自动挂 AudioSource（2D）")]
+    [SerializeField] AudioSource sfxSource;
+    [Range(0f, 1f)] [SerializeField] float sfxVolume = 1f;
+    [Tooltip("按武器 ID 配置近战/特技音效；未填的动作会回退")]
+    [SerializeField] WeaponActionSfx[] weaponSfxProfiles =
+    {
+        new WeaponActionSfx { weaponId = 0 },
+        new WeaponActionSfx { weaponId = 1 },
+        new WeaponActionSfx { weaponId = 2 },
+        new WeaponActionSfx { weaponId = 3 },
+    };
+    [SerializeField] AudioClip fallbackMeleeSfx;
+    [SerializeField] AudioClip jumpDownStartSfx;
+    [SerializeField] AudioClip jumpDownImpactSfx;
+    [SerializeField] AudioClip doubleJumpSfx;
 
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
@@ -218,7 +251,7 @@ public class Bob_Controller : MonoBehaviour
     float savedAttackKnockbackForce;
     float savedAttackKnockbackDuration;
     bool hasSavedAttackKnockback;
-    bool holdingDashInputLock;
+    bool holdingAttackInputLock;
     bool restoredMovementEnabled;
     bool restoredRollEnabled;
     bool restoredWeaponControllerEnabled;
@@ -236,6 +269,7 @@ public class Bob_Controller : MonoBehaviour
         selfCharacter = GetComponent<Character>();
         playerRoll = GetComponent<PlayerRoll>();
         actions = new InputSystem_Actions();
+        EnsureSfxSource();
 
         if (meleeHitbox != null)
         {
@@ -266,7 +300,7 @@ public class Bob_Controller : MonoBehaviour
     void OnDisable()
     {
         EndJumpDownAttack();
-        EndDashInputLock();
+        EndAttackInputLock();
         EndRushSpecialState();
         actions.Player.Disable();
     }
@@ -280,9 +314,9 @@ public class Bob_Controller : MonoBehaviour
     {
         RefreshWeaponProfile(force: false);
 
-        // 冲刺锁期间关掉了 PlayerMovement，需自行推进空中/近战完成检测，否则 Special 永不结束
-        if (holdingDashInputLock)
-            MaintainDashLockAnimation();
+        // 攻击锁期间关掉了 PlayerMovement，需自行推进空中/近战完成检测
+        if (holdingAttackInputLock)
+            MaintainAttackLockAnimation();
 
         if (actions.Player.Jump.WasPressedThisFrame())
             jumpPressedThisFrame = true;
@@ -578,7 +612,7 @@ public class Bob_Controller : MonoBehaviour
 
     void TryStartMeleeAttack()
     {
-        if (holdingDashInputLock)
+        if (holdingAttackInputLock)
             return;
 
         if (playerMovement != null && playerMovement.IsActionLocked)
@@ -587,7 +621,7 @@ public class Bob_Controller : MonoBehaviour
         if (playerAnim == null || playerAnim.IsDead)
             return;
 
-        if (playerAnim.IsSpecial)
+        if (playerAnim.IsMelee || playerAnim.IsSpecial)
             return;
 
         if (!actions.Player.Attack.WasPressedThisFrame())
@@ -600,7 +634,7 @@ public class Bob_Controller : MonoBehaviour
                 playerMovement.FaceTowardWorldX(target.position.x);
         }
 
-        // 攻击前用本帧输入同步仰视/俯视，避免与 PlayerMovement 的 Update 顺序导致站立 upattack 丢方向
+        // 攻击前用本帧输入同步仰视/俯视，避免与 Bob 比 PlayerMovement 的 Update 顺序导致站立 upattack 丢方向
         Vector2 move = actions.Player.Move.ReadValue<Vector2>();
         bool lookUp = move.y > inputThreshold;
         bool lookDown = !physicsCheck.isGround && move.y < -inputThreshold;
@@ -611,24 +645,30 @@ public class Bob_Controller : MonoBehaviour
         specialRearHitTargets.Clear();
         swingHitCountables.Clear();
         playerAnim.InterruptTurn();
-        playerAnim.TryPlayMeleeAnim();
-        ApplyActiveProfileToColliders();
+        if (!playerAnim.TryPlayMeleeAnim())
+            return;
 
-        if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
-            BeginDashInputLock();
-        else if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
+        ApplyActiveProfileToColliders();
+        PlayMeleeActionSfx();
+
+        if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
             BeginJumpDownAttack();
+        else
+            BeginAttackInputLock();
     }
 
     void TryStartSpecialAttack()
     {
-        if (holdingDashInputLock)
+        if (holdingAttackInputLock)
             return;
 
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
         if (playerAnim == null || playerAnim.IsDead || playerAnim.IsSwitchingWeapon)
+            return;
+
+        if (playerAnim.IsMelee)
             return;
 
         if (!actions.Player.Ability1.WasPressedThisFrame())
@@ -666,10 +706,10 @@ public class Bob_Controller : MonoBehaviour
             selfCharacter.TrySpendAmmo(ammoType, specialAmmoCost);
 
         ApplyActiveProfileToColliders();
+        PlaySfx(ResolveWeaponSpecialSfx(weaponId));
 
-        // 仅 rush（武器1）冲刺特技锁输入；whip/buzzsaw 不锁
-        if (weaponId == 1)
-            BeginDashInputLock();
+        // 特技全程锁输入，直到动画结束
+        BeginAttackInputLock();
     }
 
     static AmmoType ResolveSpecialAmmoType(int weaponId) => weaponId switch
@@ -706,7 +746,7 @@ public class Bob_Controller : MonoBehaviour
             ApplyHitboxShape(upward: false, special: false);
             EndRushSpecialState();
             EndJumpDownAttack();
-            EndDashInputLock();
+            EndAttackInputLock();
             return;
         }
 
@@ -1032,15 +1072,15 @@ public class Bob_Controller : MonoBehaviour
         if (jumpDownAttackActive)
             return;
 
+        if (physicsCheck != null)
+            physicsCheck.Check();
+
         if (playerAnim == null || !playerAnim.IsMelee)
         {
             if (rushDashActive)
                 rushDashActive = false;
-            if (holdingDashInputLock)
-            {
-                // 锁定期但近战已结束：刹停水平速度，等待 Update 解锁
-                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-            }
+            if (holdingAttackInputLock)
+                ApplyAttackLockHorizontalVelocity(wantDash: false, dashSpeed: 0f, dashDir: 0f);
 
             return;
         }
@@ -1067,29 +1107,12 @@ public class Bob_Controller : MonoBehaviour
             && t >= shortMeleeDashStart
             && t <= shortMeleeDashEnd;
 
-        if (physicsCheck != null)
-            physicsCheck.Check();
-
-        // 锁定期全程接管水平速度：冲刺窗内加速，窗外刹停，避免其它输入改速度
-        if (holdingDashInputLock || rushDash || shortDash)
+        // 锁定期接管水平速度：冲刺窗内加速；空中可左右移动；地面刹停
+        if (holdingAttackInputLock || rushDash || shortDash)
         {
             bool wantDash = rushDash || shortDash;
             float speed = rushDash ? activeSpecialProfile.rushSpeed : shortMeleeDashSpeed;
-            bool blocked = physicsCheck != null && physicsCheck.IsBlockedHorizontally(dir);
-
-            if (wantDash && !blocked)
-            {
-                rushDashActive = true;
-                rb.linearVelocity = new Vector2(dir * speed, rb.linearVelocity.y);
-                if (rushDash)
-                    PushEnemiesAlongRushPath(dir);
-            }
-            else
-            {
-                rushDashActive = false;
-                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
-            }
-
+            ApplyAttackLockHorizontalVelocity(wantDash, speed, dir);
             return;
         }
 
@@ -1097,20 +1120,91 @@ public class Bob_Controller : MonoBehaviour
             rushDashActive = false;
     }
 
+    /// <summary>
+    /// 攻击锁期间的水平速度：冲刺窗优先；空中允许左右移动；地面保持刹停。
+    /// </summary>
+    void ApplyAttackLockHorizontalVelocity(bool wantDash, float dashSpeed, float dashDir)
+    {
+        if (rb == null)
+            return;
+
+        bool airborne = physicsCheck != null && !physicsCheck.isGround;
+
+        if (wantDash)
+        {
+            bool blocked = physicsCheck != null && physicsCheck.IsBlockedHorizontally(dashDir);
+            if (!blocked)
+            {
+                rushDashActive = true;
+                rb.linearVelocity = new Vector2(dashDir * dashSpeed, rb.linearVelocity.y);
+                if (IsCurrentSwingSpecial()
+                    && hasSpecialProfile
+                    && activeSpecialProfile.weaponId == 1)
+                    PushEnemiesAlongRushPath(dashDir);
+                return;
+            }
+        }
+
+        rushDashActive = false;
+
+        if (airborne)
+        {
+            ApplyAirHorizontalDuringAttackLock();
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    void ApplyAirHorizontalDuringAttackLock()
+    {
+        if (rb == null)
+            return;
+
+        Vector2 move = actions.Player.Move.ReadValue<Vector2>();
+        float moveX = Mathf.Abs(move.x) > inputThreshold ? Mathf.Sign(move.x) : 0f;
+
+        if (physicsCheck != null && moveX != 0f && physicsCheck.IsBlockedHorizontally(moveX))
+            moveX = 0f;
+
+        float speed = playerMovement != null ? playerMovement.runSpeed : 4f;
+
+        if (moveX != 0f)
+        {
+            rb.linearVelocity = new Vector2(moveX * speed, rb.linearVelocity.y);
+            if (playerMovement != null)
+                playerMovement.FaceTowardWorldX(transform.position.x + moveX);
+            return;
+        }
+
+        // 无输入：保留惯性；贴墙时清水平速度，避免卡住
+        if (physicsCheck != null && (physicsCheck.touchLeftWall || physicsCheck.touchRightWall))
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
     void BeginJumpDownAttack()
     {
         jumpDownAttackActive = true;
         jumpDownImpactApplied = false;
-        BeginDashInputLock();
+        if (fullBodyAnim != null)
+            fullBodyAnim.HoldJumpDownAttackUntilImpact = true;
+
+        BeginAttackInputLock();
+        PlaySfx(jumpDownStartSfx);
 
         if (rb != null)
-            rb.linearVelocity = new Vector2(0f, -Mathf.Abs(jumpDownSlamSpeed));
+        {
+            ApplyAirHorizontalDuringAttackLock();
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -Mathf.Abs(jumpDownSlamSpeed));
+        }
     }
 
     void EndJumpDownAttack()
     {
         jumpDownAttackActive = false;
         jumpDownImpactApplied = false;
+        if (fullBodyAnim != null)
+            fullBodyAnim.HoldJumpDownAttackUntilImpact = false;
     }
 
     void UpdateJumpDownAttack()
@@ -1118,8 +1212,16 @@ public class Bob_Controller : MonoBehaviour
         if (!jumpDownAttackActive)
             return;
 
-        if (playerAnim == null || !playerAnim.IsMelee || !IsCurrentSwingJumpDownAttack())
+        if (playerAnim == null || !IsCurrentSwingJumpDownAttack())
         {
+            // 近战已结束：若尚未结算冲击且已落地，补一次
+            if (!jumpDownImpactApplied && physicsCheck != null)
+            {
+                physicsCheck.Check();
+                if (physicsCheck.isGround)
+                    TryApplyJumpDownImpact();
+            }
+
             EndJumpDownAttack();
             return;
         }
@@ -1127,20 +1229,38 @@ public class Bob_Controller : MonoBehaviour
         if (physicsCheck != null)
             physicsCheck.Check();
 
-        bool grounded = physicsCheck != null && physicsCheck.isGround;
-        if (!grounded)
+        if (physicsCheck == null || !physicsCheck.isGround)
         {
-            rb.linearVelocity = new Vector2(0f, -Mathf.Abs(jumpDownSlamSpeed));
+            ApplyAirHorizontalDuringAttackLock();
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, -Mathf.Abs(jumpDownSlamSpeed));
             return;
         }
 
-        rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        rb.linearVelocity = Vector2.zero;
+        TryApplyJumpDownImpact();
+    }
 
-        if (!jumpDownImpactApplied)
+    /// <summary>
+    /// 落地冲击。必须在 UpdateAirState 之前调用，否则近战会被提前 Complete。
+    /// </summary>
+    void TryApplyJumpDownImpact()
+    {
+        if (!jumpDownAttackActive || jumpDownImpactApplied)
+            return;
+
+        if (physicsCheck != null)
+            physicsCheck.Check();
+        if (physicsCheck != null && !physicsCheck.isGround)
+            return;
+
+        ApplyJumpDownImpact();
+        jumpDownImpactApplied = true;
+        PlaySfx(jumpDownImpactSfx);
+
+        if (fullBodyAnim != null)
         {
-            ApplyJumpDownImpact();
-            jumpDownImpactApplied = true;
-            fullBodyAnim?.RestartCurrentMeleeAnim();
+            fullBodyAnim.HoldJumpDownAttackUntilImpact = false;
+            fullBodyAnim.RestartCurrentMeleeAnim();
         }
     }
 
@@ -1149,13 +1269,30 @@ public class Bob_Controller : MonoBehaviour
         if (meleeAttack == null)
             return;
 
-        Vector2 center = ResolveSpecialCenter() + jumpDownImpactOffset;
-        float radius = Mathf.Max(0.1f, jumpDownImpactRadius);
-        int count = Physics2D.OverlapCircleNonAlloc(center, radius, overlapBuffer);
+        Physics2D.SyncTransforms();
+
+        Vector2 center = (Vector2)transform.position + jumpDownImpactOffset;
+        float radius = Mathf.Max(0.25f, jumpDownImpactRadius);
+
+        var filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            useLayerMask = false,
+            useDepth = false,
+        };
+
+        int count = Physics2D.OverlapCircle(center, radius, filter, overlapBuffer);
         if (count <= 0)
-            return;
+        {
+            // 再试一次稍大盒，避免圆判定刚好擦边漏掉高胶囊敌人
+            Vector2 boxSize = new Vector2(radius * 2f, radius * 1.6f);
+            count = Physics2D.OverlapBox(center, boxSize, 0f, filter, overlapBuffer);
+            if (count <= 0)
+                return;
+        }
 
         int previousDamage = meleeAttack.damage;
+        bool previousEnabled = meleeAttack.enabled;
         meleeAttack.damage = Mathf.Max(1, jumpDownImpactDamage);
         meleeAttack.enabled = false;
 
@@ -1171,33 +1308,51 @@ public class Bob_Controller : MonoBehaviour
         }
 
         meleeAttack.damage = previousDamage;
+        meleeAttack.enabled = previousEnabled;
     }
 
-    void MaintainDashLockAnimation()
+    void MaintainAttackLockAnimation()
     {
         if (physicsCheck != null)
             physicsCheck.Check();
 
-        float velocityY = rb != null ? rb.linearVelocity.y : 0f;
-        bool grounded = physicsCheck != null && physicsCheck.isGround;
-        playerAnim?.UpdateAirState(grounded, velocityY);
-
-        if (playerAnim == null || !playerAnim.IsMelee)
+        // 砸地：先结算落地伤害，再推进动画完成，避免「动画结束 → 解锁」抢在伤害之前
+        if (jumpDownAttackActive)
         {
-            EndJumpDownAttack();
-            EndDashInputLock();
+            bool grounded = physicsCheck != null && physicsCheck.isGround;
+            if (!grounded && rb != null)
+            {
+                ApplyAirHorizontalDuringAttackLock();
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -Mathf.Abs(jumpDownSlamSpeed));
+            }
+            else
+                TryApplyJumpDownImpact();
         }
-    }
 
-    void BeginDashInputLock()
-    {
-        if (holdingDashInputLock)
+        float velocityY = rb != null ? rb.linearVelocity.y : 0f;
+        bool groundedNow = physicsCheck != null && physicsCheck.isGround;
+        playerAnim?.UpdateAirState(groundedNow, velocityY);
+
+        // 必须等近战（含落地后重播动画）完整结束才解锁操作
+        if (playerAnim != null && playerAnim.IsMelee)
             return;
 
-        holdingDashInputLock = true;
+        if (jumpDownAttackActive && !jumpDownImpactApplied && groundedNow)
+            TryApplyJumpDownImpact();
+
+        EndJumpDownAttack();
+        EndAttackInputLock();
+    }
+
+    void BeginAttackInputLock()
+    {
+        if (holdingAttackInputLock)
+            return;
+
+        holdingAttackInputLock = true;
 
         // 不改 PlayerMovement 逻辑：临时禁用组件以屏蔽移动/跳跃输入；
-        // 近战完成改由 MaintainDashLockAnimation 驱动。
+        // 近战完成改由 MaintainAttackLockAnimation 驱动。
         if (playerMovement != null)
         {
             restoredMovementEnabled = playerMovement.enabled;
@@ -1217,12 +1372,12 @@ public class Bob_Controller : MonoBehaviour
         }
     }
 
-    void EndDashInputLock()
+    void EndAttackInputLock()
     {
-        if (!holdingDashInputLock)
+        if (!holdingAttackInputLock)
             return;
 
-        holdingDashInputLock = false;
+        holdingAttackInputLock = false;
         rushDashActive = false;
 
         if (playerMovement != null && restoredMovementEnabled)
@@ -1379,7 +1534,7 @@ public class Bob_Controller : MonoBehaviour
 
     void TryDoubleJump()
     {
-        if (holdingDashInputLock)
+        if (holdingAttackInputLock)
             return;
 
         if (playerMovement != null && playerMovement.IsActionLocked)
@@ -1408,11 +1563,81 @@ public class Bob_Controller : MonoBehaviour
 
         rb.linearVelocity = new Vector2(velocityX, jumpVelocity);
         hasUsedDoubleJump = true;
+        PlaySfx(doubleJumpSfx);
 
         if (fullBodyAnim != null)
             fullBodyAnim.PlayDoubleJumpAnim(hasHorizontal);
         else
             playerAnim?.PlayJumpAnim(hasHorizontal);
+    }
+
+    void EnsureSfxSource()
+    {
+        if (sfxSource == null)
+            sfxSource = GetComponent<AudioSource>();
+
+        if (sfxSource == null)
+            sfxSource = gameObject.AddComponent<AudioSource>();
+
+        sfxSource.playOnAwake = false;
+        sfxSource.loop = false;
+        sfxSource.spatialBlend = 0f;
+    }
+
+    void PlaySfx(AudioClip clip)
+    {
+        if (clip == null)
+            return;
+
+        EnsureSfxSource();
+        sfxSource.PlayOneShot(clip, sfxVolume);
+    }
+
+    void PlayMeleeActionSfx()
+    {
+        if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
+        {
+            // 下砸起始音在 BeginJumpDownAttack 播放，避免重复
+            return;
+        }
+
+        int weaponId = ResolveCurrentWeaponId();
+        WeaponActionSfx profile = FindWeaponSfx(weaponId);
+
+        AudioClip clip;
+        if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
+            clip = profile.crouchMelee != null ? profile.crouchMelee : profile.melee;
+        else if (fullBodyAnim != null && fullBodyAnim.IsUpwardMelee)
+            clip = profile.upMelee != null ? profile.upMelee : profile.melee;
+        else if (physicsCheck != null && !physicsCheck.isGround)
+            clip = profile.airMelee != null ? profile.airMelee : profile.melee;
+        else
+            clip = profile.melee;
+
+        if (clip == null)
+            clip = fallbackMeleeSfx;
+
+        PlaySfx(clip);
+    }
+
+    AudioClip ResolveWeaponSpecialSfx(int weaponId)
+    {
+        WeaponActionSfx profile = FindWeaponSfx(weaponId);
+        return profile.special;
+    }
+
+    WeaponActionSfx FindWeaponSfx(int weaponId)
+    {
+        if (weaponSfxProfiles != null)
+        {
+            for (int i = 0; i < weaponSfxProfiles.Length; i++)
+            {
+                if (weaponSfxProfiles[i].weaponId == weaponId)
+                    return weaponSfxProfiles[i];
+            }
+        }
+
+        return default;
     }
 
     void OnDrawGizmos()
@@ -1443,10 +1668,7 @@ public class Bob_Controller : MonoBehaviour
 
         // JumpDownAttack 落地冲击预览
         {
-            Vector3 center = Application.isPlaying
-                ? (Vector3)(ResolveSpecialCenter() + jumpDownImpactOffset)
-                : (meleePoint1 != null ? meleePoint1.position : transform.position)
-                    + (Vector3)jumpDownImpactOffset;
+            Vector3 center = transform.position + (Vector3)jumpDownImpactOffset;
             Color c = Application.isPlaying && jumpDownAttackActive
                 ? new Color(1f, 0.35f, 0.1f, 0.45f)
                 : new Color(1f, 0.55f, 0.2f, 0.18f);
