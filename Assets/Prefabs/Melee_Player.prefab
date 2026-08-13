@@ -522,10 +522,10 @@ MonoBehaviour:
     rushStart: 0
     rushEnd: 0
     rushPushSpeed: 0
-    knockbackForce: 0
-    knockbackDuration: 0
+    knockbackForce: 12
+    knockbackDuration: 0.2
   - weaponId: 3
-    damage: 100
+    damage: 50
     hitboxSize: {x: 2, y: 1.6}
     hitboxOffset: {x: 0, y: 0}
     maxTargets: 0
@@ -553,10 +553,10 @@ MonoBehaviour:
   sfxVolume: 1
   weaponSfxProfiles:
   - weaponId: 0
-    melee: {fileID: 8300000, guid: eda840cdf26c74bc9988c339f3447477, type: 3}
+    melee: {fileID: 8300000, guid: c87926fbd642c497ea9a1569dbf15e6c, type: 3}
     airMelee: {fileID: 0}
     upMelee: {fileID: 0}
-    crouchMelee: {fileID: 8300000, guid: eda840cdf26c74bc9988c339f3447477, type: 3}
+    crouchMelee: {fileID: 8300000, guid: c87926fbd642c497ea9a1569dbf15e6c, type: 3}
     special: {fileID: 0}
   - weaponId: 1
     melee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
@@ -571,15 +571,16 @@ MonoBehaviour:
     crouchMelee: {fileID: 0}
     special: {fileID: 8300000, guid: 158fbee07f5c04910a1e716563c2f921, type: 3}
   - weaponId: 3
-    melee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
-    airMelee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
-    upMelee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
+    melee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
+    airMelee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
+    upMelee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
     crouchMelee: {fileID: 0}
-    special: {fileID: 0}
+    special: {fileID: 8300000, guid: 1e7e0e98d80fa4e59ae54fe894302a78, type: 3}
   fallbackMeleeSfx: {fileID: 0}
+  downMeleeSfx: {fileID: 8300000, guid: ccb529983ec8e4402bcd08aa934b1f2d, type: 3}
   jumpDownStartSfx: {fileID: 0}
   jumpDownImpactSfx: {fileID: 8300000, guid: 44eb24dcb55444384b74fed9bf643e6f, type: 3}
-  jumpSfx: {fileID: 0}
+  jumpSfx: {fileID: 8300000, guid: 1fd20201af0da42eab85264140c53df3, type: 3}
   doubleJumpSfx: {fileID: 8300000, guid: 317bfffdd196b48998a13bcb4c0c6e1a, type: 3}
   switchWeaponSfx: {fileID: 8300000, guid: c155f0e25b38d4742aac6fd2877214ef, type: 3}
   dieSfx: {fileID: 8300000, guid: f83349a6a1873473e8ce8fce025f2232, type: 3}

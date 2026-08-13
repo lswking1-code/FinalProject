@@ -71,9 +71,9 @@ public class Bob_Controller : MonoBehaviour
         [Range(0f, 1f)] public float rushEnd;
         [Tooltip("路径推动速度；≤0 时回退为 rushSpeed。每物理帧沿面向推动命中盒内敌人")]
         public float rushPushSpeed;
-        [Tooltip("命中时写入 Attack.knockbackForce（不改 Attack.cs）")]
+        [Tooltip("命中击退水平速度（单位/秒）；Whip/Rush 都会用来盖过敌人 AI 速度）")]
         public float knockbackForce;
-        [Tooltip("命中时写入 Attack.knockbackDuration")]
+        [Tooltip("击退持续时间（秒）")]
         public float knockbackDuration;
     }
 
@@ -166,6 +166,7 @@ public class Bob_Controller : MonoBehaviour
             hitboxSize = new Vector2(4.5f, 0.6f), hitboxOffset = new Vector2(2.2f, 0f),
             maxTargets = 0, hitStart = 0.15f, hitEnd = 0.55f,
             rearHitStart = 0.5f, rearHitEnd = 0.7f,
+            knockbackForce = 16f, knockbackDuration = 0.28f,
         },
         new WeaponSpecialProfile
         {
@@ -205,6 +206,8 @@ public class Bob_Controller : MonoBehaviour
         new WeaponActionSfx { weaponId = 3 },
     };
     [SerializeField] AudioClip fallbackMeleeSfx;
+    [Tooltip("地面滑行（CrouchMelee / default_down_melee）四武器共用；不走分武器 melee/crouchMelee")]
+    [SerializeField] AudioClip downMeleeSfx;
     [Tooltip("空中落地砸地起始（四武器共用；不走分武器 melee/airMelee）")]
     [SerializeField] AudioClip jumpDownStartSfx;
     [Tooltip("空中落地砸地落地冲击（四武器共用）")]
@@ -264,6 +267,16 @@ public class Bob_Controller : MonoBehaviour
     bool jumpDownImpactApplied;
     bool wasDeadForSfx;
     bool wasSwitchingWeaponForSfx;
+    readonly List<WhipKnockbackEntry> whipKnockbackEntries = new();
+
+    struct WhipKnockbackEntry
+    {
+        public Rigidbody2D rb;
+        public Transform targetTransform;
+        public float dir;
+        public float speed;
+        public float untilTime;
+    }
 
     void Awake()
     {
@@ -334,12 +347,18 @@ public class Bob_Controller : MonoBehaviour
         UpdateCommonActionSfx();
     }
 
-    void LateUpdate() => SyncDetectZoneAnchor();
+    void LateUpdate()
+    {
+        SyncDetectZoneAnchor();
+        // 放在 LateUpdate：盖过敌人 FixedUpdate 里写回的 AI 速度
+        ApplyWhipKnockbackVelocities();
+    }
 
     void FixedUpdate()
     {
         UpdateJumpDownAttack();
         UpdateDashAttacks();
+        ApplyWhipKnockbackVelocities();
 
         // 一段跳由 PlayerMovement 执行；此处只补音效
         if (playerMovement != null && playerMovement.DidGroundJumpThisFixedUpdate)
@@ -480,6 +499,10 @@ public class Bob_Controller : MonoBehaviour
                 profile.rearHitStart = Mathf.Clamp01(profile.hitEnd);
                 profile.rearHitEnd = Mathf.Clamp01(profile.rearHitStart + 0.2f);
             }
+            if (profile.knockbackForce <= 0.01f)
+                profile.knockbackForce = 16f;
+            if (profile.knockbackDuration <= 0.01f)
+                profile.knockbackDuration = 0.28f;
         }
         else if (weaponId == 3)
         {
@@ -845,6 +868,7 @@ public class Bob_Controller : MonoBehaviour
     void UpdateWhipSpecialHits()
     {
         ApplyHitboxShape(upward: false, special: true);
+        ApplyRushAttackKnockback(true);
 
         if (meleeAttack != null)
         {
@@ -869,16 +893,19 @@ public class Bob_Controller : MonoBehaviour
 
             if (frontWindow)
             {
+                // 前方段：沿面朝方向击退（推离玩家）
                 ProcessSpecialBoxHits(
                     activeSpecialProfile.hitboxOffset,
                     activeSpecialProfile.hitboxSize,
                     activeSpecialProfile.damage,
                     swingHitTargets,
-                    activeSpecialProfile.maxTargets);
+                    activeSpecialProfile.maxTargets,
+                    knockbackSign: 1f);
             }
 
             if (rearWindow)
             {
+                // 后方段：朝背后击退（同样推离玩家）
                 Vector2 rearOffset = new Vector2(
                     -activeSpecialProfile.hitboxOffset.x,
                     activeSpecialProfile.hitboxOffset.y);
@@ -887,7 +914,8 @@ public class Bob_Controller : MonoBehaviour
                     activeSpecialProfile.hitboxSize,
                     activeSpecialProfile.damage,
                     specialRearHitTargets,
-                    activeSpecialProfile.maxTargets);
+                    activeSpecialProfile.maxTargets,
+                    knockbackSign: -1f);
             }
         }
         else if (meleeHitbox.activeSelf)
@@ -978,7 +1006,8 @@ public class Bob_Controller : MonoBehaviour
         Vector2 localSize,
         int damage,
         HashSet<Character> hitSet,
-        int maxTargets)
+        int maxTargets,
+        float knockbackSign = 0f)
     {
         if (meleeAttack == null || meleeHitbox == null)
             return;
@@ -1024,19 +1053,129 @@ public class Bob_Controller : MonoBehaviour
         int slots = maxTargets > 0 ? maxTargets - hitSet.Count : int.MaxValue;
         int previousDamage = meleeAttack.damage;
         meleeAttack.damage = damage;
+
+        // Attack.ResolveKnockbackDir 读 transform.right；后方段临时翻转（给 Character 路径用）
+        Transform attackTransform = meleeAttack.transform;
+        Vector3 savedAttackScale = attackTransform.localScale;
+        bool flipKnockback = knockbackSign < 0f;
+        if (flipKnockback)
+        {
+            Vector3 flipped = savedAttackScale;
+            flipped.x = -flipped.x;
+            attackTransform.localScale = flipped;
+        }
+
+        bool registerWhipPush = Mathf.Abs(knockbackSign) > 0.01f
+            && IsCurrentSwingSpecial()
+            && hasSpecialProfile
+            && activeSpecialProfile.weaponId == 2
+            && activeSpecialProfile.knockbackForce > 0.01f;
+
         for (int i = 0; i < overlapCharacters.Count && slots > 0; i++)
         {
             var target = overlapCharacters[i];
             if (hitSet.Contains(target))
                 continue;
 
-            if (target.TakeDamage(meleeAttack))
+            bool damaged = target.TakeDamage(meleeAttack);
+            if (damaged)
+            {
                 meleeAttack.RaiseHitCameraShakeIfEnabled();
+                // 敌人 AI 会盖掉 Character.AddForce，改由 Bob 持续推一段距离
+                if (registerWhipPush)
+                    RegisterWhipKnockback(target, knockbackSign);
+            }
+
             hitSet.Add(target);
             slots--;
         }
 
+        if (flipKnockback)
+            attackTransform.localScale = savedAttackScale;
+
         meleeAttack.damage = previousDamage;
+    }
+
+    void RegisterWhipKnockback(Character target, float knockbackSign)
+    {
+        if (target == null)
+            return;
+
+        float face = playerMovement != null
+            ? playerMovement.FaceDirection
+            : Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(face, 0f))
+            face = 1f;
+
+        float dir = face * Mathf.Sign(knockbackSign);
+        float speed = Mathf.Max(1f, activeSpecialProfile.knockbackForce);
+        float duration = Mathf.Max(0.05f, activeSpecialProfile.knockbackDuration);
+        float until = Time.time + duration;
+
+        var targetRb = target.GetComponent<Rigidbody2D>();
+        for (int i = 0; i < whipKnockbackEntries.Count; i++)
+        {
+            var entry = whipKnockbackEntries[i];
+            bool same = (targetRb != null && entry.rb == targetRb)
+                || entry.targetTransform == target.transform;
+            if (!same)
+                continue;
+
+            entry.dir = dir;
+            entry.speed = speed;
+            entry.untilTime = until;
+            entry.rb = targetRb;
+            entry.targetTransform = target.transform;
+            whipKnockbackEntries[i] = entry;
+            return;
+        }
+
+        whipKnockbackEntries.Add(new WhipKnockbackEntry
+        {
+            rb = targetRb,
+            targetTransform = target.transform,
+            dir = dir,
+            speed = speed,
+            untilTime = until,
+        });
+    }
+
+    void ApplyWhipKnockbackVelocities()
+    {
+        if (whipKnockbackEntries.Count == 0)
+            return;
+
+        float now = Time.time;
+        float dt = Time.deltaTime;
+        for (int i = whipKnockbackEntries.Count - 1; i >= 0; i--)
+        {
+            var entry = whipKnockbackEntries[i];
+            if (now >= entry.untilTime
+                || entry.targetTransform == null
+                || (entry.rb == null && entry.targetTransform == null))
+            {
+                whipKnockbackEntries.RemoveAt(i);
+                continue;
+            }
+
+            Vector2 delta = new Vector2(entry.dir * entry.speed * dt, 0f);
+            if (entry.rb != null && entry.rb.simulated)
+            {
+                if (entry.rb.bodyType == RigidbodyType2D.Kinematic)
+                    entry.rb.MovePosition(entry.rb.position + delta);
+                else
+                    entry.rb.linearVelocity = new Vector2(entry.dir * entry.speed, entry.rb.linearVelocity.y);
+            }
+            else
+            {
+                entry.targetTransform.position += (Vector3)delta;
+            }
+        }
+    }
+
+    void ClearWhipKnockbacks()
+    {
+        whipKnockbackEntries.Clear();
     }
 
     Vector2 ResolveSpecialCenter()
@@ -1524,6 +1663,7 @@ public class Bob_Controller : MonoBehaviour
     {
         rushDashActive = false;
         RestoreRushAttackKnockback();
+        ClearWhipKnockbacks();
     }
 
     void SyncDetectZoneAnchor()
@@ -1646,13 +1786,18 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
+        // 地面滑行四武器同一套动画，只播共用音效，避免叠上 rush/whip/buzzsaw 的 melee
+        if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
+        {
+            PlaySfx(downMeleeSfx != null ? downMeleeSfx : fallbackMeleeSfx);
+            return;
+        }
+
         int weaponId = ResolveCurrentWeaponId();
         WeaponActionSfx profile = FindWeaponSfx(weaponId);
 
         AudioClip clip;
-        if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
-            clip = profile.crouchMelee != null ? profile.crouchMelee : profile.melee;
-        else if (fullBodyAnim != null && fullBodyAnim.IsUpwardMelee)
+        if (fullBodyAnim != null && fullBodyAnim.IsUpwardMelee)
             clip = profile.upMelee != null ? profile.upMelee : profile.melee;
         else if (physicsCheck != null && !physicsCheck.isGround)
             clip = profile.airMelee != null ? profile.airMelee : profile.melee;

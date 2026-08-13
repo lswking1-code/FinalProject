@@ -54,7 +54,7 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip upMelee;
     [Tooltip("空中向上攻击 · 替换动画机 default_air_up_melee")]
     public AnimationClip airUpMelee;
-    [Tooltip("向下攻击扩展 · 替换 default_down_melee；JumpDownAttack 用 default_jump_downattack（未填 downMelee 时保持基座共用片）")]
+    [Tooltip("向下攻击扩展（已改为四武器强制共用 default_down_melee，此字段暂不生效）")]
     public AnimationClip downMelee;
     [Tooltip("特技 · 替换动画机 default_special（rush/whip/buzzsaw；空手无）")]
     public AnimationClip special;
@@ -180,9 +180,9 @@ public class WeaponDefinition : ScriptableObject
             case "default_air_melee": return airMelee != null ? airMelee : melee;
             case "default_up_melee": return upMelee;
             case "default_air_up_melee": return airUpMelee != null ? airUpMelee : upMelee;
-            case "default_down_melee": return downMelee;
-            // 空中落地砸地四武器共用基座片；勿回退 airMelee，否则会叠上分武器空中攻击动画/音效
-            case "default_jump_downattack": return downMelee;
+            case "default_down_melee": return null; // 地面滑行四武器共用，勿被分武器 clip 替换
+            // 四武器共用基座 default_jump_downattack，永不按武器替换（避免叠上 *_jump_attack 动画/音效）
+            case "default_jump_downattack": return null;
             case "default_special": return special;
             case "default_attack": return melee;
             case "crouch": return crouch;
@@ -190,7 +190,7 @@ public class WeaponDefinition : ScriptableObject
             case "crouch_move": return crouchMove;
             case "crouch_turn": return crouchTurn;
             case "crouch_shoot": return crouchShoot;
-            case "crouch_melee": return crouchMelee;
+            case "crouch_melee": return null; // 与 default_down_melee 同为共用滑行，勿替换成各武器 melee
             case "crouch_throw": return crouchThrow;
             case "crouch_draw": return crouchWeaponSwitch;
             case "stop": return land;
