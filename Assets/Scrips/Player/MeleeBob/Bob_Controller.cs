@@ -360,6 +360,13 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
+        // 下穿单向平台时这次跳跃已被 PlayerMovement 消费，不能再转成二段跳
+        if (playerMovement != null && playerMovement.IsDroppingThrough)
+        {
+            jumpPressedThisFrame = false;
+            return;
+        }
+
         if (jumpPressedThisFrame && !hasUsedDoubleJump)
             TryDoubleJump();
 

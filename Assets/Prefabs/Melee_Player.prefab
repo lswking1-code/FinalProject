@@ -114,6 +114,7 @@ GameObject:
   - component: {fileID: 9123456789012345678}
   - component: {fileID: 3740322793617707706}
   - component: {fileID: 8012345678901234501}
+  - component: {fileID: 5012345678901234601}
   m_Layer: 9
   m_Name: Melee_Player
   m_TagString: Player
@@ -289,7 +290,7 @@ MonoBehaviour:
   checkRaduis: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 4160
+    m_Bits: 430144
   isGround: 0
   isSolidGround: 0
   touchLeftWall: 0
@@ -415,9 +416,28 @@ MonoBehaviour:
   surfaceMargin: 0.05
   oneWayPlatformLayer:
     serializedVersion: 2
-    m_Bits: 4096
+    m_Bits: 36864
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
+--- !u!114 &5012345678901234601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50b0f124737d475cb0c9dc2e755e64f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nearbyScanRadius: 2.5
+  upperLayerMask:
+    serializedVersion: 2
+    m_Bits: 131072
+  lowerLayerMask:
+    serializedVersion: 2
+    m_Bits: 262144
 --- !u!114 &8012345678901234501
 MonoBehaviour:
   m_ObjectHideFlags: 0

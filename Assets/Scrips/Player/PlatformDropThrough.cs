@@ -224,8 +224,11 @@ public class PlatformDropThrough : MonoBehaviour
         if (physicsCheck.isOnSlope)
             castDistance += 0.4f;
 
+        LayerMask mask = oneWayPlatformLayer.value != 0
+            ? oneWayPlatformLayer
+            : physicsCheck.groundLayer;
         RaycastHit2D hit = Physics2D.CircleCast(
-            origin, 0.1f, Vector2.down, castDistance, physicsCheck.groundLayer);
+            origin, 0.1f, Vector2.down, castDistance, mask);
 
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;

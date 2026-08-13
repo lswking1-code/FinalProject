@@ -65,6 +65,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         !jumpedThisAirborne && (physicsCheck.isSolidGround || coyoteCounter > 0f);
     /// <summary>本物理帧是否刚完成地面/土狼起跳，供 Bob 避免同帧误耗二段跳。</summary>
     public bool DidGroundJumpThisFixedUpdate { get; private set; }
+    /// <summary>正在从单向平台下穿，供 Bob 避免把同一次按键当成二段跳。</summary>
+    public bool IsDroppingThrough =>
+        platformDropThrough != null && platformDropThrough.IsDroppingThrough;
 
     Vector2 moveInput;
     bool jumpPressed;
@@ -464,6 +467,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (wantCrouch && !playerAnim.IsCrouching)
         {
+            // 下+跳优先穿板/起跳：有跳跃缓冲时本帧不进蹲、不清缓冲
+            if (jumpBufferCounter > 0f)
+                return;
+
             // Land 期间 airPhase 仍可能是 Fall/LeapAir；按住 S 应立刻打断落地动画进蹲
             if (playerAnim.IsPlayingLand)
             {
