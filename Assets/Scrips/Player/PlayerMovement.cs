@@ -14,6 +14,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public float jumpHeight = 2.5f;      // 起跳目标高度，用于反算初速度
     public float inputThreshold = 0.5f;  // 摇杆死区，低于此值视为无输入
     public float jumpBufferTime = 0.15f; // 跳跃输入缓冲（秒），弥补 Update 与 FixedUpdate 不同步
+    [Tooltip("走下平台后仍可起跳的宽限（秒）；起跳离地不给土狼")]
+    [SerializeField] float coyoteTime = 0.12f;
 
     [Header("蹲伏碰撞")]
     [SerializeField] Vector2 crouchColliderSize = new Vector2(1.08f, 1.2f);
@@ -57,10 +59,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
     public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsSustainingAirHang;
+    /// <summary>真实接地，或走下平台后仍在土狼窗口内（起跳后立刻为 false）。</summary>
+    public bool CanGroundJump =>
+        !jumpedThisAirborne && (physicsCheck.isSolidGround || coyoteCounter > 0f);
+    /// <summary>本物理帧是否刚完成地面/土狼起跳，供 Bob 避免同帧误耗二段跳。</summary>
+    public bool DidGroundJumpThisFixedUpdate { get; private set; }
 
     Vector2 moveInput;
     bool jumpPressed;
     float jumpBufferCounter; // >0 表示近期按过跳跃键，在 FixedUpdate 中消费
+    float coyoteCounter;
+    bool jumpedThisAirborne;
     float faceDir = 1f; // 面朝：1 右，-1 左，通过 localScale.x 翻转
     public float FaceDirection => faceDir;
     public Vector2 MoveInput => moveInput;
@@ -161,6 +170,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsActionLocked)
             return;
 
+        DidGroundJumpThisFixedUpdate = false;
+
         if (slopeDetachTimer > 0f)
             slopeDetachTimer -= Time.fixedDeltaTime;
 
@@ -170,6 +181,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             platformDropThrough.UpdateCollisions();
 
         physicsCheck.Check();
+        UpdateCoyoteTime();
         UpdateSlopeGravity();
         UpdateAirHang();
 
@@ -442,7 +454,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                 return;
             }
 
-            // 起跳后 coyote 期间 isGround 仍为 true；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
+            // 起跳后脚仍可能扫到地面；按住 S 不得重新蹲下，否则会清掉 Jump/Leap
             if (playerAnim.CurrentAirPhase != PlayerAnimBase.AirPhaseType.Ground)
                 return;
             if (rb.linearVelocity.y > 0.05f)
@@ -509,6 +521,32 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
+    void UpdateCoyoteTime()
+    {
+        if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
+        {
+            coyoteCounter = 0f;
+            jumpedThisAirborne = true;
+            return;
+        }
+
+        bool landed = physicsCheck.isSolidGround && rb.linearVelocity.y <= 0.01f;
+        if (landed)
+        {
+            jumpedThisAirborne = false;
+            coyoteCounter = coyoteTime;
+            return;
+        }
+
+        if (jumpedThisAirborne)
+        {
+            coyoteCounter = 0f;
+            return;
+        }
+
+        coyoteCounter = Mathf.Max(0f, coyoteCounter - Time.fixedDeltaTime);
+    }
+
     bool TryJump() // 地面起跳；有水平输入为 Leap，初速度 v=sqrt(2gh)
     {
         bool wantsJump = jumpBufferCounter > 0f;
@@ -516,7 +554,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgLastTryJumpFrame = Time.frameCount;
         dbgJumpBuffered = wantsJump;
         dbgJumpBufferRemaining = Mathf.Max(0f, jumpBufferCounter);
-        dbgIsGroundInFixed = physicsCheck.isGround;
+        dbgIsGroundInFixed = CanGroundJump;
         dbgDidJump = false;
 
         if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot || playerAnim.IsHeavySpinFiring)
@@ -538,7 +576,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return false;
         }
 
-        if (!physicsCheck.isGround)
+        if (!CanGroundJump)
         {
             dbgResult = $"不在地面（缓冲剩余 {dbgJumpBufferRemaining:F2}s）";
             return false;
@@ -552,6 +590,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             BeginSlopeDetach(0.35f);
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, -2f));
             jumpBufferCounter = 0f;
+            coyoteCounter = 0f;
+            jumpedThisAirborne = true;
             dbgResult = "单向平台下穿";
             lastKPressFrame = -1;
             return false;
@@ -593,6 +633,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ApplyFacing();
 
         jumpBufferCounter = 0f;
+        coyoteCounter = 0f;
+        jumpedThisAirborne = true;
+        DidGroundJumpThisFixedUpdate = true;
         dbgDidJump = true;
         dbgResult = "起跳成功";
         lastKPressFrame = -1;
@@ -744,7 +787,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (physicsCheck.isGround)
         {
-            // 斜坡起跳后 coyote 仍可能判接地，不能覆盖上升速度
+            // 斜坡起跳后脚仍可能扫到坡面，不能覆盖上升速度
             if (IsSlopeDetached)
             {
                 if (moveX != 0f)

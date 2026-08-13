@@ -340,6 +340,14 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
+        // 土狼窗口内仍走地面跳；同帧刚起跳也不要立刻消耗二段跳
+        if (playerMovement != null
+            && (playerMovement.CanGroundJump || playerMovement.DidGroundJumpThisFixedUpdate))
+        {
+            jumpPressedThisFrame = false;
+            return;
+        }
+
         if (jumpPressedThisFrame && !hasUsedDoubleJump)
             TryDoubleJump();
 
