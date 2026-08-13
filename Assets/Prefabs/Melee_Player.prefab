@@ -543,41 +543,41 @@ MonoBehaviour:
   shortMeleeDashSpeed: 10
   shortMeleeDashStart: 0.08
   shortMeleeDashEnd: 0.38
-  jumpDownSlamSpeed: 28
+  jumpDownSlamSpeed: 25
   jumpDownImpactDamage: 70
-  jumpDownImpactRadius: 2.5
-  jumpDownImpactOffset: {x: 0, y: 0.4}
+  jumpDownImpactRadius: 1.98
+  jumpDownImpactOffset: {x: -0.72, y: 0}
   sfxSource: {fileID: 0}
   sfxVolume: 1
   weaponSfxProfiles:
   - weaponId: 0
-    melee: {fileID: 0}
+    melee: {fileID: 8300000, guid: 9061b7304c0c641cb9bd1716d47ade8d, type: 3}
     airMelee: {fileID: 0}
     upMelee: {fileID: 0}
-    crouchMelee: {fileID: 0}
+    crouchMelee: {fileID: 8300000, guid: 9061b7304c0c641cb9bd1716d47ade8d, type: 3}
     special: {fileID: 0}
   - weaponId: 1
-    melee: {fileID: 0}
-    airMelee: {fileID: 0}
-    upMelee: {fileID: 0}
+    melee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
+    airMelee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
+    upMelee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
     crouchMelee: {fileID: 0}
     special: {fileID: 8300000, guid: a9c3726996e4c4d1e949142edb507b4c, type: 3}
   - weaponId: 2
     melee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
-    airMelee: {fileID: 0}
-    upMelee: {fileID: 0}
+    airMelee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
+    upMelee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
     crouchMelee: {fileID: 0}
-    special: {fileID: 0}
+    special: {fileID: 8300000, guid: 158fbee07f5c04910a1e716563c2f921, type: 3}
   - weaponId: 3
-    melee: {fileID: 0}
-    airMelee: {fileID: 0}
-    upMelee: {fileID: 0}
+    melee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
+    airMelee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
+    upMelee: {fileID: 8300000, guid: 046e8f82bbd2a4b9cb25f6c667becd01, type: 3}
     crouchMelee: {fileID: 0}
     special: {fileID: 0}
   fallbackMeleeSfx: {fileID: 0}
   jumpDownStartSfx: {fileID: 0}
-  jumpDownImpactSfx: {fileID: 0}
-  doubleJumpSfx: {fileID: 0}
+  jumpDownImpactSfx: {fileID: 8300000, guid: 44eb24dcb55444384b74fed9bf643e6f, type: 3}
+  doubleJumpSfx: {fileID: 8300000, guid: c94c5dfa6ab274f00870da310040bae6, type: 3}
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1
