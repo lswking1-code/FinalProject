@@ -54,7 +54,7 @@ public class WeaponDefinition : ScriptableObject
     public AnimationClip upMelee;
     [Tooltip("空中向上攻击 · 替换动画机 default_air_up_melee")]
     public AnimationClip airUpMelee;
-    [Tooltip("向下砸地 · 替换动画机 default_jump_downattack；未填则回退 airMelee")]
+    [Tooltip("向下攻击扩展 · 替换 default_down_melee；JumpDownAttack 用 default_jump_downattack（未填 downMelee 时保持基座共用片）")]
     public AnimationClip downMelee;
     [Tooltip("特技 · 替换动画机 default_special（rush/whip/buzzsaw；空手无）")]
     public AnimationClip special;
@@ -181,7 +181,8 @@ public class WeaponDefinition : ScriptableObject
             case "default_up_melee": return upMelee;
             case "default_air_up_melee": return airUpMelee != null ? airUpMelee : upMelee;
             case "default_down_melee": return downMelee;
-            case "default_jump_downattack": return downMelee != null ? downMelee : airMelee;
+            // 空中落地砸地四武器共用基座片；勿回退 airMelee，否则会叠上分武器空中攻击动画/音效
+            case "default_jump_downattack": return downMelee;
             case "default_special": return special;
             case "default_attack": return melee;
             case "crouch": return crouch;

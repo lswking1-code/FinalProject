@@ -205,9 +205,14 @@ public class Bob_Controller : MonoBehaviour
         new WeaponActionSfx { weaponId = 3 },
     };
     [SerializeField] AudioClip fallbackMeleeSfx;
+    [Tooltip("空中落地砸地起始（四武器共用；不走分武器 melee/airMelee）")]
     [SerializeField] AudioClip jumpDownStartSfx;
+    [Tooltip("空中落地砸地落地冲击（四武器共用）")]
     [SerializeField] AudioClip jumpDownImpactSfx;
+    [SerializeField] AudioClip jumpSfx;
     [SerializeField] AudioClip doubleJumpSfx;
+    [SerializeField] AudioClip switchWeaponSfx;
+    [SerializeField] AudioClip dieSfx;
 
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
@@ -257,6 +262,8 @@ public class Bob_Controller : MonoBehaviour
     bool restoredWeaponControllerEnabled;
     bool jumpDownAttackActive;
     bool jumpDownImpactApplied;
+    bool wasDeadForSfx;
+    bool wasSwitchingWeaponForSfx;
 
     void Awake()
     {
@@ -324,6 +331,7 @@ public class Bob_Controller : MonoBehaviour
         TryStartMeleeAttack();
         TryStartSpecialAttack();
         UpdateMeleeHitbox();
+        UpdateCommonActionSfx();
     }
 
     void LateUpdate() => SyncDetectZoneAnchor();
@@ -332,6 +340,10 @@ public class Bob_Controller : MonoBehaviour
     {
         UpdateJumpDownAttack();
         UpdateDashAttacks();
+
+        // 一段跳由 PlayerMovement 执行；此处只补音效
+        if (playerMovement != null && playerMovement.DidGroundJumpThisFixedUpdate)
+            PlaySfx(jumpSfx);
 
         if (physicsCheck.isGround)
         {
@@ -657,12 +669,17 @@ public class Bob_Controller : MonoBehaviour
             return;
 
         ApplyActiveProfileToColliders();
-        PlayMeleeActionSfx();
 
         if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
+        {
+            // 落地砸地四武器共用音效，不播分武器 melee/airMelee
             BeginJumpDownAttack();
+        }
         else
+        {
+            PlayMeleeActionSfx();
             BeginAttackInputLock();
+        }
     }
 
     void TryStartSpecialAttack()
@@ -1590,6 +1607,19 @@ public class Bob_Controller : MonoBehaviour
         sfxSource.playOnAwake = false;
         sfxSource.loop = false;
         sfxSource.spatialBlend = 0f;
+    }
+
+    void UpdateCommonActionSfx()
+    {
+        bool dead = playerAnim != null && playerAnim.IsDead;
+        if (dead && !wasDeadForSfx)
+            PlaySfx(dieSfx);
+        wasDeadForSfx = dead;
+
+        bool switching = playerAnim != null && playerAnim.IsSwitchingWeapon;
+        if (switching && !wasSwitchingWeaponForSfx)
+            PlaySfx(switchWeaponSfx);
+        wasSwitchingWeaponForSfx = switching;
     }
 
     void PlaySfx(AudioClip clip)

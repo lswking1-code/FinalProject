@@ -188,6 +188,7 @@ MonoBehaviour:
   jumpHeight: 4.5
   inputThreshold: 0.5
   jumpBufferTime: 0.2
+  coyoteTime: 0.12
   crouchColliderSize: {x: 1.08, y: 1.2}
   airHangDuration: 0.12
   airHangGravityScale: 0.25
@@ -551,10 +552,10 @@ MonoBehaviour:
   sfxVolume: 1
   weaponSfxProfiles:
   - weaponId: 0
-    melee: {fileID: 8300000, guid: 9061b7304c0c641cb9bd1716d47ade8d, type: 3}
+    melee: {fileID: 8300000, guid: eda840cdf26c74bc9988c339f3447477, type: 3}
     airMelee: {fileID: 0}
     upMelee: {fileID: 0}
-    crouchMelee: {fileID: 8300000, guid: 9061b7304c0c641cb9bd1716d47ade8d, type: 3}
+    crouchMelee: {fileID: 8300000, guid: eda840cdf26c74bc9988c339f3447477, type: 3}
     special: {fileID: 0}
   - weaponId: 1
     melee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
@@ -577,7 +578,10 @@ MonoBehaviour:
   fallbackMeleeSfx: {fileID: 0}
   jumpDownStartSfx: {fileID: 0}
   jumpDownImpactSfx: {fileID: 8300000, guid: 44eb24dcb55444384b74fed9bf643e6f, type: 3}
-  doubleJumpSfx: {fileID: 8300000, guid: c94c5dfa6ab274f00870da310040bae6, type: 3}
+  jumpSfx: {fileID: 0}
+  doubleJumpSfx: {fileID: 8300000, guid: 317bfffdd196b48998a13bcb4c0c6e1a, type: 3}
+  switchWeaponSfx: {fileID: 8300000, guid: c155f0e25b38d4742aac6fd2877214ef, type: 3}
+  dieSfx: {fileID: 8300000, guid: f83349a6a1873473e8ce8fce025f2232, type: 3}
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1
