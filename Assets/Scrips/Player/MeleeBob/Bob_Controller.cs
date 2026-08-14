@@ -240,6 +240,7 @@ public class Bob_Controller : MonoBehaviour
     BoxCollider2D detectZoneCollider;
     Character selfCharacter;
     PlayerRoll playerRoll;
+    CameraAirborneYLock airborneYLock;
 
     bool jumpPressedThisFrame;
     bool hasUsedDoubleJump;
@@ -1741,6 +1742,16 @@ public class Bob_Controller : MonoBehaviour
             fullBodyAnim.PlayDoubleJumpAnim(hasHorizontal);
         else
             playerAnim?.PlayJumpAnim(hasHorizontal);
+
+        NotifyCameraAirJump();
+    }
+
+    void NotifyCameraAirJump()
+    {
+        if (airborneYLock == null)
+            airborneYLock = FindFirstObjectByType<CameraAirborneYLock>();
+
+        airborneYLock?.NotifyAirJump();
     }
 
     void EnsureSfxSource()

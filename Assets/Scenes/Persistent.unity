@@ -2773,7 +2773,7 @@ MonoBehaviour:
   CameraDistance: 10
   DeadZoneDepth: 0
   Composition:
-    ScreenPosition: {x: 0, y: 0.15}
+    ScreenPosition: {x: 0, y: 0.2}
     DeadZone:
       Enabled: 1
       Size: {x: 0.2, y: 0}
@@ -3006,12 +3006,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lockYWhileAirborne: 1
   riseYInfluence: 0.18
+  airJumpRiseYInfluence: 0.4
   riseYSmoothTime: 0.2
   fallYInfluence: 0.85
   fallYSmoothTime: 0
   fallLookAheadMax: 6
   fallLookAheadMinSpeed: 10
-  fallLookAheadFullSpeed: 20
+  fallLookAheadFullSpeed: 28
   landReturnSmoothTime: 0.35
   landReturnSettleEpsilon: 0.015
   enableLandRebound: 0

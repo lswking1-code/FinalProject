@@ -14,6 +14,9 @@ public class CameraAirborneYLock : MonoBehaviour
     [Tooltip("相对离地高度，上升时跟随玩家竖直位移的比例")]
     [Range(0f, 1f)]
     [SerializeField] float riseYInfluence = 0.18f;
+    [Tooltip("空中再起跳（二段跳）时的上升跟随比例，应高于一段跳弱跟")]
+    [Range(0f, 1f)]
+    [SerializeField] float airJumpRiseYInfluence = 0.40f;
     [Tooltip("上升时锚点 Y 平滑时间（秒）")]
     [SerializeField] float riseYSmoothTime = 0.20f;
 
@@ -66,6 +69,7 @@ public class CameraAirborneYLock : MonoBehaviour
     bool landSettling;
     float landOffsetY;
     float landOffsetVelocity;
+    bool airJumpRiseTracking;
 
     /// <summary>Cinemachine TrackingTarget 应绑定此锚点。</summary>
     public Transform FollowAnchor
@@ -81,6 +85,28 @@ public class CameraAirborneYLock : MonoBehaviour
     public void SnapToPlayerImmediate()
     {
         SnapAnchorToPlayer(unlockY: true);
+    }
+
+    /// <summary>
+    /// 空中再起跳（如二段跳）：以当前跟随锚点 Y 为新基准，再用更强的上升弱跟跟随之后的竖直位移。
+    /// 不把锚点 Snap 到角色，避免瞬间满跟。
+    /// </summary>
+    public void NotifyAirJump()
+    {
+        if (!lockYWhileAirborne)
+            return;
+
+        ResolveRefs();
+        EnsureFollowAnchor();
+        if (playerTransform == null || followAnchor == null)
+            return;
+
+        leaveGroundY = followAnchor.position.y;
+        ySoftTracking = true;
+        airborneYVelocity = 0f;
+        activeLookAhead = 0f;
+        airJumpRiseTracking = true;
+        ClearLandSettle();
     }
 
     void Awake()
@@ -129,6 +155,7 @@ public class CameraAirborneYLock : MonoBehaviour
         {
             ySoftTracking = false;
             airborneYVelocity = 0f;
+            airJumpRiseTracking = false;
             ClearLandSettle();
             FollowPlayerFully();
             return;
@@ -152,6 +179,7 @@ public class CameraAirborneYLock : MonoBehaviour
             ClearLandSettle();
             activeLookAhead = 0f;
             peakLookAheadThisAir = 0f;
+            airJumpRiseTracking = false;
             wasSolidGround = solid;
             hasGroundSample = true;
             return;
@@ -199,6 +227,7 @@ public class CameraAirborneYLock : MonoBehaviour
             }
 
             ySoftTracking = false;
+            airJumpRiseTracking = false;
             leaveGroundY = playerPos.y;
             activeLookAhead = 0f;
             peakLookAheadThisAir = 0f;
@@ -220,8 +249,11 @@ public class CameraAirborneYLock : MonoBehaviour
             float fallBlend = ComputeFallBlend(vy);
 
             // MinSpeed 同时闸住「强跟」与「下瞄」：未达阈值时保持上升参数，避免一过顶点就像下瞄已触发
+            float riseInfluence = airJumpRiseTracking
+                ? Mathf.Clamp01(airJumpRiseYInfluence)
+                : Mathf.Clamp01(riseYInfluence);
             float influence = Mathf.Lerp(
-                Mathf.Clamp01(riseYInfluence),
+                riseInfluence,
                 Mathf.Clamp01(fallYInfluence),
                 fallBlend);
             float deltaY = playerPos.y - leaveGroundY;
@@ -276,6 +308,7 @@ public class CameraAirborneYLock : MonoBehaviour
         leaveGroundY = playerTransform.position.y;
         activeLookAhead = 0f;
         peakLookAheadThisAir = 0f;
+        airJumpRiseTracking = false;
         ClearLandSettle();
         wasSolidGround = physicsCheck == null || physicsCheck.isSolidGround;
         hasGroundSample = true;
@@ -293,6 +326,7 @@ public class CameraAirborneYLock : MonoBehaviour
         airborneYVelocity = 0f;
         activeLookAhead = 0f;
         peakLookAheadThisAir = 0f;
+        airJumpRiseTracking = false;
         ClearLandSettle();
         if (unlockY)
             ySoftTracking = false;
