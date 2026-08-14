@@ -747,6 +747,7 @@ GameObject:
   - component: {fileID: 434014519}
   - component: {fileID: 434014521}
   - component: {fileID: 434014520}
+  - component: {fileID: 434014522}
   m_Layer: 0
   m_Name: PlayerIcon
   m_TagString: Untagged
@@ -811,6 +812,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 434014518}
   m_CullTransparentMesh: 1
+--- !u!114 &434014522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 434014518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f8a2c1e9b6d4758a3c0e1d2f4b5a697, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  iconImage: {fileID: 434014520}
 --- !u!1 &465314094
 GameObject:
   m_ObjectHideFlags: 0
@@ -2059,7 +2073,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -7866264352272399855, guid: 9074fa1e05a2be64e859462dd7ad8768, type: 3}
+  m_Sprite: {fileID: -3499104383454846471, guid: 49a4bc78b8ba1b446ac38944fe46d403, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2427,7 +2441,7 @@ MonoBehaviour:
   firstPosition: {x: 0, y: -30, z: 0}
   menuPosition: {x: 0, y: 0, z: 0}
   playerRegistry: {fileID: 11400000, guid: c4d5e6f7890123456789abcdef012345, type: 2}
-  selectedCharacter: {fileID: 11400000, guid: 5a1b2c3d4e5f678901234567abcdef01, type: 2}
+  selectedCharacter: {fileID: 11400000, guid: 7c3d4e5f67890123456789abcdef0123, type: 2}
   playerCharacterBindings:
   - character: {fileID: 11400000, guid: 5a1b2c3d4e5f678901234567abcdef01, type: 2}
     instanceTransform: {fileID: 1221583060}
@@ -4703,14 +4717,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.96892345, g: 0.22268187, b: 0.22268187, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 3737897332693287829, guid: 37df04450e40d1f48bc78e6e92eb51fe, type: 3}
+  m_Sprite: {fileID: -6487314267734330050, guid: 7f807073bfe50e74494edc8121c17349, type: 3}
   m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1

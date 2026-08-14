@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 20
+  damage: 10
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -480,7 +480,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: -1
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1073,7 +1073,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: 2158688843452508095, guid: 516840b4729c0b545a451b9008d0963a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1231,7 +1231,7 @@ MonoBehaviour:
   attackDistance: 2.2
   airAttackDistanceY: 0.25
   dashDecideDistance: 4.5
-  attackCooldown: 1
+  attackCooldown: 1.5
   attackLungeSpeed: 4
   attackLungeDuration: 0.25
   comboAirHangGravityScale: 0.2

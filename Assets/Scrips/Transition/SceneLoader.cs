@@ -25,6 +25,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public PlayerRegistrySO playerRegistry;
     public PlayerCharacterSO selectedCharacter;
     public PlayerCharacterBinding[] playerCharacterBindings = Array.Empty<PlayerCharacterBinding>();
+    public event Action<PlayerCharacterSO> SelectedCharacterChanged;
 
     [Header("相机")]
     public CameraControl cameraControl;
@@ -239,6 +240,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (selected == null)
         {
             Debug.LogWarning($"SceneLoader: 角色 {selectedCharacter.displayName} 未配置 Persistent 实例引用。");
+            SelectedCharacterChanged?.Invoke(selectedCharacter);
             return;
         }
 
@@ -253,6 +255,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         }
 
         BindCameraToPlayer();
+        SelectedCharacterChanged?.Invoke(selectedCharacter);
     }
 
     void ResolvePlayerInstances()
