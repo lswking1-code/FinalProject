@@ -177,6 +177,12 @@ public class Bob_Controller : MonoBehaviour
         },
     };
 
+    [Header("大招（I / Ability2 · 复制特技，消耗能量）")]
+    [Tooltip("发动大招消耗的 AbilityPower；0 表示不消耗。Melee_Player 默认上限 100")]
+    [SerializeField] float ultimateAbilityPowerCost = 50f;
+    [Tooltip("大招伤害 = 特技伤害 × 该倍率")]
+    [SerializeField] float ultimateDamageMultiplier = 2f;
+
     [Header("短距冲刺（CrouchMelee · 无推怪）")]
     [Tooltip("蹲攻短距冲刺速度；应明显短于 rush_special")]
     [SerializeField] float shortMeleeDashSpeed = 10f;
@@ -344,6 +350,7 @@ public class Bob_Controller : MonoBehaviour
 
         TryStartMeleeAttack();
         TryStartSpecialAttack();
+        TryStartUltimateAttack();
         UpdateMeleeHitbox();
         UpdateCommonActionSfx();
     }
@@ -599,7 +606,7 @@ public class Bob_Controller : MonoBehaviour
         if (meleeAttack != null)
         {
             int damage = special && hasSpecialProfile
-                ? activeSpecialProfile.damage
+                ? ResolveSpecialSwingDamage()
                 : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
             int maxTargets = special && hasSpecialProfile
                 ? activeSpecialProfile.maxTargets
@@ -664,6 +671,27 @@ public class Bob_Controller : MonoBehaviour
     bool IsCurrentSwingSpecial()
         => playerAnim != null && playerAnim.IsSpecial;
 
+    bool IsCurrentSwingUltimate()
+        => fullBodyAnim != null && fullBodyAnim.IsUltimate;
+
+    int ResolveSpecialSwingDamage()
+    {
+        int damage = Mathf.Max(1, activeSpecialProfile.damage);
+        if (IsCurrentSwingUltimate())
+            damage = Mathf.Max(1, Mathf.RoundToInt(damage * Mathf.Max(1f, ultimateDamageMultiplier)));
+        return damage;
+    }
+
+    int ResolveSpecialInnerDamage()
+    {
+        int inner = activeSpecialProfile.innerDamage > 0
+            ? activeSpecialProfile.innerDamage
+            : Mathf.Max(1, activeSpecialProfile.damage / 2);
+        if (IsCurrentSwingUltimate())
+            inner = Mathf.Max(1, Mathf.RoundToInt(inner * Mathf.Max(1f, ultimateDamageMultiplier)));
+        return inner;
+    }
+
     void TryStartMeleeAttack()
     {
         if (holdingAttackInputLock)
@@ -718,6 +746,20 @@ public class Bob_Controller : MonoBehaviour
 
     void TryStartSpecialAttack()
     {
+        if (!actions.Player.Ability1.WasPressedThisFrame())
+            return;
+        TryBeginSpecialOrUltimate(ultimate: false);
+    }
+
+    void TryStartUltimateAttack()
+    {
+        if (!actions.Player.Ability2.WasPressedThisFrame())
+            return;
+        TryBeginSpecialOrUltimate(ultimate: true);
+    }
+
+    void TryBeginSpecialOrUltimate(bool ultimate)
+    {
         if (holdingAttackInputLock)
             return;
 
@@ -730,9 +772,6 @@ public class Bob_Controller : MonoBehaviour
         if (playerAnim.IsMelee)
             return;
 
-        if (!actions.Player.Ability1.WasPressedThisFrame())
-            return;
-
         int weaponId = ResolveCurrentWeaponId();
         if (weaponId == 0 || !hasSpecialProfile || activeSpecialProfile.weaponId != weaponId)
             return;
@@ -742,10 +781,19 @@ public class Bob_Controller : MonoBehaviour
                 || fullBodyAnim.AppliedWeaponDefinition.special == null))
             return;
 
-        AmmoType ammoType = ResolveSpecialAmmoType(weaponId);
-        if (specialAmmoCost > 0
-            && (selfCharacter == null || !HasEnoughAmmo(ammoType, specialAmmoCost)))
-            return;
+        if (ultimate)
+        {
+            if (ultimateAbilityPowerCost > 0f
+                && (selfCharacter == null || selfCharacter.AbilityPower < ultimateAbilityPowerCost))
+                return;
+        }
+        else
+        {
+            AmmoType ammoType = ResolveSpecialAmmoType(weaponId);
+            if (specialAmmoCost > 0
+                && (selfCharacter == null || !HasEnoughAmmo(ammoType, specialAmmoCost)))
+                return;
+        }
 
         if (detectZone != null && detectZone.HasValidTarget)
         {
@@ -758,16 +806,25 @@ public class Bob_Controller : MonoBehaviour
         specialRearHitTargets.Clear();
         swingHitCountables.Clear();
         playerAnim.InterruptTurn();
-        if (!playerAnim.TryPlaySpecialAnim())
+
+        bool played = ultimate
+            ? fullBodyAnim != null && fullBodyAnim.TryPlayUltimateAnim()
+            : playerAnim.TryPlaySpecialAnim();
+        if (!played)
             return;
 
-        if (specialAmmoCost > 0 && selfCharacter != null)
-            selfCharacter.TrySpendAmmo(ammoType, specialAmmoCost);
+        if (ultimate)
+        {
+            if (ultimateAbilityPowerCost > 0f && selfCharacter != null)
+                selfCharacter.DrainAbilityPower(ultimateAbilityPowerCost);
+        }
+        else if (specialAmmoCost > 0 && selfCharacter != null)
+        {
+            selfCharacter.TrySpendAmmo(ResolveSpecialAmmoType(weaponId), specialAmmoCost);
+        }
 
         ApplyActiveProfileToColliders();
         PlaySfx(ResolveWeaponSpecialSfx(weaponId));
-
-        // 特技全程锁输入，直到动画结束
         BeginAttackInputLock();
     }
 
@@ -846,7 +903,7 @@ public class Bob_Controller : MonoBehaviour
         if (meleeAttack != null)
         {
             int damage = special && hasSpecialProfile
-                ? activeSpecialProfile.damage
+                ? ResolveSpecialSwingDamage()
                 : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
             meleeAttack.damage = damage;
             meleeAttack.enabled = maxTargets <= 0;
@@ -875,7 +932,7 @@ public class Bob_Controller : MonoBehaviour
 
         if (meleeAttack != null)
         {
-            meleeAttack.damage = activeSpecialProfile.damage;
+            meleeAttack.damage = ResolveSpecialSwingDamage();
             meleeAttack.enabled = false;
         }
 
@@ -913,7 +970,7 @@ public class Bob_Controller : MonoBehaviour
                 ProcessSpecialBoxHits(
                     activeSpecialProfile.hitboxOffset,
                     activeSpecialProfile.hitboxSize,
-                    activeSpecialProfile.damage,
+                    ResolveSpecialSwingDamage(),
                     swingHitTargets,
                     activeSpecialProfile.maxTargets,
                     knockbackSign: 1f);
@@ -925,7 +982,7 @@ public class Bob_Controller : MonoBehaviour
                 ProcessSpecialBoxHits(
                     rearOffset,
                     activeSpecialProfile.hitboxSize,
-                    activeSpecialProfile.damage,
+                    ResolveSpecialSwingDamage(),
                     specialRearHitTargets,
                     activeSpecialProfile.maxTargets,
                     knockbackSign: -1f);
@@ -974,10 +1031,8 @@ public class Bob_Controller : MonoBehaviour
         Vector2 center = ResolveSpecialCenter();
         float outer = activeSpecialProfile.outerRadius;
         float inner = activeSpecialProfile.innerRadius;
-        int outerDamage = activeSpecialProfile.damage;
-        int innerDamage = activeSpecialProfile.innerDamage > 0
-            ? activeSpecialProfile.innerDamage
-            : Mathf.Max(1, outerDamage / 2);
+        int outerDamage = ResolveSpecialSwingDamage();
+        int innerDamage = ResolveSpecialInnerDamage();
         int maxTargets = activeSpecialProfile.maxTargets;
 
         if (maxTargets > 0 && swingHitTargets.Count >= maxTargets)
@@ -1461,10 +1516,7 @@ public class Bob_Controller : MonoBehaviour
         PlaySfx(jumpDownImpactSfx);
 
         if (fullBodyAnim != null)
-        {
             fullBodyAnim.HoldJumpDownAttackUntilImpact = false;
-            fullBodyAnim.RestartCurrentMeleeAnim();
-        }
     }
 
     void ApplyJumpDownImpact()
@@ -1536,7 +1588,7 @@ public class Bob_Controller : MonoBehaviour
         bool groundedNow = physicsCheck != null && physicsCheck.isGround;
         playerAnim?.UpdateAirState(groundedNow, velocityY);
 
-        // 必须等近战（含落地后重播动画）完整结束才解锁操作
+        // 必须等近战（含下砸片播完）完整结束才解锁操作
         if (playerAnim != null && playerAnim.IsMelee)
             return;
 
@@ -1980,8 +2032,8 @@ public class Bob_Controller : MonoBehaviour
             DrawLocalBoxGizmo(hitMatrix, rearOffset, specialDraw.hitboxSize, rearColor, filled: false);
         }
 
-        // 非向上挥击时额外用半透明线框标出上方判定，方便对照
-        if (!drawUp && !drawSpecial)
+        // 非向上挥击时额外用半透明线框标出上方判定（空手无上攻，不画）
+        if (!drawUp && !drawSpecial && drawWeaponId != 0)
         {
             Vector2 upSize = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize;
             Vector2 upOffset = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset;

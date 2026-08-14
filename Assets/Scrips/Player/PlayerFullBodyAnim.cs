@@ -72,6 +72,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     bool isCrouching;
     bool isRunning;
     bool isMelee;
+    bool isUltimate;
     bool isSwitchingWeapon;
     bool isDead;
     bool isLookingUp;
@@ -107,7 +108,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     public bool IsJumpDownAttack =>
         isMelee && activeMeleeStateName == JumpDownAttackStateName;
     /// <summary>
-    /// 落地冲击未结算前为 true：禁止结束 JumpDownAttack，确保伤害与落地动画完整播完。
+    /// 落地冲击未结算前为 true：禁止结束 JumpDownAttack，空中片可继续播到末帧。
     /// </summary>
     public bool HoldJumpDownAttackUntilImpact { get; set; }
     /// <summary>兼容旧名：空中下攻即 JumpDownAttack。</summary>
@@ -115,9 +116,12 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     /// <summary>当前是否为蹲伏攻击（CrouchMelee）。</summary>
     public bool IsCrouchMelee =>
         isMelee && activeMeleeStateName == CrouchMeleeStateName;
-    /// <summary>当前是否为武器特技（Special）。</summary>
+    /// <summary>当前是否为武器特技（Special）。大招也走同一状态。</summary>
     public override bool IsSpecial =>
         isMelee && activeMeleeStateName == SpecialStateName;
+    /// <summary>当前是否为大招（I / Ability2）：同特技动画，更高伤害。</summary>
+    public bool IsUltimate =>
+        isMelee && isUltimate && activeMeleeStateName == SpecialStateName;
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
     public override bool IsLookingUp => isLookingUp;
@@ -187,6 +191,25 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             MaintainMeleeCompletion();
             MaintainWeaponSwitchCompletion();
             wasGrounded = grounded;
+            return;
+        }
+
+        // 近战（含 JumpDownAttack）期间不要播 Land / 切位移，否则会盖掉攻击片并提前 Complete
+        if (isMelee)
+        {
+            if (IsPlayingLand)
+                InterruptLand();
+
+            if (IsSolidlyGrounded(grounded) && airPhase != AirPhaseType.Ground)
+            {
+                airPhase = AirPhaseType.Ground;
+                airTrack = AirTrack.None;
+            }
+
+            MaintainMeleeCompletion();
+            MaintainWeaponSwitchCompletion();
+            wasGrounded = grounded;
+            airStateInitialized = true;
             return;
         }
 
@@ -389,6 +412,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             bodyAnimator.SetBool("IsRun", false);
 
         isMelee = true;
+        isUltimate = false;
         activeMeleeStateName = stateName;
         meleeStartedAt = Time.time;
         bodyAnimator.Play(stateName, 0, 0f);
@@ -400,6 +424,15 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     /// 走与近战相同的 IsMelee / 完成检测，便于 Bob_Controller 复用命中窗。
     /// </summary>
     public override bool TryPlaySpecialAnim()
+        => TryPlaySpecialAnimInternal(ultimate: false);
+
+    /// <summary>
+    /// 大招：复用 Special 动画与命中逻辑，由 Bob_Controller 提高伤害并消耗 AbilityPower。
+    /// </summary>
+    public bool TryPlayUltimateAnim()
+        => TryPlaySpecialAnimInternal(ultimate: true);
+
+    bool TryPlaySpecialAnimInternal(bool ultimate)
     {
         if (isSwitchingWeapon || isDead || bodyAnimator == null)
             return false;
@@ -418,6 +451,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
             bodyAnimator.SetBool("IsRun", false);
 
         isMelee = true;
+        isUltimate = ultimate;
         activeMeleeStateName = SpecialStateName;
         meleeStartedAt = Time.time;
         bodyAnimator.Play(SpecialStateName, 0, 0f);
@@ -432,16 +466,17 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         bool grounded = airPhase == AirPhaseType.Ground;
         bool lookUp = IsLookUpHeld();
         bool lookDown = IsLookDownHeld();
+        // 空手（weapon 0）无独立上攻：上看时仍走 attack / jump_attack
+        bool allowUpMelee = AppliedWeaponId != 0;
 
         if (grounded)
         {
-            // 站立向上攻：不依赖武器 SO 是否填了 upMelee（基座 default_up_melee / Override 均可）
-            if (lookUp)
+            if (lookUp && allowUpMelee)
                 return UpMeleeStateName;
             return MeleeStateName;
         }
 
-        if (lookUp)
+        if (lookUp && allowUpMelee)
             return AirUpMeleeStateName;
 
         if (lookDown)
@@ -583,6 +618,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         isCrouching = false;
         isRunning = false;
         isMelee = false;
+        isUltimate = false;
         activeOneShotState = null;
         oneShotAutoExit = false;
         PlayOneShot(DieStateName, autoExit: false);
@@ -607,6 +643,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         isDead = false;
         isSwitchingWeapon = false;
         isMelee = false;
+        isUltimate = false;
         activeMeleeStateName = null;
         meleeStartedAt = -1f;
         activeOneShotState = null;
@@ -898,18 +935,33 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         float elapsed = Time.time - meleeStartedAt;
         var info = bodyAnimator.GetCurrentAnimatorStateInfo(0);
 
-        // 砸地：未落地，或落地冲击尚未结算 → 不结束近战
+        // 砸地：空中或冲击未结算时保持当前片（播完则停在末帧，不重绕、不切 Land）
         if (IsJumpDownAttack)
         {
             bool grounded = physicsCheck != null && physicsCheck.isGround;
-            if (!grounded || HoldJumpDownAttackUntilImpact)
+            bool waitingForImpact = !grounded || HoldJumpDownAttackUntilImpact;
+            if (waitingForImpact)
+                return;
+
+            if (!info.IsName(JumpDownAttackStateName))
             {
-                if (info.IsName(JumpDownAttackStateName)
-                    && info.length > 0.0001f
-                    && info.normalizedTime >= 1f)
-                    bodyAnimator.Play(JumpDownAttackStateName, 0, 0.99f);
+                if (elapsed < OneShotEnterGrace)
+                    return;
+                CompleteMelee();
                 return;
             }
+
+            if (info.length <= 0.0001f)
+            {
+                CompleteMelee();
+                return;
+            }
+
+            if (info.normalizedTime < 1f)
+                return;
+
+            CompleteMelee();
+            return;
         }
 
         if (!info.IsName(activeMeleeStateName))
@@ -942,8 +994,6 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         // 循环攻击片 / 异常卡住兜底：超过片长一定比例强制结束
         float maxDuration = Mathf.Max(info.length * 1.25f, MeleeMaxDurationFallback);
-        if (IsJumpDownAttack)
-            maxDuration = Mathf.Max(maxDuration, MeleeMaxDurationFallback * 2f);
         if (elapsed >= maxDuration)
             CompleteMelee();
     }
@@ -951,6 +1001,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     void CompleteMelee()
     {
         isMelee = false;
+        isUltimate = false;
         activeMeleeStateName = null;
         meleeStartedAt = -1f;
         HoldJumpDownAttackUntilImpact = false;

@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: 9074fa1e05a2be64e859462dd7ad8768
+guid: 52cf7dceaf4c67a408d6fbe541b98dd0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7866264352272399855
-    second: xp Bar export_0
+      213: -588706317613448782
+    second: default_jump_attack_hit_0
+  - first:
+      213: -6041920266043753789
+    second: default_jump_attack_hit_1
+  - first:
+      213: -1291101049639685607
+    second: default_jump_attack_hit_2
+  - first:
+      213: -7721183399983230569
+    second: default_jump_attack_hit_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +46,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -109,30 +118,39 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: 4
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: xp Bar export_0
+      name: default_jump_attack_hit_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 5
-        width: 101
-        height: 5
+        x: 26
+        y: 29
+        width: 53
+        height: 36
+      alignment: 9
+      pivot: {x: 0.31365016, y: 0.10859638}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b14f9529be74d7f0800000000000000
+      internalID: -588706317613448782
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_attack_hit_1
+      rect:
+        serializedVersion: 2
+        x: 58
+        y: 53
+        width: 13
+        height: 9
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +159,52 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1124c75bf3a65d290800000000000000
-      internalID: -7866264352272399855
+      spriteID: 3ca7a3d8789c62ca0800000000000000
+      internalID: -6041920266043753789
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_attack_hit_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 41
+        width: 10
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 912b7179f66151ee0800000000000000
+      internalID: -1291101049639685607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_attack_hit_3
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 53
+        width: 8
+        height: 12
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7915b563b98d8d490800000000000000
+      internalID: -7721183399983230569
       vertices: []
       indices: 
       edges: []
@@ -151,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4ceb2f8fa4cf0324e97443c954def395
+    spriteID: c94ed3c999c7ec5459477dd2cf76efec
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +223,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      xp Bar export_0: -7866264352272399855
+      default_jump_attack_hit_0: -588706317613448782
+      default_jump_attack_hit_1: -6041920266043753789
+      default_jump_attack_hit_2: -1291101049639685607
+      default_jump_attack_hit_3: -7721183399983230569
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

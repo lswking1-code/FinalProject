@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 9074fa1e05a2be64e859462dd7ad8768
+guid: ca1ed391e904afa4e82fff6aa32d90f1
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7866264352272399855
-    second: xp Bar export_0
+      213: -2060957032085078561
+    second: default_jump_downattack_hit_0
+  - first:
+      213: 2537507482370151250
+    second: default_jump_downattack_hit_1
+  - first:
+      213: 7614832098739066504
+    second: default_jump_downattack_hit_2
+  - first:
+      213: -5580306957235090898
+    second: default_jump_downattack_hit_3
+  - first:
+      213: 3172817065272587644
+    second: default_jump_downattack_hit_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +49,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -109,30 +121,39 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: 4
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: xp Bar export_0
+      name: default_jump_downattack_hit_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 5
-        width: 101
-        height: 5
+        x: 13
+        y: 30
+        width: 66
+        height: 26
+      alignment: 9
+      pivot: {x: 0.529929, y: 0.11506829}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fddb93daf720663e0800000000000000
+      internalID: -2060957032085078561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_downattack_hit_1
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 32
+        width: 26
+        height: 24
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +162,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1124c75bf3a65d290800000000000000
-      internalID: -7866264352272399855
+      spriteID: 25391956c99073320800000000000000
+      internalID: 2537507482370151250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_downattack_hit_2
+      rect:
+        serializedVersion: 2
+        x: 59
+        y: 32
+        width: 20
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 886959dd2715da960800000000000000
+      internalID: 7614832098739066504
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_downattack_hit_3
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 38
+        width: 16
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2a8c5c5364ce82b0800000000000000
+      internalID: -5580306957235090898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: default_jump_downattack_hit_4
+      rect:
+        serializedVersion: 2
+        x: 12
+        y: 30
+        width: 29
+        height: 7
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c75bed08f4c180c20800000000000000
+      internalID: 3172817065272587644
       vertices: []
       indices: 
       edges: []
@@ -151,7 +238,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4ceb2f8fa4cf0324e97443c954def395
+    spriteID: 01c06f6b509a30140ba537cbb5881f3e
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +248,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      xp Bar export_0: -7866264352272399855
+      default_jump_downattack_hit_0: -2060957032085078561
+      default_jump_downattack_hit_1: 2537507482370151250
+      default_jump_downattack_hit_2: 7614832098739066504
+      default_jump_downattack_hit_3: -5580306957235090898
+      default_jump_downattack_hit_4: 3172817065272587644
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
