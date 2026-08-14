@@ -598,6 +598,8 @@ MonoBehaviour:
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
   meleeRange: 1.2
+  idealRange: 5
+  idealRangeSlack: 0.5
   windupDuration: 0.3
   recoveryDuration: 2
   actionDuration: 1.5

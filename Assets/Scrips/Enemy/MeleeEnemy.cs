@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 近战敌人：进入 meleeRange 后按权重在 MeleeAttack / Move 间循环；可选巡逻脱战回位。
+/// 近战敌人：进入 idealRange 后按权重在 MeleeAttack / Move 间循环；可选巡逻脱战回位。
+/// GetClose / Move 停在理想距离；MeleeAttack 才会再贴近 meleeRange 出刀。
 /// 冲刺飞扑通过 enablePounce / CanPounce / Skill 状态预留，当前 CanPounce 恒为 false。
 /// </summary>
 public class MeleeEnemy : Enemy
@@ -15,8 +16,12 @@ public class MeleeEnemy : Enemy
     const float ProbabilityStep = 0.1f;
 
     [Header("近战参数")]
-    [Tooltip("进入近战攻击的水平距离")]
+    [Tooltip("近战出刀的水平距离；仅 MeleeAttack 才会贴近到此距离")]
     public float meleeRange = 0.8f;
+    [Tooltip("GetClose 停下并开始 Move 的水平理想距离，应大于 meleeRange（类似远程的 shootRange）")]
+    public float idealRange = 5f;
+    [Tooltip("Move 时相对 idealRange 的容差，避免贴边来回抖")]
+    [Min(0f)] public float idealRangeSlack = 0.5f;
     [Tooltip("挥刀前摇时长")]
     public float windupDuration = 0.3f;
     [Tooltip("挥刀后摇时长，期间无法移动与攻击")]
@@ -123,7 +128,12 @@ public class MeleeEnemy : Enemy
     protected override bool ShouldAutoMove() => false;
 
     /// <summary>靠近状态停下的水平距离（盾兵有盾时用 holdRange）。</summary>
-    public virtual float GetApproachStopRange() => meleeRange;
+    public virtual float GetApproachStopRange() => GetIdealRange();
+
+    /// <summary>Move / GetClose 使用的理想站位距离，至少不小于 meleeRange。</summary>
+    public float GetIdealRange() => Mathf.Max(meleeRange, idealRange);
+
+    public float GetMoveDirAwayFromPlayer() => -GetMoveDirTowardPlayer();
 
     void ResetActionProbabilities()
     {
@@ -151,7 +161,7 @@ public class MeleeEnemy : Enemy
     }
 
     /// <summary>
-    /// 每轮循环：巡逻闸门 → 飞扑预留 → GetClose 或按权重选择 MeleeAttack / Move
+    /// 每轮循环：巡逻闸门 → 飞扑预留 → 超出理想距离则 GetClose，否则按权重选择 MeleeAttack / Move
     /// </summary>
     public virtual void EvaluateCycle()
     {
@@ -281,6 +291,12 @@ public class MeleeEnemy : Enemy
 
     private void OnDrawGizmosSelected()
     {
+        float ideal = GetIdealRange();
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(
+            transform.position + Vector3.left * ideal,
+            transform.position + Vector3.right * ideal);
+
         Gizmos.color = Color.red;
         Gizmos.DrawLine(
             transform.position + Vector3.left * meleeRange,

@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 近战敌人随机移动状态：持续 actionDuration 秒，随机水平走位。
-/// 朝向与移动方向同步，并在墙体 / 平台边缘处转身，避免倒着走出平台。
+/// 近战敌人随机移动状态：持续 actionDuration 秒，在 idealRange 附近走位。
+/// 过近时优先远离玩家；朝向与移动方向同步，并在墙体 / 平台边缘处转身。
 /// </summary>
 public class MeleeMoveState : BaseState
 {
@@ -42,6 +42,8 @@ public class MeleeMoveState : BaseState
         if (meleeEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
 
+        KeepIdealDistance();
+
         if (meleeEnemy.TryFlipOnObstacleOrLedge(moveDir))
             moveDir = -moveDir;
         else if (!meleeEnemy.HasGroundAhead(moveDir))
@@ -59,9 +61,36 @@ public class MeleeMoveState : BaseState
         currentEnemy.anim.SetBool("walk", false);
     }
 
+    /// <summary>
+    /// 贴得比理想距离更近时改为远离玩家，避免 Move 期间贴脸。
+    /// </summary>
+    void KeepIdealDistance()
+    {
+        if (meleeEnemy.GetHorizontalDistanceToPlayer() >= meleeEnemy.GetIdealRange() - meleeEnemy.idealRangeSlack)
+            return;
+
+        float away = meleeEnemy.GetMoveDirAwayFromPlayer();
+        if (away == 0f || Mathf.Sign(moveDir) == Mathf.Sign(away))
+            return;
+
+        if (!meleeEnemy.HasGroundAhead(away) && meleeEnemy.HasGroundAhead(-away))
+            return;
+
+        moveDir = away;
+        meleeEnemy.FaceDirection(moveDir);
+    }
+
     float PickSafeMoveDir()
     {
-        float prefer = Random.value < 0.5f ? -1f : 1f;
+        float prefer;
+        float dist = meleeEnemy.GetHorizontalDistanceToPlayer();
+        float ideal = meleeEnemy.GetIdealRange();
+
+        if (dist < ideal - meleeEnemy.idealRangeSlack)
+            prefer = meleeEnemy.GetMoveDirAwayFromPlayer();
+        else
+            prefer = Random.value < 0.5f ? -1f : 1f;
+
         if (meleeEnemy.HasGroundAhead(prefer) || !meleeEnemy.HasGroundAhead(-prefer))
             return prefer;
 

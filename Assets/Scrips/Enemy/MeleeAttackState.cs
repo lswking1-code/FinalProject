@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 近战攻击：前摇 → 挥刀动画（跟 Animator Melee 状态播完）→ 后摇。
+/// 近战攻击：必要时先贴近 meleeRange，再前摇 → 挥刀动画 → 后摇。
 /// Hitbox（Attacker1）按 Melee clip 归一化时间在出刀帧开启，状态退出时关闭。
 /// </summary>
 public class MeleeAttackState : BaseState
@@ -13,6 +13,7 @@ public class MeleeAttackState : BaseState
 
     enum Phase
     {
+        CloseIn,
         Windup,
         Slash,
         Recovery
@@ -36,24 +37,23 @@ public class MeleeAttackState : BaseState
         attacker1 = currentEnemy.transform.Find(AttackerChildName);
         SetAttackerActive(false);
 
-        meleeEnemy.FacePlayer();
-        StopHorizontal();
-
-        if (currentEnemy.anim != null)
-        {
-            currentEnemy.anim.SetBool("walk", false);
-            currentEnemy.anim.SetBool("melee", false);
-            currentEnemy.anim.SetBool("meleeWindup", true);
-        }
-
-        phase = Phase.Windup;
-        timer = Mathf.Max(0.01f, meleeEnemy.windupDuration);
+        if (meleeEnemy.GetHorizontalDistanceToPlayer() > meleeEnemy.meleeRange)
+            EnterCloseIn();
+        else
+            EnterWindup();
     }
 
     public override void LogicUpdate()
     {
         if (meleeEnemy == null || currentEnemy.isDead)
             return;
+
+        if (phase == Phase.CloseIn)
+        {
+            if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.meleeRange)
+                EnterWindup();
+            return;
+        }
 
         if (phase == Phase.Slash)
         {
@@ -83,6 +83,13 @@ public class MeleeAttackState : BaseState
         if (currentEnemy.isHurt || currentEnemy.isDead || currentEnemy.Rb == null)
             return;
 
+        if (phase == Phase.CloseIn)
+        {
+            meleeEnemy.MoveTowardPlayer();
+            meleeEnemy.TryFlipOnObstacle(meleeEnemy.GetMoveDirTowardPlayer());
+            return;
+        }
+
         StopHorizontal();
     }
 
@@ -93,8 +100,41 @@ public class MeleeAttackState : BaseState
         if (currentEnemy?.anim == null)
             return;
 
+        currentEnemy.anim.SetBool("walk", false);
         currentEnemy.anim.SetBool("melee", false);
         currentEnemy.anim.SetBool("meleeWindup", false);
+    }
+
+    void EnterCloseIn()
+    {
+        phase = Phase.CloseIn;
+        currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
+        meleeEnemy.FacePlayer();
+        SetAttackerActive(false);
+
+        if (currentEnemy.anim != null)
+        {
+            currentEnemy.anim.SetBool("melee", false);
+            currentEnemy.anim.SetBool("meleeWindup", false);
+            currentEnemy.anim.SetBool("walk", true);
+        }
+    }
+
+    void EnterWindup()
+    {
+        phase = Phase.Windup;
+        meleeEnemy.FacePlayer();
+        StopHorizontal();
+        SetAttackerActive(false);
+
+        if (currentEnemy.anim != null)
+        {
+            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.anim.SetBool("melee", false);
+            currentEnemy.anim.SetBool("meleeWindup", true);
+        }
+
+        timer = Mathf.Max(0.01f, meleeEnemy.windupDuration);
     }
 
     void EnterSlash()

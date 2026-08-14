@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 近战敌人靠近状态：持续朝玩家移动，进入近战距离后进入攻击循环。
+/// 近战敌人靠近状态：持续朝玩家移动，进入理想站位距离后进入行动循环。
 /// </summary>
 public class MeleeGetCloseState : BaseState
 {

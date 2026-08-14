@@ -54,7 +54,7 @@ public class ShieldEnemy : MeleeEnemy
 
     public override float GetApproachStopRange()
     {
-        return HasShield ? holdRange : meleeRange;
+        return HasShield ? holdRange : base.GetApproachStopRange();
     }
 
     /// <summary>
