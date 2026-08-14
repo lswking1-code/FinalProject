@@ -49,9 +49,9 @@ public class Bob_Controller : MonoBehaviour
         [Range(0f, 1f)] public float hitEnd;
 
         [Header("Whip · 后方追加判定")]
-        [Tooltip("后方追加判定开始（归一化动画时间）；与前方盒同尺寸，X 镜像")]
+        [Tooltip("后方追加判定开始（归一化 0-1）。whip_special 后挥约在 0.67，建议 0.55 起")]
         [Range(0f, 1f)] public float rearHitStart;
-        [Tooltip("后方追加判定结束")]
+        [Tooltip("后方追加判定结束（归一化 0-1）。建议覆盖到 0.95，不要用片长秒数")]
         [Range(0f, 1f)] public float rearHitEnd;
 
         [Header("Buzzsaw · 双层圆形判定")]
@@ -165,7 +165,7 @@ public class Bob_Controller : MonoBehaviour
             weaponId = 2, damage = 70,
             hitboxSize = new Vector2(4.5f, 0.6f), hitboxOffset = new Vector2(2.2f, 0f),
             maxTargets = 0, hitStart = 0.15f, hitEnd = 0.55f,
-            rearHitStart = 0.5f, rearHitEnd = 0.7f,
+            rearHitStart = 0.55f, rearHitEnd = 0.95f,
             knockbackForce = 16f, knockbackDuration = 0.28f,
         },
         new WeaponSpecialProfile
@@ -495,10 +495,13 @@ public class Bob_Controller : MonoBehaviour
 
         if (weaponId == 2)
         {
-            if (profile.rearHitEnd <= profile.rearHitStart)
+            bool rearWindowInvalid = profile.rearHitEnd <= profile.rearHitStart;
+            // 旧值 0.5–0.7 按片长秒数填写，归一化后几乎错过后挥（约 0.67）
+            bool rearWindowTooEarly = profile.rearHitStart <= 0.51f && profile.rearHitEnd <= 0.75f;
+            if (rearWindowInvalid || rearWindowTooEarly)
             {
-                profile.rearHitStart = Mathf.Clamp01(profile.hitEnd);
-                profile.rearHitEnd = Mathf.Clamp01(profile.rearHitStart + 0.2f);
+                profile.rearHitStart = 0.55f;
+                profile.rearHitEnd = 0.95f;
             }
             if (profile.knockbackForce <= 0.01f)
                 profile.knockbackForce = 16f;
@@ -868,7 +871,6 @@ public class Bob_Controller : MonoBehaviour
 
     void UpdateWhipSpecialHits()
     {
-        ApplyHitboxShape(upward: false, special: true);
         ApplyRushAttackKnockback(true);
 
         if (meleeAttack != null)
@@ -879,6 +881,7 @@ public class Bob_Controller : MonoBehaviour
 
         if (!playerAnim.TryGetMeleeAnimProgress(out float t))
         {
+            ApplyHitboxShape(upward: false, special: true);
             if (meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(false);
             return;
@@ -886,11 +889,23 @@ public class Bob_Controller : MonoBehaviour
 
         bool frontWindow = t >= activeSpecialProfile.hitStart && t <= activeSpecialProfile.hitEnd;
         bool rearWindow = t >= activeSpecialProfile.rearHitStart && t <= activeSpecialProfile.rearHitEnd;
+        Vector2 rearOffset = ResolveWhipRearLocalOffset(activeSpecialProfile.hitboxOffset);
+
+        // 仅后段时把可见盒也切到镜像位置，避免 Scene 里看起来永远只有前方
+        if (meleeHitboxCollider != null)
+        {
+            meleeHitboxCollider.size = activeSpecialProfile.hitboxSize;
+            meleeHitboxCollider.offset = rearWindow && !frontWindow
+                ? rearOffset
+                : activeSpecialProfile.hitboxOffset;
+        }
 
         if (frontWindow || rearWindow)
         {
             if (!meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(true);
+
+            Physics2D.SyncTransforms();
 
             if (frontWindow)
             {
@@ -906,10 +921,7 @@ public class Bob_Controller : MonoBehaviour
 
             if (rearWindow)
             {
-                // 后方段：朝背后击退（同样推离玩家）
-                Vector2 rearOffset = new Vector2(
-                    -activeSpecialProfile.hitboxOffset.x,
-                    activeSpecialProfile.hitboxOffset.y);
+                // 后方段：相对角色 pivot 镜像前方盒，朝背后击退
                 ProcessSpecialBoxHits(
                     rearOffset,
                     activeSpecialProfile.hitboxSize,
@@ -923,6 +935,18 @@ public class Bob_Controller : MonoBehaviour
         {
             meleeHitbox.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// 将前方特技盒绕角色 pivot 做 X 镜像。
+    /// 不能只取 -hitboxOffset：MeleePoint1 已在身前，那样后方盒会仍落在身前/身上。
+    /// </summary>
+    Vector2 ResolveWhipRearLocalOffset(Vector2 frontLocal)
+    {
+        Transform space = meleeHitbox != null ? meleeHitbox.transform : transform;
+        Vector2 frontWorld = space.TransformPoint(frontLocal);
+        Vector2 rearWorld = new Vector2(2f * transform.position.x - frontWorld.x, frontWorld.y);
+        return space.InverseTransformPoint(rearWorld);
     }
 
     void UpdateBuzzsawSpecialHits()
@@ -1024,7 +1048,14 @@ public class Bob_Controller : MonoBehaviour
             Mathf.Abs(localSize.y * lossy.y));
         float angle = space.eulerAngles.z;
 
-        int count = Physics2D.OverlapBoxNonAlloc(center, worldSize, angle, overlapBuffer);
+        var filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            useLayerMask = false,
+            useDepth = false,
+        };
+
+        int count = Physics2D.OverlapBox(center, worldSize, angle, filter, overlapBuffer);
         if (count <= 0)
             return;
 
@@ -1939,10 +1970,10 @@ public class Bob_Controller : MonoBehaviour
             new Color(hitColor.r, hitColor.g, hitColor.b, Mathf.Clamp01(hitColor.a + 0.35f)),
             filled: false);
 
-        // Whip 特技：额外画出后方镜像盒
+        // Whip 特技：额外画出绕角色 pivot 镜像的后方盒
         if (hasSpecialDraw && specialDraw.weaponId == 2)
         {
-            Vector2 rearOffset = new Vector2(-specialDraw.hitboxOffset.x, specialDraw.hitboxOffset.y);
+            Vector2 rearOffset = ResolveWhipRearLocalOffset(specialDraw.hitboxOffset);
             Color rearColor = drawSpecial
                 ? new Color(1f, 0.35f, 0.85f, 0.35f)
                 : new Color(1f, 0.45f, 0.9f, 0.18f);
