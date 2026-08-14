@@ -398,7 +398,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 1
   m_Sprite: {fileID: -3118176627302311660, guid: 30da8d6decf52cb44beec41516fe1754, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -688,9 +688,9 @@ MonoBehaviour:
   BulletS: 0
   BulletM: 0
   BulletL: 0
-  maxBulletS: 200
-  maxBulletM: 100
-  maxBulletL: 50
+  maxBulletS: 240
+  maxBulletM: 120
+  maxBulletL: 60
   invulnerableDuration: 0.4
   knockbackResistance: 1
   invulnerable: 0
@@ -777,7 +777,7 @@ MonoBehaviour:
   maxPreviewDistance: 5
   robotDrainRate: 3
   minAbilityPowerToSpawn: 1
-  reloadAmmoCosts: 00000000280000001400000005000000
+  reloadAmmoCosts: 0000000028000000140000000a000000
   reloadLoadCounts: 00000000030000000200000001000000
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
 --- !u!114 &5182937465019283746
@@ -939,7 +939,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: -1065181757042302025, guid: b4e06902dd5ed434ea07d73f9a0f553f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1050,7 +1050,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 2
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: 1018721849255436521, guid: 780a1e3c7c613aa4388866c06eb57a85, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

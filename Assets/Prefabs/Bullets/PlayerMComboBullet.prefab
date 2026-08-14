@@ -154,7 +154,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.39
+  m_Radius: 0.65
 --- !u!114 &-5845897735575499202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -189,6 +189,12 @@ MonoBehaviour:
   attackType: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!95 &930938164960582819
 Animator:
   serializedVersion: 7
