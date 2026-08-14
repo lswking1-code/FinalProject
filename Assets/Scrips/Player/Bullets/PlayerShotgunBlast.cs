@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -13,12 +14,16 @@ public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
     [SerializeField] bool enableKnockback = true;
     [SerializeField] float knockbackForce = 10f;
     [SerializeField] float knockbackDuration = 0.15f;
+    [SerializeField] float abilityPowerRestore = 5f;
 
     Rigidbody2D rb;
     Attack attack;
     Collider2D hitCollider;
     Animator animator;
+    Character owner;
     bool finished;
+    readonly HashSet<Enemy> restoredTargets = new();
+    readonly Dictionary<Enemy, float> nextRestoreTime = new();
 
     void Awake()
     {
@@ -57,9 +62,40 @@ public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
 
     public void Init(FireDir dir, float faceY, Character owner = null)
     {
+        this.owner = owner;
         transform.rotation = PlayerProjectile.GetRotation(dir, faceY);
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
+    }
+
+    void OnTriggerEnter2D(Collider2D collision) => TryRestore(collision);
+
+    void OnTriggerStay2D(Collider2D collision) => TryRestore(collision);
+
+    void TryRestore(Collider2D collision)
+    {
+        if (owner == null || abilityPowerRestore <= 0f)
+            return;
+        if (collision.CompareTag("Player"))
+            return;
+
+        var enemy = collision.GetComponentInParent<Enemy>();
+        if (enemy == null || enemy.isDead)
+            return;
+
+        float rate = attack != null ? attack.attackRate : 0f;
+        if (rate > 0f)
+        {
+            if (nextRestoreTime.TryGetValue(enemy, out float next) && Time.time < next)
+                return;
+            nextRestoreTime[enemy] = Time.time + 1f / rate;
+        }
+        else if (!restoredTargets.Add(enemy))
+        {
+            return;
+        }
+
+        owner.RestoreAbilityPower(abilityPowerRestore);
     }
 
     /// <summary>Animation Event：关键帧开启判定。</summary>

@@ -18,10 +18,13 @@ public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;
     [SerializeField] float lifetime = 5f;
+    [SerializeField] float abilityPowerRestore = 5f;
 
     Rigidbody2D rb;
     Attack attack;
     Vector2 direction;
+    Character owner;
+    bool hasRestored;
 
     void Awake()
     {
@@ -46,6 +49,7 @@ public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
 
     public void Init(FireDir dir, float faceY, Character owner = null)
     {
+        this.owner = owner;
         transform.rotation = GetRotation(dir, faceY);
         direction = transform.right;
         rb.linearVelocity = direction * speed;
@@ -54,5 +58,18 @@ public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
     void FixedUpdate()
     {
         rb.linearVelocity = direction * speed;
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (hasRestored || owner == null)
+            return;
+        if (collision.CompareTag("Player"))
+            return;
+        if (collision.GetComponentInParent<Enemy>() == null)
+            return;
+
+        hasRestored = true;
+        owner.RestoreAbilityPower(abilityPowerRestore);
     }
 }

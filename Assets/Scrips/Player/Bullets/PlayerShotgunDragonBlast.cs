@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -14,13 +15,16 @@ public class PlayerShotgunDragonBlast : MonoBehaviour, IPlayerAmmo
     [SerializeField] float hitsPerSecond = 10f;
     [SerializeField] float lifetime = 0.55f;
     [SerializeField] Color flameTint = new Color(1f, 0.55f, 0.15f, 1f);
+    [SerializeField] float abilityPowerRestore = 5f;
 
     Rigidbody2D rb;
     Attack attack;
     Collider2D hitCollider;
     Animator animator;
     SpriteRenderer spriteRenderer;
+    Character owner;
     bool finished;
+    readonly Dictionary<Enemy, float> nextRestoreTime = new();
 
     void Awake()
     {
@@ -64,9 +68,36 @@ public class PlayerShotgunDragonBlast : MonoBehaviour, IPlayerAmmo
 
     public void Init(FireDir dir, float faceY, Character owner = null)
     {
+        this.owner = owner;
         transform.rotation = PlayerProjectile.GetRotation(dir, faceY);
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
+    }
+
+    void OnTriggerEnter2D(Collider2D collision) => TryRestore(collision);
+
+    void OnTriggerStay2D(Collider2D collision) => TryRestore(collision);
+
+    void TryRestore(Collider2D collision)
+    {
+        if (owner == null || abilityPowerRestore <= 0f)
+            return;
+        if (collision.CompareTag("Player"))
+            return;
+
+        var enemy = collision.GetComponentInParent<Enemy>();
+        if (enemy == null || enemy.isDead)
+            return;
+
+        float rate = attack != null ? attack.attackRate : 0f;
+        if (rate > 0f)
+        {
+            if (nextRestoreTime.TryGetValue(enemy, out float next) && Time.time < next)
+                return;
+            nextRestoreTime[enemy] = Time.time + 1f / rate;
+        }
+
+        owner.RestoreAbilityPower(abilityPowerRestore);
     }
 
     /// <summary>Animation Event：关键帧开启判定。</summary>

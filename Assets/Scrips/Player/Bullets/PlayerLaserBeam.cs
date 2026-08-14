@@ -14,6 +14,7 @@ public class PlayerLaserBeam : MonoBehaviour
     [Header("伤害")]
     [SerializeField] int damage = 10;
     [SerializeField] float tickInterval = 0.1f;
+    [SerializeField] float abilityPowerRestore = 5f;
     [SerializeField] float maxRange = 12f;
     [SerializeField] LayerMask hitMask;
 
@@ -233,8 +234,11 @@ public class PlayerLaserBeam : MonoBehaviour
             return;
 
         attackSource.damage = damage;
-        target.TakeDamage(attackSource);
+        bool damaged = target.TakeDamage(attackSource);
         nextHitTime[target] = Time.time + Mathf.Max(0.01f, tickInterval);
+
+        if (damaged && owner != null && abilityPowerRestore > 0f)
+            owner.RestoreAbilityPower(abilityPowerRestore);
     }
 
     void TryTickHitCountable(IHitCountable target)

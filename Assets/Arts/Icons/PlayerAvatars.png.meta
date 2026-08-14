@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 9074fa1e05a2be64e859462dd7ad8768
+guid: c44856c20f4254849b2a11e233c97de3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7866264352272399855
-    second: xp Bar export_0
+      213: 8592066377331726578
+    second: PlayerAvatars_0
+  - first:
+      213: 746722101750509036
+    second: PlayerAvatars_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -97,7 +100,7 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: WebGL
+    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -110,10 +113,10 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
+    buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: 4
+    textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -126,13 +129,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: xp Bar export_0
+      name: PlayerAvatars_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 5
-        width: 101
-        height: 5
+        x: 16
+        y: 32
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +144,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1124c75bf3a65d290800000000000000
-      internalID: -7866264352272399855
+      spriteID: 2f85f63f8d62d3770800000000000000
+      internalID: 8592066377331726578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerAvatars_1
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ceda5c49bc3ec5a00800000000000000
+      internalID: 746722101750509036
       vertices: []
       indices: 
       edges: []
@@ -151,7 +176,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 4ceb2f8fa4cf0324e97443c954def395
+    spriteID: 4afbdad32735013489b1ce37758b644b
     internalID: 0
     vertices: []
     indices: 
@@ -161,7 +186,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      xp Bar export_0: -7866264352272399855
+      PlayerAvatars_0: 8592066377331726578
+      PlayerAvatars_1: 746722101750509036
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
