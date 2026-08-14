@@ -337,9 +337,9 @@ MonoBehaviour:
   BulletS: 0
   BulletM: 0
   BulletL: 0
-  maxBulletS: 240
-  maxBulletM: 120
-  maxBulletL: 60
+  maxBulletS: 1000
+  maxBulletM: 1000
+  maxBulletL: 1000
   invulnerableDuration: 0.4
   knockbackResistance: 1
   invulnerable: 0
@@ -570,9 +570,9 @@ MonoBehaviour:
     crouchMelee: {fileID: 0}
     special: {fileID: 8300000, guid: 158fbee07f5c04910a1e716563c2f921, type: 3}
   - weaponId: 3
-    melee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
-    airMelee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
-    upMelee: {fileID: 8300000, guid: 05229a1e033274a4cbfc17738db2b0de, type: 3}
+    melee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
+    airMelee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
+    upMelee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
     crouchMelee: {fileID: 0}
     special: {fileID: 8300000, guid: 1e7e0e98d80fa4e59ae54fe894302a78, type: 3}
   fallbackMeleeSfx: {fileID: 0}
