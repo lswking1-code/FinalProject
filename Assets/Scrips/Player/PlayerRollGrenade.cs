@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 枪手 Ability1：短按投普通手雷；长按向前发射手雷弹；长按+下投放滚动炸弹。
+/// 枪手 Ability1：短按投普通手雷；长按向前发射手雷弹；长按+下投放滚动炸弹；长按+上发射追踪导弹。
 /// 仅挂在 Player prefab。
 /// </summary>
 [DefaultExecutionOrder(100)]
@@ -21,6 +21,12 @@ public class PlayerRollGrenade : MonoBehaviour
     [SerializeField] Transform bulletFirePoint;
     [SerializeField] float bulletAbilityPowerCost = 20f;
 
+    [Header("追踪导弹（长按 + 上）")]
+    [SerializeField] PlayerHomingMissile missilePrefab;
+    [SerializeField] Transform missileFirePoint;
+    [SerializeField] float missileAbilityPowerCost = 20f;
+    [SerializeField] float missileSpawnOffsetY = 1.5f;
+
     [SerializeField] float holdThreshold = 0.2f;
 
     InputSystem_Actions actions;
@@ -31,6 +37,7 @@ public class PlayerRollGrenade : MonoBehaviour
     Collider2D playerCollider;
     Rigidbody2D playerRb;
 
+    bool upIntent;
     bool rollIntent;
     bool forwardIntent;
     bool firedThisHold;
@@ -74,9 +81,11 @@ public class PlayerRollGrenade : MonoBehaviour
 
         if (actions.Player.Ability1.WasPressedThisFrame())
         {
+            bool lookingUp = IsHoldingUp();
             bool lookingDown = IsHoldingDown();
-            rollIntent = lookingDown;
-            forwardIntent = !lookingDown;
+            upIntent = lookingUp;
+            rollIntent = !lookingUp && lookingDown;
+            forwardIntent = !lookingUp && !lookingDown;
         }
 
         holdTime += Time.deltaTime;
@@ -91,6 +100,13 @@ public class PlayerRollGrenade : MonoBehaviour
             return;
 
         firedThisHold = true;
+
+        if (upIntent)
+        {
+            if (IsHoldingUp())
+                TrySpawnHomingMissile();
+            return;
+        }
 
         if (rollIntent)
         {
@@ -150,6 +166,31 @@ public class PlayerRollGrenade : MonoBehaviour
             character.DrainAbilityPower(bulletAbilityPowerCost);
     }
 
+    void TrySpawnHomingMissile()
+    {
+        if (missilePrefab == null)
+            return;
+
+        if (missileAbilityPowerCost > 0f
+            && (character == null || character.AbilityPower < missileAbilityPowerCost))
+            return;
+
+        Vector3 spawnPos = missileFirePoint != null
+            ? missileFirePoint.position
+            : transform.position + new Vector3(0f, missileSpawnOffsetY, 0f);
+
+        var missile = Instantiate(missilePrefab, spawnPos, Quaternion.identity);
+        missile.Init(playerCollider);
+
+        if (missileAbilityPowerCost > 0f)
+            character.DrainAbilityPower(missileAbilityPowerCost);
+
+        playerAnim.TryPlayThrowAnim();
+    }
+
+    bool IsHoldingUp() =>
+        playerMovement.MoveInput.y > playerMovement.InputThreshold;
+
     bool IsHoldingDown() =>
         playerMovement.MoveInput.y < -playerMovement.InputThreshold;
 
@@ -160,6 +201,7 @@ public class PlayerRollGrenade : MonoBehaviour
     {
         holdTime = 0f;
         firedThisHold = false;
+        upIntent = false;
         rollIntent = false;
         forwardIntent = false;
     }
