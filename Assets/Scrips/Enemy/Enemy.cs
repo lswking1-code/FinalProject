@@ -108,6 +108,7 @@ public class Enemy : MonoBehaviour
     Color spriteOriginalColor = Color.white;
     Vector3 spriteOriginalLocalPos;
     Coroutine hurtRoutine;
+    Coroutine noStunFlashRoutine;
 
     public Rigidbody2D Rb => rb;
 
@@ -556,6 +557,56 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// 陷阱受击反馈：仅闪红/轻抖，不设 isHurt、不打断 AI。
+    /// </summary>
+    public void PlayHitFeedbackNoStun()
+    {
+        if (isDead)
+            return;
+
+        if (noStunFlashRoutine != null)
+            StopCoroutine(noStunFlashRoutine);
+        RestoreHurtVisuals();
+        noStunFlashRoutine = StartCoroutine(HitFeedbackNoStun());
+    }
+
+    IEnumerator HitFeedbackNoStun()
+    {
+        float duration = Mathf.Min(0.2f, Mathf.Max(0.05f, hurtDuration));
+        float elapsed = 0f;
+        float flashTimer = 0f;
+        bool flashOn = true;
+
+        if (spriteRenderer != null)
+            spriteRenderer.color = hurtFlashColor;
+
+        while (elapsed < duration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            flashTimer += dt;
+
+            if (spriteRenderer != null && flashTimer >= hurtFlashInterval)
+            {
+                flashTimer = 0f;
+                flashOn = !flashOn;
+                spriteRenderer.color = flashOn ? hurtFlashColor : spriteOriginalColor;
+            }
+
+            if (spriteRenderer != null && hurtShakeIntensity > 0f)
+            {
+                Vector2 offset = Random.insideUnitCircle * (hurtShakeIntensity * 0.5f);
+                spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
+            }
+
+            yield return null;
+        }
+
+        RestoreHurtVisuals();
+        noStunFlashRoutine = null;
+    }
+
+    /// <summary>
     /// 巡逻待机时受伤拉仇恨。子类可覆盖以进入战斗循环。
     /// </summary>
     protected virtual void OnPatrolAggroFromDamage()
@@ -625,6 +676,11 @@ public class Enemy : MonoBehaviour
         {
             StopCoroutine(hurtRoutine);
             hurtRoutine = null;
+        }
+        if (noStunFlashRoutine != null)
+        {
+            StopCoroutine(noStunFlashRoutine);
+            noStunFlashRoutine = null;
         }
         RestoreHurtVisuals();
         isHurt = false;

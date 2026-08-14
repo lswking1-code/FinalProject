@@ -133,8 +133,15 @@ public class CameraAirborneYLock : MonoBehaviour
 
     void OnDestroy()
     {
-        if (followAnchor != null)
+        if (followAnchor == null)
+            return;
+
+        if (Application.isPlaying)
             Destroy(followAnchor.gameObject);
+        else
+            DestroyImmediate(followAnchor.gameObject);
+
+        followAnchor = null;
     }
 
     void OnAfterSceneLoad()
@@ -338,11 +345,23 @@ public class CameraAirborneYLock : MonoBehaviour
         if (followAnchor != null)
             return;
 
+        // 复用同名子物体，避免退出 Play 后残留多个锚点
+        Transform existing = transform.Find("CameraFollowAnchor");
+        if (existing != null)
+        {
+            followAnchor = existing;
+            followAnchor.hideFlags = HideFlags.HideInHierarchy | HideFlags.NotEditable;
+            return;
+        }
+
         var go = new GameObject("CameraFollowAnchor");
-        // 运行时临时物体：勿进场景/Prefab，也避免 Inspector 误持久化
-        go.hideFlags = HideFlags.HideAndDontSave;
+        go.transform.SetParent(transform, worldPositionStays: false);
+        // 只用 HideInHierarchy：勿加 DontSaveInEditor。
+        // HideAndDontSave 被 Cinemachine TrackingTarget / Inspector 引用时会触发
+        // kDontSaveInEditor 持久化断言。
+        go.hideFlags = HideFlags.HideInHierarchy | HideFlags.NotEditable;
         followAnchor = go.transform;
-        followAnchor.position = transform.position;
+        followAnchor.localPosition = Vector3.zero;
     }
 
     void ResolveRefs()

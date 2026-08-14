@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 单向平台穿越（Platform 层）：通过 Physics2D.IgnoreCollision 控制从下穿过/站上。
-/// 分层斜坡（Terrain_Upper/Lower）改由 LayeredPathGate 处理，本脚本不再管斜坡交界。
+/// 单向平台穿越：通过 Physics2D.IgnoreCollision 控制从下穿过/站上/主动下穿。
+/// 识别条件为启用中的 PlatformEffector2D.useOneWay（含勾选 oneWay 的斜坡）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PhysicsCheck))]
@@ -42,10 +42,15 @@ public class PlatformDropThrough : MonoBehaviour
         if (oneWayPlatformLayer.value == 0)
             oneWayPlatformLayer = LayerMask.GetMask("Platform");
 
+        // Platform 层 + 地面层：斜坡可能不在 Platform 层上
+        LayerMask mask = oneWayPlatformLayer;
+        if (physicsCheck != null && physicsCheck.groundLayer.value != 0)
+            mask |= physicsCheck.groundLayer;
+
         platformFilter = new ContactFilter2D
         {
             useLayerMask = true,
-            layerMask = oneWayPlatformLayer,
+            layerMask = mask,
             useTriggers = false
         };
     }
@@ -66,10 +71,6 @@ public class PlatformDropThrough : MonoBehaviour
             if (col == null || col == capsuleCollider)
                 continue;
             if (!IsOneWayPlatform(col))
-                continue;
-            // 分层斜坡不走本系统
-            if (col.GetComponent<SlopePathSegment>() != null
-                || col.GetComponentInParent<SlopePathSegment>() != null)
                 continue;
 
             activeThisFrame.Add(col);
@@ -116,9 +117,6 @@ public class PlatformDropThrough : MonoBehaviour
     {
         if (platform == null || !IsOneWayPlatform(platform))
             return true;
-        if (platform.GetComponent<SlopePathSegment>() != null
-            || platform.GetComponentInParent<SlopePathSegment>() != null)
-            return true;
 
         Vector2 feetPos = GetFeetPosition();
         return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
@@ -137,7 +135,8 @@ public class PlatformDropThrough : MonoBehaviour
         if (pathSlope != null)
             return pathSlope.IsFeetAboveSurface(GetFeetPosition());
 
-        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>();
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
+            ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
         if (legacySlope != null)
             return legacySlope.IsFeetAboveSurface(GetFeetPosition());
 
@@ -151,6 +150,16 @@ public class PlatformDropThrough : MonoBehaviour
     {
         if (activeDropPlatform == platform)
             return false;
+
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return pathSlope.IsFeetAboveSurface(feetPos) && vy <= 0.01f;
+
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
+            ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+            return legacySlope.IsFeetAboveSurface(feetPos) && vy <= 0.01f;
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
@@ -179,18 +188,13 @@ public class PlatformDropThrough : MonoBehaviour
         if (physicsCheck.isOnSlope)
             castDistance += 0.4f;
 
-        LayerMask mask = oneWayPlatformLayer.value != 0
-            ? oneWayPlatformLayer
-            : physicsCheck.groundLayer;
+        LayerMask mask = platformFilter.layerMask;
         RaycastHit2D hit = Physics2D.CircleCast(
             origin, 0.1f, Vector2.down, castDistance, mask);
 
         if (hit.collider == null || hit.normal.y <= 0.5f)
             return false;
         if (!IsOneWayPlatform(hit.collider))
-            return false;
-        if (hit.collider.GetComponent<SlopePathSegment>() != null
-            || hit.collider.GetComponentInParent<SlopePathSegment>() != null)
             return false;
 
         platformCollider = hit.collider;
@@ -229,11 +233,8 @@ public class PlatformDropThrough : MonoBehaviour
         Physics2D.IgnoreCollision(capsuleCollider, platform, ignore);
     }
 
-    static bool IsOneWayPlatform(Collider2D col)
-    {
-        var effector = col.GetComponent<PlatformEffector2D>();
-        return effector != null && effector.useOneWay;
-    }
+    static bool IsOneWayPlatform(Collider2D col) =>
+        FallingPlatform.IsOneWayPlatformCollider(col);
 
     void ResetDropThrough()
     {

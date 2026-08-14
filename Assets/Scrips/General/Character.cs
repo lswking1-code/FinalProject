@@ -217,6 +217,37 @@ public class Character : MonoBehaviour,ISaveable
         return true;
     }
 
+    /// <summary>
+    /// 环境/陷阱伤害：扣血 + 无敌帧；不击退、不广播 OnTakeDamage（避免敌人 isHurt 硬直）。
+    /// </summary>
+    /// <returns>true 表示本次确实扣血或击杀；无敌/吸收等情况返回 false。</returns>
+    public bool TakeHazardDamage(Attack attacker, out bool killed)
+    {
+        killed = false;
+
+        if (isDead || invulnerable || forcedInvulnerable)
+            return false;
+
+        if (attacker == null)
+            return false;
+
+        var absorb = GetComponentInChildren<IDamageAbsorb>();
+        if (absorb != null && absorb.TryAbsorb(attacker))
+            return false;
+
+        if (currentHealth - attacker.damage > 0)
+        {
+            currentHealth -= attacker.damage;
+            triggerInvulnerable();
+            NotifyStatsChanged();
+            return true;
+        }
+
+        Die();
+        killed = true;
+        return true;
+    }
+
     void ApplyKnockback(Attack attacker)
     {
         float force = Attack.EffectiveKnockbackForce(attacker, KnockbackResistance);

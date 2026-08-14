@@ -624,6 +624,21 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         PlayOneShot(DieStateName, autoExit: false);
     }
 
+    public override void PlayHurtAnim()
+    {
+        if (bodyAnimator == null || !bodyAnimator.isActiveAndEnabled)
+            return;
+
+        foreach (var p in bodyAnimator.parameters)
+        {
+            if (p.type == AnimatorControllerParameterType.Trigger && p.name == "hurt")
+            {
+                bodyAnimator.SetTrigger("hurt");
+                return;
+            }
+        }
+    }
+
     public override bool TryGetDieAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;

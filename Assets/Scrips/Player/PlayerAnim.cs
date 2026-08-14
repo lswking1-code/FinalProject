@@ -1929,6 +1929,28 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         EnterFullBody(DieStateName, autoExitOnComplete: false);
     }
 
+    public override void PlayHurtAnim()
+    {
+        TrySetHurtTrigger(upperAnimator);
+        TrySetHurtTrigger(lowerAnimator);
+        TrySetHurtTrigger(crouchAnimator);
+    }
+
+    static void TrySetHurtTrigger(Animator animator)
+    {
+        if (animator == null || !animator.isActiveAndEnabled)
+            return;
+
+        foreach (var p in animator.parameters)
+        {
+            if (p.type == AnimatorControllerParameterType.Trigger && p.name == "hurt")
+            {
+                animator.SetTrigger("hurt");
+                return;
+            }
+        }
+    }
+
     public override bool TryGetDieAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;

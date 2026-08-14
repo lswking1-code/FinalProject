@@ -31304,7 +31304,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 0
-  m_UsedByEffector: 1
+  m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
@@ -31401,17 +31401,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13285c50fde4fb34981f495b174eb94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  upperCollider: {fileID: 916570693}
-  lowerCollider: {fileID: 0}
-  autoCreateLowerCollider: 1
+  oneWay: 0
+  surfaceArc: 180
+  surfaceCollider: {fileID: 916570693}
   flattenToThinSurface: 1
   thinSurfaceHeight: 0.15
   manualAscent: 0
   manualAscentDirection: {x: 1, y: 1}
-  junctionRadius: 0.55
   standMargin: 0.25
-  junctionTriggerWorldSize: 1.2
-  autoCreateJunctionTriggers: 1
 --- !u!251 &916570697
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -31828,17 +31825,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13285c50fde4fb34981f495b174eb94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  upperCollider: {fileID: 455810848}
-  lowerCollider: {fileID: 1217903319}
-  autoCreateLowerCollider: 1
+  oneWay: 0
+  surfaceArc: 180
+  surfaceCollider: {fileID: 455810848}
   flattenToThinSurface: 1
   thinSurfaceHeight: 0.15
   manualAscent: 0
   manualAscentDirection: {x: 1, y: 1}
-  junctionRadius: 0.55
   standMargin: 0.25
-  junctionTriggerWorldSize: 1.2
-  autoCreateJunctionTriggers: 1
 --- !u!251 &948660541
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -38505,17 +38499,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13285c50fde4fb34981f495b174eb94f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  upperCollider: {fileID: 1928763056}
-  lowerCollider: {fileID: 0}
-  autoCreateLowerCollider: 1
+  oneWay: 0
+  surfaceArc: 180
+  surfaceCollider: {fileID: 1928763056}
   flattenToThinSurface: 1
   thinSurfaceHeight: 0.15
   manualAscent: 0
   manualAscentDirection: {x: 1, y: 1}
-  junctionRadius: 0.55
   standMargin: 0.25
-  junctionTriggerWorldSize: 1.2
-  autoCreateJunctionTriggers: 1
 --- !u!251 &1928763055
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -38566,7 +38557,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 0
-  m_UsedByEffector: 1
+  m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}

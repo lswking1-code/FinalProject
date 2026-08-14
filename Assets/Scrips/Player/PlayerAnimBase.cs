@@ -126,6 +126,9 @@ public class PlayerAnimBase : MonoBehaviour
 
     public virtual void PlayDieAnim() { }
 
+    /// <summary>占位受击动画（如触电）。无 hurt 状态时为 no-op。</summary>
+    public virtual void PlayHurtAnim() { }
+
     public virtual bool TryGetDieAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;

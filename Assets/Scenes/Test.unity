@@ -1781,9 +1781,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3a4b5c6d7e8490123456789abcdef01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  oneWay: 0
+  surfaceArc: 180
   directionMode: 0
   manualAscentDirection: {x: 1, y: 1}
-  junctionRadius: 0.4
   surfaceMargin: 0.05
   standMargin: 0.45
 --- !u!1 &8800000000000000005 stripped
