@@ -1,0 +1,819 @@
+fileFormatVersion: 2
+guid: 3b61a5eb7c8e0454b861c7b4fc3e5084
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8772308663591585110
+    second: Ground Breaking_0
+  - first:
+      213: 8325910830919103051
+    second: Ground Breaking_1
+  - first:
+      213: 3892385901259162121
+    second: Ground Breaking_2
+  - first:
+      213: -5273223697317967675
+    second: Ground Breaking_3
+  - first:
+      213: -7063712997002598618
+    second: Ground Breaking_4
+  - first:
+      213: -8737134574034895105
+    second: Ground Breaking_5
+  - first:
+      213: 8950768602575167824
+    second: Ground Breaking_6
+  - first:
+      213: 3347952659784595268
+    second: Ground Breaking_7
+  - first:
+      213: -8802849933194431037
+    second: Ground Breaking_8
+  - first:
+      213: -1157572685934268217
+    second: Ground Breaking_9
+  - first:
+      213: 3896219626706030094
+    second: Ground Breaking_10
+  - first:
+      213: -1279185484701606759
+    second: Ground Breaking_11
+  - first:
+      213: -4482436956045816732
+    second: Ground Breaking_12
+  - first:
+      213: 5401396215756735958
+    second: Ground Breaking_13
+  - first:
+      213: 5215762553380768887
+    second: Ground Breaking_14
+  - first:
+      213: 866330993821502328
+    second: Ground Breaking_15
+  - first:
+      213: 3509808537381441004
+    second: Ground Breaking_16
+  - first:
+      213: 141943894350572293
+    second: Ground Breaking_17
+  - first:
+      213: 2932416162251016587
+    second: Ground Breaking_18
+  - first:
+      213: -851473278109511630
+    second: Ground Breaking_19
+  - first:
+      213: -4976273952953485885
+    second: Ground Breaking_20
+  - first:
+      213: -4994263887593894199
+    second: Ground Breaking_21
+  - first:
+      213: 2030602193551998292
+    second: Ground Breaking_22
+  - first:
+      213: 3209842859393860981
+    second: Ground Breaking_23
+  - first:
+      213: 8855494244180005302
+    second: Ground Breaking_24
+  - first:
+      213: -7606249946778668598
+    second: Ground Breaking_25
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Ground Breaking_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 35
+        width: 219
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 655457970408db970800000000000000
+      internalID: 8772308663591585110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_1
+      rect:
+        serializedVersion: 2
+        x: 212
+        y: 26
+        width: 15
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b42b284c9c39b8370800000000000000
+      internalID: 8325910830919103051
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_2
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 43
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9028a4dba58840630800000000000000
+      internalID: 3892385901259162121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_3
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 30
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5c8c03c6cfeb1d6b0800000000000000
+      internalID: -5273223697317967675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_4
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 30
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 627a9525476a8fd90800000000000000
+      internalID: -7063712997002598618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_5
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 31
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ffebddf65667fb680800000000000000
+      internalID: -8737134574034895105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_6
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 32
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 051663fee94873c70800000000000000
+      internalID: 8950768602575167824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_7
+      rect:
+        serializedVersion: 2
+        x: 238
+        y: 25
+        width: 19
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 447f843b431567e20800000000000000
+      internalID: 3347952659784595268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_8
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 12
+        width: 9
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c5ffd010aef5d580800000000000000
+      internalID: -8802849933194431037
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_9
+      rect:
+        serializedVersion: 2
+        x: 226
+        y: 19
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c0713576c97fefe0800000000000000
+      internalID: -1157572685934268217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_10
+      rect:
+        serializedVersion: 2
+        x: 233
+        y: 23
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0ec7b08b17221630800000000000000
+      internalID: 3896219626706030094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_11
+      rect:
+        serializedVersion: 2
+        x: 241
+        y: 8
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99c568e349b6f3ee0800000000000000
+      internalID: -1279185484701606759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_12
+      rect:
+        serializedVersion: 2
+        x: 252
+        y: 18
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46c4ec2665f2bc1c0800000000000000
+      internalID: -4482436956045816732
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_13
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 23
+        width: 7
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d5c15b8d3d95fa40800000000000000
+      internalID: 5401396215756735958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_14
+      rect:
+        serializedVersion: 2
+        x: 270
+        y: 17
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 77c8b03786c126840800000000000000
+      internalID: 5215762553380768887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_15
+      rect:
+        serializedVersion: 2
+        x: 281
+        y: 15
+        width: 23
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87b44a8e273d50c00800000000000000
+      internalID: 866330993821502328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_16
+      rect:
+        serializedVersion: 2
+        x: 231
+        y: 14
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ced014cd44855b030800000000000000
+      internalID: 3509808537381441004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_17
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 10
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50b2dc8483948f100800000000000000
+      internalID: 141943894350572293
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_18
+      rect:
+        serializedVersion: 2
+        x: 258
+        y: 10
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b89069486f802b820800000000000000
+      internalID: 2932416162251016587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_19
+      rect:
+        serializedVersion: 2
+        x: 265
+        y: 14
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2309b8a9095fe24f0800000000000000
+      internalID: -851473278109511630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_20
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 0
+        width: 15
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3c5bd298439b0fab0800000000000000
+      internalID: -4976273952953485885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_21
+      rect:
+        serializedVersion: 2
+        x: 302
+        y: 0
+        width: 19
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9ce8769747fc0bab0800000000000000
+      internalID: -4994263887593894199
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_22
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 3
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45dbbcabfe52e2c10800000000000000
+      internalID: 2030602193551998292
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_23
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 5
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 575cefaf217ab8c20800000000000000
+      internalID: 3209842859393860981
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_24
+      rect:
+        serializedVersion: 2
+        x: 267
+        y: 1
+        width: 6
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b19ddeb81905ea70800000000000000
+      internalID: 8855494244180005302
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ground Breaking_25
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 0
+        width: 7
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac17c6919fb217690800000000000000
+      internalID: -7606249946778668598
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Ground Breaking_0: 8772308663591585110
+      Ground Breaking_1: 8325910830919103051
+      Ground Breaking_10: 3896219626706030094
+      Ground Breaking_11: -1279185484701606759
+      Ground Breaking_12: -4482436956045816732
+      Ground Breaking_13: 5401396215756735958
+      Ground Breaking_14: 5215762553380768887
+      Ground Breaking_15: 866330993821502328
+      Ground Breaking_16: 3509808537381441004
+      Ground Breaking_17: 141943894350572293
+      Ground Breaking_18: 2932416162251016587
+      Ground Breaking_19: -851473278109511630
+      Ground Breaking_2: 3892385901259162121
+      Ground Breaking_20: -4976273952953485885
+      Ground Breaking_21: -4994263887593894199
+      Ground Breaking_22: 2030602193551998292
+      Ground Breaking_23: 3209842859393860981
+      Ground Breaking_24: 8855494244180005302
+      Ground Breaking_25: -7606249946778668598
+      Ground Breaking_3: -5273223697317967675
+      Ground Breaking_4: -7063712997002598618
+      Ground Breaking_5: -8737134574034895105
+      Ground Breaking_6: 8950768602575167824
+      Ground Breaking_7: 3347952659784595268
+      Ground Breaking_8: -8802849933194431037
+      Ground Breaking_9: -1157572685934268217
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

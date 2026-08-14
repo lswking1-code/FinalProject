@@ -523,6 +523,7 @@ MonoBehaviour:
   jumpHeight: 3
   inputThreshold: 0.5
   jumpBufferTime: 0.2
+  coyoteTime: 0.12
   crouchColliderSize: {x: 1.08, y: 1.2}
   airHangDuration: 0.17
   airHangGravityScale: 0.25
@@ -639,7 +640,7 @@ MonoBehaviour:
   checkRaduis: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 36928
+    m_Bits: 954432
   isGround: 0
   isSolidGround: 0
   touchLeftWall: 0

@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: 875339895b3016945bdb62341f2728e4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6231869209771701053
+    second: Retracting Spikes_0
+  - first:
+      213: 4041208405456307922
+    second: Retracting Spikes_1
+  - first:
+      213: 8999629942428114079
+    second: Retracting Spikes_2
+  - first:
+      213: 3469271465724550652
+    second: Retracting Spikes_3
+  - first:
+      213: 2081540905442889364
+    second: Retracting Spikes_4
+  - first:
+      213: -7934535923979595714
+    second: Retracting Spikes_5
+  - first:
+      213: -6167787168109994810
+    second: Retracting Spikes_6
+  - first:
+      213: 939510242546940107
+    second: Retracting Spikes_7
+  - first:
+      213: -5306594180816047616
+    second: Retracting Spikes_8
+  - first:
+      213: -1107457611033678014
+    second: Retracting Spikes_9
+  - first:
+      213: 2010546898820920299
+    second: Retracting Spikes_10
+  - first:
+      213: -8110881062014704956
+    second: Retracting Spikes_11
+  - first:
+      213: 905204684811638500
+    second: Retracting Spikes_12
+  - first:
+      213: -8822014244278711728
+    second: Retracting Spikes_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Retracting Spikes_0
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d33f227470c0c7650800000000000000
+      internalID: 6231869209771701053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_1
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d6cb8e22a1451830800000000000000
+      internalID: 4041208405456307922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_2
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9c956420cb15ec70800000000000000
+      internalID: 8999629942428114079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_3
+      rect:
+        serializedVersion: 2
+        x: 97
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfd19ef5404552030800000000000000
+      internalID: 3469271465724550652
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_4
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 49e4e5ecc6e13ec10800000000000000
+      internalID: 2081540905442889364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_5
+      rect:
+        serializedVersion: 2
+        x: 161
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e30de99bd9dd2e190800000000000000
+      internalID: -7934535923979595714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_6
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 0
+        width: 30
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6cc579abf3e976aa0800000000000000
+      internalID: -6167787168109994810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_7
+      rect:
+        serializedVersion: 2
+        x: 225
+        y: 0
+        width: 30
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc8f9dd769fc90d00800000000000000
+      internalID: 939510242546940107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_8
+      rect:
+        serializedVersion: 2
+        x: 257
+        y: 0
+        width: 30
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 002fd4545b03b56b0800000000000000
+      internalID: -5306594180816047616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_9
+      rect:
+        serializedVersion: 2
+        x: 289
+        y: 0
+        width: 30
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24fe88a9b2581a0f0800000000000000
+      internalID: -1107457611033678014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_10
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 0
+        width: 30
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be3fb7c80c5e6eb10800000000000000
+      internalID: 2010546898820920299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_11
+      rect:
+        serializedVersion: 2
+        x: 353
+        y: 0
+        width: 30
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4c2ab2bb5ac507f80800000000000000
+      internalID: -8110881062014704956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_12
+      rect:
+        serializedVersion: 2
+        x: 385
+        y: 0
+        width: 30
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e697376ddeef8c00800000000000000
+      internalID: 905204684811638500
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Retracting Spikes_13
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 0
+        width: 30
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05ac45e29c8e19580800000000000000
+      internalID: -8822014244278711728
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Retracting Spikes_0: 6231869209771701053
+      Retracting Spikes_1: 4041208405456307922
+      Retracting Spikes_10: 2010546898820920299
+      Retracting Spikes_11: -8110881062014704956
+      Retracting Spikes_12: 905204684811638500
+      Retracting Spikes_13: -8822014244278711728
+      Retracting Spikes_2: 8999629942428114079
+      Retracting Spikes_3: 3469271465724550652
+      Retracting Spikes_4: 2081540905442889364
+      Retracting Spikes_5: -7934535923979595714
+      Retracting Spikes_6: -6167787168109994810
+      Retracting Spikes_7: 939510242546940107
+      Retracting Spikes_8: -5306594180816047616
+      Retracting Spikes_9: -1107457611033678014
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
