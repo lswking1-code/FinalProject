@@ -9,14 +9,26 @@ public class PlayerStatBar : MonoBehaviour
     public Image powerImage;
     public Image ApImage;
 
+    [SerializeField, Tooltip("受伤后 Delay 条先停住的时间（秒）")]
+    float delayHoldTime = 0.35f;
+    [SerializeField, Tooltip("Delay 条每秒下降的 fillAmount，1 表示一秒内从满条掉到空")]
+    float delayDropSpeed = 0.4f;
+
     bool isRecovering;
+    float delayHoldTimer;
 
     void Update()
     {
         if (healthDelayImage != null && healthImage != null &&
             healthDelayImage.fillAmount > healthImage.fillAmount)
         {
-            healthDelayImage.fillAmount -= Time.deltaTime;
+            if (delayHoldTimer > 0f)
+                delayHoldTimer -= Time.deltaTime;
+            else
+                healthDelayImage.fillAmount = Mathf.MoveTowards(
+                    healthDelayImage.fillAmount,
+                    healthImage.fillAmount,
+                    delayDropSpeed * Time.deltaTime);
         }
 
         if (isRecovering && powerImage != null && currentCharacter != null)
@@ -35,7 +47,16 @@ public class PlayerStatBar : MonoBehaviour
     public void OnHealthChange(float persentage)
     {
         if (healthImage != null)
+        {
+            if (persentage < healthImage.fillAmount)
+                delayHoldTimer = delayHoldTime;
+
             healthImage.fillAmount = persentage;
+        }
+
+        // 回血/读档/满血重置时 Delay 必须立刻跟上，否则会一直低于当前血量，之后受伤看不到红条
+        if (healthDelayImage != null && healthDelayImage.fillAmount < persentage)
+            healthDelayImage.fillAmount = persentage;
     }
 
     public void OnPowerChange(Character character)

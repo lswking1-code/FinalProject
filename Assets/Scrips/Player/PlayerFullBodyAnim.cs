@@ -259,6 +259,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool PlayTurnAnim()
     {
+        if (IsPlayingLand)
+            InterruptLand();
+
         if (isSwitchingWeapon || isCrouching || !string.IsNullOrEmpty(activeOneShotState))
             return false;
         if (airPhase != AirPhaseType.Ground)
@@ -284,6 +287,8 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         if (isSwitchingWeapon || !isRunning || isCrouching || IsTurning || IsPlayingLand)
             return false;
         if (!string.IsNullOrEmpty(activeOneShotState) || airPhase != AirPhaseType.Ground)
+            return false;
+        if (isMelee || isDead)
             return false;
 
         isRunning = false;

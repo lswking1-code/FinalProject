@@ -72,6 +72,9 @@ public class RobotOneWayPlatformPass : MonoBehaviour
                 continue;
             if (!IsOneWayPlatform(col))
                 continue;
+            // 分层斜坡不走单向板 Ignore，避免 AABB 规则在坡面上闪烁
+            if (IsLayeredSlope(col))
+                continue;
 
             activeThisFrame.Add(col);
             bool shouldCollide = !forcePass && ShouldCollide(col, feet, feetPos, vy);
@@ -108,6 +111,9 @@ public class RobotOneWayPlatformPass : MonoBehaviour
         if (platform == null || !IsOneWayPlatform(platform))
             return true;
 
+        if (IsLayeredSlope(platform))
+            return true;
+
         if (allyRobot != null && allyRobot.IsComboDashing)
             return false;
 
@@ -134,6 +140,11 @@ public class RobotOneWayPlatformPass : MonoBehaviour
 
         if (hitNormal.y <= 0.5f)
             return false;
+
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return pathSlope.IsFeetAboveSurface(GetFeetPosition());
 
         var slope = platform.GetComponent<SlopeOneWayPlatform>();
         if (slope != null)
@@ -207,6 +218,14 @@ public class RobotOneWayPlatformPass : MonoBehaviour
     {
         var effector = col.GetComponent<PlatformEffector2D>();
         return effector != null && effector.useOneWay;
+    }
+
+    static bool IsLayeredSlope(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        return col.GetComponent<SlopePathSegment>() != null
+            || col.GetComponentInParent<SlopePathSegment>() != null;
     }
 
     void OnDisable()

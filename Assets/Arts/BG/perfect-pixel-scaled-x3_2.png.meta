@@ -1,19 +1,34 @@
 fileFormatVersion: 2
-guid: 7705a7e94312eb947b2602022e44b01e
+guid: 92d8c34407cd74e478fa6ba8be321cfd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6239150027220268550
-    second: Projectile 22_0
+      213: 5662828858451449448
+    second: perfect-pixel-scaled-x3_2_0
   - first:
-      213: -4089717893469047151
-    second: Projectile 22_1
+      213: 3531986402319531393
+    second: perfect-pixel-scaled-x3_2_1
   - first:
-      213: 1883921138565425947
-    second: Projectile 22_2
+      213: -8556911573149720274
+    second: perfect-pixel-scaled-x3_2_2
   - first:
-      213: 1810079175752903733
-    second: Projectile 22_3
+      213: -5244826242349126044
+    second: perfect-pixel-scaled-x3_2_3
+  - first:
+      213: 9118189966781278254
+    second: perfect-pixel-scaled-x3_2_4
+  - first:
+      213: 5483783518673161441
+    second: perfect-pixel-scaled-x3_2_5
+  - first:
+      213: -7214177315521410469
+    second: perfect-pixel-scaled-x3_2_6
+  - first:
+      213: 3538136769294487317
+    second: perfect-pixel-scaled-x3_2_7
+  - first:
+      213: -8186322732710511175
+    second: perfect-pixel-scaled-x3_2_8
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -135,89 +150,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Projectile 22_0
+      name: perfect-pixel-scaled-x3_2_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 104
+        width: 513
+        height: 101
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 86654d308d8669e40800000000000000
+      internalID: 5662828858451449448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: perfect-pixel-scaled-x3_2_1
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
-      alignment: 9
-      pivot: {x: 0.5, y: 0.453125}
+        width: 513
+        height: 95
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: af9ca2f4b161a69a0800000000000000
-      internalID: -6239150027220268550
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Projectile 22_1
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-      pivot: {x: 0.5, y: 0.453125}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 196f7308e376e37c0800000000000000
-      internalID: -4089717893469047151
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Projectile 22_2
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-      pivot: {x: 0.5, y: 0.453125}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b1baa094b48052a10800000000000000
-      internalID: 1883921138565425947
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Projectile 22_3
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-      pivot: {x: 0.5, y: 0.453125}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 53c651e8b61be1910800000000000000
-      internalID: 1810079175752903733
+      spriteID: 18df3cd6be2240130800000000000000
+      internalID: 3531986402319531393
       vertices: []
       indices: 
       edges: []
@@ -226,7 +197,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 8e3d424ab1790b8458f9bb85dfa11c63
+    spriteID: 45f915485db62b9489ecbcea99323f21
     internalID: 0
     vertices: []
     indices: 
@@ -236,10 +207,15 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Projectile 22_0: -6239150027220268550
-      Projectile 22_1: -4089717893469047151
-      Projectile 22_2: 1883921138565425947
-      Projectile 22_3: 1810079175752903733
+      perfect-pixel-scaled-x3_2_0: 5662828858451449448
+      perfect-pixel-scaled-x3_2_1: 3531986402319531393
+      perfect-pixel-scaled-x3_2_2: -8556911573149720274
+      perfect-pixel-scaled-x3_2_3: -5244826242349126044
+      perfect-pixel-scaled-x3_2_4: 9118189966781278254
+      perfect-pixel-scaled-x3_2_5: 5483783518673161441
+      perfect-pixel-scaled-x3_2_6: -7214177315521410469
+      perfect-pixel-scaled-x3_2_7: 3538136769294487317
+      perfect-pixel-scaled-x3_2_8: -8186322732710511175
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

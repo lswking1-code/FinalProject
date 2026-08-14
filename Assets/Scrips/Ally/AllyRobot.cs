@@ -305,10 +305,13 @@ public class AllyRobot : MonoBehaviour
     /// 自动跳起后，在障碍仍被探测到前禁止再次自动跳，避免贴墙连跳。
     /// </summary>
     bool suppressAutoJumpUntilObstacleClears;
-    bool wasSolidGrounded;
+    bool wasGrounded;
     bool airStateInitialized;
+    float slopeDetachTimer;
     const float MinAirTime = 0.05f;
     const float DescendVelocityThreshold = 0.01f;
+    const float MicroAirHitchMaxTime = 0.25f;
+    const float MicroAirHitchMaxFallSpeed = 8f;
 
     void Awake()
     {
@@ -423,7 +426,11 @@ public class AllyRobot : MonoBehaviour
         if (physicsCheck != null)
             physicsCheck.Check();
 
+        if (slopeDetachTimer > 0f)
+            slopeDetachTimer -= Time.fixedDeltaTime;
+
         UpdateComboAirHang();
+        UpdateSlopeGravity();
 
         if (isLanding)
         {
@@ -521,6 +528,7 @@ public class AllyRobot : MonoBehaviour
         if (movingHorizontally)
         {
             CancelVelocityIntoWall(moveDir);
+            CancelVelocityIntoSlope();
             // 手动遥控只用↑跳跃，关闭障碍自动跳；前冲也不自动跳；竖直/二维连携冲刺禁用自动跳
             if (currentState != AllyState.ManualMove
                 && !attackLungeActive
@@ -530,6 +538,10 @@ public class AllyRobot : MonoBehaviour
         else if (airPhase != RobotAirPhase.Ground)
         {
             CancelVelocityIntoWall(Mathf.Sign(transform.localScale.x));
+        }
+        else
+        {
+            CancelVelocityIntoSlope();
         }
     }
 
@@ -1914,6 +1926,15 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
+        if (IsOnWalkableSlope)
+        {
+            Vector2 tangent = new Vector2(-physicsCheck.groundNormal.y, physicsCheck.groundNormal.x).normalized;
+            if (Mathf.Sign(tangent.x) != Mathf.Sign(dir))
+                tangent = -tangent;
+            rb.linearVelocity = tangent * speed;
+            return;
+        }
+
         rb.linearVelocity = new Vector2(speed * dir, rb.linearVelocity.y);
     }
 
@@ -1954,8 +1975,124 @@ public class AllyRobot : MonoBehaviour
         if (verticalComboDashLatched
             || (currentState == AllyState.ComboDashing && NeedsVerticalComboDash(currentTarget)))
             rb.linearVelocity = Vector2.zero;
+        else if (IsOnWalkableSlope)
+            rb.linearVelocity = Vector2.zero;
         else
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    bool IsOnWalkableSlope =>
+        slopeDetachTimer <= 0f
+        && !comboAirHanging
+        && !verticalComboDashLatched
+        && physicsCheck != null
+        && physicsCheck.isGround
+        && physicsCheck.isOnSlope;
+
+    bool IsSlopePhysicsSuppressed =>
+        slopeDetachTimer > 0f
+        || comboAirHanging
+        || verticalComboDashLatched;
+
+    void UpdateSlopeGravity()
+    {
+        if (rb == null)
+            return;
+
+        if (IsSlopePhysicsSuppressed)
+        {
+            if (!comboAirHanging)
+                rb.gravityScale = normalGravityScale;
+            return;
+        }
+
+        if (physicsCheck != null && physicsCheck.isGround && physicsCheck.isOnSlope)
+            rb.gravityScale = 0f;
+        else
+            rb.gravityScale = normalGravityScale;
+    }
+
+    void CancelVelocityIntoSlope()
+    {
+        if (rb == null || !IsOnWalkableSlope)
+            return;
+
+        if (rb.linearVelocity.y > 0.05f)
+            return;
+
+        Vector2 normal = physicsCheck.groundNormal;
+        Vector2 velocity = rb.linearVelocity;
+        float normalSpeed = Vector2.Dot(velocity, normal);
+        rb.linearVelocity = velocity - normal * normalSpeed;
+    }
+
+    void BeginSlopeDetach(float duration = 0.25f)
+    {
+        slopeDetachTimer = Mathf.Max(slopeDetachTimer, duration);
+        if (rb != null)
+            rb.gravityScale = normalGravityScale;
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!IsOnWalkableSlope || physicsCheck == null || bodyCollider == null)
+            return;
+
+        if (((1 << collision.gameObject.layer) & physicsCheck.groundLayer) == 0)
+            return;
+
+        if (rb.linearVelocity.y > 0.05f)
+            return;
+
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y <= 0.5f)
+                continue;
+
+            var pathSlope = collision.collider.GetComponent<SlopePathSegment>()
+                ?? collision.collider.GetComponentInParent<SlopePathSegment>();
+            if (pathSlope != null)
+            {
+                Vector2 feetPos = new Vector2(bodyCollider.bounds.center.x, bodyCollider.bounds.min.y);
+                if (!pathSlope.IsFeetAboveSurface(feetPos))
+                    continue;
+                MaintainSlopeContact(contact.normal);
+                return;
+            }
+
+            var slope = collision.collider.GetComponent<SlopeOneWayPlatform>();
+            if (slope == null)
+                continue;
+
+            Vector2 legacyFeet = new Vector2(bodyCollider.bounds.center.x, bodyCollider.bounds.min.y);
+            if (!slope.IsFeetAboveSurface(legacyFeet))
+                continue;
+
+            MaintainSlopeContact(contact.normal);
+            return;
+        }
+    }
+
+    void MaintainSlopeContact(Vector2 groundNormal)
+    {
+        if (!IsOnWalkableSlope || rb.linearVelocity.y > 0.05f)
+            return;
+
+        rb.gravityScale = 0f;
+
+        Vector2 vel = rb.linearVelocity;
+        if (vel.sqrMagnitude < 0.0001f)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 tangent = new Vector2(-groundNormal.y, groundNormal.x).normalized;
+        if (Mathf.Sign(tangent.x) != Mathf.Sign(vel.x) && !Mathf.Approximately(vel.x, 0f))
+            tangent = -tangent;
+
+        float speed = vel.magnitude;
+        rb.linearVelocity = tangent * speed;
     }
 
     /// <summary>
@@ -2061,12 +2198,13 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
+        bool grounded = IsGrounded();
         bool solidGrounded = IsSolidGrounded();
         float velocityY = rb != null ? rb.linearVelocity.y : 0f;
 
         if (!airStateInitialized)
         {
-            wasSolidGrounded = solidGrounded;
+            wasGrounded = grounded;
             airStateInitialized = true;
             return;
         }
@@ -2074,9 +2212,15 @@ public class AllyRobot : MonoBehaviour
         switch (airPhase)
         {
             case RobotAirPhase.Ground:
-                // 与玩家一致：非主动起跳而离地 → Fall（走下平台等）
-                if (wasSolidGrounded && !solidGrounded)
+                // 用带土狼跳的 isGround；斜面 coyote / 向上速度不误判坠落
+                if (wasGrounded && !grounded)
                 {
+                    if (velocityY > DescendVelocityThreshold)
+                        break;
+
+                    if (physicsCheck != null && physicsCheck.WasOnSlopeRecently && velocityY > -MicroAirHitchMaxFallSpeed)
+                        break;
+
                     leftGround = true;
                     airTimer = 0f;
                     if (SuppressAirAnim)
@@ -2100,12 +2244,7 @@ public class AllyRobot : MonoBehaviour
                 }
 
                 if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
-                {
-                    if (SuppressAirAnim)
-                        RecoverGroundWithoutLandAnim();
-                    else
-                        BeginLanding();
-                }
+                    FinishAirborneLanding(velocityY);
                 break;
 
             case RobotAirPhase.Fall:
@@ -2114,16 +2253,34 @@ public class AllyRobot : MonoBehaviour
                     leftGround = true;
 
                 if (leftGround && solidGrounded && airTimer >= MinAirTime && velocityY <= 0.05f)
-                {
-                    if (SuppressAirAnim)
-                        RecoverGroundWithoutLandAnim();
-                    else
-                        BeginLanding();
-                }
+                    FinishAirborneLanding(velocityY);
                 break;
         }
 
-        wasSolidGrounded = solidGrounded;
+        wasGrounded = grounded;
+    }
+
+    void FinishAirborneLanding(float velocityY)
+    {
+        if (ShouldSkipLandLock(velocityY))
+            RecoverGroundWithoutLandAnim();
+        else
+            BeginLanding();
+    }
+
+    bool ShouldSkipLandLock(float velocityY)
+    {
+        if (SuppressAirAnim)
+            return true;
+
+        // 走路微离地、斜面过渡、短时失联：不要播 Land 锁停
+        if (airTimer < MicroAirHitchMaxTime && velocityY > -MicroAirHitchMaxFallSpeed)
+            return true;
+
+        if (physicsCheck != null && physicsCheck.WasOnSlopeRecently && velocityY > -MicroAirHitchMaxFallSpeed)
+            return true;
+
+        return false;
     }
 
     /// <summary>
@@ -2134,7 +2291,19 @@ public class AllyRobot : MonoBehaviour
         leftGround = false;
         airTimer = 0f;
         isLanding = false;
-        airPhase = RobotAirPhase.Ground;
+        SetAirPhase(RobotAirPhase.Ground, forcePlay: false);
+
+        if (anim == null || SuppressAirAnim)
+            return;
+
+        bool walking = currentState == AllyState.Chase
+            || currentState == AllyState.Return
+            || idleFollowing
+            || (currentState == AllyState.ManualMove
+                && !pendingStationOnLand
+                && Mathf.Abs(manualMoveInput.x) > ManualMoveInputThreshold);
+        anim.SetBool(walkBoolName, walking);
+        anim.Play(walking ? "Walk" : "Idle", 0, 0f);
     }
 
     /// <summary>
@@ -2253,8 +2422,11 @@ public class AllyRobot : MonoBehaviour
             || (IsBusyWithCombo && currentState != AllyState.ComboDashing))
             return;
 
-        // 自动跳只用真实接地，避免土狼跳窗口内贴墙连跳。
+        // 自动跳只用真实接地，避免土狼跳窗口内贴墙连跳。斜面上不当台阶跳。
         if (!IsSolidGrounded() || Mathf.Approximately(moveDir, 0f))
+            return;
+
+        if (physicsCheck != null && (physicsCheck.isOnSlope || physicsCheck.WasOnSlopeRecently))
             return;
 
         bool obstacleAhead = CanJumpOverObstacle(moveDir);
@@ -2274,6 +2446,9 @@ public class AllyRobot : MonoBehaviour
     void CancelVelocityIntoWall(float moveDir)
     {
         if (physicsCheck == null || Mathf.Approximately(moveDir, 0f))
+            return;
+
+        if (physicsCheck.isOnSlope || physicsCheck.WasOnSlopeRecently)
             return;
 
         if (!physicsCheck.IsBlockedHorizontally(moveDir))
@@ -2394,12 +2569,24 @@ public class AllyRobot : MonoBehaviour
 
     void PerformJump(float moveDir)
     {
-        float gravity = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
+        // 斜坡站立时 gravityScale 可能为 0，必须用正常重力反算初速度
+        float gravity = Mathf.Abs(Physics2D.gravity.y * normalGravityScale);
         if (gravity < 0.01f)
             gravity = Mathf.Abs(Physics2D.gravity.y);
 
         float jumpVelocity = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, jumpHeight));
         float speed = currentState == AllyState.ComboDashing ? dashSpeed : moveSpeed;
+
+        if (physicsCheck != null && physicsCheck.isOnSlope)
+        {
+            BeginSlopeDetach(0.25f);
+            rb.position += physicsCheck.groundNormal * 0.06f;
+        }
+        else
+        {
+            rb.gravityScale = normalGravityScale;
+        }
+
         rb.linearVelocity = new Vector2(speed * Mathf.Sign(moveDir), jumpVelocity);
 
         jumpCooldownTimer = jumpCooldown;

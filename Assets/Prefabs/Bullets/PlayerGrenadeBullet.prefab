@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4100000000000000004}
   - component: {fileID: 4100000000000000005}
   - component: {fileID: 4100000000000000006}
+  - component: {fileID: 8880650997322413647}
   m_Layer: 10
   m_Name: PlayerGrenadeBullet
   m_TagString: Untagged
@@ -77,9 +78,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2176108675232985282, guid: d5e5787ec4768174aaeeb6cda6f1c329, type: 3}
+  m_Sprite: {fileID: -6239150027220268550, guid: 7705a7e94312eb947b2602022e44b01e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -168,3 +169,25 @@ MonoBehaviour:
   speed: 10
   fuseTime: 1.5
   explosionPrefab: {fileID: 1000000000000000006, guid: c7d9e1f2a3b4456789abcdef01234567, type: 3}
+--- !u!95 &8880650997322413647
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4100000000000000001}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 60cab4518be22434b80384e359d466ff, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

@@ -59,7 +59,9 @@ public class PhysicsCheck : MonoBehaviour
             robotOneWayPlatformPass = GetComponent<RobotOneWayPlatformPass>();
         RecalculateOffsets();
 
-        if (isPlayer && capsuleColl != null && capsuleColl.sharedMaterial == null)
+        // 玩家与机器人都去掉摩擦/弹性，避免斜面和平台接缝把胶囊绊住
+        if (capsuleColl != null && capsuleColl.sharedMaterial == null
+            && (isPlayer || robotOneWayPlatformPass != null))
         {
             var noFriction = new PhysicsMaterial2D("PlayerNoFriction")
             {
@@ -240,6 +242,18 @@ public class PhysicsCheck : MonoBehaviour
         return false;
     }
 
+    static bool IsOneWayPlatformCollider(Collider2D hit)
+    {
+        if (hit == null)
+            return false;
+
+        var effector = hit.GetComponent<PlatformEffector2D>();
+        if (effector == null)
+            effector = hit.GetComponentInParent<PlatformEffector2D>();
+
+        return effector != null && effector.enabled && effector.useOneWay;
+    }
+
     bool CheckSideOverlap(float direction)
     {
         if (coll == null)
@@ -260,6 +274,10 @@ public class PhysicsCheck : MonoBehaviour
             return false;
 
         if (IsSlopeSurfaceHit(hit))
+            return false;
+
+        // 单向板（含爆炸/掉落平台）侧面不是墙；Overlap 扫到邻块体积时不能当成侧挡
+        if (IsOneWayPlatformCollider(hit))
             return false;
 
         if (!CountsAsSolidObstacle(hit))

@@ -333,6 +333,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool PlayTurnAnim() // 地面站立转身，进入全身 Turn 状态
     {
+        if (IsPlayingLand)
+            InterruptLand();
+
         if (isCrouching || displayMode == BodyDisplayMode.FullBody || isDispatching)
             return false;
         if (airPhase != AirPhaseType.Ground)
@@ -358,15 +361,22 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayRunStopLand() // 站立地面跑动急停：松键边沿播全身 Land
     {
-        if (!isRunning || isCrouching || IsTurning || IsUpperLookActive() || IsPlayingLand)
+        if (!isRunning || isCrouching || IsTurning || IsPlayingLand)
             return false;
         if (displayMode != BodyDisplayMode.Split || airPhase != AirPhaseType.Ground)
+            return false;
+        // 急停不得打断射击/投掷/近战等；这些动作进行中只回 Idle
+        if (IsOccupiedByAction())
             return false;
 
         isRunning = false;
         EnterFullBodyLand();
         return true;
     }
+
+    bool IsOccupiedByAction() =>
+        isShooting || isCharging || isDispatching || isThrowing || isMelee
+        || isSwitchingWeapon || isRolling || IsUpperLookActive();
 
     public override void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
     {
@@ -1949,6 +1959,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isCharging)
             return;
 
+        if (active && IsPlayingLand)
+            InterruptLand();
+
         if (isCrouching || displayMode == BodyDisplayMode.FullBody)
         {
             if (IsUpperLookActive())
@@ -2001,6 +2014,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     {
         if (isCharging)
             return;
+
+        if (active && IsPlayingLand)
+            InterruptLand();
 
         if (isCrouching || displayMode == BodyDisplayMode.FullBody)
         {
