@@ -23,13 +23,14 @@ public static class EnemySceneCleanup
     }
 
     /// <summary>
-    /// 销毁场景中所有敌人本体 / 子弹 / 手雷 / 爆炸特效。
+    /// 销毁场景中所有敌人本体 / 子弹 / 导弹 / 手雷 / 爆炸特效。
     /// 敌人若 Instantiated 到 Persistent，卸关卡时不会随场景消失，需在此一并清掉。
     /// </summary>
     public static void ClearAll()
     {
         DestroyAll<Enemy>();
         DestroyAll<EnemyProjectile>();
+        DestroyAll<EnemyMissile>();
         DestroyAll<EnemyGrenade>();
         DestroyAll<EnemyGrenadeExplosion>();
     }

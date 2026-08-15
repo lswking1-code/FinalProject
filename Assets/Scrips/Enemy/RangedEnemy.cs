@@ -184,12 +184,20 @@ public class RangedEnemy : Enemy
             }
         }
 
-        float dist = GetHorizontalDistanceToPlayer();
+        float dist = GetCombatDistanceToPlayer();
 
         if (dist > shootRange)
             SwitchState(NPCState.GetClose);
         else
             RollAndEnterAction();
+    }
+
+    /// <summary>
+    /// 战斗射程判定距离。默认仅水平 X；子类可改为欧氏距离等。
+    /// </summary>
+    public virtual float GetCombatDistanceToPlayer()
+    {
+        return GetHorizontalDistanceToPlayer();
     }
 
     void RollAndEnterAction()
@@ -260,7 +268,7 @@ public class RangedEnemy : Enemy
     /// <summary>
     /// 在 firePoint 发射一枚子弹
     /// </summary>
-    public void FireProjectile()
+    public virtual void FireProjectile()
     {
         if (projectilePrefab == null || player == null)
             return;
@@ -276,15 +284,20 @@ public class RangedEnemy : Enemy
         FacePlayer();
     }
 
-    private void OnDrawGizmosSelected()
+    protected virtual void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position + Vector3.left * shootRange, transform.position + Vector3.right * shootRange);
+        DrawShootRangeGizmo();
 
         if (isPatrol && patrolDetectRange > 0f)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
         }
+    }
+
+    protected virtual void DrawShootRangeGizmo()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(transform.position + Vector3.left * shootRange, transform.position + Vector3.right * shootRange);
     }
 }

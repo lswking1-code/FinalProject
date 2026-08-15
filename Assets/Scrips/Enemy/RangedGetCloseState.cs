@@ -21,7 +21,7 @@ public class RangedGetCloseState : BaseState
         if (rangedEnemy == null)
             return;
 
-        if (rangedEnemy.GetHorizontalDistanceToPlayer() <= rangedEnemy.shootRange)
+        if (rangedEnemy.GetCombatDistanceToPlayer() <= rangedEnemy.shootRange)
             rangedEnemy.EvaluateCycle();
     }
 
