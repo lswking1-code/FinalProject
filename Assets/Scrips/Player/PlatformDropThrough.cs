@@ -24,7 +24,6 @@ public class PlatformDropThrough : MonoBehaviour
     PlayerMovement playerMovement;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
-    PlayerMovement playerMovement;
 
     readonly Collider2D[] overlapBuffer = new Collider2D[OverlapBufferSize];
     readonly HashSet<Collider2D> trackedPlatforms = new HashSet<Collider2D>();
@@ -41,7 +40,6 @@ public class PlatformDropThrough : MonoBehaviour
         playerMovement = GetComponent<PlayerMovement>();
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
-        playerMovement = GetComponent<PlayerMovement>();
 
         if (oneWayPlatformLayer.value == 0)
             oneWayPlatformLayer = LayerMask.GetMask("Platform");
@@ -159,20 +157,12 @@ public class PlatformDropThrough : MonoBehaviour
         var pathSlope = platform.GetComponent<SlopePathSegment>()
             ?? platform.GetComponentInParent<SlopePathSegment>();
         if (pathSlope != null)
-<<<<<<< Updated upstream
             return ShouldCollideWithSlopeSurface(pathSlope.IsFeetAboveSurface(feetPos), vy);
-=======
-            return ShouldCollideWithSlopeSurface(pathSlope.IsFeetAboveSurface(feetPos));
->>>>>>> Stashed changes
 
         var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
             ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
         if (legacySlope != null)
-<<<<<<< Updated upstream
             return ShouldCollideWithSlopeSurface(legacySlope.IsFeetAboveSurface(feetPos), vy);
-=======
-            return ShouldCollideWithSlopeSurface(legacySlope.IsFeetAboveSurface(feetPos));
->>>>>>> Stashed changes
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
@@ -187,7 +177,6 @@ public class PlatformDropThrough : MonoBehaviour
     }
 
     /// <summary>
-<<<<<<< Updated upstream
     /// 从下穿过仍要求 vy≤0；已经站在坡上时切向速度会带正 vy，不能当成穿过。
     /// </summary>
     bool ShouldCollideWithSlopeSurface(bool feetAboveSurface, float vy)
@@ -202,18 +191,6 @@ public class PlatformDropThrough : MonoBehaviour
             return true;
 
         return vy <= 0.01f;
-=======
-    /// 单向斜坡：脚在可行走侧时保持碰撞（含上坡切向 Y&gt;0、从下方跳上坡面）。
-    /// 仅从坡上起跳/下穿脱离时忽略，避免离面失败。
-    /// </summary>
-    bool ShouldCollideWithSlopeSurface(bool feetAbove)
-    {
-        if (!feetAbove)
-            return false;
-        if (playerMovement != null && playerMovement.IsSlopeDetached)
-            return false;
-        return true;
->>>>>>> Stashed changes
     }
 
     bool TryGetOneWayPlatformBelow(out Collider2D platformCollider)
