@@ -17,6 +17,8 @@ public class ElectrifiedPlatform : MonoBehaviour
     [Header("伤害")]
     [SerializeField, Min(1)] int damage = 1;
     [SerializeField, Min(0.05f)] float damageInterval = 0.4f;
+    [Tooltip("离台后仍尝试扣血的时长，对齐玩家土狼，避免连跳漏伤")]
+    [SerializeField, Min(0f)] float contactLinger = 0.12f;
     [Tooltip("可选伤害源；为空则运行时创建临时 Attack（无击退）")]
     [SerializeField] Attack attackSource;
     [SerializeField] string[] damageTags = { "Player", "Enemy", "AirEnemy" };
@@ -46,6 +48,9 @@ public class ElectrifiedPlatform : MonoBehaviour
     public bool IsOn => isOn;
 
     readonly Dictionary<int, float> nextHitTime = new();
+    readonly Dictionary<int, float> lingerUntil = new();
+    readonly Dictionary<int, Character> lingerTargets = new();
+    readonly List<int> lingerIdBuffer = new();
     readonly Dictionary<int, Coroutine> flashRoutines = new();
     Attack runtimeAttack;
     float electricPulseTimer;
@@ -81,6 +86,7 @@ public class ElectrifiedPlatform : MonoBehaviour
     void OnDisable()
     {
         StopBuzz();
+        ClearLinger();
         foreach (var kv in flashRoutines)
         {
             if (kv.Value != null)
@@ -99,7 +105,10 @@ public class ElectrifiedPlatform : MonoBehaviour
 
         isOn = powered;
         if (!isOn)
+        {
             nextHitTime.Clear();
+            ClearLinger();
+        }
         ApplyVisualAndAudio(isOn);
     }
 
@@ -109,9 +118,45 @@ public class ElectrifiedPlatform : MonoBehaviour
         SetPowered(poweredWhenSwitchOn ? switchOn : !switchOn);
     }
 
-    public void Toggle() => SetPowered(!isOn);
+    public void NotifyStanding(Character character)
+    {
+        TryShock(character);
+    }
 
-    void OnCollisionStay2D(Collision2D collision)
+    void FixedUpdate()
+    {
+        if (!isOn || lingerTargets.Count == 0)
+            return;
+
+        lingerIdBuffer.Clear();
+        lingerIdBuffer.AddRange(lingerTargets.Keys);
+        float now = Time.time;
+        for (int i = 0; i < lingerIdBuffer.Count; i++)
+        {
+            int id = lingerIdBuffer[i];
+            if (!lingerUntil.TryGetValue(id, out float until) || now >= until)
+            {
+                lingerUntil.Remove(id);
+                lingerTargets.Remove(id);
+                continue;
+            }
+
+            if (!lingerTargets.TryGetValue(id, out Character character) || character == null)
+            {
+                lingerUntil.Remove(id);
+                lingerTargets.Remove(id);
+                continue;
+            }
+
+            TryShock(character);
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision) => HandleContact(collision);
+
+    void OnCollisionStay2D(Collision2D collision) => HandleContact(collision);
+
+    void HandleContact(Collision2D collision)
     {
         if (!isOn || collision == null || collision.collider == null)
             return;
@@ -119,11 +164,41 @@ public class ElectrifiedPlatform : MonoBehaviour
         if (collision.rigidbody != null)
             collision.rigidbody.WakeUp();
 
-        if (!IsDamageTag(collision.collider))
+        Character character = ResolveDamageTarget(collision.collider);
+        if (character == null)
             return;
 
-        var character = collision.collider.GetComponentInParent<Character>();
+        int id = character.GetInstanceID();
+        lingerUntil.Remove(id);
+        lingerTargets.Remove(id);
+        TryShock(character);
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        if (!isOn || collision?.collider == null)
+            return;
+
+        Character character = ResolveDamageTarget(collision.collider);
         if (character == null)
+            return;
+
+        int id = character.GetInstanceID();
+        lingerUntil[id] = Time.time + contactLinger;
+        lingerTargets[id] = character;
+    }
+
+    Character ResolveDamageTarget(Collider2D col)
+    {
+        if (!IsDamageTag(col))
+            return null;
+
+        return col.GetComponentInParent<Character>();
+    }
+
+    void TryShock(Character character)
+    {
+        if (!isOn || character == null)
             return;
 
         int id = character.GetInstanceID();
@@ -135,23 +210,18 @@ public class ElectrifiedPlatform : MonoBehaviour
         attackSource.enableKnockback = false;
 
         bool damaged = character.TakeHazardDamage(attackSource, out bool killed);
-        nextHitTime[id] = Time.time + damageInterval;
-        if (!damaged || killed)
+        if (!damaged)
             return;
 
-        PlayHitFeedback(character);
+        nextHitTime[id] = Time.time + damageInterval;
+        if (!killed)
+            PlayHitFeedback(character);
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    void ClearLinger()
     {
-        if (collision?.collider == null)
-            return;
-
-        var character = collision.collider.GetComponentInParent<Character>();
-        if (character == null)
-            return;
-
-        nextHitTime.Remove(character.GetInstanceID());
+        lingerUntil.Clear();
+        lingerTargets.Clear();
     }
 
     bool IsDamageTag(Collider2D col)
@@ -296,6 +366,7 @@ public class ElectrifiedPlatform : MonoBehaviour
     void OnValidate()
     {
         damageInterval = Mathf.Max(0.05f, damageInterval);
+        contactLinger = Mathf.Max(0f, contactLinger);
         damage = Mathf.Max(1, damage);
     }
 #endif

@@ -45,6 +45,7 @@ public class PhysicsCheck : MonoBehaviour
     const int GroundCoyoteFrames = 8;
     const int SlopeCoyoteFrames = 10;
     const float SlopeTransitionCastExtra = 0.45f;
+    readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
 
     public bool WasOnSlopeRecently =>
         Time.frameCount - lastSlopeFrame <= SlopeCoyoteFrames;
@@ -365,6 +366,7 @@ public class PhysicsCheck : MonoBehaviour
 
         isSolidGround = rawGround;
         isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
+        TryNotifyElectrifiedPlatform(groundOrigin);
         if (isGround && !rawGround)
             groundNormal = lastGroundNormal;
         else if (!isGround)
@@ -386,6 +388,32 @@ public class PhysicsCheck : MonoBehaviour
         {
             float inputX = Input.GetAxisRaw("Horizontal");
             onWall = (touchLeftWall && inputX < 0f || touchRightWall && inputX > 0f) && rb.linearVelocity.y < 0f;
+        }
+    }
+
+    void TryNotifyElectrifiedPlatform(Vector2 groundOrigin)
+    {
+        if (!isSolidGround)
+            return;
+
+        var character = GetComponent<Character>();
+        if (character == null)
+            return;
+
+        int count = Physics2D.CircleCastNonAlloc(
+            groundOrigin, 0.08f, Vector2.down, hazardProbeHits, checkRaduis);
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hitCol = hazardProbeHits[i].collider;
+            if (hitCol == null || hitCol.isTrigger)
+                continue;
+            if (hitCol == coll || hitCol.transform.IsChildOf(transform) || transform.IsChildOf(hitCol.transform))
+                continue;
+
+            var plat = hitCol.GetComponentInParent<ElectrifiedPlatform>();
+            if (plat != null)
+                plat.NotifyStanding(character);
+            break;
         }
     }
 
