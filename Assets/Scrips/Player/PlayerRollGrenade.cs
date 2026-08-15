@@ -11,6 +11,9 @@ using UnityEngine;
 [RequireComponent(typeof(Character))]
 public class PlayerRollGrenade : MonoBehaviour
 {
+    [Header("普通手雷（短按）")]
+    [SerializeField] float throwAbilityPowerCost = 20f;
+
     [Header("滚动炸弹（长按 + 下）")]
     [SerializeField] PlayerGrenade rollGrenadePrefab;
     [SerializeField] Transform throwPoint;
@@ -127,7 +130,15 @@ public class PlayerRollGrenade : MonoBehaviour
         if (holdTime >= holdThreshold)
             return;
 
-        playerThrow.TryThrowGrenade();
+        if (throwAbilityPowerCost > 0f
+            && (character == null || character.AbilityPower < throwAbilityPowerCost))
+            return;
+
+        if (!playerThrow.TryThrowGrenade())
+            return;
+
+        if (throwAbilityPowerCost > 0f)
+            character.DrainAbilityPower(throwAbilityPowerCost);
     }
 
     void TrySpawnRollGrenade()

@@ -227,7 +227,7 @@ public class PlayerLaserBeam : MonoBehaviour
 
     void TryTickDamage(Character target)
     {
-        if (target == null || target.IsDead)
+        if (target == null || !target.CanReceiveHits)
             return;
 
         if (nextHitTime.TryGetValue(target, out float next) && Time.time < next)

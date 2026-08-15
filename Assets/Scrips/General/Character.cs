@@ -41,6 +41,7 @@ public class Character : MonoBehaviour,ISaveable
     public bool invulnerable;
     bool forcedInvulnerable;
     bool isDead;
+    bool skipDeathDelay;
     Coroutine knockbackRoutine;
     int initialBulletS;
     int initialBulletM;
@@ -51,6 +52,9 @@ public class Character : MonoBehaviour,ISaveable
 
     public bool IsDead => isDead;
     public bool IsForcedInvulnerable => forcedInvulnerable;
+    /// <summary>逻辑死亡后仍允许受击（敌人濒死窗口）。</summary>
+    [HideInInspector] public bool allowHitsWhileDead;
+    public bool CanReceiveHits => !isDead || allowHitsWhileDead;
     public bool HasAnySpecialAmmo => BulletS > 0 || BulletM > 0 || BulletL > 0;
 
     public int GetAmmo(AmmoType type) => type switch
@@ -127,6 +131,8 @@ public class Character : MonoBehaviour,ISaveable
     public void ResetForNewGame()
     {
         isDead = false;
+        skipDeathDelay = false;
+        allowHitsWhileDead = false;
         forcedInvulnerable = false;
         invulnerable = false;
         invulnerableCounter = 0f;
@@ -187,17 +193,28 @@ public class Character : MonoBehaviour,ISaveable
             return;
 
         if (other.CompareTag("Water"))
-            Die();
+            Kill();
     }
 
     /// <returns>true 表示本次确实扣血或击杀；无敌/吸收等情况返回 false。</returns>
     public bool TakeDamage(Attack attacker)
     {
-        if (isDead || invulnerable || forcedInvulnerable)
+        if (invulnerable || forcedInvulnerable)
             return false;
 
         if (attacker == null)
             return false;
+
+        if (isDead)
+        {
+            if (!allowHitsWhileDead)
+                return false;
+
+            triggerInvulnerable();
+            OnTakeDamage?.Invoke(attacker.transform);
+            ApplyKnockback(attacker);
+            return true;
+        }
 
         var absorb = GetComponentInChildren<IDamageAbsorb>();
         if (absorb != null && absorb.TryAbsorb(attacker))
@@ -213,6 +230,11 @@ public class Character : MonoBehaviour,ISaveable
             return true;
         }
 
+        currentHealth = 0;
+        triggerInvulnerable();
+        OnTakeDamage?.Invoke(attacker.transform);
+        ApplyKnockback(attacker);
+        NotifyStatsChanged();
         Die();
         return true;
     }
@@ -243,6 +265,7 @@ public class Character : MonoBehaviour,ISaveable
             return true;
         }
 
+        skipDeathDelay = true;
         Die();
         killed = true;
         return true;
@@ -308,12 +331,32 @@ public class Character : MonoBehaviour,ISaveable
         OnDie?.Invoke();
     }
 
-    /// <summary>立即死亡（无视无敌/护盾），已死亡则忽略。</summary>
-    public void Kill() => Die();
+    /// <summary>立即死亡（无视无敌/护盾），已死亡则忽略。跳过敌人濒死窗口。</summary>
+    public void Kill()
+    {
+        skipDeathDelay = true;
+        if (isDead)
+        {
+            GetComponent<Enemy>()?.PlayDeathAnim();
+            return;
+        }
+
+        Die();
+    }
+
+    /// <summary>供 Enemy.OnDie 读取后清除，避免残留到下次死亡。</summary>
+    public bool ConsumeSkipDeathDelay()
+    {
+        bool skip = skipDeathDelay;
+        skipDeathDelay = false;
+        return skip;
+    }
 
     public void Revive()
     {
         isDead = false;
+        skipDeathDelay = false;
+        allowHitsWhileDead = false;
         forcedInvulnerable = false;
         invulnerable = false;
         invulnerableCounter = 0f;
@@ -537,6 +580,8 @@ public class Character : MonoBehaviour,ISaveable
             return;
 
         isDead = false;
+        skipDeathDelay = false;
+        allowHitsWhileDead = false;
         forcedInvulnerable = false;
         currentHealth = data.floatSavedData[id + "health"];
         currentPower = data.floatSavedData[id + "power"];

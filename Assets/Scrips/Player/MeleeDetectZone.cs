@@ -99,11 +99,11 @@ public class MeleeDetectZone : MonoBehaviour
             return false;
 
         var enemy = target.GetComponent<Enemy>();
-        if (enemy != null && enemy.isDead)
-            return false;
+        if (enemy != null)
+            return enemy.IsHittable;
 
         var character = target.GetComponent<Character>();
-        if (character != null && character.currentHealth <= 0f)
+        if (character != null && !character.CanReceiveHits)
             return false;
 
         return true;

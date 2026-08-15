@@ -61,7 +61,7 @@ public class PlayerMLChargeBullet : MonoBehaviour, IPlayerAmmo
             return;
 
         Enemy enemy = collision.GetComponentInParent<Enemy>();
-        if (enemy == null || enemy.isDead)
+        if (enemy == null || !enemy.IsHittable)
             return;
 
         hasAppliedHitEffects = true;

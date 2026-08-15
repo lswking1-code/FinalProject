@@ -206,7 +206,7 @@ public class PlayerHomingMissile : MonoBehaviour
         if (enemy == null)
             enemy = go.GetComponentInParent<Enemy>();
 
-        return enemy == null || !enemy.isDead;
+        return enemy == null || enemy.IsHittable;
     }
 
     bool IsTargetValid()

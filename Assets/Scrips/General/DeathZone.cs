@@ -41,8 +41,13 @@ public class DeathZone : MonoBehaviour
             Character enemyCharacter = enemy != null
                 ? enemy.GetComponent<Character>()
                 : other.GetComponentInParent<Character>();
-            if (enemyCharacter == null || enemyCharacter.IsDead)
+            if (enemyCharacter == null)
                 return;
+            if (enemyCharacter.IsDead)
+            {
+                enemyCharacter.Kill();
+                return;
+            }
             if (!MarkHandled(enemyCharacter.gameObject))
                 return;
 

@@ -53,6 +53,8 @@ public class FlyingEnemy : Enemy
     float bobPhase;
     float hoverHeightOutOfRangeTimer;
 
+    protected override bool UseDeathDelay => false;
+
     Collider2D bodyCollider;
     ContactFilter2D oneWayPlatformFilter;
     readonly Collider2D[] oneWayOverlapBuffer = new Collider2D[16];

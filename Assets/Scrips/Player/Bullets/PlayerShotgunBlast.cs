@@ -80,7 +80,7 @@ public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
             return;
 
         var enemy = collision.GetComponentInParent<Enemy>();
-        if (enemy == null || enemy.isDead)
+        if (enemy == null || !enemy.IsHittable)
             return;
 
         float rate = attack != null ? attack.attackRate : 0f;

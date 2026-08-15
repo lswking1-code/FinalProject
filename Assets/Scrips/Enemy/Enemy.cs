@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -81,14 +82,35 @@ public class Enemy : MonoBehaviour
     [Tooltip("相对敌人当前位置的回血包掉落偏移")]
     public Vector3 healthDropOffset;
 
+    [Header("濒死窗口")]
+    [Tooltip("地面致死后等待该时长再播死亡动画；期间仍可受击")]
+    [SerializeField] float groundDeathDelay = 0.4f;
+
     [HideInInspector] public Transform player;
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
 
     bool ammoDropped;
     bool healthDropped;
+    bool deathAnimStarted;
+    float deathDelayTimer;
+    HashSet<string> animBoolNames;
+
+    const float MinAirDeathTime = 0.12f;
+    const float LandedUpwardSpeedMax = 0.1f;
+    static readonly string[] CombatAnimBools =
+    {
+        "walk", "shoot", "shootDown", "crouch", "reload",
+        "melee", "meleeWindup", "throw", "jump", "fall", "land", "run",
+    };
 
     protected Character character;
+
+    /// <summary>飞行敌人等可关闭濒死窗口，致死立刻播死亡动画。</summary>
+    protected virtual bool UseDeathDelay => true;
+
+    /// <summary>存活或濒死窗口内可被攻击；死亡动画开始后不可。</summary>
+    public bool IsHittable => !deathAnimStarted;
 
     private BaseState currentState;
     protected BaseState patroState;
@@ -119,6 +141,7 @@ public class Enemy : MonoBehaviour
         physicsCheck = GetComponent<PhysicsCheck>();
         character = GetComponent<Character>();
         CacheSpriteRenderer();
+        CacheAnimBoolNames();
 
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         currentSpeed = normalSpeed;
@@ -135,6 +158,19 @@ public class Enemy : MonoBehaviour
 
         spriteOriginalColor = spriteRenderer.color;
         spriteOriginalLocalPos = spriteRenderer.transform.localPosition;
+    }
+
+    void CacheAnimBoolNames()
+    {
+        animBoolNames = new HashSet<string>();
+        if (anim == null)
+            return;
+
+        foreach (var parameter in anim.parameters)
+        {
+            if (parameter.type == AnimatorControllerParameterType.Bool)
+                animBoolNames.Add(parameter.name);
+        }
     }
 
     /// <summary>
@@ -288,6 +324,8 @@ public class Enemy : MonoBehaviour
         faceDir = new Vector3(GetFacingFromScale(), 0, 0);
 
         currentState.LogicUpdate();
+
+        UpdateDeathDelay();
 
         if (ShouldRunTimeCounter())
             TimeCounter();
@@ -664,13 +702,78 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 死亡处理，切换图层并播放死亡动画
+    /// 死亡处理：逻辑死亡立刻生效；地面等短倒计时、空中等落地后再播死亡动画。
     /// </summary>
     public void OnDie()
     {
-        gameObject.layer = 2;
-        anim.SetBool("dead", true);
         isDead = true;
+        TryDropAmmo();
+        TryDropHealth();
+        ClearCombatAnimatorBools();
+
+        bool skipDelay = !UseDeathDelay
+            || (character != null && character.ConsumeSkipDeathDelay());
+        if (skipDelay)
+        {
+            PlayDeathAnim();
+            return;
+        }
+
+        if (character != null)
+            character.allowHitsWhileDead = true;
+
+        bool grounded = physicsCheck != null
+            && (physicsCheck.isSolidGround || physicsCheck.isGround);
+        bool movingVertically = rb != null
+            && Mathf.Abs(rb.linearVelocity.y) > LandedUpwardSpeedMax;
+        bool airborne = !grounded || movingVertically;
+        deathDelayTimer = airborne ? MinAirDeathTime : Mathf.Max(0f, groundDeathDelay);
+    }
+
+    void UpdateDeathDelay()
+    {
+        if (!isDead || deathAnimStarted)
+            return;
+
+        deathDelayTimer -= Time.deltaTime;
+        if (deathDelayTimer <= 0f && IsLandedForDeathAnim())
+            PlayDeathAnim();
+    }
+
+    bool IsLandedForDeathAnim()
+    {
+        if (physicsCheck == null)
+            return true;
+
+        float vy = rb != null ? rb.linearVelocity.y : 0f;
+        if (vy > LandedUpwardSpeedMax)
+            return false;
+
+        if (physicsCheck.isSolidGround || physicsCheck.isGround)
+            return true;
+
+        // 刚体休眠后 OnCollisionStay 不再刷新接地；竖直速度已静止则视为落地/卡住
+        return Mathf.Abs(vy) <= LandedUpwardSpeedMax;
+    }
+
+    /// <summary>立刻切死亡动画并停止受击（DeathZone 等可外部调用）。</summary>
+    public void PlayDeathAnim()
+    {
+        if (deathAnimStarted)
+            return;
+
+        deathAnimStarted = true;
+        isDead = true;
+
+        if (character != null)
+        {
+            character.allowHitsWhileDead = false;
+            character.ConsumeSkipDeathDelay();
+        }
+
+        gameObject.layer = 2;
+        if (anim != null)
+            anim.SetBool("dead", true);
 
         if (hurtRoutine != null)
         {
@@ -684,9 +787,19 @@ public class Enemy : MonoBehaviour
         }
         RestoreHurtVisuals();
         isHurt = false;
+    }
 
-        TryDropAmmo();
-        TryDropHealth();
+    void ClearCombatAnimatorBools()
+    {
+        if (anim == null || animBoolNames == null)
+            return;
+
+        for (int i = 0; i < CombatAnimBools.Length; i++)
+        {
+            string name = CombatAnimBools[i];
+            if (animBoolNames.Contains(name))
+                anim.SetBool(name, false);
+        }
     }
 
     void TryDropAmmo()

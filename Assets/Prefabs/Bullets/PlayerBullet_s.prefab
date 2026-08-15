@@ -79,7 +79,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 4399587163456568310, guid: bb72312c8d08da84ba8cf3c7089083a6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -167,7 +167,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7c8d9e0f1a2436589abcdef01234567, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 100
+  damage: 50
+  enableKnockback: 1
+  knockbackForce: 10
+  knockbackDuration: 0.15
   abilityPowerRestore: 5
 --- !u!114 &785616209480741553
 MonoBehaviour:
@@ -181,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 70
+  damage: 60
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -190,6 +193,9 @@ MonoBehaviour:
   enableKnockback: 1
   knockbackForce: 10
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!95 &1578916695786253071
 Animator:
   serializedVersion: 7

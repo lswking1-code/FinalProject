@@ -1548,7 +1548,7 @@ public class AllyRobot : MonoBehaviour
             return false;
 
         Enemy enemy = target.GetComponent<Enemy>();
-        return enemy == null || !enemy.isDead;
+        return enemy == null || enemy.IsHittable;
     }
 
     /// <summary>
@@ -2680,7 +2680,7 @@ public class AllyRobot : MonoBehaviour
                 continue;
 
             Enemy enemy = e.GetComponent<Enemy>();
-            if (enemy != null && enemy.isDead)
+            if (enemy != null && !enemy.IsHittable)
                 continue;
 
             Vector2 aim = GetCombatAimPoint(e.transform);

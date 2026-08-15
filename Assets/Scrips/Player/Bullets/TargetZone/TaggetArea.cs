@@ -66,7 +66,7 @@ public class TaggetArea : MonoBehaviour
             return;
 
         Enemy enemy = other.GetComponent<Enemy>() ?? other.GetComponentInParent<Enemy>();
-        if (enemy == null || enemy.isDead)
+        if (enemy == null || !enemy.IsHittable)
             return;
 
         enemy.isMarked = true;

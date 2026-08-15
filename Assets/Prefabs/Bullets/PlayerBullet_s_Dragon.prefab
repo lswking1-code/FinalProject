@@ -79,7 +79,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 1
   m_Sprite: {fileID: 4399587163456568310, guid: bb72312c8d08da84ba8cf3c7089083a6, type: 3}
   m_Color: {r: 1, g: 0.55, b: 0.15, a: 1}
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f647891234567890abcdef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 30
+  damage: 25
   hitsPerSecond: 10
   lifetime: 0.55
   flameTint: {r: 1, g: 0.55, b: 0.15, a: 1}
@@ -193,6 +193,9 @@ MonoBehaviour:
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
 --- !u!95 &2578916695786253072
 Animator:
   serializedVersion: 7

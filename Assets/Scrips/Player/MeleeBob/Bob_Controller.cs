@@ -1658,7 +1658,7 @@ public class Bob_Controller : MonoBehaviour
             && !string.IsNullOrEmpty(meleeAttack.ignoreTag)
             && target.CompareTag(meleeAttack.ignoreTag))
             return false;
-        if (target.currentHealth <= 0f)
+        if (!target.CanReceiveHits)
             return false;
 
         return true;
@@ -2064,7 +2064,7 @@ public class Bob_Controller : MonoBehaviour
                 continue;
 
             var target = col.GetComponentInParent<Character>();
-            if (target == null || target == selfCharacter || target.currentHealth <= 0f)
+            if (target == null || target == selfCharacter || !target.CanReceiveHits)
                 continue;
             if (meleeAttack != null
                 && !string.IsNullOrEmpty(meleeAttack.ignoreTag)
