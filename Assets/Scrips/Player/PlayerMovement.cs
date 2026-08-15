@@ -811,8 +811,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                 if (moveX != 0f)
                 {
                     rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
-                    if (playerAnim.IsCharging)
-                        faceDir = moveX;
+                    faceDir = moveX;
                     ApplyFacing();
                 }
                 return;
@@ -857,13 +856,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        // 空中：有输入才改水平速度，无输入保留惯性
+        // 空中：有输入才改水平速度并翻面，无输入保留惯性
         if (moveX != 0f)
         {
             rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
-
-            if ((playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsCharging)
-                && moveX != faceDir)
+            if (moveX != faceDir)
             {
                 faceDir = moveX;
                 ApplyFacing();

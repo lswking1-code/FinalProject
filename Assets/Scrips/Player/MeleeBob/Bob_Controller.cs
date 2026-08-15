@@ -2197,7 +2197,11 @@ public class Bob_Controller : MonoBehaviour
 
         float velocityX = rb.linearVelocity.x;
         if (hasHorizontal && playerMovement != null)
-            velocityX = Mathf.Sign(move.x) * playerMovement.runSpeed;
+        {
+            float moveX = Mathf.Sign(move.x);
+            velocityX = moveX * playerMovement.runSpeed;
+            playerMovement.FaceTowardWorldX(transform.position.x + moveX);
+        }
 
         rb.linearVelocity = new Vector2(velocityX, jumpVelocity);
         hasUsedDoubleJump = true;
