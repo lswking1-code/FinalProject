@@ -47,7 +47,10 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         // 正面 Blast 虽被盾吸收、不会进 Character.OnTakeDamage，但仍需引爆盾上标记炸弹
         TryDetonateMarkBombsFromBlast(attacker);
 
-        float damage = Mathf.Max(0, attacker.damage);
+        float multiplier = attacker.shieldDamageMultiplier > 0f
+            ? attacker.shieldDamageMultiplier
+            : 1f;
+        float damage = Mathf.Max(0, attacker.damage) * multiplier;
         currentShieldHealth -= damage;
 
         NotifyAggroIfNeeded();

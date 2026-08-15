@@ -24,6 +24,10 @@ public class Attack : MonoBehaviour
     [Tooltip("玩家水平移动门控时长 / Kinematic 位移时长（秒）")]
     public float knockbackDuration = 0.15f;
 
+    [Header("护盾")]
+    [Tooltip("对 IDamageAbsorb（敌人盾牌）的伤害倍率；1 = 不额外加成。不影响打到本体的伤害")]
+    public float shieldDamageMultiplier = 1f;
+
     [Header("命中横向震屏（opt-in）")]
     [Tooltip("仅对 Character 成功造成伤害时触发；与动画事件旧震屏独立")]
     [SerializeField] bool enableHitCameraShake;

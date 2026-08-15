@@ -234,6 +234,26 @@ public class Bob_Controller : MonoBehaviour
     [Tooltip("大招伤害 = 特技伤害 × 该倍率")]
     [SerializeField] float ultimateDamageMultiplier = 2f;
 
+    [Header("Buzzsaw · 破盾")]
+    [Tooltip("圆锯刀打到持盾敌人盾牌时的伤害倍率；≤0 时按 2 倍。不影响绕盾打到本体")]
+    [SerializeField] float buzzsawShieldDamageMultiplier = 2f;
+
+    [Header("Rush 大招 · 后段击飞")]
+    [Tooltip("击飞判定开始（归一化）。rush_special 后段 hit_c 约在 0.70")]
+    [Range(0f, 1f)] [SerializeField] float rushUltimateLaunchStart = 0.62f;
+    [Tooltip("击飞判定结束（归一化）")]
+    [Range(0f, 1f)] [SerializeField] float rushUltimateLaunchEnd = 0.85f;
+    [SerializeField] Vector2 rushUltimateLaunchHitboxSize = new Vector2(2.2f, 2.8f);
+    [SerializeField] Vector2 rushUltimateLaunchHitboxOffset = new Vector2(0.9f, 1.35f);
+    [Tooltip("击飞段伤害；≤0 则与大招冲刺段相同（已含大招倍率）")]
+    [SerializeField] int rushUltimateLaunchDamage = 0;
+    [Tooltip("击飞垂直速度")]
+    [SerializeField] float rushUltimateLaunchSpeedY = 13f;
+    [Tooltip("击飞水平速度（沿面朝，可把敌人略带向前）")]
+    [SerializeField] float rushUltimateLaunchSpeedX = 2.5f;
+    [Tooltip("击飞后压住敌人水平速度的时长，避免 AI 立刻把人拉回地面走位")]
+    [SerializeField] float rushUltimateLaunchHoldDuration = 0.45f;
+
     [Header("短距冲刺（CrouchMelee · 无推怪）")]
     [Tooltip("蹲攻短距冲刺速度；应明显短于 rush_special")]
     [SerializeField] float shortMeleeDashSpeed = 10f;
@@ -713,12 +733,52 @@ public class Bob_Controller : MonoBehaviour
             meleeAttack.attackType = AttackType.Melee;
             meleeAttack.ignoreTag = "Player";
             meleeAttack.enabled = !manualSpecial && maxTargets <= 0;
+            SyncBuzzsawShieldMultiplier();
 
             if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 1)
                 ApplyRushAttackKnockback(true);
             else
                 RestoreRushAttackKnockback();
         }
+    }
+
+    void SyncBuzzsawShieldMultiplier()
+    {
+        if (meleeAttack == null)
+            return;
+
+        bool buzzsaw = activeProfile.weaponId == 3 || ResolveCurrentWeaponId() == 3;
+        meleeAttack.shieldDamageMultiplier = buzzsaw
+            ? ResolveBuzzsawShieldMultiplier()
+            : 1f;
+    }
+
+    float ResolveBuzzsawShieldMultiplier()
+        => buzzsawShieldDamageMultiplier > 0f ? buzzsawShieldDamageMultiplier : 2f;
+
+    bool TryDealMeleeDamage(Character target, string note = null)
+    {
+        if (target == null || meleeAttack == null)
+            return false;
+
+        var shield = target.GetComponentInChildren<EnemyShieldAbsorb>();
+        float shieldBefore = shield != null ? shield.currentShieldHealth : 0f;
+        bool damaged = target.TakeDamage(meleeAttack);
+        if (damaged)
+        {
+            meleeAttack.RaiseHitCameraShakeIfEnabled();
+            LogSkillHit(target, meleeAttack.damage, note);
+            return true;
+        }
+
+        if (shield != null && shield.currentShieldHealth < shieldBefore - 0.01f)
+        {
+            int dealt = Mathf.Max(1, Mathf.RoundToInt(shieldBefore - Mathf.Max(0f, shield.currentShieldHealth)));
+            meleeAttack.RaiseHitCameraShakeIfEnabled();
+            LogSkillHit(target, dealt, CombineHitNotes(note, "盾牌"));
+        }
+
+        return false;
     }
 
     void ApplyHitboxShape(bool upward, bool special = false)
@@ -1157,7 +1217,10 @@ public class Bob_Controller : MonoBehaviour
         }
 
         if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 1)
-            ApplyRushAttackKnockback(true);
+        {
+            UpdateRushSpecialHits();
+            return;
+        }
 
         ApplyHitboxShape(upward: !special && IsCurrentSwingUpward(), special: special);
 
@@ -1198,6 +1261,108 @@ public class Bob_Controller : MonoBehaviour
         {
             meleeHitbox.SetActive(false);
         }
+    }
+
+    void UpdateRushSpecialHits()
+    {
+        if (meleeAttack != null)
+        {
+            meleeAttack.damage = ResolveSpecialSwingDamage();
+            meleeAttack.enabled = false;
+        }
+
+        if (!playerAnim.TryGetMeleeAnimProgress(out float t))
+        {
+            ApplyRushAttackKnockback(true);
+            ApplyHitboxShape(upward: false, special: true);
+            if (meleeHitbox != null && meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(false);
+            return;
+        }
+
+        bool ultimateLaunch = IsCurrentSwingUltimate() && HasRushUltimateLaunchWindow();
+        bool launchWindow = ultimateLaunch
+            && t >= rushUltimateLaunchStart
+            && t <= rushUltimateLaunchEnd;
+        float dashEnd = ultimateLaunch ? rushUltimateLaunchStart : activeSpecialProfile.hitEnd;
+        bool dashWindow = !launchWindow
+            && t >= activeSpecialProfile.hitStart
+            && t <= dashEnd;
+
+        if (launchWindow)
+        {
+            UpdateRushUltimateLaunchHits();
+            return;
+        }
+
+        ApplyRushAttackKnockback(true);
+        ApplyHitboxShape(upward: false, special: true);
+
+        if (dashWindow)
+        {
+            if (meleeHitbox != null && !meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(true);
+
+            ProcessSpecialBoxHits(
+                activeSpecialProfile.hitboxOffset,
+                activeSpecialProfile.hitboxSize,
+                ResolveSpecialSwingDamage(),
+                swingHitTargets,
+                activeSpecialProfile.maxTargets);
+        }
+        else if (meleeHitbox != null && meleeHitbox.activeSelf)
+        {
+            meleeHitbox.SetActive(false);
+        }
+    }
+
+    void UpdateRushUltimateLaunchHits()
+    {
+        ApplyRushAttackKnockback(false);
+
+        Vector2 size = rushUltimateLaunchHitboxSize.x > 0.01f && rushUltimateLaunchHitboxSize.y > 0.01f
+            ? rushUltimateLaunchHitboxSize
+            : new Vector2(2.2f, 2.8f);
+        Vector2 offset = rushUltimateLaunchHitboxOffset;
+
+        if (meleeHitboxCollider != null)
+        {
+            meleeHitboxCollider.size = size;
+            meleeHitboxCollider.offset = offset;
+        }
+
+        if (meleeHitbox != null && !meleeHitbox.activeSelf)
+            meleeHitbox.SetActive(true);
+
+        bool savedKnockback = false;
+        if (meleeAttack != null)
+        {
+            savedKnockback = meleeAttack.enableKnockback;
+            meleeAttack.enableKnockback = false;
+            meleeAttack.damage = ResolveRushUltimateLaunchDamage();
+        }
+
+        ProcessSpecialBoxHits(
+            offset,
+            size,
+            ResolveRushUltimateLaunchDamage(),
+            specialRearHitTargets,
+            activeSpecialProfile.maxTargets,
+            hitNote: "击飞",
+            launchUpward: true);
+
+        if (meleeAttack != null)
+            meleeAttack.enableKnockback = savedKnockback;
+    }
+
+    bool HasRushUltimateLaunchWindow()
+        => rushUltimateLaunchEnd > rushUltimateLaunchStart + 0.01f;
+
+    int ResolveRushUltimateLaunchDamage()
+    {
+        if (rushUltimateLaunchDamage > 0)
+            return rushUltimateLaunchDamage;
+        return ResolveSpecialSwingDamage();
     }
 
     void UpdateWhipSpecialHits()
@@ -1301,6 +1466,8 @@ public class Bob_Controller : MonoBehaviour
         if (meleeAttack != null)
             meleeAttack.damage = tickDamage;
 
+        SyncBuzzsawShieldMultiplier();
+
         if (meleeHitbox != null && !meleeHitbox.activeSelf)
             meleeHitbox.SetActive(true);
 
@@ -1326,6 +1493,7 @@ public class Bob_Controller : MonoBehaviour
                 out int tick))
             return;
 
+        SyncBuzzsawShieldMultiplier();
         ProcessBuzzsawCircleHits(tick);
     }
 
@@ -1436,13 +1604,11 @@ public class Bob_Controller : MonoBehaviour
 
             float distSq = ((Vector2)target.transform.position - center).sqrMagnitude;
             meleeAttack.damage = distSq <= innerSq ? innerDamage : outerDamage;
-            if (target.TakeDamage(meleeAttack))
-            {
-                meleeAttack.RaiseHitCameraShakeIfEnabled();
-                LogSkillHit(target, meleeAttack.damage, distSq <= innerSq
+            TryDealMeleeDamage(
+                target,
+                distSq <= innerSq
                     ? $"内圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段"
                     : $"外圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段");
-            }
             swingHitTargets.Add(target);
             slots--;
         }
@@ -1455,7 +1621,8 @@ public class Bob_Controller : MonoBehaviour
         HashSet<Character> hitSet,
         int maxTargets,
         float knockbackSign = 0f,
-        string hitNote = null)
+        string hitNote = null,
+        bool launchUpward = false)
     {
         if (meleeAttack == null || meleeHitbox == null)
             return;
@@ -1532,15 +1699,13 @@ public class Bob_Controller : MonoBehaviour
             if (hitSet.Contains(target))
                 continue;
 
-            bool damaged = target.TakeDamage(meleeAttack);
-            if (damaged)
-            {
-                meleeAttack.RaiseHitCameraShakeIfEnabled();
-                // 敌人 AI 会盖掉 Character.AddForce，改由 Bob 持续推一段距离
-                if (registerWhipPush)
-                    RegisterWhipKnockback(target, knockbackSign);
-                LogSkillHit(target, damage, CombineHitNotes(hitNote, knockbackSign < 0f ? "后方" : null));
-            }
+            bool damaged = TryDealMeleeDamage(
+                target,
+                CombineHitNotes(hitNote, knockbackSign < 0f ? "后方" : null));
+            if (damaged && registerWhipPush)
+                RegisterWhipKnockback(target, knockbackSign);
+            if (damaged && launchUpward)
+                RegisterRushLaunch(target);
 
             hitSet.Add(target);
             slots--;
@@ -1592,6 +1757,57 @@ public class Bob_Controller : MonoBehaviour
             targetTransform = target.transform,
             dir = dir,
             speed = speed,
+            untilTime = until,
+        });
+    }
+
+    void RegisterRushLaunch(Character target)
+    {
+        if (target == null)
+            return;
+
+        float face = playerMovement != null
+            ? playerMovement.FaceDirection
+            : Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(face, 0f))
+            face = 1f;
+
+        float vx = face * rushUltimateLaunchSpeedX;
+        float vy = Mathf.Max(0.01f, rushUltimateLaunchSpeedY);
+        var targetRb = target.GetComponent<Rigidbody2D>();
+        if (targetRb != null && targetRb.simulated)
+        {
+            if (targetRb.bodyType == RigidbodyType2D.Kinematic)
+                targetRb.MovePosition(targetRb.position + new Vector2(vx, vy) * 0.02f);
+            else
+                targetRb.linearVelocity = new Vector2(vx, vy);
+        }
+
+        float duration = Mathf.Max(0.05f, rushUltimateLaunchHoldDuration);
+        float until = Time.time + duration;
+        for (int i = 0; i < whipKnockbackEntries.Count; i++)
+        {
+            var entry = whipKnockbackEntries[i];
+            bool same = (targetRb != null && entry.rb == targetRb)
+                || entry.targetTransform == target.transform;
+            if (!same)
+                continue;
+
+            entry.dir = face;
+            entry.speed = rushUltimateLaunchSpeedX;
+            entry.untilTime = until;
+            entry.rb = targetRb;
+            entry.targetTransform = target.transform;
+            whipKnockbackEntries[i] = entry;
+            return;
+        }
+
+        whipKnockbackEntries.Add(new WhipKnockbackEntry
+        {
+            rb = targetRb,
+            targetTransform = target.transform,
+            dir = face,
+            speed = rushUltimateLaunchSpeedX,
             untilTime = until,
         });
     }
@@ -1926,9 +2142,11 @@ public class Bob_Controller : MonoBehaviour
         }
 
         int previousDamage = meleeAttack.damage;
+        float previousShieldMultiplier = meleeAttack.shieldDamageMultiplier;
         bool previousEnabled = meleeAttack.enabled;
         meleeAttack.damage = Mathf.Max(1, jumpDownImpactDamage);
         meleeAttack.enabled = false;
+        SyncBuzzsawShieldMultiplier();
 
         swingHitTargets.Clear();
         for (int i = 0; i < count; i++)
@@ -1936,15 +2154,12 @@ public class Bob_Controller : MonoBehaviour
             if (!TryResolveAttackTarget(overlapBuffer[i], swingHitTargets, out Character target))
                 continue;
 
-            if (target.TakeDamage(meleeAttack))
-            {
-                meleeAttack.RaiseHitCameraShakeIfEnabled();
-                LogSkillHit(target, meleeAttack.damage);
-            }
+            TryDealMeleeDamage(target);
             swingHitTargets.Add(target);
         }
 
         meleeAttack.damage = previousDamage;
+        meleeAttack.shieldDamageMultiplier = previousShieldMultiplier;
         meleeAttack.enabled = previousEnabled;
     }
 
@@ -2439,6 +2654,22 @@ public class Bob_Controller : MonoBehaviour
                 specialDraw.hitboxOffset,
                 specialDraw.hitboxSize,
                 new Color(1f, 0.45f, 0.9f, 0.22f),
+                filled: false);
+        }
+
+        if (hasSpecialDraw && specialDraw.weaponId == 1 && HasRushUltimateLaunchWindow())
+        {
+            bool launchLive = drawSpecial
+                && Application.isPlaying
+                && IsCurrentSwingUltimate();
+            Color launchColor = launchLive
+                ? new Color(1f, 0.85f, 0.2f, 0.4f)
+                : new Color(1f, 0.8f, 0.25f, 0.18f);
+            DrawLocalBoxGizmo(
+                hitMatrix,
+                rushUltimateLaunchHitboxOffset,
+                rushUltimateLaunchHitboxSize,
+                launchColor,
                 filled: false);
         }
     }
