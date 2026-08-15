@@ -23,6 +23,7 @@ public class PlatformDropThrough : MonoBehaviour
     PhysicsCheck physicsCheck;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
+    PlayerMovement playerMovement;
 
     readonly Collider2D[] overlapBuffer = new Collider2D[OverlapBufferSize];
     readonly HashSet<Collider2D> trackedPlatforms = new HashSet<Collider2D>();
@@ -38,6 +39,7 @@ public class PlatformDropThrough : MonoBehaviour
         physicsCheck = GetComponent<PhysicsCheck>();
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
+        playerMovement = GetComponent<PlayerMovement>();
 
         if (oneWayPlatformLayer.value == 0)
             oneWayPlatformLayer = LayerMask.GetMask("Platform");
@@ -154,12 +156,12 @@ public class PlatformDropThrough : MonoBehaviour
         var pathSlope = platform.GetComponent<SlopePathSegment>()
             ?? platform.GetComponentInParent<SlopePathSegment>();
         if (pathSlope != null)
-            return pathSlope.IsFeetAboveSurface(feetPos) && vy <= 0.01f;
+            return ShouldCollideWithSlopeSurface(pathSlope.IsFeetAboveSurface(feetPos), vy);
 
         var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
             ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
         if (legacySlope != null)
-            return legacySlope.IsFeetAboveSurface(feetPos) && vy <= 0.01f;
+            return ShouldCollideWithSlopeSurface(legacySlope.IsFeetAboveSurface(feetPos), vy);
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
@@ -171,6 +173,23 @@ public class PlatformDropThrough : MonoBehaviour
         if (vy <= 0f && playerFeet >= platformBottom - surfaceMargin)
             return true;
         return playerFeet >= platformTop - surfaceMargin;
+    }
+
+    /// <summary>
+    /// 从下穿过仍要求 vy≤0；已经站在坡上时切向速度会带正 vy，不能当成穿过。
+    /// </summary>
+    bool ShouldCollideWithSlopeSurface(bool feetAboveSurface, float vy)
+    {
+        if (!feetAboveSurface)
+            return false;
+
+        bool slopeAttached = playerMovement == null || !playerMovement.IsSlopeDetached;
+        if (slopeAttached
+            && physicsCheck != null
+            && (physicsCheck.isOnSlope || physicsCheck.WasOnSlopeRecently))
+            return true;
+
+        return vy <= 0.01f;
     }
 
     bool TryGetOneWayPlatformBelow(out Collider2D platformCollider)

@@ -54,6 +54,8 @@ public class CameraAirborneYLock : MonoBehaviour
     [SerializeField] PhysicsCheck physicsCheck;
     [Tooltip("留空则从玩家解析 Rigidbody2D")]
     [SerializeField] Rigidbody2D playerBody;
+    [Tooltip("留空则从玩家解析 PlayerMovement")]
+    [SerializeField] PlayerMovement playerMovement;
     [Tooltip("切场景后重绑；留空则尝试使用 CameraControl 上的同名事件")]
     public VoidEventSO afterSceneLoadEvent;
 
@@ -148,6 +150,7 @@ public class CameraAirborneYLock : MonoBehaviour
     {
         physicsCheck = null;
         playerBody = null;
+        playerMovement = null;
         playerTransform = null;
         ResolveRefs();
         SnapAnchorToPlayer(unlockY: true);
@@ -174,7 +177,7 @@ public class CameraAirborneYLock : MonoBehaviour
         EnsureFollowAnchor();
 
         // 无 PhysicsCheck 时不限制 Y，避免误冻
-        bool solid = physicsCheck == null || physicsCheck.isSolidGround;
+        bool solid = IsSolidForCameraY();
         Vector3 playerPos = playerTransform.position;
 
         if (!hasGroundSample)
@@ -294,6 +297,21 @@ public class CameraAirborneYLock : MonoBehaviour
         return Mathf.Clamp01(Mathf.InverseLerp(minSpeed, fullSpeed, fallSpeed));
     }
 
+    /// <summary>
+    /// 斜坡行走时 isSolidGround 会闪断，仍应完整跟 Y；
+    /// 斜坡起跳脱离后走空中弱跟，不把 coyote 当成贴地。
+    /// </summary>
+    bool IsSolidForCameraY()
+    {
+        if (physicsCheck == null)
+            return true;
+        if (physicsCheck.isSolidGround)
+            return true;
+        if (playerMovement != null && playerMovement.IsSlopeDetached)
+            return false;
+        return physicsCheck.isOnSlope || physicsCheck.WasOnSlopeRecently;
+    }
+
     void ClearLandSettle()
     {
         landSettling = false;
@@ -317,7 +335,7 @@ public class CameraAirborneYLock : MonoBehaviour
         peakLookAheadThisAir = 0f;
         airJumpRiseTracking = false;
         ClearLandSettle();
-        wasSolidGround = physicsCheck == null || physicsCheck.isSolidGround;
+        wasSolidGround = IsSolidForCameraY();
         hasGroundSample = true;
     }
 
@@ -337,7 +355,7 @@ public class CameraAirborneYLock : MonoBehaviour
         ClearLandSettle();
         if (unlockY)
             ySoftTracking = false;
-        wasSolidGround = physicsCheck == null || physicsCheck.isSolidGround;
+        wasSolidGround = IsSolidForCameraY();
     }
 
     void EnsureFollowAnchor()
@@ -378,6 +396,7 @@ public class CameraAirborneYLock : MonoBehaviour
             playerTransform = fromControl;
             physicsCheck = null;
             playerBody = null;
+            playerMovement = null;
             hasGroundSample = false;
         }
 
@@ -393,5 +412,8 @@ public class CameraAirborneYLock : MonoBehaviour
 
         if (playerBody == null && playerTransform != null)
             playerBody = playerTransform.GetComponent<Rigidbody2D>();
+
+        if (playerMovement == null && playerTransform != null)
+            playerMovement = playerTransform.GetComponent<PlayerMovement>();
     }
 }
