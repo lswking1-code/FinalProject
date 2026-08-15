@@ -21,6 +21,7 @@ public class PlatformDropThrough : MonoBehaviour
     [SerializeField] float dropThroughTimeout = 1f;
 
     PhysicsCheck physicsCheck;
+    PlayerMovement playerMovement;
     Rigidbody2D rb;
     CapsuleCollider2D capsuleCollider;
     PlayerMovement playerMovement;
@@ -37,6 +38,7 @@ public class PlatformDropThrough : MonoBehaviour
     void Awake()
     {
         physicsCheck = GetComponent<PhysicsCheck>();
+        playerMovement = GetComponent<PlayerMovement>();
         rb = GetComponent<Rigidbody2D>();
         capsuleCollider = GetComponent<CapsuleCollider2D>();
         playerMovement = GetComponent<PlayerMovement>();
@@ -76,7 +78,8 @@ public class PlatformDropThrough : MonoBehaviour
                 continue;
 
             activeThisFrame.Add(col);
-            SetCollisionIgnored(col, !ShouldCollide(col, playerFeet, feetPos, vy));
+            bool collide = ShouldCollide(col, playerFeet, feetPos, vy);
+            SetCollisionIgnored(col, !collide);
             trackedPlatforms.Add(col);
         }
 
@@ -156,12 +159,20 @@ public class PlatformDropThrough : MonoBehaviour
         var pathSlope = platform.GetComponent<SlopePathSegment>()
             ?? platform.GetComponentInParent<SlopePathSegment>();
         if (pathSlope != null)
+<<<<<<< Updated upstream
             return ShouldCollideWithSlopeSurface(pathSlope.IsFeetAboveSurface(feetPos), vy);
+=======
+            return ShouldCollideWithSlopeSurface(pathSlope.IsFeetAboveSurface(feetPos));
+>>>>>>> Stashed changes
 
         var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
             ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
         if (legacySlope != null)
+<<<<<<< Updated upstream
             return ShouldCollideWithSlopeSurface(legacySlope.IsFeetAboveSurface(feetPos), vy);
+=======
+            return ShouldCollideWithSlopeSurface(legacySlope.IsFeetAboveSurface(feetPos));
+>>>>>>> Stashed changes
 
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
@@ -176,6 +187,7 @@ public class PlatformDropThrough : MonoBehaviour
     }
 
     /// <summary>
+<<<<<<< Updated upstream
     /// 从下穿过仍要求 vy≤0；已经站在坡上时切向速度会带正 vy，不能当成穿过。
     /// </summary>
     bool ShouldCollideWithSlopeSurface(bool feetAboveSurface, float vy)
@@ -190,6 +202,18 @@ public class PlatformDropThrough : MonoBehaviour
             return true;
 
         return vy <= 0.01f;
+=======
+    /// 单向斜坡：脚在可行走侧时保持碰撞（含上坡切向 Y&gt;0、从下方跳上坡面）。
+    /// 仅从坡上起跳/下穿脱离时忽略，避免离面失败。
+    /// </summary>
+    bool ShouldCollideWithSlopeSurface(bool feetAbove)
+    {
+        if (!feetAbove)
+            return false;
+        if (playerMovement != null && playerMovement.IsSlopeDetached)
+            return false;
+        return true;
+>>>>>>> Stashed changes
     }
 
     bool TryGetOneWayPlatformBelow(out Collider2D platformCollider)
@@ -216,6 +240,10 @@ public class PlatformDropThrough : MonoBehaviour
         if (!IsOneWayPlatform(hit.collider))
             return false;
 
+        // 站在斜坡下方重叠的平地上时，向下扫到的可能是斜坡本身，不能当成下穿。
+        if (!IsFeetOnWalkableSide(hit.collider, GetFeetPosition()))
+            return false;
+
         platformCollider = hit.collider;
         return true;
     }
@@ -239,10 +267,45 @@ public class PlatformDropThrough : MonoBehaviour
             return;
         }
 
-        float playerFeet = capsuleCollider.bounds.min.y;
+        Vector2 feetPos = GetFeetPosition();
+        var pathSlope = activeDropPlatform.GetComponent<SlopePathSegment>()
+            ?? activeDropPlatform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+        {
+            // 旋转斜坡的 AABB 远大于薄面，用包围盒底边永远等不到复位。
+            if (pathSlope.GetSignedDistanceToSurface(feetPos) < -pathSlope.StandMargin)
+                ResetDropThrough();
+            return;
+        }
+
+        var legacySlope = activeDropPlatform.GetComponent<SlopeOneWayPlatform>()
+            ?? activeDropPlatform.GetComponentInParent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+        {
+            if (legacySlope.GetSignedDistanceToSurface(feetPos) < -legacySlope.StandMargin)
+                ResetDropThrough();
+            return;
+        }
+
+        float playerFeet = feetPos.y;
         float platformBottom = activeDropPlatform.bounds.min.y;
         if (playerFeet < platformBottom - dropThroughResetMargin)
             ResetDropThrough();
+    }
+
+    static bool IsFeetOnWalkableSide(Collider2D platform, Vector2 feetPos)
+    {
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return pathSlope.IsFeetAboveSurface(feetPos);
+
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
+            ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+            return legacySlope.IsFeetAboveSurface(feetPos);
+
+        return true;
     }
 
     void SetCollisionIgnored(Collider2D platform, bool ignore)

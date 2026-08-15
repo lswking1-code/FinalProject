@@ -10,6 +10,9 @@ public class Attack : MonoBehaviour
     public float attackRate;
     public AttackType attackType = AttackType.Melee;
 
+    [Tooltip("为 true 时充能机关将其视为 M 弹 / M 武器攻击")]
+    public bool chargesEnergyNode;
+
     [Header("目标过滤（子弹可选）")]
     [Tooltip("仅伤害带有此 Tag 的目标，留空则不限制")]
     public string requireTag;

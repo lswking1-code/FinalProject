@@ -58,14 +58,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public bool IsActionLocked { get; private set; }
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
+    /// <summary>已贴在斜坡上且未处于起跳脱离：上坡切向 Y&gt;0 也应算落地。</summary>
+    public bool CanLandOnSlopeWhileAscending =>
+        !IsSlopeDetached && physicsCheck != null && physicsCheck.isOnSlope && physicsCheck.isSolidGround;
     public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsSustainingAirHang;
     bool LocksLocomotionLikeCombo =>
         playerAnim.IsPlayingMachinistComboShoot
         || playerAnim.IsPlayingMachineShoot
         || playerAnim.IsPlayingMachinistChargeShoot;
-    /// <summary>真实接地，或走下平台后仍在土狼窗口内（起跳后立刻为 false）。</summary>
+    /// <summary>真实接地，或走下平台后仍在土狼窗口内（起跳后立刻为 false）。斜坡行走时 isOnSlope 也算可跳，避免上坡正 Y 速度把土狼清掉。</summary>
     public bool CanGroundJump =>
-        !jumpedThisAirborne && (physicsCheck.isSolidGround || coyoteCounter > 0f);
+        !jumpedThisAirborne && (physicsCheck.isSolidGround || physicsCheck.isOnSlope || coyoteCounter > 0f);
     /// <summary>本物理帧是否刚完成地面/土狼起跳，供 Bob 避免同帧误耗二段跳。</summary>
     public bool DidGroundJumpThisFixedUpdate { get; private set; }
     /// <summary>正在从单向平台下穿，供 Bob 避免把同一次按键当成二段跳。</summary>
@@ -375,16 +378,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void MaintainSlopeContact(Vector2 groundNormal)
     {
-        if (IsSlopeDetached || !physicsCheck.isGround)
+        if (IsSlopeDetached || jumpedThisAirborne)
+            return;
+
+        if (!physicsCheck.isGround || !physicsCheck.isOnSlope)
             return;
 
         if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
             return;
 
-        // 上升中不贴合，避免吃掉起跳速度
-        if (rb.linearVelocity.y > 0.05f)
-            return;
-
+        // 起跳脱离由 IsSlopeDetached 保护；上坡切向速度的正 Y 仍需贴合，否则会离面。
         rb.gravityScale = 0f;
 
         if (playerAnim.IsTurning || playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring
@@ -548,12 +551,19 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     {
         if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
         {
-            coyoteCounter = 0f;
-            jumpedThisAirborne = true;
-            return;
+            // 站在另一块实地上时不要把下穿状态当成仍在空中，否则会连按无法起跳
+            if (!(physicsCheck.isSolidGround && rb.linearVelocity.y <= 0.01f))
+            {
+                coyoteCounter = 0f;
+                jumpedThisAirborne = true;
+                return;
+            }
         }
 
-        bool landed = physicsCheck.isSolidGround && rb.linearVelocity.y <= 0.01f;
+        // 上坡切向速度 Y>0，不能当成未落地，否则土狼被耗光后无法起跳。
+        // 从下方跳上斜坡并按住水平时，切向 Y 会一直为正，不能再要求 !jumpedThisAirborne。
+        bool landed = physicsCheck.isSolidGround
+            && (rb.linearVelocity.y <= 0.01f || CanLandOnSlopeWhileAscending);
         if (landed)
         {
             jumpedThisAirborne = false;
@@ -825,7 +835,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
             float speed = playerAnim.IsCrouching ? crouchMoveSpeed : runSpeed;
 
-            if (physicsCheck.isOnSlope)
+            if (physicsCheck.isOnSlope && physicsCheck.isSolidGround)
             {
                 Vector2 normal = physicsCheck.groundNormal;
                 Vector2 tangent = new Vector2(-normal.y, normal.x).normalized;
@@ -895,10 +905,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (IsSlopeDetached)
             return;
 
-        if (!physicsCheck.isGround || !physicsCheck.isOnSlope)
-            return;
-
-        if (rb.linearVelocity.y > 0.05f)
+        if (!physicsCheck.isSolidGround || !physicsCheck.isOnSlope)
             return;
 
         Vector2 normal = physicsCheck.groundNormal;
@@ -919,7 +926,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        if (physicsCheck.isGround && physicsCheck.isOnSlope)
+        if (physicsCheck.isSolidGround && physicsCheck.isOnSlope)
             rb.gravityScale = 0f;
         else
             rb.gravityScale = normalGravityScale;

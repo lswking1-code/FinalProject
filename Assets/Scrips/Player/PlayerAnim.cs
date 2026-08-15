@@ -2613,11 +2613,21 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 break;
 
             case AirPhaseType.Jump:
+                if (ShouldLandFromAir(grounded, velocityY))
+                {
+                    EnterFullBodyLand();
+                    break;
+                }
                 if (velocityY <= descendVelocityThreshold)
                     airPhase = AirPhaseType.Fall;
                 break;
 
             case AirPhaseType.Leap:
+                if (ShouldLandFromAir(grounded, velocityY))
+                {
+                    EnterFullBodyLand();
+                    break;
+                }
                 if (velocityY <= descendVelocityThreshold)
                     airPhase = AirPhaseType.LeapAir;
                 break;
@@ -2632,6 +2642,15 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     bool IsSolidlyGrounded(bool grounded) =>
         physicsCheck != null ? physicsCheck.isSolidGround : grounded;
+
+    bool ShouldLandFromAir(bool grounded, float velocityY)
+    {
+        if (!IsSolidlyGrounded(grounded))
+            return false;
+        if (velocityY <= descendVelocityThreshold)
+            return true;
+        return playerMovement != null && playerMovement.CanLandOnSlopeWhileAscending;
+    }
 
     void SyncSplitAnimators() // 下半身始终同步；Look 期间上半身由代码独占
     {

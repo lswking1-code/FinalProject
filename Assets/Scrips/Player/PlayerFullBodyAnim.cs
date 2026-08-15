@@ -731,6 +731,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
                 break;
 
             case AirPhaseType.Jump:
+                if (ShouldLandFromAir(grounded, velocityY))
+                {
+                    airPhase = AirPhaseType.Fall;
+                    useDoubleJumpAnim = false;
+                    PlayOneShot(LandStateName, autoExit: true);
+                    break;
+                }
                 if (velocityY <= descendVelocityThreshold)
                 {
                     airPhase = AirPhaseType.Fall;
@@ -739,6 +746,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
                 break;
 
             case AirPhaseType.Leap:
+                if (ShouldLandFromAir(grounded, velocityY))
+                {
+                    airPhase = AirPhaseType.LeapAir;
+                    useDoubleJumpAnim = false;
+                    PlayOneShot(LandStateName, autoExit: true);
+                    break;
+                }
                 if (velocityY <= descendVelocityThreshold)
                 {
                     airPhase = AirPhaseType.LeapAir;
@@ -757,6 +771,15 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     bool IsSolidlyGrounded(bool grounded) =>
         physicsCheck != null ? physicsCheck.isSolidGround : grounded;
+
+    bool ShouldLandFromAir(bool grounded, float velocityY)
+    {
+        if (!IsSolidlyGrounded(grounded))
+            return false;
+        if (velocityY <= descendVelocityThreshold)
+            return true;
+        return playerMovement != null && playerMovement.CanLandOnSlopeWhileAscending;
+    }
 
     void SyncLocomotion()
     {

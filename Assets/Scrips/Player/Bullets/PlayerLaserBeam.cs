@@ -47,7 +47,7 @@ public class PlayerLaserBeam : MonoBehaviour
     void Awake()
     {
         if (hitMask.value == 0)
-            hitMask = LayerMask.GetMask("Ground", "Platform", "Enemy");
+            hitMask = LayerMask.GetMask("Ground", "Platform", "Enemy", "Item");
 
         EnsureAttackSource();
     }
@@ -63,6 +63,7 @@ public class PlayerLaserBeam : MonoBehaviour
         attackSource.attackType = AttackType.Melee;
         attackSource.ignoreTag = "Player";
         attackSource.damage = damage;
+        attackSource.chargesEnergyNode = true;
         attackSource.enabled = false; // 仅作 TakeDamage 数据源，不做 Trigger 碰撞
     }
 

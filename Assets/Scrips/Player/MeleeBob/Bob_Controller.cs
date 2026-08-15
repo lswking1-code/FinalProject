@@ -732,6 +732,7 @@ public class Bob_Controller : MonoBehaviour
             meleeAttack.damage = damage;
             meleeAttack.attackType = AttackType.Melee;
             meleeAttack.ignoreTag = "Player";
+            meleeAttack.chargesEnergyNode = activeProfile.weaponId == 2;
             meleeAttack.enabled = !manualSpecial && maxTargets <= 0;
             SyncBuzzsawShieldMultiplier();
 

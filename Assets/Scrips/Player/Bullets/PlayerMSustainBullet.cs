@@ -29,6 +29,7 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
         attack.attackType = AttackType.Melee;
         attack.attackRate = damageInterval > 0f ? 1f / damageInterval : 0f;
         attack.ignoreTag = "Player";
+        attack.chargesEnergyNode = true;
     }
 
     void Start()

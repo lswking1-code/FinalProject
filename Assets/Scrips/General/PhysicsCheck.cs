@@ -377,12 +377,16 @@ public class PhysicsCheck : MonoBehaviour
             lastSlopeFrame = Time.frameCount;
         wasOnSlope = isOnSlope;
 
-        collisionGround = false;
-
         touchLeftWall = collisionTouchLeft || CheckSideOverlap(-1f);
         touchRightWall = collisionTouchRight || CheckSideOverlap(1f);
-        collisionTouchLeft = false;
-        collisionTouchRight = false;
+
+        // 玩家 Update 也会 Check；只在 FixedUpdate 消费碰撞标记，避免 Stay 结果被 Update 吃掉后物理帧判空中。
+        if (!isPlayer || Time.inFixedTimeStep)
+        {
+            collisionGround = false;
+            collisionTouchLeft = false;
+            collisionTouchRight = false;
+        }
 
         if (isPlayer && rb != null)
         {
