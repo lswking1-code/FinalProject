@@ -30,8 +30,22 @@ public class Bob_Controller : MonoBehaviour
         public Vector2 detectOffset;
         [Tooltip("0 = 不限制命中数；>0 为单次挥击最多命中敌人数")]
         public int maxTargets;
+        [Header("命中窗（归一化 0-1，对齐 *_hit 精灵）")]
+        [Tooltip("站立普通攻击")]
         [Range(0f, 1f)] public float hitStart;
         [Range(0f, 1f)] public float hitEnd;
+        [Tooltip("空中普通攻击；结束≤开始则回退站立窗")]
+        [Range(0f, 1f)] public float airHitStart;
+        [Range(0f, 1f)] public float airHitEnd;
+        [Tooltip("站立上攻；结束≤开始则回退站立窗")]
+        [Range(0f, 1f)] public float upHitStart;
+        [Range(0f, 1f)] public float upHitEnd;
+        [Tooltip("空中上攻；结束≤开始则回退上攻窗")]
+        [Range(0f, 1f)] public float airUpHitStart;
+        [Range(0f, 1f)] public float airUpHitEnd;
+        [Tooltip("蹲攻（四武器共用 default_down_melee）；结束≤开始则回退站立窗")]
+        [Range(0f, 1f)] public float crouchHitStart;
+        [Range(0f, 1f)] public float crouchHitEnd;
     }
 
     [System.Serializable]
@@ -59,9 +73,9 @@ public class Bob_Controller : MonoBehaviour
         [Range(0f, 1f)] public float hitEnd;
 
         [Header("Whip · 后方追加判定")]
-        [Tooltip("后方追加判定开始（归一化 0-1）。whip_special 后挥约在 0.67，建议 0.55 起")]
+        [Tooltip("后方追加判定开始（归一化 0-1）。whip_special 后挥 hit 约在 0.67")]
         [Range(0f, 1f)] public float rearHitStart;
-        [Tooltip("后方追加判定结束（归一化 0-1）。建议覆盖到 0.95，不要用片长秒数")]
+        [Tooltip("后方追加判定结束（归一化 0-1）")]
         [Range(0f, 1f)] public float rearHitEnd;
 
         [Header("Buzzsaw · 双层圆形判定")]
@@ -112,8 +126,9 @@ public class Bob_Controller : MonoBehaviour
 
     [Header("普通攻击（J / Attack）")]
     [SerializeField] int meleeDamage = 40;
-    [SerializeField] float hitStart = 0.15f;
-    [SerializeField] float hitEnd = 0.45f;
+    [Tooltip("仅作无效命中窗的回退值；实际判定走分武器分动作窗口")]
+    [SerializeField] float hitStart = 0.62f;
+    [SerializeField] float hitEnd = 0.88f;
     [SerializeField] Transform meleePoint1;
     [SerializeField] Transform meleePoint2;
     [SerializeField] GameObject meleeHitbox;
@@ -125,34 +140,54 @@ public class Bob_Controller : MonoBehaviour
         new WeaponMeleeProfile
         {
             weaponId = 0, damage = 40,
-            hitboxSize = new Vector2(1.2f, 1f), hitboxOffset = Vector2.zero,
+            hitboxSize = new Vector2(1.45f, 1.05f), hitboxOffset = new Vector2(0.25f, 0f),
             upHitboxSize = new Vector2(1.3f, 1.8f), upHitboxOffset = new Vector2(0f, 1.2f),
             detectSize = new Vector2(2f, 2f), detectOffset = new Vector2(0.5f, 0f),
-            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.45f,
+            maxTargets = 0,
+            hitStart = 0.62f, hitEnd = 0.88f,
+            airHitStart = 0.35f, airHitEnd = 0.65f,
+            upHitStart = 0.62f, upHitEnd = 0.88f,
+            airUpHitStart = 0.35f, airUpHitEnd = 0.65f,
+            crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
         },
         new WeaponMeleeProfile
         {
             weaponId = 1, damage = 55,
-            hitboxSize = new Vector2(2.6f, 1.25f), hitboxOffset = new Vector2(1.3f, 0f),
+            hitboxSize = new Vector2(2.6f, 1.8f), hitboxOffset = new Vector2(1.2f, 0.15f),
             upHitboxSize = new Vector2(1.5f, 2.6f), upHitboxOffset = new Vector2(0f, 1.5f),
-            detectSize = new Vector2(3.2f, 2f), detectOffset = new Vector2(1.4f, 0f),
-            maxTargets = 0, hitStart = 0.12f, hitEnd = 0.5f,
+            detectSize = new Vector2(3.2f, 2.2f), detectOffset = new Vector2(1.4f, 0.2f),
+            maxTargets = 0,
+            hitStart = 0.45f, hitEnd = 0.72f,
+            airHitStart = 0.28f, airHitEnd = 0.55f,
+            upHitStart = 0.28f, upHitEnd = 0.55f,
+            airUpHitStart = 0.45f, airUpHitEnd = 0.72f,
+            crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
         },
         new WeaponMeleeProfile
         {
             weaponId = 2, damage = 45,
-            hitboxSize = new Vector2(3.8f, 0.4f), hitboxOffset = new Vector2(1.9f, 0f),
-            upHitboxSize = new Vector2(0.45f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
-            detectSize = new Vector2(4.2f, 1.2f), detectOffset = new Vector2(2.0f, 0f),
-            maxTargets = 0, hitStart = 0.1f, hitEnd = 0.55f,
+            hitboxSize = new Vector2(4.0f, 0.85f), hitboxOffset = new Vector2(2.0f, 0.05f),
+            upHitboxSize = new Vector2(0.55f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
+            detectSize = new Vector2(4.4f, 1.4f), detectOffset = new Vector2(2.1f, 0.1f),
+            maxTargets = 0,
+            hitStart = 0.45f, hitEnd = 0.72f,
+            airHitStart = 0.40f, airHitEnd = 0.98f,
+            upHitStart = 0.62f, upHitEnd = 0.88f,
+            airUpHitStart = 0.32f, airUpHitEnd = 0.55f,
+            crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
         },
         new WeaponMeleeProfile
         {
             weaponId = 3, damage = 70,
-            hitboxSize = new Vector2(1.1f, 1.1f), hitboxOffset = new Vector2(0.55f, 0f),
-            upHitboxSize = new Vector2(1.2f, 1.4f), upHitboxOffset = new Vector2(0f, 1.0f),
-            detectSize = new Vector2(1.8f, 1.6f), detectOffset = new Vector2(0.7f, 0f),
-            maxTargets = 2, hitStart = 0.15f, hitEnd = 0.45f,
+            hitboxSize = new Vector2(1.55f, 1.35f), hitboxOffset = new Vector2(0.7f, -0.1f),
+            upHitboxSize = new Vector2(1.3f, 1.6f), upHitboxOffset = new Vector2(0f, 1.1f),
+            detectSize = new Vector2(2.0f, 1.8f), detectOffset = new Vector2(0.8f, 0f),
+            maxTargets = 2,
+            hitStart = 0.58f, hitEnd = 0.80f,
+            airHitStart = 0.22f, airHitEnd = 0.42f,
+            upHitStart = 0.52f, upHitEnd = 0.76f,
+            airUpHitStart = 0.28f, airUpHitEnd = 0.55f,
+            crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
         },
     };
 
@@ -171,8 +206,8 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 1, damage = 80,
             hitboxSize = new Vector2(3.2f, 1.4f), hitboxOffset = new Vector2(1.6f, 0f),
-            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.6f,
-            rushSpeed = 18f, rushStart = 0.1f, rushEnd = 0.55f,
+            maxTargets = 0, hitStart = 0.18f, hitEnd = 0.82f,
+            rushSpeed = 18f, rushStart = 0.18f, rushEnd = 0.55f,
             rushPushSpeed = 20f,
             knockbackForce = 14f, knockbackDuration = 0.22f,
         },
@@ -180,15 +215,15 @@ public class Bob_Controller : MonoBehaviour
         {
             weaponId = 2, damage = 70,
             hitboxSize = new Vector2(4.5f, 0.6f), hitboxOffset = new Vector2(2.2f, 0f),
-            maxTargets = 0, hitStart = 0.15f, hitEnd = 0.55f,
-            rearHitStart = 0.55f, rearHitEnd = 0.95f,
+            maxTargets = 0, hitStart = 0.18f, hitEnd = 0.40f,
+            rearHitStart = 0.60f, rearHitEnd = 0.85f,
             knockbackForce = 16f, knockbackDuration = 0.28f,
         },
         new WeaponSpecialProfile
         {
             weaponId = 3, damage = 100, innerDamage = 55,
             hitboxSize = new Vector2(2.0f, 1.6f), hitboxOffset = Vector2.zero,
-            maxTargets = 0, hitStart = 0.2f, hitEnd = 0.7f,
+            maxTargets = 0, hitStart = 0.18f, hitEnd = 0.62f,
             outerRadius = 3.2f, innerRadius = 1.5f,
         },
     };
@@ -280,6 +315,10 @@ public class Bob_Controller : MonoBehaviour
     readonly HashSet<IHitCountable> swingHitCountables = new();
     readonly List<Character> overlapCharacters = new();
     readonly Collider2D[] overlapBuffer = new Collider2D[48];
+
+    const int BuzzsawMeleeHitTicks = 3;
+    const int BuzzsawSpecialHitTicks = 5;
+    int buzzsawActiveHitTick = -1;
 
     bool rushDashActive;
     bool savedAttackKnockbackEnable;
@@ -466,17 +505,11 @@ public class Bob_Controller : MonoBehaviour
     {
         profile.weaponId = weaponId;
 
-        // weapon 0：伤害与命中窗继续跟上方「普通攻击」字段，保持照旧可调
+        // weapon 0：伤害继续跟上方「普通攻击」字段；命中窗走分动作字段，不再被全局 hitStart/hitEnd 覆盖
         if (weaponId == 0)
-        {
             profile.damage = meleeDamage;
-            profile.hitStart = hitStart;
-            profile.hitEnd = hitEnd;
-        }
         else if (profile.damage <= 0)
-        {
             profile.damage = meleeDamage;
-        }
 
         if (profile.hitboxSize.x <= 0.01f || profile.hitboxSize.y <= 0.01f)
             profile.hitboxSize = new Vector2(1.2f, 1f);
@@ -493,7 +526,20 @@ public class Bob_Controller : MonoBehaviour
             profile.hitEnd = hitEnd;
         }
 
+        FillInvalidHitWindow(ref profile.airHitStart, ref profile.airHitEnd, profile.hitStart, profile.hitEnd);
+        FillInvalidHitWindow(ref profile.upHitStart, ref profile.upHitEnd, profile.hitStart, profile.hitEnd);
+        FillInvalidHitWindow(ref profile.airUpHitStart, ref profile.airUpHitEnd, profile.upHitStart, profile.upHitEnd);
+        FillInvalidHitWindow(ref profile.crouchHitStart, ref profile.crouchHitEnd, 0.66f, 0.90f);
+
         return profile;
+    }
+
+    static void FillInvalidHitWindow(ref float start, ref float end, float fallbackStart, float fallbackEnd)
+    {
+        if (end > start)
+            return;
+        start = fallbackStart;
+        end = fallbackEnd;
     }
 
     bool TryFindSpecialProfile(int weaponId, out WeaponSpecialProfile profile)
@@ -534,8 +580,8 @@ public class Bob_Controller : MonoBehaviour
             bool rearWindowTooEarly = profile.rearHitStart <= 0.51f && profile.rearHitEnd <= 0.75f;
             if (rearWindowInvalid || rearWindowTooEarly)
             {
-                profile.rearHitStart = 0.55f;
-                profile.rearHitEnd = 0.95f;
+                profile.rearHitStart = 0.60f;
+                profile.rearHitEnd = 0.85f;
             }
             if (profile.knockbackForce <= 0.01f)
                 profile.knockbackForce = 16f;
@@ -561,7 +607,7 @@ public class Bob_Controller : MonoBehaviour
                 profile.rushPushSpeed = profile.rushSpeed;
             if (profile.rushEnd <= profile.rushStart)
             {
-                profile.rushStart = 0.1f;
+                profile.rushStart = 0.18f;
                 profile.rushEnd = 0.55f;
             }
             if (profile.knockbackForce <= 0.01f)
@@ -584,37 +630,57 @@ public class Bob_Controller : MonoBehaviour
                 return new WeaponMeleeProfile
                 {
                     weaponId = 1, damage = 55,
-                    hitboxSize = new Vector2(2.6f, 1.25f), hitboxOffset = new Vector2(1.3f, 0f),
+                    hitboxSize = new Vector2(2.6f, 1.8f), hitboxOffset = new Vector2(1.2f, 0.15f),
                     upHitboxSize = new Vector2(1.5f, 2.6f), upHitboxOffset = new Vector2(0f, 1.5f),
-                    detectSize = new Vector2(3.2f, 2f), detectOffset = new Vector2(1.4f, 0f),
-                    maxTargets = 0, hitStart = 0.12f, hitEnd = 0.5f,
+                    detectSize = new Vector2(3.2f, 2.2f), detectOffset = new Vector2(1.4f, 0.2f),
+                    maxTargets = 0,
+                    hitStart = 0.45f, hitEnd = 0.72f,
+                    airHitStart = 0.28f, airHitEnd = 0.55f,
+                    upHitStart = 0.28f, upHitEnd = 0.55f,
+                    airUpHitStart = 0.45f, airUpHitEnd = 0.72f,
+                    crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
                 };
             case 2:
                 return new WeaponMeleeProfile
                 {
                     weaponId = 2, damage = 45,
-                    hitboxSize = new Vector2(3.8f, 0.4f), hitboxOffset = new Vector2(1.9f, 0f),
-                    upHitboxSize = new Vector2(0.45f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
-                    detectSize = new Vector2(4.2f, 1.2f), detectOffset = new Vector2(2.0f, 0f),
-                    maxTargets = 0, hitStart = 0.1f, hitEnd = 0.55f,
+                    hitboxSize = new Vector2(4.0f, 0.85f), hitboxOffset = new Vector2(2.0f, 0.05f),
+                    upHitboxSize = new Vector2(0.55f, 3.6f), upHitboxOffset = new Vector2(0f, 2.0f),
+                    detectSize = new Vector2(4.4f, 1.4f), detectOffset = new Vector2(2.1f, 0.1f),
+                    maxTargets = 0,
+                    hitStart = 0.45f, hitEnd = 0.72f,
+                    airHitStart = 0.40f, airHitEnd = 0.98f,
+                    upHitStart = 0.62f, upHitEnd = 0.88f,
+                    airUpHitStart = 0.32f, airUpHitEnd = 0.55f,
+                    crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
                 };
             case 3:
                 return new WeaponMeleeProfile
                 {
                     weaponId = 3, damage = 70,
-                    hitboxSize = new Vector2(1.1f, 1.1f), hitboxOffset = new Vector2(0.55f, 0f),
-                    upHitboxSize = new Vector2(1.2f, 1.4f), upHitboxOffset = new Vector2(0f, 1.0f),
-                    detectSize = new Vector2(1.8f, 1.6f), detectOffset = new Vector2(0.7f, 0f),
-                    maxTargets = 2, hitStart = 0.15f, hitEnd = 0.45f,
+                    hitboxSize = new Vector2(1.55f, 1.35f), hitboxOffset = new Vector2(0.7f, -0.1f),
+                    upHitboxSize = new Vector2(1.3f, 1.6f), upHitboxOffset = new Vector2(0f, 1.1f),
+                    detectSize = new Vector2(2.0f, 1.8f), detectOffset = new Vector2(0.8f, 0f),
+                    maxTargets = 2,
+                    hitStart = 0.58f, hitEnd = 0.80f,
+                    airHitStart = 0.22f, airHitEnd = 0.42f,
+                    upHitStart = 0.52f, upHitEnd = 0.76f,
+                    airUpHitStart = 0.28f, airUpHitEnd = 0.55f,
+                    crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
                 };
             default:
                 return new WeaponMeleeProfile
                 {
                     weaponId = 0, damage = 40,
-                    hitboxSize = new Vector2(1.2f, 1f), hitboxOffset = Vector2.zero,
+                    hitboxSize = new Vector2(1.45f, 1.05f), hitboxOffset = new Vector2(0.25f, 0f),
                     upHitboxSize = new Vector2(1.3f, 1.8f), upHitboxOffset = new Vector2(0f, 1.2f),
                     detectSize = new Vector2(2f, 2f), detectOffset = new Vector2(0.5f, 0f),
-                    maxTargets = 0, hitStart = 0.15f, hitEnd = 0.45f,
+                    maxTargets = 0,
+                    hitStart = 0.62f, hitEnd = 0.88f,
+                    airHitStart = 0.35f, airHitEnd = 0.65f,
+                    upHitStart = 0.62f, upHitEnd = 0.88f,
+                    airUpHitStart = 0.35f, airUpHitEnd = 0.65f,
+                    crouchHitStart = 0.66f, crouchHitEnd = 0.90f,
                 };
         }
     }
@@ -676,6 +742,11 @@ public class Bob_Controller : MonoBehaviour
                 ? activeProfile.upHitboxOffset
                 : defaultUpHitboxOffset;
         }
+        else if (IsCurrentSwingCrouchMelee())
+        {
+            meleeHitboxCollider.size = activeProfile.hitboxSize;
+            meleeHitboxCollider.offset = activeProfile.hitboxOffset + new Vector2(0f, -0.45f);
+        }
         else
         {
             meleeHitboxCollider.size = activeProfile.hitboxSize;
@@ -691,6 +762,42 @@ public class Bob_Controller : MonoBehaviour
 
     bool IsCurrentSwingCrouchMelee()
         => fullBodyAnim != null && fullBodyAnim.IsCrouchMelee;
+
+    void ResolveMeleeHitWindow(out float start, out float end)
+    {
+        if (IsCurrentSwingCrouchMelee())
+        {
+            start = activeProfile.crouchHitStart;
+            end = activeProfile.crouchHitEnd;
+            return;
+        }
+
+        if (IsCurrentSwingUpward())
+        {
+            bool air = physicsCheck != null && !physicsCheck.isGround;
+            if (air)
+            {
+                start = activeProfile.airUpHitStart;
+                end = activeProfile.airUpHitEnd;
+            }
+            else
+            {
+                start = activeProfile.upHitStart;
+                end = activeProfile.upHitEnd;
+            }
+            return;
+        }
+
+        if (physicsCheck != null && !physicsCheck.isGround)
+        {
+            start = activeProfile.airHitStart;
+            end = activeProfile.airHitEnd;
+            return;
+        }
+
+        start = activeProfile.hitStart;
+        end = activeProfile.hitEnd;
+    }
 
     bool IsCurrentShortDashMelee()
         => IsCurrentSwingCrouchMelee();
@@ -729,7 +836,11 @@ public class Bob_Controller : MonoBehaviour
 
         string skill = ResolveCurrentSkillName();
         int damage = ResolveExpectedSkillDamage();
-        Debug.Log($"[Bob] 发动 {skill}  伤害={damage}", this);
+        int ticks = ResolveBuzzsawHitTickCount();
+        if (ticks > 1)
+            Debug.Log($"[Bob] 发动 {skill}  伤害={damage}（{ticks}段）", this);
+        else
+            Debug.Log($"[Bob] 发动 {skill}  伤害={damage}", this);
     }
 
     void LogSkillHit(Character target, int damage, string note = null)
@@ -825,6 +936,7 @@ public class Bob_Controller : MonoBehaviour
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
         swingHitCountables.Clear();
+        buzzsawActiveHitTick = -1;
         playerAnim.InterruptTurn();
         if (!playerAnim.TryPlayMeleeAnim())
             return;
@@ -905,6 +1017,7 @@ public class Bob_Controller : MonoBehaviour
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
         swingHitCountables.Clear();
+        buzzsawActiveHitTick = -1;
         playerAnim.InterruptTurn();
 
         bool played = ultimate
@@ -1008,6 +1121,7 @@ public class Bob_Controller : MonoBehaviour
             EndRushSpecialState();
             EndJumpDownAttack();
             EndAttackInputLock();
+            buzzsawActiveHitTick = -1;
             return;
         }
 
@@ -1030,6 +1144,12 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
+        if (!special && activeProfile.weaponId == 3)
+        {
+            UpdateBuzzsawMeleeHits();
+            return;
+        }
+
         if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 2)
         {
             UpdateWhipSpecialHits();
@@ -1041,8 +1161,17 @@ public class Bob_Controller : MonoBehaviour
 
         ApplyHitboxShape(upward: !special && IsCurrentSwingUpward(), special: special);
 
-        float windowStart = special && hasSpecialProfile ? activeSpecialProfile.hitStart : activeProfile.hitStart;
-        float windowEnd = special && hasSpecialProfile ? activeSpecialProfile.hitEnd : activeProfile.hitEnd;
+        float windowStart;
+        float windowEnd;
+        if (special && hasSpecialProfile)
+        {
+            windowStart = activeSpecialProfile.hitStart;
+            windowEnd = activeSpecialProfile.hitEnd;
+        }
+        else
+        {
+            ResolveMeleeHitWindow(out windowStart, out windowEnd);
+        }
         int maxTargets = special && hasSpecialProfile ? activeSpecialProfile.maxTargets : activeProfile.maxTargets;
 
         if (meleeAttack != null)
@@ -1151,6 +1280,33 @@ public class Bob_Controller : MonoBehaviour
         return space.InverseTransformPoint(rearWorld);
     }
 
+    void UpdateBuzzsawMeleeHits()
+    {
+        ApplyHitboxShape(upward: IsCurrentSwingUpward(), special: false);
+        ResolveMeleeHitWindow(out float windowStart, out float windowEnd);
+
+        int totalDamage = activeProfile.damage > 0 ? activeProfile.damage : meleeDamage;
+        if (meleeAttack != null)
+            meleeAttack.enabled = false;
+
+        if (!playerAnim.TryGetMeleeAnimProgress(out float t)
+            || !TryAdvanceBuzzsawHitTick(t, windowStart, windowEnd, BuzzsawMeleeHitTicks, out int tick))
+        {
+            if (meleeHitbox != null && meleeHitbox.activeSelf)
+                meleeHitbox.SetActive(false);
+            return;
+        }
+
+        int tickDamage = SplitDamageAcrossTicks(totalDamage, BuzzsawMeleeHitTicks, tick);
+        if (meleeAttack != null)
+            meleeAttack.damage = tickDamage;
+
+        if (meleeHitbox != null && !meleeHitbox.activeSelf)
+            meleeHitbox.SetActive(true);
+
+        ProcessLimitedHitTargets(activeProfile.maxTargets, $"第{tick + 1}/{BuzzsawMeleeHitTicks}段");
+    }
+
     void UpdateBuzzsawSpecialHits()
     {
         if (meleeHitbox != null && meleeHitbox.activeSelf)
@@ -1162,13 +1318,74 @@ public class Bob_Controller : MonoBehaviour
         if (!playerAnim.TryGetMeleeAnimProgress(out float t))
             return;
 
-        if (t < activeSpecialProfile.hitStart || t > activeSpecialProfile.hitEnd)
+        if (!TryAdvanceBuzzsawHitTick(
+                t,
+                activeSpecialProfile.hitStart,
+                activeSpecialProfile.hitEnd,
+                BuzzsawSpecialHitTicks,
+                out int tick))
             return;
 
-        ProcessBuzzsawCircleHits();
+        ProcessBuzzsawCircleHits(tick);
     }
 
-    void ProcessBuzzsawCircleHits()
+    int ResolveBuzzsawHitTickCount()
+    {
+        if (activeProfile.weaponId != 3)
+            return 1;
+        if (IsCurrentSwingJumpDownAttack())
+            return 1;
+        if (IsCurrentSwingSpecial())
+            return BuzzsawSpecialHitTicks;
+        return BuzzsawMeleeHitTicks;
+    }
+
+    static int ResolveHitTickIndex(float t, float windowStart, float windowEnd, int ticks)
+    {
+        if (ticks <= 1)
+            return t >= windowStart && t <= windowEnd ? 0 : -1;
+        if (windowEnd <= windowStart || t < windowStart || t > windowEnd)
+            return -1;
+
+        float u = Mathf.InverseLerp(windowStart, windowEnd, t);
+        int tick = Mathf.FloorToInt(u * ticks);
+        return Mathf.Clamp(tick, 0, ticks - 1);
+    }
+
+    bool TryAdvanceBuzzsawHitTick(float t, float windowStart, float windowEnd, int ticks, out int tick)
+    {
+        tick = ResolveHitTickIndex(t, windowStart, windowEnd, ticks);
+        if (tick < 0)
+        {
+            buzzsawActiveHitTick = -1;
+            return false;
+        }
+
+        if (tick != buzzsawActiveHitTick)
+        {
+            buzzsawActiveHitTick = tick;
+            swingHitTargets.Clear();
+            swingHitCountables.Clear();
+        }
+
+        return true;
+    }
+
+    static int SplitDamageAcrossTicks(int total, int ticks, int tickIndex)
+    {
+        ticks = Mathf.Max(1, ticks);
+        total = Mathf.Max(0, total);
+        if (total <= 0)
+            return 0;
+
+        tickIndex = Mathf.Clamp(tickIndex, 0, ticks - 1);
+        int baseDamage = total / ticks;
+        int remainder = total % ticks;
+        int damage = baseDamage + (tickIndex < remainder ? 1 : 0);
+        return Mathf.Max(1, damage);
+    }
+
+    void ProcessBuzzsawCircleHits(int tick)
     {
         if (meleeAttack == null)
             return;
@@ -1176,8 +1393,8 @@ public class Bob_Controller : MonoBehaviour
         Vector2 center = ResolveSpecialCenter();
         float outer = activeSpecialProfile.outerRadius;
         float inner = activeSpecialProfile.innerRadius;
-        int outerDamage = ResolveSpecialSwingDamage();
-        int innerDamage = ResolveSpecialInnerDamage();
+        int outerDamage = SplitDamageAcrossTicks(ResolveSpecialSwingDamage(), BuzzsawSpecialHitTicks, tick);
+        int innerDamage = SplitDamageAcrossTicks(ResolveSpecialInnerDamage(), BuzzsawSpecialHitTicks, tick);
         int maxTargets = activeSpecialProfile.maxTargets;
 
         if (maxTargets > 0 && swingHitTargets.Count >= maxTargets)
@@ -1222,7 +1439,9 @@ public class Bob_Controller : MonoBehaviour
             if (target.TakeDamage(meleeAttack))
             {
                 meleeAttack.RaiseHitCameraShakeIfEnabled();
-                LogSkillHit(target, meleeAttack.damage, distSq <= innerSq ? "内圈" : "外圈");
+                LogSkillHit(target, meleeAttack.damage, distSq <= innerSq
+                    ? $"内圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段"
+                    : $"外圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段");
             }
             swingHitTargets.Add(target);
             slots--;
@@ -1235,7 +1454,8 @@ public class Bob_Controller : MonoBehaviour
         int damage,
         HashSet<Character> hitSet,
         int maxTargets,
-        float knockbackSign = 0f)
+        float knockbackSign = 0f,
+        string hitNote = null)
     {
         if (meleeAttack == null || meleeHitbox == null)
             return;
@@ -1319,7 +1539,7 @@ public class Bob_Controller : MonoBehaviour
                 // 敌人 AI 会盖掉 Character.AddForce，改由 Bob 持续推一段距离
                 if (registerWhipPush)
                     RegisterWhipKnockback(target, knockbackSign);
-                LogSkillHit(target, damage, knockbackSign < 0f ? "后方" : null);
+                LogSkillHit(target, damage, CombineHitNotes(hitNote, knockbackSign < 0f ? "后方" : null));
             }
 
             hitSet.Add(target);
@@ -1460,7 +1680,16 @@ public class Bob_Controller : MonoBehaviour
             swingHitCountables.Add(hitCountable);
     }
 
-    void ProcessLimitedHitTargets(int maxTargets)
+    static string CombineHitNotes(string a, string b)
+    {
+        if (string.IsNullOrEmpty(a))
+            return b;
+        if (string.IsNullOrEmpty(b))
+            return a;
+        return $"{a} {b}";
+    }
+
+    void ProcessLimitedHitTargets(int maxTargets, string hitNote = null)
     {
         if (meleeHitboxCollider == null)
             return;
@@ -1470,7 +1699,8 @@ public class Bob_Controller : MonoBehaviour
             meleeHitboxCollider.size,
             meleeAttack != null ? meleeAttack.damage : meleeDamage,
             swingHitTargets,
-            maxTargets);
+            maxTargets,
+            hitNote: hitNote);
     }
 
     void UpdateDashAttacks()
