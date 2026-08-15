@@ -35,6 +35,16 @@ public class Bob_Controller : MonoBehaviour
     }
 
     [System.Serializable]
+    public struct WeaponAmmoCost
+    {
+        public int weaponId;
+        [Tooltip("普通攻击消耗（含上攻/空中/蹲攻/下砸）；0 不消耗。空手忽略")]
+        public int meleeCost;
+        [Tooltip("特技消耗；0 不消耗")]
+        public int specialCost;
+    }
+
+    [System.Serializable]
     public struct WeaponSpecialProfile
     {
         public int weaponId;
@@ -146,9 +156,15 @@ public class Bob_Controller : MonoBehaviour
         },
     };
 
+    [Header("弹药消耗（1=BulletS / 2=BulletM / 3=BulletL；空手不耗）")]
+    [SerializeField] WeaponAmmoCost[] weaponAmmoCosts =
+    {
+        new WeaponAmmoCost { weaponId = 1, meleeCost = 1, specialCost = 10 },
+        new WeaponAmmoCost { weaponId = 2, meleeCost = 1, specialCost = 10 },
+        new WeaponAmmoCost { weaponId = 3, meleeCost = 1, specialCost = 10 },
+    };
+
     [Header("特技（U / Ability1 · 仅武器 1/2/3）")]
-    [Tooltip("发动特技消耗的弹药数；武器 1/2/3 分别扣 BulletS/M/L；0 表示不消耗")]
-    [SerializeField] int specialAmmoCost = 1;
     [SerializeField] WeaponSpecialProfile[] specialProfiles =
     {
         new WeaponSpecialProfile
@@ -233,6 +249,10 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] Color detectZoneGizmoColor = new Color(1f, 0.85f, 0.2f, 0.25f);
     [SerializeField] Color hitboxIdleGizmoColor = new Color(0.2f, 0.85f, 1f, 0.2f);
     [SerializeField] Color hitboxActiveGizmoColor = new Color(1f, 0.2f, 0.2f, 0.45f);
+
+    [Header("Debug")]
+    [Tooltip("在 Console 打印发动的技能名称与造成的伤害")]
+    [SerializeField] bool debugLogSkillDamage = true;
 
     Rigidbody2D rb;
     PhysicsCheck physicsCheck;
@@ -322,10 +342,15 @@ public class Bob_Controller : MonoBehaviour
     void OnEnable()
     {
         actions.Player.Enable();
+        if (meleeAttack != null)
+            meleeAttack.CharacterDamaged += OnMeleeAttackDamaged;
     }
 
     void OnDisable()
     {
+        if (meleeAttack != null)
+            meleeAttack.CharacterDamaged -= OnMeleeAttackDamaged;
+
         EndJumpDownAttack();
         EndAttackInputLock();
         EndRushSpecialState();
@@ -334,6 +359,8 @@ public class Bob_Controller : MonoBehaviour
 
     void OnDestroy()
     {
+        if (meleeAttack != null)
+            meleeAttack.CharacterDamaged -= OnMeleeAttackDamaged;
         actions?.Dispose();
     }
 
@@ -692,6 +719,73 @@ public class Bob_Controller : MonoBehaviour
         return inner;
     }
 
+    void OnMeleeAttackDamaged(Character target, int damage)
+        => LogSkillHit(target, damage);
+
+    void LogSkillCast()
+    {
+        if (!debugLogSkillDamage)
+            return;
+
+        string skill = ResolveCurrentSkillName();
+        int damage = ResolveExpectedSkillDamage();
+        Debug.Log($"[Bob] 发动 {skill}  伤害={damage}", this);
+    }
+
+    void LogSkillHit(Character target, int damage, string note = null)
+    {
+        if (!debugLogSkillDamage || target == null)
+            return;
+
+        string skill = ResolveCurrentSkillName();
+        string targetName = target.gameObject.name;
+        if (!string.IsNullOrEmpty(note))
+            Debug.Log($"[Bob] 命中 {targetName}  {skill}（{note}）  伤害={damage}", this);
+        else
+            Debug.Log($"[Bob] 命中 {targetName}  {skill}  伤害={damage}", this);
+    }
+
+    string ResolveWeaponLabel()
+    {
+        return ResolveCurrentWeaponId() switch
+        {
+            1 => "Rush",
+            2 => "Whip",
+            3 => "Buzzsaw",
+            _ => "空手",
+        };
+    }
+
+    string ResolveCurrentSkillName()
+    {
+        string weapon = ResolveWeaponLabel();
+        if (IsCurrentSwingUltimate())
+            return $"{weapon} 大招";
+        if (IsCurrentSwingSpecial())
+            return $"{weapon} 特技";
+        if (IsCurrentSwingJumpDownAttack())
+            return $"{weapon} 下砸";
+        if (IsCurrentSwingCrouchMelee())
+            return $"{weapon} 蹲攻";
+        if (IsCurrentSwingUpward())
+        {
+            bool airborne = physicsCheck != null && !physicsCheck.isGround;
+            return airborne ? $"{weapon} 空中上攻" : $"{weapon} 上攻";
+        }
+
+        bool inAir = physicsCheck != null && !physicsCheck.isGround;
+        return inAir ? $"{weapon} 空中攻击" : $"{weapon} 普通攻击";
+    }
+
+    int ResolveExpectedSkillDamage()
+    {
+        if (IsCurrentSwingJumpDownAttack())
+            return Mathf.Max(1, jumpDownImpactDamage);
+        if (IsCurrentSwingSpecial() && hasSpecialProfile)
+            return ResolveSpecialSwingDamage();
+        return activeProfile.damage > 0 ? activeProfile.damage : meleeDamage;
+    }
+
     void TryStartMeleeAttack()
     {
         if (holdingAttackInputLock)
@@ -707,6 +801,11 @@ public class Bob_Controller : MonoBehaviour
             return;
 
         if (!actions.Player.Attack.WasPressedThisFrame())
+            return;
+
+        int weaponId = ResolveCurrentWeaponId();
+        int meleeAmmoCost = ResolveMeleeAmmoCost(weaponId);
+        if (!HasWeaponAmmo(weaponId, meleeAmmoCost))
             return;
 
         if (detectZone != null && detectZone.HasValidTarget)
@@ -730,7 +829,9 @@ public class Bob_Controller : MonoBehaviour
         if (!playerAnim.TryPlayMeleeAnim())
             return;
 
+        TryConsumeWeaponAmmo(weaponId, meleeAmmoCost);
         ApplyActiveProfileToColliders();
+        LogSkillCast();
 
         if (fullBodyAnim != null && fullBodyAnim.IsJumpDownAttack)
         {
@@ -789,9 +890,8 @@ public class Bob_Controller : MonoBehaviour
         }
         else
         {
-            AmmoType ammoType = ResolveSpecialAmmoType(weaponId);
-            if (specialAmmoCost > 0
-                && (selfCharacter == null || !HasEnoughAmmo(ammoType, specialAmmoCost)))
+            int specialCost = ResolveSpecialAmmoCost(weaponId);
+            if (!HasWeaponAmmo(weaponId, specialCost))
                 return;
         }
 
@@ -818,23 +918,68 @@ public class Bob_Controller : MonoBehaviour
             if (ultimateAbilityPowerCost > 0f && selfCharacter != null)
                 selfCharacter.DrainAbilityPower(ultimateAbilityPowerCost);
         }
-        else if (specialAmmoCost > 0 && selfCharacter != null)
+        else
         {
-            selfCharacter.TrySpendAmmo(ResolveSpecialAmmoType(weaponId), specialAmmoCost);
+            TryConsumeWeaponAmmo(weaponId, ResolveSpecialAmmoCost(weaponId));
         }
 
         ApplyActiveProfileToColliders();
         PlaySfx(ResolveWeaponSpecialSfx(weaponId));
         BeginAttackInputLock();
+        LogSkillCast();
     }
 
-    static AmmoType ResolveSpecialAmmoType(int weaponId) => weaponId switch
+    static AmmoType ResolveWeaponAmmoType(int weaponId) => weaponId switch
     {
         1 => AmmoType.S,
         2 => AmmoType.M,
         3 => AmmoType.L,
         _ => AmmoType.S,
     };
+
+    int ResolveMeleeAmmoCost(int weaponId)
+    {
+        if (weaponId == 0)
+            return 0;
+        return Mathf.Max(0, FindAmmoCost(weaponId).meleeCost);
+    }
+
+    int ResolveSpecialAmmoCost(int weaponId)
+    {
+        if (weaponId == 0)
+            return 0;
+        return Mathf.Max(0, FindAmmoCost(weaponId).specialCost);
+    }
+
+    WeaponAmmoCost FindAmmoCost(int weaponId)
+    {
+        if (weaponAmmoCosts != null)
+        {
+            for (int i = 0; i < weaponAmmoCosts.Length; i++)
+            {
+                if (weaponAmmoCosts[i].weaponId == weaponId)
+                    return weaponAmmoCosts[i];
+            }
+        }
+
+        return default;
+    }
+
+    bool HasWeaponAmmo(int weaponId, int amount)
+    {
+        if (weaponId == 0 || amount <= 0)
+            return true;
+        if (selfCharacter == null)
+            return false;
+        return HasEnoughAmmo(ResolveWeaponAmmoType(weaponId), amount);
+    }
+
+    bool TryConsumeWeaponAmmo(int weaponId, int amount)
+    {
+        if (weaponId == 0 || amount <= 0 || selfCharacter == null)
+            return amount <= 0;
+        return selfCharacter.TrySpendAmmo(ResolveWeaponAmmoType(weaponId), amount);
+    }
 
     bool HasEnoughAmmo(AmmoType type, int amount)
     {
@@ -1075,7 +1220,10 @@ public class Bob_Controller : MonoBehaviour
             float distSq = ((Vector2)target.transform.position - center).sqrMagnitude;
             meleeAttack.damage = distSq <= innerSq ? innerDamage : outerDamage;
             if (target.TakeDamage(meleeAttack))
+            {
                 meleeAttack.RaiseHitCameraShakeIfEnabled();
+                LogSkillHit(target, meleeAttack.damage, distSq <= innerSq ? "内圈" : "外圈");
+            }
             swingHitTargets.Add(target);
             slots--;
         }
@@ -1171,6 +1319,7 @@ public class Bob_Controller : MonoBehaviour
                 // 敌人 AI 会盖掉 Character.AddForce，改由 Bob 持续推一段距离
                 if (registerWhipPush)
                     RegisterWhipKnockback(target, knockbackSign);
+                LogSkillHit(target, damage, knockbackSign < 0f ? "后方" : null);
             }
 
             hitSet.Add(target);
@@ -1558,7 +1707,10 @@ public class Bob_Controller : MonoBehaviour
                 continue;
 
             if (target.TakeDamage(meleeAttack))
+            {
                 meleeAttack.RaiseHitCameraShakeIfEnabled();
+                LogSkillHit(target, meleeAttack.damage);
+            }
             swingHitTargets.Add(target);
         }
 

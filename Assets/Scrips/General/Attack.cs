@@ -37,6 +37,9 @@ public class Attack : MonoBehaviour
     readonly HashSet<IKnockbackable> knockbackTargets = new();
     readonly List<Collider2D> overlapBuffer = new();
 
+    /// <summary>成功对 Character 造成伤害时广播（含 Trigger 与外部 TakeDamage 无关）。</summary>
+    public event System.Action<Character, int> CharacterDamaged;
+
     void OnEnable()
     {
         hitTargets.Clear();
@@ -148,7 +151,10 @@ public class Attack : MonoBehaviour
                 nextHitTime[target] = Time.time + 1f / attackRate;
 
             if (damaged)
+            {
                 RaiseHitCameraShakeIfEnabled();
+                CharacterDamaged?.Invoke(target, damage);
+            }
 
             hitSomething = true;
         }
