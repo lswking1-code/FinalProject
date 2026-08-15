@@ -199,6 +199,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (playerAnim.IsPlayingLoadBullet
             || playerAnim.IsPlayingMachinistComboShoot
             || playerAnim.IsPlayingMachineShoot
+            || playerAnim.IsPlayingMachinistChargeShoot
             || playerAnim.IsDispatching)
             return;
 

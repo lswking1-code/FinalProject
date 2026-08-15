@@ -18,11 +18,15 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsCrouching => false;
     public virtual bool IsShooting => false;
     public virtual bool IsCharging => false;
+    /// <summary>蓄力循环中锁水平移动（霰弹默认 true；机械师蓄力可移动，为 false）。</summary>
+    public virtual bool LocksMovementWhileCharging => IsCharging;
     /// <summary>机枪长按蓄力连射中：禁水平移动/跳跃，仍可蹲。</summary>
     public virtual bool IsHeavySpinFiring => false;
     public virtual bool IsDispatching => false;
     public virtual MachinistChargeAim ActiveChargeAim => MachinistChargeAim.Forward;
     public virtual bool IsPlayingMachinistComboShoot => false;
+    /// <summary>机械师蓄力释放射击动画播放中（ChargeShoot / LookUp / LookDown）。</summary>
+    public virtual bool IsPlayingMachinistChargeShoot => false;
     /// <summary>机械师 MachineShoot（特殊弹 S 连射）播放中；可被下一次射击打断，不属于 Combo 硬锁。</summary>
     public virtual bool IsPlayingMachineShoot => false;
     public virtual bool IsForcedCrouchCombo => false;

@@ -59,6 +59,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
     public bool IsAirHanging => airHangTimer > 0f || playerAnim.IsSustainingAirHang;
+    bool LocksLocomotionLikeCombo =>
+        playerAnim.IsPlayingMachinistComboShoot
+        || playerAnim.IsPlayingMachineShoot
+        || playerAnim.IsPlayingMachinistChargeShoot;
     /// <summary>真实接地，或走下平台后仍在土狼窗口内（起跳后立刻为 false）。</summary>
     public bool CanGroundJump =>
         !jumpedThisAirborne && (physicsCheck.isSolidGround || coyoteCounter > 0f);
@@ -383,7 +387,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.gravityScale = 0f;
 
-        if (playerAnim.IsTurning || playerAnim.IsCharging || playerAnim.IsHeavySpinFiring
+        if (playerAnim.IsTurning || playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring
+            || LocksLocomotionLikeCombo
             || (playerAnim.IsCrouching && playerAnim.IsDispatching))
         {
             rb.linearVelocity = Vector2.zero;
@@ -431,8 +436,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround)
             return;
 
-        // 连击终结 / MachineShoot 期间禁止站起/换蹲
-        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
+        // 连击终结 / MachineShoot / 蓄力射击期间禁止站起/换蹲
+        if (LocksLocomotionLikeCombo)
         {
             jumpBufferCounter = 0f;
             return;
@@ -516,11 +521,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (moveX == 0f || moveX == faceDir)
             return;
 
-        // 蓄力中：左右输入忽略（不翻面、不转身、不移动）
+        // 蓄力中：不播全身 Turn（会切层打断 Charge），翻面由 ApplyHorizontalMovement 完成
         if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
             return;
 
-        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
+        if (LocksLocomotionLikeCombo)
             return;
 
         // 蹲姿召唤期间不转身、不移动
@@ -575,14 +580,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         dbgIsGroundInFixed = CanGroundJump;
         dbgDidJump = false;
 
-        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot || playerAnim.IsHeavySpinFiring)
+        if (LocksLocomotionLikeCombo || playerAnim.IsHeavySpinFiring)
         {
             jumpBufferCounter = 0f;
             dbgResult = playerAnim.IsHeavySpinFiring
                 ? "机枪蓄力中禁止跳跃"
                 : playerAnim.IsPlayingMachineShoot
                     ? "MachineShoot 中禁止跳跃"
-                    : "连击终结中禁止跳跃";
+                    : playerAnim.IsPlayingMachinistChargeShoot
+                        ? "蓄力射击中禁止跳跃"
+                        : "连击终结中禁止跳跃";
             return false;
         }
 
@@ -616,8 +623,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
-        // 蓄力中左右无效：起跳不改朝向、不带水平速度
-        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring
+        // 霰弹蓄力 / 机枪连射：起跳不改朝向、不带水平速度（机械师蓄力可移动）
+        if (playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring
             || (playerAnim.IsCrouching && playerAnim.IsDispatching))
             hasHorizontalInput = false;
         else if (hasHorizontalInput)
@@ -773,7 +780,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void ApplyHorizontalMovement()
     {
-        if (playerAnim.IsPlayingMachinistComboShoot || playerAnim.IsPlayingMachineShoot)
+        if (LocksLocomotionLikeCombo)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -786,7 +793,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             return;
         }
 
-        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
+        if (playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring)
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
             return;
@@ -804,6 +811,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
                 if (moveX != 0f)
                 {
                     rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
+                    if (playerAnim.IsCharging)
+                        faceDir = moveX;
                     ApplyFacing();
                 }
                 return;
@@ -839,7 +848,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             }
 
             if (moveX != 0f)
+            {
+                // 蓄力中不播 Turn，在此直接翻面
+                if (playerAnim.IsCharging)
+                    faceDir = moveX;
                 ApplyFacing();
+            }
             return;
         }
 
@@ -848,7 +862,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         {
             rb.linearVelocity = new Vector2(moveX * runSpeed, rb.linearVelocity.y);
 
-            if ((playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee) && moveX != faceDir)
+            if ((playerAnim.IsShooting || playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsCharging)
+                && moveX != faceDir)
             {
                 faceDir = moveX;
                 ApplyFacing();
@@ -937,7 +952,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!physicsCheck.isGround || playerAnim.IsTurning)
             return;
 
-        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
+        if (playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring)
         {
             playerAnim.PlayIdleAnim();
             return;

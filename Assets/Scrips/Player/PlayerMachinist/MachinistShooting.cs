@@ -439,9 +439,8 @@ public class MachinistShooting : MonoBehaviour
         if (!playerAnim.ReleaseMachinistCharge())
             return;
 
-        // 蓄力下射：释放射击动画开始时即滞空
-        if (fireDir == FireDir.Down)
-            playerMovement.NotifyAirHangFromDownShot();
+        // 空中蓄力释放：整段 ChargeShoot 满强度滞空（地面调用会被 Notify 内部忽略）
+        playerMovement.NotifyAirHangFromDownShot();
 
         FireProjectile(fireDir, ResolveChargePrefab());
     }

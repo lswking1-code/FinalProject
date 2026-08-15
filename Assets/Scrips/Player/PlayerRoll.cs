@@ -100,7 +100,8 @@ public class PlayerRoll : MonoBehaviour
         if (playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsSwitchingWeapon)
             return false;
 
-        if (playerAnim.IsDispatching || playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
+        if (playerAnim.IsDispatching || playerAnim.IsCharging || playerAnim.IsHeavySpinFiring
+            || playerAnim.IsPlayingMachinistChargeShoot)
             return false;
 
         return true;

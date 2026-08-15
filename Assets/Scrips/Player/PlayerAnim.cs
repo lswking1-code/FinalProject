@@ -189,11 +189,14 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsCrouching => isCrouching;
     public override bool IsShooting => isShooting;
     public override bool IsCharging => isCharging;
+    public override bool LocksMovementWhileCharging => false;
     public override bool IsHeavySpinFiring => isHeavySpinFiring;
     public override bool IsDispatching => isDispatching;
     public override MachinistChargeAim ActiveChargeAim => activeChargeAim;
     public override bool IsPlayingMachinistComboShoot =>
         isShooting && IsMachinistComboShootState(activeShootStateName);
+    public override bool IsPlayingMachinistChargeShoot =>
+        isShooting && IsMachinistChargeShootState(activeShootStateName);
     public override bool IsPlayingMachineShoot =>
         isShooting && IsMachineShootState(activeShootStateName);
     public override bool IsForcedCrouchCombo =>
@@ -201,7 +204,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsForcedAirCombo =>
         forcedAirComboActive && (IsPlayingMachinistComboShoot || IsPlayingMachineShoot);
     public override bool IsSustainingAirHang =>
-        IsForcedAirCombo || IsPlayingLookDownSpecialShoot();
+        IsForcedAirCombo || IsPlayingLookDownSpecialShoot() || IsPlayingMachinistChargeShoot;
     public override bool IsPlayingLoadBullet =>
         isShooting && activeShootStateName == LoadBulletStateName;
     public override bool IsThrowing => isThrowing;
@@ -395,17 +398,13 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override void PlayRunAnim() // 跑步；蹲姿时只驱动全身层 IsRun
     {
-        // 蓄力中禁止跑动动画（站立下半身 / 蹲姿全身）
-        if (isCharging)
-            return;
-
         if (isDispatching && isCrouching)
             return;
 
         if (isCrouching && (isShooting || isThrowing || isMelee || isSwitchingWeapon))
             return;
 
-        if (IsPlayingMachinistComboShoot)
+        if (IsPlayingMachinistComboShoot || IsPlayingMachinistChargeShoot)
             return;
 
         isRunning = true;
@@ -1314,15 +1313,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             ResetFullBodyParams();
         }
 
-        // 清普通 Look，改由蓄力瞄准态接管上半身
+        // 清普通 Look，改由蓄力瞄准态接管上半身；下半身保持当前跑/Idle
         if (IsUpperLookActive())
             ClearLookState();
-
-        isRunning = false;
-        if (lowerAnimator != null)
-            lowerAnimator.SetBool("IsRun", false);
-        if (isCrouching && crouchAnimator != null)
-            crouchAnimator.SetBool("IsRun", false);
 
         isCharging = true;
         var aim = ResolveInitialChargeAim();
@@ -2644,10 +2637,6 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     {
         if (lowerAnimator == null)
             return;
-
-        // 蓄力锁移动：下半身保持 Idle，避免输入仍驱动奔跑
-        if (isCharging)
-            isRunning = false;
 
         int phase = (int)airPhase;
         lowerAnimator.SetInteger("AirPhase", phase);
