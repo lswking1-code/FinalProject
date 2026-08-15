@@ -929,6 +929,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 962274398}
+  - component: {fileID: 962274399}
   m_Layer: 0
   m_Name: StartMenu
   m_TagString: Untagged
@@ -959,6 +960,23 @@ RectTransform:
   m_AnchoredPosition: {x: 89, y: 0}
   m_SizeDelta: {x: 338, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &962274399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 962274397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4e8c1a07d3f4e2a9c6b5d8f1a0e3c72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttons:
+  - {fileID: 1639721313}
+  - {fileID: 1027881771}
+  - {fileID: 1013500959}
+  - {fileID: 1323484536}
 --- !u!1 &1013398437
 GameObject:
   m_ObjectHideFlags: 0

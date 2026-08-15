@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 主菜单选人界面：方向/鼠标高亮角色，Attack 或左键确认后开局。
+/// 主菜单选人界面：方向/鼠标高亮角色，Jump 或左键确认后开局。
 /// </summary>
 public class CharacterSelectUI : MonoBehaviour
 {
@@ -147,7 +147,7 @@ public class CharacterSelectUI : MonoBehaviour
 
     void HandleConfirm()
     {
-        if (actions.Player.Attack.WasPressedThisFrame())
+        if (actions.Player.Jump.WasPressedThisFrame())
             ConfirmSelection();
     }
 
