@@ -55,6 +55,7 @@ public class Attack : MonoBehaviour
         nextHitCountableTime.Clear();
         knockbackTargets.Clear();
         WakeRelatedRigidbodies();
+        ProcessOverlapHits();
     }
 
     /// <summary>
@@ -122,6 +123,38 @@ public class Attack : MonoBehaviour
         }
     }
 
+    public void ProcessOverlapHits()
+    {
+        var box = GetComponent<BoxCollider2D>();
+        if (box == null || !box.enabled)
+            return;
+
+        Physics2D.SyncTransforms();
+
+        Transform space = transform;
+        Vector2 center = space.TransformPoint(box.offset);
+        Vector3 lossy = space.lossyScale;
+        Vector2 worldSize = new Vector2(
+            Mathf.Abs(box.size.x * lossy.x),
+            Mathf.Abs(box.size.y * lossy.y));
+        float angle = space.eulerAngles.z;
+
+        var filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            useLayerMask = false,
+        };
+
+        overlapBuffer.Clear();
+        Physics2D.OverlapBox(center, worldSize, angle, filter, overlapBuffer);
+
+        for (int i = 0; i < overlapBuffer.Count; i++)
+        {
+            if (overlapBuffer[i] != null)
+                TryDamage(overlapBuffer[i]);
+        }
+    }
+
     void OnTriggerEnter2D(Collider2D collision) => TryDamage(collision);
 
     void OnTriggerStay2D(Collider2D collision) => TryDamage(collision);
@@ -140,11 +173,21 @@ public class Attack : MonoBehaviour
         if (!string.IsNullOrEmpty(ignoreTag) && collision.CompareTag(ignoreTag))
             return;
 
+        var selfBody = GetComponentInParent<Rigidbody2D>();
+        if (selfBody != null && collision.attachedRigidbody == selfBody)
+            return;
+
         var target = collision.GetComponentInParent<Character>();
         bool hitSomething = false;
 
         if (target != null)
         {
+            if (!string.IsNullOrEmpty(ignoreTag) && target.CompareTag(ignoreTag))
+                return;
+
+            var selfCharacter = GetComponentInParent<Character>();
+            if (selfCharacter != null && target == selfCharacter)
+                return;
             bool useRateLimit = attackRate > 0f;
             if (!useRateLimit && hitTargets.Contains(target))
                 return;

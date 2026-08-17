@@ -51,6 +51,9 @@ public class PlayerMelee : MonoBehaviour
         {
             if (meleeHitbox != null && !meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(true);
+
+            if (attack != null)
+                attack.ProcessOverlapHits();
         }
         else if (meleeHitbox != null && meleeHitbox.activeSelf)
         {

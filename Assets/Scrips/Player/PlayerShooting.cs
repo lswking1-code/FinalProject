@@ -192,6 +192,9 @@ public class PlayerShooting : MonoBehaviour
         if (playerAnim != null && playerAnim.IsSwitchingWeapon)
             return;
 
+        if (playerAnim != null && playerAnim.IsMelee)
+            return;
+
         if (burstRoutine != null)
             return;
 
@@ -215,7 +218,7 @@ public class PlayerShooting : MonoBehaviour
             case ChargeShootPhase.Idle:
                 if (playerMovement.IsActionLocked)
                     return;
-                if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon))
+                if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsMelee))
                     return;
                 if (burstRoutine != null)
                     return;
@@ -390,6 +393,9 @@ public class PlayerShooting : MonoBehaviour
         if (playerAnim != null && playerAnim.IsSwitchingWeapon)
             return;
 
+        if (playerAnim != null && playerAnim.IsMelee)
+            return;
+
         if (actions.Player.Attack.WasPressedThisFrame())
         {
             if (playerMelee != null && playerMelee.IsEnemyInMeleeRange()
@@ -535,7 +541,7 @@ public class PlayerShooting : MonoBehaviour
 
         if (playerMovement != null && playerMovement.IsActionLocked)
             return true;
-        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead || playerAnim.IsMelee))
             return true;
         if (playerMelee != null && playerMelee.IsEnemyInMeleeRange() && actions.Player.Attack.WasPressedThisFrame())
             return true;
@@ -545,7 +551,7 @@ public class PlayerShooting : MonoBehaviour
 
     void UpdateHoldLaser(WeaponFireConfig config)
     {
-        if (playerMovement.IsActionLocked || (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon)))
+        if (playerMovement.IsActionLocked || (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsMelee)))
         {
             EndLaser(immediate: false);
             return;

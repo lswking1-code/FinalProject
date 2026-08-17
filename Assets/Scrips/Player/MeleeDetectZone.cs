@@ -7,12 +7,13 @@ public class MeleeDetectZone : MonoBehaviour
     readonly HashSet<Transform> targets = new();
 
     BoxCollider2D boxCollider;
+    int lastRefreshFrame = -1;
 
     public bool HasValidTarget
     {
         get
         {
-            PruneInvalidTargets();
+            RefreshTargetsFromOverlap();
             return targets.Count > 0;
         }
     }
@@ -27,23 +28,21 @@ public class MeleeDetectZone : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!TryGetTargetRoot(other, out Transform root))
-            return;
-
-        targets.Add(root);
+        bool accepted = TryGetTargetRoot(other, out Transform root);
+        if (accepted)
+            targets.Add(root);
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
-        if (!TryGetTargetRoot(other, out Transform root))
-            return;
-
-        targets.Remove(root);
+        bool accepted = TryGetTargetRoot(other, out Transform root);
+        if (accepted)
+            targets.Remove(root);
     }
 
     public Transform GetNearestTarget(Vector2 from)
     {
-        PruneInvalidTargets();
+        RefreshTargetsFromOverlap();
 
         Transform nearest = null;
         float nearestDist = float.MaxValue;
@@ -64,6 +63,33 @@ public class MeleeDetectZone : MonoBehaviour
         return nearest;
     }
 
+    void RefreshTargetsFromOverlap()
+    {
+        if (lastRefreshFrame == Time.frameCount)
+            return;
+
+        lastRefreshFrame = Time.frameCount;
+        targets.Clear();
+
+        if (boxCollider == null)
+            boxCollider = GetComponent<BoxCollider2D>();
+        if (boxCollider == null || !boxCollider.enabled)
+            return;
+
+        Vector2 center = boxCollider.bounds.center;
+        Vector2 size = boxCollider.bounds.size;
+        var hits = Physics2D.OverlapBoxAll(center, size, 0f);
+        if (hits == null)
+            return;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            if (!TryGetTargetRoot(hits[i], out Transform root))
+                continue;
+            targets.Add(root);
+        }
+    }
+
     void PruneInvalidTargets()
     {
         if (targets.Count == 0)
@@ -72,10 +98,20 @@ public class MeleeDetectZone : MonoBehaviour
         targets.RemoveWhere(target => target == null || !IsAliveTarget(target));
     }
 
-    static bool TryGetTargetRoot(Collider2D other, out Transform root)
+    bool TryGetTargetRoot(Collider2D other, out Transform root)
     {
         root = null;
         if (other == null)
+            return false;
+
+        if (boxCollider != null && other == boxCollider)
+            return false;
+
+        var selfBody = boxCollider != null ? boxCollider.attachedRigidbody : null;
+        if (selfBody != null && other.attachedRigidbody == selfBody)
+            return false;
+
+        if (other.CompareTag("Player"))
             return false;
 
         if (!other.CompareTag("Enemy"))
