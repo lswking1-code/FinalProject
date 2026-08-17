@@ -1792,6 +1792,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeMeleeStateName = stateName;
         activeMeleeAnimator = animator;
         animator.Play(stateName, 0, 0f);
+        // 与射击/上看相同：挡住 AnyState Ground→Idle，避免出刀被 0.25s 混合掐掉
+        if (animator == upperAnimator)
+            BlockUpperAirPhaseForHorizontalShoot();
         return true;
     }
 

@@ -85,7 +85,8 @@ public class PlayerRollGrenade : MonoBehaviour
         if (actions.Player.Ability1.WasPressedThisFrame())
         {
             bool lookingUp = IsHoldingUp();
-            bool lookingDown = IsHoldingDown();
+            // 蹲下时下方向是姿势，不是滚动炸弹瞄准
+            bool lookingDown = IsHoldingDown() && !playerAnim.IsCrouching;
             upIntent = lookingUp;
             rollIntent = !lookingUp && lookingDown;
             forwardIntent = !lookingUp && !lookingDown;
@@ -113,7 +114,7 @@ public class PlayerRollGrenade : MonoBehaviour
 
         if (rollIntent)
         {
-            if (IsHoldingDown())
+            if (IsHoldingDown() && !playerAnim.IsCrouching)
                 TrySpawnRollGrenade();
             return;
         }
@@ -124,7 +125,7 @@ public class PlayerRollGrenade : MonoBehaviour
 
     void TryThrowOnShortRelease()
     {
-        if (!forwardIntent || firedThisHold)
+        if (firedThisHold)
             return;
 
         if (holdTime >= holdThreshold)
