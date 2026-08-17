@@ -157,6 +157,11 @@ public class RangedEnemy : Enemy
     protected override bool ShouldAutoMove() => false;
 
     /// <summary>
+    /// MOVE 时是否原地停留（不走位）。火箭兵专注模式等子类可覆盖。
+    /// </summary>
+    public virtual bool ShouldHoldPositionOnMove() => false;
+
+    /// <summary>
     /// 每轮循环入口：巡逻闸门 → 距离判断 → GetClose 或 Action 判定
     /// </summary>
     public void EvaluateCycle()

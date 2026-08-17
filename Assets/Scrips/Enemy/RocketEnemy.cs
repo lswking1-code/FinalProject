@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 火箭兵：AI 循环与 RangedEnemy 一致，战斗射程为二维全向圆；
 /// 射击时在八向中选取最接近玩家的方向发射直线导弹。
+/// 可选专注模式：MOVE 时原地停留，时长与 actionDuration 一致。
 /// </summary>
 public class RocketEnemy : RangedEnemy
 {
@@ -30,6 +31,10 @@ public class RocketEnemy : RangedEnemy
     [Tooltip("水平已贴齐但仍因高度差超出射程时，视为可射击，避免 GetClose 卡死")]
     [SerializeField] float heightDeadlockSlack = 0.5f;
 
+    [Header("专注模式")]
+    [Tooltip("开启后，MOVE 指令不再走位，而是原地停留，时长与 actionDuration 一致")]
+    public bool enableFocusMode;
+
     float cachedFirePointRadius = -1f;
 
     void Reset()
@@ -43,6 +48,8 @@ public class RocketEnemy : RangedEnemy
         base.Awake();
         CacheFirePointRadius();
     }
+
+    public override bool ShouldHoldPositionOnMove() => enableFocusMode;
 
     public override float GetCombatDistanceToPlayer()
     {

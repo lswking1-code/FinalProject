@@ -104,8 +104,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 2039525417
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: -1086337842681009434, guid: d49c14d5988a14d789a048ef5a4bfb06, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -328,6 +328,7 @@ MonoBehaviour:
   missilePrefab: {fileID: 6100000000000000006, guid: a07b24d5e10672912d4f8a3b5c6170e9, type: 3}
   firePointRadius: 1.4
   heightDeadlockSlack: 0.5
+  enableFocusMode: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -417,6 +418,7 @@ MonoBehaviour:
     m_Bits: 4160
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
