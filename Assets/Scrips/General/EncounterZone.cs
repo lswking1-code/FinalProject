@@ -184,6 +184,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
         // #region agent log
         AgentDebugLog.Write("A", "EncounterZone.cs:StartEncounter", "invoking OnEncounterStarted",
             "{\"zone\":\"" + name + "\",\"listenerCount\":" + listenerCount + ",\"target0\":\"" + target0 + "\"}");
+        AgentDebugLog.Write914("D", "EncounterZone.cs:StartEncounter", "encounter started",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"hasBounds\":" + (encounterBounds != null ? "true" : "false") + ",\"hasCamera\":" + (cameraControl != null ? "true" : "false") + ",\"activeZones\":" + s_activeZones.Count + "}");
         // #endregion
         OnEncounterStarted?.Invoke();
         StartAmmoAssist();
@@ -216,6 +218,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
     /// </summary>
     public void ApplyCompletedState(bool invokeEndedEvent)
     {
+        // #region agent log
+        AgentDebugLog.Write914("C", "EncounterZone.cs:ApplyCompletedState", "ending encounter",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"wasActive\":" + (isActive ? "true" : "false") + ",\"alive\":" + aliveRegistered.Count + ",\"pending\":" + pendingSpawnSources + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + ",\"activeZones\":" + s_activeZones.Count + "}");
+        // #endregion
         isActive = false;
         hasCompleted = true;
         pendingSpawnSources = 0;
@@ -240,14 +246,19 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public void NotifySpawningStarted()
     {
         pendingSpawnSources++;
+        // #region agent log
+        AgentDebugLog.Write914("B", "EncounterZone.cs:NotifySpawningStarted", "spawn source +1",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"pending\":" + pendingSpawnSources + "}");
+        // #endregion
     }
 
-    /// <summary>
-    /// 刷怪源全部波次结束后调用；若场上已无敌再尝试自动结束。
-    /// </summary>
     public void NotifySpawningCompleted()
     {
         pendingSpawnSources = Mathf.Max(0, pendingSpawnSources - 1);
+        // #region agent log
+        AgentDebugLog.Write914("B", "EncounterZone.cs:NotifySpawningCompleted", "spawn source -1",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"pending\":" + pendingSpawnSources + ",\"alive\":" + aliveRegistered.Count + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + "}");
+        // #endregion
         TryAutoEnd();
     }
 
@@ -660,6 +671,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         hasRegisteredAny = true;
         aliveRegistered.Add(character);
+        // #region agent log
+        AgentDebugLog.Write914("A", "EncounterZone.cs:RegisterEnemy", "enemy registered",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"enemy\":\"" + character.name + "\",\"alive\":" + aliveRegistered.Count + "}");
+        // #endregion
 
         UnityAction handler = () => OnRegisteredEnemyDied(character);
         dieHandlers[character] = handler;
@@ -707,6 +722,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     void TryAutoEnd()
     {
+        // #region agent log
+        AgentDebugLog.Write914("A", "EncounterZone.cs:TryAutoEnd", "auto-end check",
+            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"autoEnd\":" + (autoEndWhenCleared ? "true" : "false") + ",\"isActive\":" + (isActive ? "true" : "false") + ",\"pending\":" + pendingSpawnSources + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + ",\"alive\":" + aliveRegistered.Count + "}");
+        // #endregion
         if (!autoEndWhenCleared || !isActive)
             return;
         if (pendingSpawnSources > 0)

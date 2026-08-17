@@ -20,6 +20,11 @@ public static class AgentDebugLog
         WriteTo("debug-db624a.log", "db624a", hypothesisId, location, message, dataJsonObject);
     }
 
+    public static void Write914(string hypothesisId, string location, string message, string dataJsonObject = "{}")
+    {
+        WriteTo("debug-914a21.log", "914a21", hypothesisId, location, message, dataJsonObject);
+    }
+
     static void WriteTo(string fileName, string sessionId, string hypothesisId, string location, string message, string dataJsonObject)
     {
         try

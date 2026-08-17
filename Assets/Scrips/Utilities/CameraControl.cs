@@ -249,10 +249,15 @@ public class CameraControl : MonoBehaviour
             return;
 
         var obj = GameObject.FindGameObjectWithTag("Bounds");
+        var shape = obj != null ? obj.GetComponent<Collider2D>() : null;
+        // #region agent log
+        string currentShape = confiner2D.BoundingShape2D != null ? confiner2D.BoundingShape2D.name : "null";
+        AgentDebugLog.Write914("C", "CameraControl.cs:GetNewCameraBounds", "restore bounds lookup",
+            "{\"sessionId\":\"914a21\",\"foundTag\":" + (obj != null ? "true" : "false") + ",\"hasCollider\":" + (shape != null ? "true" : "false") + ",\"currentShape\":\"" + currentShape + "\",\"smooth\":" + (smooth ? "true" : "false") + "}");
+        // #endregion
         if (obj == null)
             return;
 
-        var shape = obj.GetComponent<Collider2D>();
         if (shape == null)
             return;
 
