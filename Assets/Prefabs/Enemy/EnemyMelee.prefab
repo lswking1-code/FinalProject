@@ -393,11 +393,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
   knockbackForce: 2
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
@@ -594,6 +596,7 @@ MonoBehaviour:
   dropHealthOnDeath: 0
   healthDropPrefab: {fileID: 0}
   healthDropOffset: {x: 0, y: 0, z: 0}
+  groundDeathDelay: 0.4
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
@@ -603,8 +606,8 @@ MonoBehaviour:
   windupDuration: 0.3
   recoveryDuration: 2
   actionDuration: 1.5
-  meleeAttackWeight: 0.5
-  moveWeight: 0.5
+  meleeAttackWeight: 0.6
+  moveWeight: 0.4
   enablePounce: 0
   pounceMinRange: 3
   pounceMaxRange: 6
@@ -644,6 +647,7 @@ MonoBehaviour:
   invulnerableDuration: 0.1
   knockbackResistance: 1
   invulnerable: 0
+  allowHitsWhileDead: 0
   OnHealthChange:
     m_PersistentCalls:
       m_Calls: []

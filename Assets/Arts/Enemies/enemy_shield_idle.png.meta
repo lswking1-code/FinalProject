@@ -154,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -161,12 +174,12 @@ TextureImporter:
       name: enemy_shield_idle_0
       rect:
         serializedVersion: 2
-        x: 19
-        y: 204
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -183,12 +196,12 @@ TextureImporter:
       name: enemy_shield_idle_1
       rect:
         serializedVersion: 2
-        x: 83
-        y: 204
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -205,12 +218,12 @@ TextureImporter:
       name: enemy_shield_idle_2
       rect:
         serializedVersion: 2
-        x: 147
-        y: 203
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -227,12 +240,12 @@ TextureImporter:
       name: enemy_shield_idle_3
       rect:
         serializedVersion: 2
-        x: 211
-        y: 204
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -249,12 +262,12 @@ TextureImporter:
       name: enemy_shield_idle_4
       rect:
         serializedVersion: 2
-        x: 19
-        y: 140
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -271,12 +284,12 @@ TextureImporter:
       name: enemy_shield_idle_5
       rect:
         serializedVersion: 2
-        x: 83
-        y: 140
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -293,12 +306,12 @@ TextureImporter:
       name: enemy_shield_idle_6
       rect:
         serializedVersion: 2
-        x: 147
-        y: 140
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -315,12 +328,12 @@ TextureImporter:
       name: enemy_shield_idle_7
       rect:
         serializedVersion: 2
-        x: 211
-        y: 140
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -337,12 +350,12 @@ TextureImporter:
       name: enemy_shield_idle_8
       rect:
         serializedVersion: 2
-        x: 19
-        y: 76
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -359,12 +372,12 @@ TextureImporter:
       name: enemy_shield_idle_9
       rect:
         serializedVersion: 2
-        x: 83
-        y: 75
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -381,12 +394,12 @@ TextureImporter:
       name: enemy_shield_idle_10
       rect:
         serializedVersion: 2
-        x: 147
-        y: 76
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -403,12 +416,12 @@ TextureImporter:
       name: enemy_shield_idle_11
       rect:
         serializedVersion: 2
-        x: 211
-        y: 76
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -425,12 +438,12 @@ TextureImporter:
       name: enemy_shield_idle_12
       rect:
         serializedVersion: 2
-        x: 19
-        y: 12
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -447,12 +460,12 @@ TextureImporter:
       name: enemy_shield_idle_13
       rect:
         serializedVersion: 2
-        x: 83
-        y: 12
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -469,12 +482,12 @@ TextureImporter:
       name: enemy_shield_idle_14
       rect:
         serializedVersion: 2
-        x: 147
-        y: 11
-        width: 29
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -491,12 +504,12 @@ TextureImporter:
       name: enemy_shield_idle_15
       rect:
         serializedVersion: 2
-        x: 211
-        y: 12
-        width: 29
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -513,7 +526,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: f865493db6245e346af7850c750bca14
     internalID: 0
     vertices: []
     indices: 

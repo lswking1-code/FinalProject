@@ -150,14 +150,37 @@ public class Enemy : MonoBehaviour
         CacheHome();
     }
 
-    void CacheSpriteRenderer()
+    protected void CacheSpriteRenderer()
     {
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        RecacheSpriteRendererFromChild("Sprite");
+    }
+
+    /// <summary>
+    /// 优先绑定名为 childName 的身体 Sprite，避免盾/占位渲染器抢走闪白目标。
+    /// </summary>
+    protected void RecacheSpriteRendererFromChild(string childName)
+    {
+        spriteRenderer = null;
+        if (!string.IsNullOrEmpty(childName))
+        {
+            Transform child = transform.Find(childName);
+            if (child != null)
+                spriteRenderer = child.GetComponent<SpriteRenderer>();
+        }
+
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
         if (spriteRenderer == null)
             return;
 
         spriteOriginalColor = spriteRenderer.color;
         spriteOriginalLocalPos = spriteRenderer.transform.localPosition;
+    }
+
+    protected void RecacheAnimBoolNames()
+    {
+        CacheAnimBoolNames();
     }
 
     void CacheAnimBoolNames()

@@ -16,6 +16,10 @@ public class ShieldEnemy : MeleeEnemy
     [Tooltip("未面向玩家时，延迟多久后转身")]
     public float faceTurnDelay = 0.35f;
 
+    [Header("动画")]
+    [Tooltip("破盾后切换到的近战 Animator Controller")]
+    public RuntimeAnimatorController meleeAnimatorController;
+
     EnemyShieldAbsorb shieldAbsorb;
 
     public bool HasShield => shieldAbsorb != null;
@@ -32,6 +36,8 @@ public class ShieldEnemy : MeleeEnemy
         base.Awake();
         skillState = new ShieldHoldState();
         CacheShield();
+        DisableShieldOverlaySprite();
+        RecacheSpriteRendererFromChild("Sprite");
     }
 
     protected override void OnEnable()
@@ -44,12 +50,49 @@ public class ShieldEnemy : MeleeEnemy
         shieldAbsorb = GetComponentInChildren<EnemyShieldAbsorb>(true);
     }
 
+    void DisableShieldOverlaySprite()
+    {
+        if (shieldAbsorb == null)
+            return;
+
+        var overlay = shieldAbsorb.GetComponent<SpriteRenderer>();
+        if (overlay != null)
+            overlay.enabled = false;
+    }
+
     /// <summary>护盾销毁时由 EnemyShieldAbsorb 调用。</summary>
     public void NotifyShieldBroken()
     {
         shieldAbsorb = null;
+        SwitchToMeleeAnimator();
         if (!isDead)
             EvaluateCycle();
+    }
+
+    void SwitchToMeleeAnimator()
+    {
+        if (anim == null || meleeAnimatorController == null)
+            return;
+
+        if (anim.runtimeAnimatorController == meleeAnimatorController)
+            return;
+
+        anim.runtimeAnimatorController = meleeAnimatorController;
+        anim.Rebind();
+        anim.Update(0f);
+        RecacheAnimBoolNames();
+    }
+
+    /// <summary>
+    /// 盾牌受击：播 shieldHurt（Shurt），不进入 isHurt 硬直、不打断举盾 AI。
+    /// 本体受击仍走 OnTakeDamage 的 hurt。
+    /// </summary>
+    public void PlayShieldHitAnim()
+    {
+        if (isDead || anim == null)
+            return;
+
+        anim.SetTrigger("shieldHurt");
     }
 
     public override float GetApproachStopRange()

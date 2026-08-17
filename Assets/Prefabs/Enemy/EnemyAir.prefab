@@ -424,11 +424,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
   knockbackForce: 2
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
@@ -589,6 +591,7 @@ MonoBehaviour:
   dropHealthOnDeath: 0
   healthDropPrefab: {fileID: 0}
   healthDropOffset: {x: 0, y: 0, z: 0}
+  groundDeathDelay: 0.4
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
@@ -597,14 +600,14 @@ MonoBehaviour:
   downShotHalfAngle: 20
   maxShootRange: 8
   preferredHoverHeight: 6
-  actionDuration: 5
-  recoveryDuration: 3
+  actionDuration: 3
+  recoveryDuration: 2
   projectilePrefab: {fileID: 1207313983663696913, guid: 26f15fc281f4e154b95080b9c834a7fd, type: 3}
   firePoint: {fileID: 5507517411812069850}
   downFirePoint: {fileID: 6539236226052418689}
   bobAmplitude: 0.35
   bobSpeed: 2
-  hoverHeightErrorThreshold: 1.5
+  hoverHeightErrorThreshold: 2
   hoverHeightHoldTime: 3
   oneWayPlatformLayer:
     serializedVersion: 2
@@ -644,6 +647,7 @@ MonoBehaviour:
   invulnerableDuration: 0.1
   knockbackResistance: 1
   invulnerable: 0
+  allowHitsWhileDead: 0
   OnHealthChange:
     m_PersistentCalls:
       m_Calls: []

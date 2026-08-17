@@ -55,8 +55,11 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
 
         NotifyAggroIfNeeded();
 
-        if (currentShieldHealth <= 0f)
+        bool broken = currentShieldHealth <= 0f;
+        if (broken)
             BreakShield();
+        else if (shieldEnemy != null)
+            shieldEnemy.PlayShieldHitAnim();
 
         return true;
     }
