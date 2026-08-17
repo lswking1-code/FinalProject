@@ -48,6 +48,8 @@ public class EnemySpawnTrigger : MonoBehaviour, ISaveable
         Vector3 pos = spawnPoint != null ? spawnPoint.position : transform.position;
         var instance = Instantiate(enemyPrefab, pos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(instance, this);
+        var spawnedEnemy = instance.GetComponent<Enemy>() ?? instance.GetComponentInChildren<Enemy>();
+        spawnedEnemy?.MarkAsRuntimeSpawned();
     }
 
     public DataDefination GetDataID() => GetComponent<DataDefination>();

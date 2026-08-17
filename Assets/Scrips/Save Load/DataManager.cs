@@ -33,6 +33,7 @@ public class DataManager : MonoBehaviour
         jsonFolder = Application.persistentDataPath + "/SAVE DATA/";
         saveData = CreateEmptyData();
         ReadSavedData();
+        EnemyDeathProgress.RestoreSessionFrom(saveData);
     }
 
     /// <summary>
@@ -88,12 +89,14 @@ public class DataManager : MonoBehaviour
         foreach (var saveable in saveableList)
             saveable.GetSaveData(saveData);
 
+        EnemyDeathProgress.CopySessionKillsTo(saveData);
         SyncLifePointsToData();
         WriteSaveFile();
     }
 
     public void Load()
     {
+        EnemyDeathProgress.RestoreSessionFrom(saveData);
         foreach (var saveable in saveableList)
             saveable.LoadSaveData(saveData);
     }
@@ -135,6 +138,7 @@ public class DataManager : MonoBehaviour
     public void ClearForNewGame()
     {
         saveData = CreateEmptyData();
+        EnemyDeathProgress.ClearSession();
 
         if (File.Exists(SaveFilePath))
             File.Delete(SaveFilePath);

@@ -475,6 +475,8 @@ public class EnemyGenerate : MonoBehaviour
 
         var instance = Instantiate(prefab, position, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(instance, this);
+        var spawnedEnemy = instance.GetComponent<Enemy>() ?? instance.GetComponentInChildren<Enemy>();
+        spawnedEnemy?.MarkAsRuntimeSpawned();
         totalSpawned++;
         if (countTowardFiniteBudget)
             finiteSpawned++;

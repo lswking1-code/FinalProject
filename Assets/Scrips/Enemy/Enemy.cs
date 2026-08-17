@@ -134,6 +134,55 @@ public class Enemy : MonoBehaviour
 
     public Rigidbody2D Rb => rb;
 
+    bool persistDeath = true;
+    bool removedBySave;
+
+    /// <summary>场景预置敌人才写入死亡存档；Instantiate 出的 Clone 不记。</summary>
+    public bool ShouldPersistDeath => persistDeath && !removedBySave && !name.EndsWith("(Clone)");
+
+    /// <summary>刷怪器 / 触发器生成后调用，避免把遭遇战敌人写进关卡进度。</summary>
+    public void MarkAsRuntimeSpawned()
+    {
+        persistDeath = false;
+        var persist = GetComponent<EnemyDeathPersist>();
+        if (persist != null)
+            Destroy(persist);
+    }
+
+    /// <summary>读档时移除已击杀的场景敌人，不走 OnDie，避免重复掉落。</summary>
+    public void RemoveBecauseSavedDead()
+    {
+        if (removedBySave)
+            return;
+
+        removedBySave = true;
+        persistDeath = false;
+        isDead = true;
+        enabled = false;
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.simulated = false;
+        }
+
+        var renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            if (renderers[i] != null)
+                renderers[i].enabled = false;
+        }
+
+        var colliders = GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+                colliders[i].enabled = false;
+        }
+
+        Destroy(gameObject);
+    }
+
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -148,6 +197,9 @@ public class Enemy : MonoBehaviour
 
         EnsurePlayerReference();
         CacheHome();
+
+        if (ShouldPersistDeath && GetComponent<EnemyDeathPersist>() == null)
+            gameObject.AddComponent<EnemyDeathPersist>();
     }
 
     protected void CacheSpriteRenderer()
@@ -757,6 +809,8 @@ public class Enemy : MonoBehaviour
     public void OnDie()
     {
         isDead = true;
+        if (ShouldPersistDeath)
+            EnemyDeathProgress.MarkKilled(EnemyDeathPersist.BuildProgressKey(this));
         TryDropAmmo();
         TryDropHealth();
         ClearCombatAnimatorBools();

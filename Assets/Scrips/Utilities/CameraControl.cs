@@ -37,6 +37,7 @@ public class CameraControl : MonoBehaviour
     public FloatEventSO cameraRecoilShakeEvent;
 
     Coroutine boundsTransitionRoutine;
+    Coroutine parallaxAlignRoutine;
     float cachedConfinerDamping;
     float cachedConfinerSlowingDistance;
     Vector3 cachedComposerDamping;
@@ -76,6 +77,7 @@ public class CameraControl : MonoBehaviour
             afterSceneLoadEvent.OnEventRaised -= OnAfterSceneLoadEvent;
 
         StopBoundsTransition(restoreSettings: true);
+        StopParallaxAlignRoutine();
     }
 
     private void EnsurePositionComposer()
@@ -139,6 +141,12 @@ public class CameraControl : MonoBehaviour
     /// </summary>
     public void SnapCameraToFollowTarget()
     {
+        SnapCameraToFollowTargetImmediate();
+        ScheduleParallaxAlignAfterCameraSettles();
+    }
+
+    void SnapCameraToFollowTargetImmediate()
+    {
         if (airborneYLock == null)
             airborneYLock = GetComponent<CameraAirborneYLock>();
 
@@ -149,6 +157,30 @@ public class CameraControl : MonoBehaviour
 
         if (cinemachineCamera == null)
             return;
+
+        float prevConfinerDamping = 0f;
+        float prevConfinerSlowing = 0f;
+        Vector3 prevComposerDamping = Vector3.zero;
+        bool restoreConfiner = false;
+        bool restoreComposer = false;
+
+        // 遭遇战读档时 Confiner 可能仍带着过渡阻尼，不先清零就 Snap 不准
+        if (confiner2D != null)
+        {
+            prevConfinerDamping = confiner2D.Damping;
+            prevConfinerSlowing = confiner2D.SlowingDistance;
+            confiner2D.Damping = 0f;
+            confiner2D.SlowingDistance = 0f;
+            confiner2D.InvalidateBoundingShapeCache();
+            restoreConfiner = true;
+        }
+
+        if (positionComposer != null)
+        {
+            prevComposerDamping = positionComposer.Damping;
+            positionComposer.Damping = Vector3.zero;
+            restoreComposer = true;
+        }
 
         CinemachineCore.ResetCameraState();
 
@@ -172,8 +204,45 @@ public class CameraControl : MonoBehaviour
                 state.GetFinalOrientation());
         }
 
+        if (restoreConfiner)
+        {
+            confiner2D.Damping = prevConfinerDamping;
+            confiner2D.SlowingDistance = prevConfinerSlowing;
+        }
+
+        if (restoreComposer)
+            positionComposer.Damping = prevComposerDamping;
+
         // 视差在场景 OnEnable 时可能已相对旧相机采基线；Snap 后再校准
         ParallaxLayer.RecalibrateAllToCamera();
+    }
+
+    void ScheduleParallaxAlignAfterCameraSettles()
+    {
+        if (!isActiveAndEnabled)
+            return;
+
+        StopParallaxAlignRoutine();
+        parallaxAlignRoutine = StartCoroutine(ParallaxAlignAfterCameraSettlesRoutine());
+    }
+
+    void StopParallaxAlignRoutine()
+    {
+        if (parallaxAlignRoutine == null)
+            return;
+
+        StopCoroutine(parallaxAlignRoutine);
+        parallaxAlignRoutine = null;
+    }
+
+    IEnumerator ParallaxAlignAfterCameraSettlesRoutine()
+    {
+        // Confiner 缓存 / Brain LateUpdate 可能要到后续帧才真正落到玩家
+        yield return null;
+        SnapCameraToFollowTargetImmediate();
+        yield return null;
+        SnapCameraToFollowTargetImmediate();
+        parallaxAlignRoutine = null;
     }
 
     private void OnAfterSceneLoadEvent()

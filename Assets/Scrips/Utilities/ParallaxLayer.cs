@@ -2,9 +2,13 @@ using UnityEngine;
 
 /// <summary>
 /// 正交相机下的视差层：相对相机位移按倍率移动，远处慢、近处快。
+/// LateUpdate 排在 Cinemachine 之后，避免用到尚未落地的相机位置。
 /// </summary>
+[DefaultExecutionOrder(32000)]
 public class ParallaxLayer : MonoBehaviour
 {
+    const float CameraTeleportRecalibrateDistance = 8f;
+
     [Header("视差倍率")]
     [Tooltip("0 = 几乎不动（最远），1 = 与玩法层同速")]
     [SerializeField] float parallaxFactorX = 0.5f;
@@ -18,8 +22,11 @@ public class ParallaxLayer : MonoBehaviour
     Vector3 originPos;
     Vector3 startPos;
     Vector3 startCamPos;
+    Vector3 lastCamPos;
     bool hasOrigin;
     bool hasBaseline;
+    bool hasLastCamPos;
+    static int s_recalibrateUntilFrame = -1;
 
     void Awake()
     {
@@ -29,6 +36,7 @@ public class ParallaxLayer : MonoBehaviour
 
     void OnEnable()
     {
+        hasLastCamPos = false;
         CaptureBaseline();
     }
 
@@ -44,7 +52,19 @@ public class ParallaxLayer : MonoBehaviour
         if (!hasBaseline)
             return;
 
+        Vector3 camPos = cam.transform.position;
+        bool pendingRecalibrate = Time.frameCount <= s_recalibrateUntilFrame;
+        bool teleported = hasLastCamPos
+            && (camPos - lastCamPos).sqrMagnitude
+                > CameraTeleportRecalibrateDistance * CameraTeleportRecalibrateDistance;
+        if (pendingRecalibrate || teleported)
+        {
+            RecalibrateToCamera();
+            return;
+        }
+
         ApplyParallax(cam);
+        RememberCameraPos(camPos);
     }
 
     /// <summary>
@@ -64,11 +84,13 @@ public class ParallaxLayer : MonoBehaviour
         if (cam == null)
         {
             hasBaseline = false;
+            hasLastCamPos = false;
             return;
         }
 
         startCamPos = cam.transform.position;
         hasBaseline = true;
+        RememberCameraPos(startCamPos);
         ApplyParallax(cam);
     }
 
@@ -77,6 +99,7 @@ public class ParallaxLayer : MonoBehaviour
     /// </summary>
     public static void RecalibrateAllToCamera()
     {
+        s_recalibrateUntilFrame = Time.frameCount + 2;
         var layers = Object.FindObjectsByType<ParallaxLayer>(FindObjectsSortMode.None);
         for (int i = 0; i < layers.Length; i++)
         {
@@ -104,6 +127,13 @@ public class ParallaxLayer : MonoBehaviour
 
         startCamPos = cam.transform.position;
         hasBaseline = true;
+        RememberCameraPos(startCamPos);
+    }
+
+    void RememberCameraPos(Vector3 camPos)
+    {
+        lastCamPos = camPos;
+        hasLastCamPos = true;
     }
 
     void ApplyParallax(Camera cam)

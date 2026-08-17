@@ -163,6 +163,43 @@ public class PhysicsCheck : MonoBehaviour
         return hit.collider != null && CountsAsGroundHit(hit);
     }
 
+    /// <summary>
+    /// 沿水平方向从 fromX 扫到 toX，检测是否存在无法贴地走过的悬崖/缺口。
+    /// 会跟随已探测到的地面高度，避免把连续斜坡误判为悬崖。
+    /// </summary>
+    public bool HasCliffGapAlongX(float fromX, float toX, float footY, float maxWalkableDrop = 0.85f)
+    {
+        if (groundLayer.value == 0)
+            return false;
+
+        float dx = toX - fromX;
+        if (Mathf.Abs(dx) < 0.12f)
+            return false;
+
+        const float step = 0.35f;
+        const float lift = 0.2f;
+        float dir = Mathf.Sign(dx);
+        float dist = Mathf.Abs(dx);
+        float groundY = footY;
+        float drop = Mathf.Max(maxWalkableDrop, 0.5f);
+        float castDist = lift + drop;
+
+        int steps = Mathf.Max(1, Mathf.CeilToInt(dist / step));
+        for (int i = 1; i <= steps; i++)
+        {
+            float x = fromX + dir * Mathf.Min(dist, i * step);
+            Vector2 origin = new Vector2(x, groundY + lift);
+            RaycastHit2D hit = Physics2D.CircleCast(origin, 0.08f, Vector2.down, castDist, groundLayer);
+            if (hit.collider == null || !CountsAsGroundHit(hit))
+                return true;
+            if (groundY - hit.point.y > drop)
+                return true;
+            groundY = hit.point.y;
+        }
+
+        return false;
+    }
+
     void OnCollisionStay2D(Collision2D collision)
     {
         if (((1 << collision.gameObject.layer) & groundLayer) == 0)

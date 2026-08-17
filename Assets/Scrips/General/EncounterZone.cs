@@ -125,6 +125,12 @@ public class EncounterZone : MonoBehaviour, ISaveable
         DataManager.instance?.ApplyLoadedData(this);
     }
 
+    void Start()
+    {
+        // Additive 加载时 OnEnable 里 scene.name 可能仍为空，补一次以免完成旗标对不上。
+        DataManager.instance?.ApplyLoadedData(this);
+    }
+
     void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
     void OnTriggerEnter2D(Collider2D other)
@@ -218,6 +224,18 @@ public class EncounterZone : MonoBehaviour, ISaveable
     /// </summary>
     public void ApplyCompletedState(bool invokeEndedEvent)
     {
+        ApplyCompletedState(invokeEndedEvent, restoreBoundsSmooth: true);
+    }
+
+    public void ApplyCompletedState(bool invokeEndedEvent, bool restoreBoundsSmooth)
+    {
+        if (hasCompleted && !isActive)
+        {
+            if (triggerOnce)
+                SetEnterTriggerEnabled(false);
+            return;
+        }
+
         // #region agent log
         AgentDebugLog.Write914("C", "EncounterZone.cs:ApplyCompletedState", "ending encounter",
             "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"wasActive\":" + (isActive ? "true" : "false") + ",\"alive\":" + aliveRegistered.Count + ",\"pending\":" + pendingSpawnSources + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + ",\"activeZones\":" + s_activeZones.Count + "}");
@@ -232,12 +250,41 @@ public class EncounterZone : MonoBehaviour, ISaveable
         DeactivateAirWalls();
 
         EnsureCameraControl();
-        cameraControl?.RestoreCameraBounds();
+        cameraControl?.RestoreCameraBounds(restoreBoundsSmooth);
 
         SetEncounterBoundsVisible(false);
+        if (triggerOnce)
+            SetEnterTriggerEnabled(false);
 
         if (invokeEndedEvent)
             OnEncounterEnded?.Invoke();
+    }
+
+    /// <summary>
+    /// 读档时用于未完成遭遇：清掉进行中的锁区，保持可再次触发。
+    /// </summary>
+    void ResetIncompleteEncounter()
+    {
+        hasCompleted = false;
+        if (triggerOnce)
+            SetEnterTriggerEnabled(true);
+
+        if (!isActive)
+            return;
+
+        isActive = false;
+        pendingSpawnSources = 0;
+        UnregisterActiveZone(this);
+        StopAmmoAssist();
+        ClearRegistrations();
+        DeactivateAirWalls();
+        EnsureCameraControl();
+        // 读档必须立刻恢复场景 Bounds：平滑过渡会把遭遇区阻尼带到 Persistent 相机上，
+        // 视差会在相机尚未回到存档点时采基线。
+        cameraControl?.RestoreCameraBounds(smooth: false);
+        cameraControl?.SnapCameraToFollowTarget();
+        SetEncounterBoundsVisible(false);
+        OnEncounterEnded?.Invoke();
     }
 
     /// <summary>
@@ -640,6 +687,15 @@ public class EncounterZone : MonoBehaviour, ISaveable
         encounterBounds.gameObject.SetActive(visible);
     }
 
+    void SetEnterTriggerEnabled(bool enabled)
+    {
+        var col = GetComponent<Collider2D>();
+        if (col == null || col == encounterBounds)
+            return;
+
+        col.enabled = enabled;
+    }
+
     /// <summary>
     /// 登记遭遇战中生成的、计入清敌结算的敌人。
     /// 无限刷新敌人勿调用；区域原本存在的敌人也不要登记。
@@ -905,13 +961,30 @@ public class EncounterZone : MonoBehaviour, ISaveable
     {
         var dataId = GetDataID();
         string id = dataId != null && !string.IsNullOrEmpty(dataId.ID) ? dataId.ID : name;
-        return $"{gameObject.scene.name}:{id}:{name}:{suffix}";
+        return $"{ResolveSceneName()}:{id}:{name}:{suffix}";
+    }
+
+    string ResolveSceneName()
+    {
+        var scene = gameObject.scene;
+        if (scene.IsValid() && !string.IsNullOrEmpty(scene.name))
+            return scene.name;
+
+        var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        return !string.IsNullOrEmpty(active.name) ? active.name : name;
     }
 
     public void GetSaveData(Data data)
     {
-        var dataId = GetDataID();
-        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+        if (data?.boolSavedData == null)
+            return;
+
+        // 可重复触发的遭遇不写入完成旗标。
+        if (!triggerOnce)
+            return;
+
+        // 存档时若仍在遭遇中，不刷新完成旗标，沿用上一次在区外存下的进度。
+        if (HasActiveEncounter)
             return;
 
         data.boolSavedData[ProgressKey("completed")] = hasCompleted;
@@ -919,14 +992,22 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     public void LoadSaveData(Data data)
     {
-        var dataId = GetDataID();
-        if (dataId == null || string.IsNullOrEmpty(dataId.ID))
+        if (data?.boolSavedData == null)
             return;
 
-        if (!data.boolSavedData.TryGetValue(ProgressKey("completed"), out bool completed) || !completed)
+        if (!triggerOnce)
+        {
+            ResetIncompleteEncounter();
             return;
+        }
 
-        ApplyCompletedState(invokeEndedEvent: true);
+        bool completed = data.boolSavedData.TryGetValue(ProgressKey("completed"), out bool saved)
+            && saved;
+
+        if (completed)
+            ApplyCompletedState(invokeEndedEvent: true, restoreBoundsSmooth: false);
+        else
+            ResetIncompleteEncounter();
     }
 
     void OnDrawGizmos()

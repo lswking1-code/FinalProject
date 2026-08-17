@@ -299,7 +299,7 @@ public class AllyRobot : MonoBehaviour
     bool comboAirHanging;
     /// <summary>本次连携曾以空中敌为目标时锁存 Boost，目标死亡也不关，直到连携结束。</summary>
     bool airComboBoostLatched;
-    /// <summary>本次连携冲锋因 Y 差距启用二维冲锋后锁存，避免贴近高度后切回水平受重力下落抖动。</summary>
+    /// <summary>本次连携冲锋因 Y 差距或越崖启用二维冲锋后锁存，避免贴近后切回水平受重力下落抖动。</summary>
     bool verticalComboDashLatched;
     /// <summary>
     /// 自动跳起后，在障碍仍被探测到前禁止再次自动跳，避免贴墙连跳。
@@ -1484,8 +1484,8 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 空中敌，或地面敌 Y 差距超出到位阈值时，连携/Blast 冲锋走二维飞冲。
-    /// 冲锋期间锁存，避免 |ΔY| 刚落入阈值后切回水平冲锋导致空中下落抖动。
+    /// 空中敌、地面敌 Y 差距超出到位阈值、或水平路径上有悬崖时，连携/Blast 冲锋走二维飞冲。
+    /// 冲锋期间锁存，避免条件刚消失后切回水平冲锋导致空中下落抖动。
     /// </summary>
     bool NeedsVerticalComboDash(Transform target)
     {
@@ -1503,7 +1503,8 @@ public class AllyRobot : MonoBehaviour
         if (verticalComboDashLatched)
             return true;
 
-        if (!IsBeyondGroundChaseHeight(target))
+        bool needsFly = IsBeyondGroundChaseHeight(target) || HasCliffGapToTarget(target);
+        if (!needsFly)
             return false;
 
         if (currentState != AllyState.ComboDashWindup && currentState != AllyState.ComboDashing)
@@ -1511,6 +1512,33 @@ public class AllyRobot : MonoBehaviour
 
         verticalComboDashLatched = true;
         return true;
+    }
+
+    /// <summary>
+    /// 目标在水平方向、但中间有悬崖/缺口，贴地冲锋会停在边缘。
+    /// </summary>
+    bool HasCliffGapToTarget(Transform target)
+    {
+        if (target == null || physicsCheck == null)
+            return false;
+
+        Vector2 aim = GetCombatAimPoint(target);
+        float dx = aim.x - transform.position.x;
+        if (Mathf.Abs(dx) < 0.15f)
+            return false;
+
+        float dir = Mathf.Sign(dx);
+        if (IsLedgeBlocking(dir))
+            return true;
+
+        Bounds bounds = bodyCollider != null
+            ? bodyCollider.bounds
+            : new Bounds(transform.position, Vector3.one * 0.5f);
+        float fromX = dir > 0f ? bounds.max.x : bounds.min.x;
+        if (Mathf.Sign(aim.x - fromX) != dir)
+            return false;
+
+        return physicsCheck.HasCliffGapAlongX(fromX, aim.x, bounds.min.y);
     }
 
     /// <summary>
@@ -1961,7 +1989,7 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 连携/Blast 竖直冲锋：空中敌或地面敌 Y 差距过大时，按二维方向飞向碰撞体中心；已在攻击距离则停住。
+    /// 连携/Blast 竖直冲锋：空中敌、Y 差距过大或中间有悬崖时，按二维方向飞向碰撞体中心；已在攻击距离则停住。
     /// </summary>
     bool TryApplyVerticalComboDash()
     {
@@ -2170,7 +2198,7 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 连携 Boost：空中敌整段连携锁存；地面目标仅在竖直冲锋（Windup/Dashing）期间显示。
+    /// 连携 Boost：空中敌整段连携锁存；地面目标仅在竖直/越崖冲锋（Windup/Dashing）期间显示。
     /// </summary>
     void UpdateComboBoostVisual()
     {
