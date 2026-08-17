@@ -14,8 +14,8 @@ public class BoarPatrolState : BaseState
         if (currentEnemy.FoundPlayer())
             currentEnemy.SwitchState(NPCState.Chase);
 
-        // 遇到悬崖或墙壁时停下等待转身
-        if (!currentEnemy.physicsCheck.isGround
+        // 前方无地面或贴墙时停下等待转身（前瞻边缘，避免走出平台后才反应）
+        if (currentEnemy.IsLedgeBlocking(currentEnemy.faceDir.x)
             || (currentEnemy.physicsCheck.touchLeftWall && currentEnemy.faceDir.x < 0)
             || (currentEnemy.physicsCheck.touchRightWall && currentEnemy.faceDir.x > 0))
         {

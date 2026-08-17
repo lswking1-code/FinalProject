@@ -171,6 +171,9 @@ public class CameraControl : MonoBehaviour
                 state.GetFinalPosition(),
                 state.GetFinalOrientation());
         }
+
+        // 视差在场景 OnEnable 时可能已相对旧相机采基线；Snap 后再校准
+        ParallaxLayer.RecalibrateAllToCamera();
     }
 
     private void OnAfterSceneLoadEvent()

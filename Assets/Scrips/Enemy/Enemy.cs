@@ -372,11 +372,18 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 按当前朝向与速度移动
+    /// 按当前朝向与速度移动；贴地且前方无地面时停步，避免自动巡逻坠崖。
     /// </summary>
     public virtual void Move()
     {
-        rb.linearVelocity = new Vector2(currentSpeed * faceDir.x * Time.deltaTime, rb.linearVelocity.y);
+        float dir = faceDir.x;
+        if (!Mathf.Approximately(dir, 0f) && IsLedgeBlocking(dir))
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(currentSpeed * dir * Time.deltaTime, rb.linearVelocity.y);
     }
 
     /// <summary>
@@ -475,6 +482,19 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// 贴地移动时前方是否为悬崖（空中不拦截，避免打断跳跃）。
+    /// </summary>
+    public bool IsLedgeBlocking(float moveDir)
+    {
+        if (physicsCheck == null || !IsPhysicsCheckConfigured())
+            return false;
+        if (Mathf.Approximately(moveDir, 0f) || !physicsCheck.isGround)
+            return false;
+
+        return !physicsCheck.HasGroundAhead(moveDir);
+    }
+
+    /// <summary>
     /// 遇墙壁或平台边缘时转身。仅因悬崖且反方向也无地面时不转身，避免边缘抖动。
     /// </summary>
     public bool TryFlipOnObstacleOrLedge(float moveDir)
@@ -533,6 +553,13 @@ public class Enemy : MonoBehaviour
     {
         if (rb == null)
             return;
+
+        // 追击 / 回位 / 走位共用：贴地且前方无地面则清零水平速度，防止坠崖
+        if (!Mathf.Approximately(direction, 0f) && IsLedgeBlocking(direction))
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
 
         rb.linearVelocity = new Vector2(currentSpeed * direction, rb.linearVelocity.y);
     }

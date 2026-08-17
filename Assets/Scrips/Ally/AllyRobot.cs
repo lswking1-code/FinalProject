@@ -453,7 +453,7 @@ public class AllyRobot : MonoBehaviour
             {
                 movingHorizontally = true;
                 moveDir = attackLungeFaceDir;
-                ApplyHorizontalMove(moveDir, attackLungeSpeed);
+                ApplyHorizontalMove(moveDir, attackLungeSpeed, respectLedge: false);
             }
         }
 
@@ -462,16 +462,16 @@ public class AllyRobot : MonoBehaviour
             switch (currentState)
             {
                 case AllyState.Chase:
-                    movingHorizontally = TryGetChaseMoveDir(out moveDir);
-                    if (movingHorizontally)
-                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    if (TryGetChaseMoveDir(out moveDir)
+                        && ApplyHorizontalMove(moveDir, moveSpeed))
+                        movingHorizontally = true;
                     else
                         StopMoving();
                     break;
                 case AllyState.Return:
-                    movingHorizontally = TryGetHomeMoveDir(arriveThreshold, out moveDir);
-                    if (movingHorizontally)
-                        ApplyHorizontalMove(moveDir, moveSpeed);
+                    if (TryGetHomeMoveDir(arriveThreshold, out moveDir)
+                        && ApplyHorizontalMove(moveDir, moveSpeed))
+                        movingHorizontally = true;
                     else
                         StopMoving();
                     break;
@@ -481,21 +481,22 @@ public class AllyRobot : MonoBehaviour
                         movingHorizontally = Mathf.Abs(rb.linearVelocity.x) > 0.01f;
                         moveDir = Mathf.Sign(rb.linearVelocity.x);
                     }
+                    else if (TryGetChaseMoveDir(out moveDir)
+                        && ApplyHorizontalMove(moveDir, dashSpeed))
+                    {
+                        movingHorizontally = true;
+                    }
                     else
                     {
-                        movingHorizontally = TryGetChaseMoveDir(out moveDir);
-                        if (movingHorizontally)
-                            ApplyHorizontalMove(moveDir, dashSpeed);
-                        else
-                            StopMoving();
+                        StopMoving();
                     }
                     break;
                 case AllyState.Idle:
-                    if (idleFollowing)
+                    if (idleFollowing
+                        && ApplyHorizontalMove(idleFollowDir, moveSpeed))
                     {
                         movingHorizontally = true;
                         moveDir = idleFollowDir;
-                        ApplyHorizontalMove(moveDir, moveSpeed);
                     }
                     else if (airPhase == RobotAirPhase.Ground)
                     {
@@ -504,10 +505,10 @@ public class AllyRobot : MonoBehaviour
                     break;
                 case AllyState.ManualMove:
                     if (!pendingStationOnLand
-                        && TryGetManualMoveDir(out moveDir))
+                        && TryGetManualMoveDir(out moveDir)
+                        && ApplyHorizontalMove(moveDir, moveSpeed, respectLedge: false))
                     {
                         movingHorizontally = true;
-                        ApplyHorizontalMove(moveDir, moveSpeed);
                     }
                     else if (airPhase == RobotAirPhase.Ground)
                     {
@@ -1918,12 +1919,32 @@ public class AllyRobot : MonoBehaviour
         return !Mathf.Approximately(dir, 0f);
     }
 
-    void ApplyHorizontalMove(float dir, float speed)
+    /// <summary>
+    /// 贴地 AI 移动时前方是否为悬崖；空中不拦截。
+    /// </summary>
+    bool IsLedgeBlocking(float dir)
+    {
+        if (physicsCheck == null || airPhase != RobotAirPhase.Ground)
+            return false;
+        if (Mathf.Approximately(dir, 0f) || !physicsCheck.isGround)
+            return false;
+
+        return !physicsCheck.HasGroundAhead(dir);
+    }
+
+    /// <returns>true 表示已施加水平速度；遇边缘停步时返回 false。</returns>
+    bool ApplyHorizontalMove(float dir, float speed, bool respectLedge = true)
     {
         if (Mathf.Approximately(dir, 0f))
         {
             StopMoving();
-            return;
+            return false;
+        }
+
+        if (respectLedge && IsLedgeBlocking(dir))
+        {
+            StopMoving();
+            return false;
         }
 
         if (IsOnWalkableSlope)
@@ -1932,10 +1953,11 @@ public class AllyRobot : MonoBehaviour
             if (Mathf.Sign(tangent.x) != Mathf.Sign(dir))
                 tangent = -tangent;
             rb.linearVelocity = tangent * speed;
-            return;
+            return true;
         }
 
         rb.linearVelocity = new Vector2(speed * dir, rb.linearVelocity.y);
+        return true;
     }
 
     /// <summary>
