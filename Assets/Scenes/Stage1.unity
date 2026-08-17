@@ -600,6 +600,14 @@ PrefabInstance:
       propertyPath: isPatrol
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: ammoDropPrefab
+      value: 
+      objectReference: {fileID: 8601159937776506679, guid: b8d4f02c9e65c015b2c1ad9d3f3905ae, type: 3}
+    - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: dropAmmoOnDeath
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_Name
       value: EnemyShield (6)

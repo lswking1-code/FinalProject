@@ -255,6 +255,9 @@ MonoBehaviour:
   - {fileID: 2100000000000000033}
   lampOnColor: {r: 0.35, g: 0.75, b: 1, a: 1}
   lampOffColor: {r: 0.25, g: 0.25, b: 0.25, a: 1}
+  playerArriveRadius: 5
+  playerTag: Player
+  detectOrigin: {fileID: 0}
   onActivated:
     m_PersistentCalls:
       m_Calls: []
@@ -262,9 +265,6 @@ MonoBehaviour:
   sfxSource: {fileID: 2100000000000000005}
   activateClip: {fileID: 0}
   activateVolume: 0.8
-  playerArriveRadius: 5
-  playerTag: Player
-  detectOrigin: {fileID: 0}
 --- !u!1 &2100000000000000011
 GameObject:
   m_ObjectHideFlags: 0

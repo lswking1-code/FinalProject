@@ -694,7 +694,7 @@ public class EnemyGenerate : MonoBehaviour
         // 组件级默认点（青绿）
         if (spawnPoints == null || spawnPoints.Length == 0)
         {
-            DrawSpawnMarker(transform.position, new Color(0.2f, 0.95f, 0.85f, 1f), 0.28f);
+            DrawSpawnMarker(transform.position, new Color(0.2f, 0.95f, 0.85f, 1f), 0.28f, name);
         }
         else
         {
@@ -702,55 +702,113 @@ public class EnemyGenerate : MonoBehaviour
             {
                 if (spawnPoints[i] == null)
                     continue;
-                DrawSpawnMarker(spawnPoints[i].position, new Color(0.2f, 0.95f, 0.85f, 1f), 0.28f);
+                DrawSpawnMarker(
+                    spawnPoints[i].position,
+                    new Color(0.2f, 0.95f, 0.85f, 1f),
+                    0.28f,
+                    spawnPoints[i].name);
             }
         }
 
+        if (waves != null)
+        {
+            for (int w = 0; w < waves.Length; w++)
+            {
+                var wave = waves[w];
+                if (wave == null)
+                    continue;
+
+                Color waveColor = Color.HSVToRGB((w * 0.17f) % 1f, 0.85f, 1f);
+                waveColor.a = 1f;
+
+                if (wave.spawnPoints != null)
+                {
+                    for (int i = 0; i < wave.spawnPoints.Length; i++)
+                    {
+                        if (wave.spawnPoints[i] == null)
+                            continue;
+                        DrawSpawnMarker(wave.spawnPoints[i].position, waveColor, 0.24f, wave.spawnPoints[i].name);
+                    }
+                }
+
+                if (wave.enemies == null)
+                    continue;
+
+                for (int e = 0; e < wave.enemies.Length; e++)
+                {
+                    var entry = wave.enemies[e];
+                    if (entry == null || entry.spawnPoints == null)
+                        continue;
+
+                    Color entryColor = entry.infiniteRefresh
+                        ? new Color(1f, 0.55f, 0.15f, 1f)
+                        : Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
+                    for (int i = 0; i < entry.spawnPoints.Length; i++)
+                    {
+                        if (entry.spawnPoints[i] == null)
+                            continue;
+                        DrawSpawnMarker(entry.spawnPoints[i].position, entryColor, 0.2f, entry.spawnPoints[i].name);
+                    }
+                }
+            }
+        }
+
+        // 子物体刷怪点：即使还没挂到 spawnPoints（如 Stage2 的 Point3）也画出位置
+        DrawUnassignedChildSpawnPoints();
+    }
+
+    void DrawUnassignedChildSpawnPoints()
+    {
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform child = transform.GetChild(i);
+            if (child == null || IsAssignedSpawnPoint(child))
+                continue;
+
+            DrawSpawnMarker(child.position, new Color(1f, 0.85f, 0.2f, 1f), 0.28f, child.name);
+        }
+    }
+
+    bool IsAssignedSpawnPoint(Transform point)
+    {
+        if (ContainsSpawnPoint(spawnPoints, point))
+            return true;
+
         if (waves == null)
-            return;
+            return false;
 
         for (int w = 0; w < waves.Length; w++)
         {
             var wave = waves[w];
             if (wave == null)
                 continue;
-
-            Color waveColor = Color.HSVToRGB((w * 0.17f) % 1f, 0.85f, 1f);
-            waveColor.a = 1f;
-
-            if (wave.spawnPoints != null)
-            {
-                for (int i = 0; i < wave.spawnPoints.Length; i++)
-                {
-                    if (wave.spawnPoints[i] == null)
-                        continue;
-                    DrawSpawnMarker(wave.spawnPoints[i].position, waveColor, 0.24f);
-                }
-            }
-
+            if (ContainsSpawnPoint(wave.spawnPoints, point))
+                return true;
             if (wave.enemies == null)
                 continue;
-
             for (int e = 0; e < wave.enemies.Length; e++)
             {
-                var entry = wave.enemies[e];
-                if (entry == null || entry.spawnPoints == null)
-                    continue;
-
-                Color entryColor = entry.infiniteRefresh
-                    ? new Color(1f, 0.55f, 0.15f, 1f)
-                    : Color.Lerp(waveColor, Color.white, 0.35f + (e * 0.1f) % 0.4f);
-                for (int i = 0; i < entry.spawnPoints.Length; i++)
-                {
-                    if (entry.spawnPoints[i] == null)
-                        continue;
-                    DrawSpawnMarker(entry.spawnPoints[i].position, entryColor, 0.2f);
-                }
+                if (wave.enemies[e] != null && ContainsSpawnPoint(wave.enemies[e].spawnPoints, point))
+                    return true;
             }
         }
+
+        return false;
     }
 
-    static void DrawSpawnMarker(Vector3 pos, Color color, float radius)
+    static bool ContainsSpawnPoint(Transform[] points, Transform point)
+    {
+        if (points == null || point == null)
+            return false;
+        for (int i = 0; i < points.Length; i++)
+        {
+            if (points[i] == point)
+                return true;
+        }
+        return false;
+    }
+
+    static void DrawSpawnMarker(Vector3 pos, Color color, float radius, string label = null)
     {
         // 半透明实心 + 线框，再加十字，未选中时也容易辨认
         Color fill = color;
@@ -764,6 +822,24 @@ public class EnemyGenerate : MonoBehaviour
         float arm = radius * 1.35f;
         Gizmos.DrawLine(pos + Vector3.left * arm, pos + Vector3.right * arm);
         Gizmos.DrawLine(pos + Vector3.up * arm, pos + Vector3.down * arm);
+
+        Gizmos.DrawIcon(pos, "sv_icon_dot3_pix16_gizmo", true);
+
+        if (!string.IsNullOrEmpty(label))
+            DrawSpawnLabel(pos, label, color);
+    }
+
+    static void DrawSpawnLabel(Vector3 pos, string text, Color color)
+    {
+#if UNITY_EDITOR
+        var style = new GUIStyle(UnityEditor.EditorStyles.boldLabel)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 11
+        };
+        style.normal.textColor = color;
+        UnityEditor.Handles.Label(pos + Vector3.up * 0.45f, text, style);
+#endif
     }
 
     /// <summary>
