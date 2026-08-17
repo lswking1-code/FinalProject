@@ -524,30 +524,34 @@ public class Enemy : MonoBehaviour
 
     /// <summary>
     /// 移动方向前方是否仍有地面；PhysicsCheck 未配置时视为有地面。
+    /// 单向平台上视为始终有地面，允许走下平台。
     /// </summary>
     public bool HasGroundAhead(float moveDir)
     {
         if (physicsCheck == null || !IsPhysicsCheckConfigured())
+            return true;
+        if (!physicsCheck.ShouldRespectLedge)
             return true;
 
         return physicsCheck.HasGroundAhead(moveDir);
     }
 
     /// <summary>
-    /// 贴地移动时前方是否为悬崖（空中不拦截，避免打断跳跃）。
+    /// 贴地移动时前方是否为悬崖（空中与单向平台上不拦截，平台上可走下去）。
     /// </summary>
     public bool IsLedgeBlocking(float moveDir)
     {
         if (physicsCheck == null || !IsPhysicsCheckConfigured())
             return false;
-        if (Mathf.Approximately(moveDir, 0f) || !physicsCheck.isGround)
+        if (Mathf.Approximately(moveDir, 0f) || !physicsCheck.ShouldRespectLedge)
             return false;
 
         return !physicsCheck.HasGroundAhead(moveDir);
     }
 
     /// <summary>
-    /// 遇墙壁或平台边缘时转身。仅因悬崖且反方向也无地面时不转身，避免边缘抖动。
+    /// 遇墙壁或实心地面边缘时转身。单向平台上不因边缘转身。
+    /// 仅因悬崖且反方向也无地面时不转身，避免边缘抖动。
     /// </summary>
     public bool TryFlipOnObstacleOrLedge(float moveDir)
     {

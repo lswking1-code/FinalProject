@@ -629,8 +629,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 0}
-  maxHealth: 40
-  currentHealth: 40
+  maxHealth: 30
+  currentHealth: 30
   maxPower: 0
   currentPower: 0
   powerRecoverSpeed: 0
@@ -704,6 +704,7 @@ MonoBehaviour:
     m_Bits: 64
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0

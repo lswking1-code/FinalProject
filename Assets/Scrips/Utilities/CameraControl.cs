@@ -11,9 +11,11 @@ public class CameraControl : MonoBehaviour
     [Header("事件监听")]
     public VoidEventSO afterSceneLoadEvent;
 
-    [Header("Bounds 切换平滑")]
-    [Tooltip("切换相机边界时的过渡时长（秒）")]
-    [SerializeField] float boundsTransitionDuration = 0.85f;
+    [Header("镜头过渡")]
+    [Tooltip("切换相机边界 / Orthographic Size 时的过渡时长（秒）")]
+    [SerializeField] float boundsTransitionDuration = 1f;
+    [Tooltip("过渡缓动，默认 EaseInOut")]
+    [SerializeField] AnimationCurve boundsTransitionCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [Tooltip("过渡期间 Confiner 阻尼，越大拉得越慢、越柔")]
     [SerializeField] float boundsTransitionDamping = 2f;
     [Tooltip("过渡期间 Confiner 减速距离")]
@@ -42,6 +44,9 @@ public class CameraControl : MonoBehaviour
     float cachedConfinerSlowingDistance;
     Vector3 cachedComposerDamping;
     bool hasCachedConfinerSettings;
+    float defaultOrthographicSize;
+    bool hasCachedDefaultOrthographicSize;
+    BoxCollider2D transitionBoundsCollider;
 
     private void Awake()
     {
@@ -49,6 +54,7 @@ public class CameraControl : MonoBehaviour
         confiner2D = GetComponent<CinemachineConfiner2D>();
         EnsurePositionComposer();
         CacheConfinerDefaults();
+        CacheDefaultOrthographicSize();
     }
 
     private void OnEnable()
@@ -78,6 +84,12 @@ public class CameraControl : MonoBehaviour
 
         StopBoundsTransition(restoreSettings: true);
         StopParallaxAlignRoutine();
+    }
+
+    void OnDestroy()
+    {
+        if (transitionBoundsCollider != null)
+            Destroy(transitionBoundsCollider.gameObject);
     }
 
     private void EnsurePositionComposer()
@@ -145,7 +157,7 @@ public class CameraControl : MonoBehaviour
         ScheduleParallaxAlignAfterCameraSettles();
     }
 
-    void SnapCameraToFollowTargetImmediate()
+    void SnapCameraToFollowTargetImmediate(bool recalibrateParallax = false)
     {
         if (airborneYLock == null)
             airborneYLock = GetComponent<CameraAirborneYLock>();
@@ -196,12 +208,15 @@ public class CameraControl : MonoBehaviour
         // deltaTime < 0 会跳过阻尼，且不受“本帧已更新”限制
         cinemachineCamera.UpdateCameraState(worldUp, -1f);
 
+        var snappedState = cinemachineCamera.State;
+        Vector3 snappedPos = snappedState.GetFinalPosition();
+        Quaternion snappedRot = snappedState.GetFinalOrientation();
+        // 把 Composer 内部上一帧位置一并拽过来，避免随后 LateUpdate 从坑底阻尼回来
+        cinemachineCamera.ForceCameraPosition(snappedPos, snappedRot);
+
         if (brain != null && brain.OutputCamera != null)
         {
-            var state = cinemachineCamera.State;
-            brain.OutputCamera.transform.SetPositionAndRotation(
-                state.GetFinalPosition(),
-                state.GetFinalOrientation());
+            brain.OutputCamera.transform.SetPositionAndRotation(snappedPos, snappedRot);
         }
 
         if (restoreConfiner)
@@ -213,8 +228,8 @@ public class CameraControl : MonoBehaviour
         if (restoreComposer)
             positionComposer.Damping = prevComposerDamping;
 
-        // 视差在场景 OnEnable 时可能已相对旧相机采基线；Snap 后再校准
-        ParallaxLayer.RecalibrateAllToCamera();
+        if (recalibrateParallax)
+            ParallaxLayer.RecalibrateAllToCamera();
     }
 
     void ScheduleParallaxAlignAfterCameraSettles()
@@ -237,11 +252,15 @@ public class CameraControl : MonoBehaviour
 
     IEnumerator ParallaxAlignAfterCameraSettlesRoutine()
     {
-        // Confiner 缓存 / Brain LateUpdate 可能要到后续帧才真正落到玩家
-        yield return null;
-        SnapCameraToFollowTargetImmediate();
-        yield return null;
-        SnapCameraToFollowTargetImmediate();
+        // 先只把镜头钉住，不要每帧 Recalibrate：那会把背景锁在原点，视差彻底停住。
+        const int snapFrames = 8;
+        for (int i = 0; i < snapFrames; i++)
+        {
+            SnapCameraToFollowTargetImmediate(recalibrateParallax: false);
+            yield return null;
+        }
+
+        SnapCameraToFollowTargetImmediate(recalibrateParallax: true);
         parallaxAlignRoutine = null;
     }
 
@@ -278,6 +297,7 @@ public class CameraControl : MonoBehaviour
 
     /// <summary>
     /// 将相机限制切换到指定碰撞体形状（如遭遇战区域 Bounds），默认平滑过渡。
+    /// 不覆盖 Orthographic Size 时插值回默认 Size。
     /// </summary>
     public void SetCameraBounds(Collider2D shape)
     {
@@ -286,21 +306,32 @@ public class CameraControl : MonoBehaviour
 
     public void SetCameraBounds(Collider2D shape, bool smooth)
     {
+        SetCameraBounds(shape, smooth, overrideOrthographicSize: false, orthographicSize: 0f);
+    }
+
+    public void SetCameraBounds(Collider2D shape, bool smooth, bool overrideOrthographicSize, float orthographicSize)
+    {
         if (confiner2D == null || shape == null)
             return;
 
+        if (!hasCachedDefaultOrthographicSize)
+            CacheDefaultOrthographicSize();
+
+        float targetSize = overrideOrthographicSize
+            ? Mathf.Max(0.01f, orthographicSize)
+            : GetDefaultOrthographicSize();
+
         if (!smooth)
         {
-            StopBoundsTransition(restoreSettings: true);
-            ApplyBoundingShape(shape);
+            ApplyCameraBoundsImmediate(shape, targetSize);
             return;
         }
 
-        StartBoundsTransition(shape);
+        StartBoundsTransition(shape, targetSize);
     }
 
     /// <summary>
-    /// 恢复为场景级 tag 为 Bounds 的相机边界，默认平滑过渡。
+    /// 恢复为场景级 tag 为 Bounds 的相机边界，并回到默认 Orthographic Size。
     /// </summary>
     public void RestoreCameraBounds()
     {
@@ -314,24 +345,22 @@ public class CameraControl : MonoBehaviour
 
     private void GetNewCameraBounds(bool smooth)
     {
-        if (confiner2D == null)
-            return;
-
         var obj = GameObject.FindGameObjectWithTag("Bounds");
-        if (obj == null)
-            return;
-
-        var shape = obj.GetComponent<Collider2D>();
+        var shape = obj != null ? obj.GetComponent<Collider2D>() : null;
         if (shape == null)
+        {
+            if (!smooth)
+                SetOrthographicSize(GetDefaultOrthographicSize());
             return;
+        }
 
-        SetCameraBounds(shape, smooth);
+        SetCameraBounds(shape, smooth, overrideOrthographicSize: false, orthographicSize: 0f);
     }
 
-    void StartBoundsTransition(Collider2D shape)
+    void StartBoundsTransition(Collider2D shape, float targetSize)
     {
         StopBoundsTransition(restoreSettings: false);
-        boundsTransitionRoutine = StartCoroutine(BoundsTransitionRoutine(shape));
+        boundsTransitionRoutine = StartCoroutine(BoundsTransitionRoutine(shape, targetSize));
     }
 
     void StopBoundsTransition(bool restoreSettings)
@@ -343,28 +372,225 @@ public class CameraControl : MonoBehaviour
         }
 
         if (restoreSettings)
+        {
             RestoreTransitionSettings();
+            DisableTransitionBoundsCollider();
+        }
     }
 
-    IEnumerator BoundsTransitionRoutine(Collider2D shape)
+    void ApplyCameraBoundsImmediate(Collider2D shape, float targetSize)
+    {
+        StopBoundsTransition(restoreSettings: true);
+        SetOrthographicSize(targetSize);
+        ApplyBoundingShape(shape);
+    }
+
+    IEnumerator BoundsTransitionRoutine(Collider2D shape, float targetSize)
     {
         if (!hasCachedConfinerSettings)
             CacheConfinerDefaults();
 
+        Bounds startBounds = GetTransitionStartBounds();
+        Bounds endBounds = shape.bounds;
+        float startSize = GetCurrentOrthographicSize();
+
         ApplyTransitionSettings();
-        ApplyBoundingShape(shape);
+        ApplyTransitionBounds(startBounds);
+        ApplyBoundingShape(transitionBoundsCollider);
+        SetOrthographicSize(startSize);
 
         float duration = Mathf.Max(0.01f, boundsTransitionDuration);
-        yield return new WaitForSeconds(duration);
+        float elapsed = 0f;
 
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = EvaluateTransition(elapsed / duration);
+            ApplyTransitionBounds(LerpBounds(startBounds, endBounds, t));
+            SetOrthographicSize(Mathf.Lerp(startSize, targetSize, t));
+            if (confiner2D != null)
+                confiner2D.InvalidateBoundingShapeCache();
+            yield return null;
+        }
+
+        SetOrthographicSize(targetSize);
+        ApplyBoundingShape(shape);
+        DisableTransitionBoundsCollider();
         RestoreTransitionSettings();
         boundsTransitionRoutine = null;
     }
 
     void ApplyBoundingShape(Collider2D shape)
     {
+        if (confiner2D == null || shape == null)
+            return;
+
         confiner2D.BoundingShape2D = shape;
         confiner2D.InvalidateBoundingShapeCache();
+    }
+
+    void CacheDefaultOrthographicSize()
+    {
+        if (cinemachineCamera == null)
+            return;
+
+        defaultOrthographicSize = Mathf.Max(0.01f, cinemachineCamera.Lens.OrthographicSize);
+        hasCachedDefaultOrthographicSize = true;
+    }
+
+    float GetDefaultOrthographicSize()
+    {
+        if (!hasCachedDefaultOrthographicSize)
+            CacheDefaultOrthographicSize();
+        return hasCachedDefaultOrthographicSize
+            ? defaultOrthographicSize
+            : GetCurrentOrthographicSize();
+    }
+
+    float GetCurrentOrthographicSize()
+    {
+        if (cinemachineCamera != null)
+            return cinemachineCamera.Lens.OrthographicSize;
+
+        Camera output = GetOutputCamera();
+        if (output != null)
+            return output.orthographicSize;
+
+        return hasCachedDefaultOrthographicSize ? defaultOrthographicSize : 1f;
+    }
+
+    void SetOrthographicSize(float size)
+    {
+        size = Mathf.Max(0.01f, size);
+
+        if (cinemachineCamera != null)
+        {
+            var lens = cinemachineCamera.Lens;
+            lens.OrthographicSize = size;
+            cinemachineCamera.Lens = lens;
+        }
+
+        Camera output = GetOutputCamera();
+        if (output != null)
+            output.orthographicSize = size;
+    }
+
+    Camera GetOutputCamera()
+    {
+        if (CinemachineBrain.ActiveBrainCount <= 0)
+            return null;
+
+        CinemachineBrain brain = CinemachineBrain.GetActiveBrain(0);
+        return brain != null ? brain.OutputCamera : null;
+    }
+
+    Bounds GetTransitionStartBounds()
+    {
+        if (IsUsingTransitionBounds())
+            return transitionBoundsCollider.bounds;
+
+        return GetCurrentCameraWorldBounds();
+    }
+
+    bool IsUsingTransitionBounds()
+    {
+        return transitionBoundsCollider != null
+            && transitionBoundsCollider.gameObject.activeSelf
+            && confiner2D != null
+            && confiner2D.BoundingShape2D == transitionBoundsCollider;
+    }
+
+    Bounds GetCurrentCameraWorldBounds()
+    {
+        float ortho = GetCurrentOrthographicSize();
+        float height = ortho * 2f;
+        float aspect = GetCameraAspect();
+        Vector3 center = GetCameraWorldPosition();
+        return new Bounds(
+            new Vector3(center.x, center.y, 0f),
+            new Vector3(height * aspect, height, 1f));
+    }
+
+    Vector3 GetCameraWorldPosition()
+    {
+        Camera output = GetOutputCamera();
+        if (output != null)
+            return output.transform.position;
+
+        if (cinemachineCamera != null)
+            return cinemachineCamera.State.GetFinalPosition();
+
+        return transform.position;
+    }
+
+    float GetCameraAspect()
+    {
+        Camera output = GetOutputCamera();
+        if (output != null && output.aspect > 0.01f)
+            return output.aspect;
+
+        return Screen.height > 0 ? (float)Screen.width / Screen.height : 16f / 9f;
+    }
+
+    void EnsureTransitionBoundsCollider()
+    {
+        if (transitionBoundsCollider != null)
+            return;
+
+        var go = new GameObject("CameraBoundsTransition");
+        go.hideFlags = HideFlags.HideAndDontSave;
+        go.layer = 2;
+        if (gameObject.scene.IsValid())
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, gameObject.scene);
+
+        transitionBoundsCollider = go.AddComponent<BoxCollider2D>();
+        transitionBoundsCollider.isTrigger = true;
+        go.SetActive(false);
+    }
+
+    void ApplyTransitionBounds(Bounds worldBounds)
+    {
+        EnsureTransitionBoundsCollider();
+
+        var boxTransform = transitionBoundsCollider.transform;
+        boxTransform.SetPositionAndRotation(
+            new Vector3(worldBounds.center.x, worldBounds.center.y, 0f),
+            Quaternion.identity);
+        boxTransform.localScale = Vector3.one;
+
+        transitionBoundsCollider.offset = Vector2.zero;
+        transitionBoundsCollider.size = new Vector2(
+            Mathf.Max(0.01f, worldBounds.size.x),
+            Mathf.Max(0.01f, worldBounds.size.y));
+
+        if (!transitionBoundsCollider.gameObject.activeSelf)
+            transitionBoundsCollider.gameObject.SetActive(true);
+    }
+
+    void DisableTransitionBoundsCollider()
+    {
+        if (transitionBoundsCollider == null)
+            return;
+
+        if (confiner2D != null && confiner2D.BoundingShape2D == transitionBoundsCollider)
+            confiner2D.BoundingShape2D = null;
+
+        transitionBoundsCollider.gameObject.SetActive(false);
+    }
+
+    static Bounds LerpBounds(Bounds from, Bounds to, float t)
+    {
+        return new Bounds(
+            Vector3.Lerp(from.center, to.center, t),
+            Vector3.Lerp(from.size, to.size, t));
+    }
+
+    float EvaluateTransition(float normalizedTime)
+    {
+        float t = Mathf.Clamp01(normalizedTime);
+        if (boundsTransitionCurve == null || boundsTransitionCurve.length == 0)
+            return t;
+        return Mathf.Clamp01(boundsTransitionCurve.Evaluate(t));
     }
 
     void ApplyTransitionSettings()

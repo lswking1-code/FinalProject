@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 近战敌人随机移动状态：持续 actionDuration 秒，在 idealRange 附近走位。
-/// 过近时优先远离玩家；朝向与移动方向同步，并在墙体 / 平台边缘处转身。
+/// 过近时优先远离玩家；朝向与移动方向同步，并在墙体 / 实心地面边缘处转身。
 /// </summary>
 public class MeleeMoveState : BaseState
 {

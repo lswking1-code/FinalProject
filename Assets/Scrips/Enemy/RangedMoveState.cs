@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 远程敌人随机移动状态：持续 actionDuration 秒，随机水平走位。
-/// 朝向与移动方向同步，并在墙体 / 平台边缘处转身，避免倒着走出平台。
+/// 朝向与移动方向同步，并在墙体 / 实心地面边缘处转身；单向平台上可走下去。
 /// </summary>
 public class RangedMoveState : BaseState
 {

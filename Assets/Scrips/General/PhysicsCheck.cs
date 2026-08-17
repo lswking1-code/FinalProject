@@ -28,15 +28,24 @@ public class PhysicsCheck : MonoBehaviour
     public bool isGround;
     [Tooltip("当前帧脚下真实接触地面（不含土狼跳缓冲）")]
     public bool isSolidGround;
+    [Tooltip("脚下主要接触单向/Platform 层平台（非斜坡）。平台上不做贴边拦截，可走下去。")]
+    public bool isOnPlatform;
     public bool touchLeftWall;
     public bool touchRightWall;
     public bool onWall;
     public Vector2 groundNormal = Vector2.up;
     public bool isOnSlope;
 
+    /// <summary>
+    /// 仅在实心地面上做边缘拦截；空中或单向平台上应允许走下去。
+    /// </summary>
+    public bool ShouldRespectLedge => isGround && !isOnPlatform;
+
     bool collisionTouchLeft;
     bool collisionTouchRight;
     bool collisionGround;
+    bool collisionOnSolidGround;
+    bool collisionOnPlatform;
     Vector2 collisionGroundNormal;
     bool wasOnSlope;
     Vector2 lastGroundNormal;
@@ -211,6 +220,10 @@ public class PhysicsCheck : MonoBehaviour
             {
                 collisionGround = true;
                 collisionGroundNormal = contact.normal;
+                if (IsSolidGroundSurface(collision.collider))
+                    collisionOnSolidGround = true;
+                else if (IsDropOffPlatform(collision.collider))
+                    collisionOnPlatform = true;
             }
 
             // 仅将接近竖直的法线视为墙体，避免斜坡接触误判为侧墙
@@ -290,6 +303,44 @@ public class PhysicsCheck : MonoBehaviour
             effector = hit.GetComponentInParent<PlatformEffector2D>();
 
         return effector != null && effector.enabled && effector.useOneWay;
+    }
+
+    void UpdateOnPlatform(bool rawGround, bool rayGround, RaycastHit2D groundHit)
+    {
+        if (rawGround)
+        {
+            bool rayOnSolid = rayGround && IsSolidGroundSurface(groundHit.collider);
+            bool rayOnPlatform = rayGround && IsDropOffPlatform(groundHit.collider);
+            bool onSolid = collisionOnSolidGround || rayOnSolid;
+            isOnPlatform = !onSolid && (collisionOnPlatform || rayOnPlatform);
+            return;
+        }
+
+        if (!isGround)
+            isOnPlatform = false;
+    }
+
+    bool IsSolidGroundSurface(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        if (IsSlopeSurfaceHit(col))
+            return true;
+
+        int ground = LayerMask.NameToLayer("Ground");
+        return ground >= 0 && col.gameObject.layer == ground;
+    }
+
+    bool IsDropOffPlatform(Collider2D col)
+    {
+        if (col == null || IsSlopeSurfaceHit(col))
+            return false;
+
+        int platform = LayerMask.NameToLayer("Platform");
+        if (platform >= 0 && col.gameObject.layer == platform)
+            return true;
+
+        return IsOneWayPlatformCollider(col);
     }
 
     bool CheckSideOverlap(float direction)
@@ -403,6 +454,7 @@ public class PhysicsCheck : MonoBehaviour
 
         isSolidGround = rawGround;
         isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
+        UpdateOnPlatform(rawGround, rayGround, groundHit);
         TryNotifyElectrifiedPlatform(groundOrigin);
         if (isGround && !rawGround)
             groundNormal = lastGroundNormal;
@@ -421,6 +473,8 @@ public class PhysicsCheck : MonoBehaviour
         if (!isPlayer || Time.inFixedTimeStep)
         {
             collisionGround = false;
+            collisionOnSolidGround = false;
+            collisionOnPlatform = false;
             collisionTouchLeft = false;
             collisionTouchRight = false;
         }

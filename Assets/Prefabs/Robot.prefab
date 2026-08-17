@@ -103,11 +103,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
@@ -271,11 +273,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
@@ -645,11 +649,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
   knockbackForce: 4
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
@@ -756,11 +762,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
@@ -868,11 +876,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
   knockbackForce: 3
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.2
@@ -979,11 +989,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.2
@@ -1317,6 +1329,7 @@ MonoBehaviour:
     m_Bits: 4160
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
@@ -1442,11 +1455,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.2
@@ -1751,11 +1766,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 1
   knockbackForce: 4
   knockbackDuration: 0.25
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.2

@@ -154,7 +154,6 @@ public class CameraAirborneYLock : MonoBehaviour
         playerTransform = null;
         ResolveRefs();
         SnapAnchorToPlayer(unlockY: true);
-        hasGroundSample = false;
     }
 
     void LateUpdate()
@@ -355,7 +354,9 @@ public class CameraAirborneYLock : MonoBehaviour
         ClearLandSettle();
         if (unlockY)
             ySoftTracking = false;
-        wasSolidGround = IsSolidForCameraY();
+        // 坠崖后 PhysicsCheck 可能仍是空中态；读档 Snap 时按落地处理，避免锚点继续弱跟坑底
+        wasSolidGround = true;
+        hasGroundSample = true;
     }
 
     void EnsureFollowAnchor()

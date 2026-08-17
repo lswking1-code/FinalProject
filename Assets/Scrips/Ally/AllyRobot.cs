@@ -1948,13 +1948,13 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 贴地 AI 移动时前方是否为悬崖；空中不拦截。
+    /// 贴地 AI 移动时前方是否为悬崖；空中与单向平台上不拦截，平台上可走下去。
     /// </summary>
     bool IsLedgeBlocking(float dir)
     {
         if (physicsCheck == null || airPhase != RobotAirPhase.Ground)
             return false;
-        if (Mathf.Approximately(dir, 0f) || !physicsCheck.isGround)
+        if (Mathf.Approximately(dir, 0f) || !physicsCheck.ShouldRespectLedge)
             return false;
 
         return !physicsCheck.HasGroundAhead(dir);

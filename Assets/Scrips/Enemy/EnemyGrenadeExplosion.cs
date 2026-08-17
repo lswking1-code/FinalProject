@@ -1,13 +1,13 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CircleCollider2D))]
-[RequireComponent(typeof(Attack))]
+/// <summary>
+/// 敌人手雷爆炸特效：播放 GrenadeExplosion 动画，结束后自毁。
+/// 伤害由同物体上的 Attack 负责，由动画手动开关。
+/// </summary>
 [RequireComponent(typeof(Animator))]
 public class EnemyGrenadeExplosion : MonoBehaviour
 {
     const string ExplosionStateName = "GrenadeExplosion";
-
-    [SerializeField] int damage = 40;
 
     Animator animator;
     bool isFinishing;
@@ -15,11 +15,6 @@ public class EnemyGrenadeExplosion : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-
-        var attack = GetComponent<Attack>();
-        attack.damage = damage;
-        attack.attackType = AttackType.Melee;
-        attack.requireTag = "Player";
     }
 
     void Start()

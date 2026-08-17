@@ -391,6 +391,12 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     private IEnumerator UnLoadPreviousScene()
     {
+        if (playerTrans != null)
+        {
+            playerTrans.position = positionToGo;
+            cameraControl?.SnapCameraToFollowTarget();
+        }
+
         if (fadeScreen)
         {
             fadeEvent.FadeIn(fadeDuration);
@@ -495,6 +501,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             positionToGo = data.characterPosDict[playerID].ToVector3();
             sceneToLoad = data.GetSavedScene();
+
+            // Character 可能已瞬移，也可能还没轮到；先放到存档点并 Snap。
+            // 否则坠崖读档会先淡出 0.5s，镜头仍停在坑底，视差采到错误基线。
+            playerTrans.position = positionToGo;
+            cameraControl?.SnapCameraToFollowTarget();
 
             OnLoadRequestEvent(sceneToLoad, positionToGo, true);
         }

@@ -26,7 +26,8 @@ public class ParallaxLayer : MonoBehaviour
     bool hasOrigin;
     bool hasBaseline;
     bool hasLastCamPos;
-    static int s_recalibrateUntilFrame = -1;
+    static Vector3 s_referenceCamPos;
+    static bool s_hasReferenceCamPos;
 
     void Awake()
     {
@@ -53,11 +54,10 @@ public class ParallaxLayer : MonoBehaviour
             return;
 
         Vector3 camPos = cam.transform.position;
-        bool pendingRecalibrate = Time.frameCount <= s_recalibrateUntilFrame;
         bool teleported = hasLastCamPos
             && (camPos - lastCamPos).sqrMagnitude
                 > CameraTeleportRecalibrateDistance * CameraTeleportRecalibrateDistance;
-        if (pendingRecalibrate || teleported)
+        if (teleported)
         {
             RecalibrateToCamera();
             return;
@@ -68,8 +68,8 @@ public class ParallaxLayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 相机 Snap 到玩家后调用：用场景原始坐标 + 当前相机位置重建基线，
-    /// 修复读档/切场景时 OnEnable 采到旧相机位置导致的背景错位。
+    /// 用场景原始坐标 + 关卡参考相机重建基线。
+    /// 参考相机是关卡摆放时的镜头原点，不能用读档后的当前相机。
     /// </summary>
     public void RecalibrateToCamera()
     {
@@ -88,18 +88,18 @@ public class ParallaxLayer : MonoBehaviour
             return;
         }
 
-        startCamPos = cam.transform.position;
+        RememberReferenceCamera(cam.transform.position);
+        startCamPos = s_referenceCamPos;
         hasBaseline = true;
-        RememberCameraPos(startCamPos);
+        RememberCameraPos(cam.transform.position);
         ApplyParallax(cam);
     }
 
     /// <summary>
-    /// 将场景内所有视差层对齐到当前相机（在相机 Snap 之后调用）。
+    /// 将场景内所有视差层对齐到参考相机（在相机 Snap 之后调用）。
     /// </summary>
     public static void RecalibrateAllToCamera()
     {
-        s_recalibrateUntilFrame = Time.frameCount + 2;
         var layers = Object.FindObjectsByType<ParallaxLayer>(FindObjectsSortMode.None);
         for (int i = 0; i < layers.Length; i++)
         {
@@ -116,7 +116,6 @@ public class ParallaxLayer : MonoBehaviour
             hasOrigin = true;
         }
 
-        // 优先用场景原始坐标，避免在已错位的 transform 上重复采基线
         startPos = originPos;
         Camera cam = ResolveCamera();
         if (cam == null)
@@ -125,9 +124,24 @@ public class ParallaxLayer : MonoBehaviour
             return;
         }
 
-        startCamPos = cam.transform.position;
+        RememberReferenceCamera(cam.transform.position);
+        startCamPos = s_referenceCamPos;
         hasBaseline = true;
-        RememberCameraPos(startCamPos);
+        RememberCameraPos(cam.transform.position);
+    }
+
+    static void RememberReferenceCamera(Vector3 camPos)
+    {
+        if (s_hasReferenceCamPos)
+            return;
+
+        // 关卡层按镜头约在 x=0 时摆放。读档/Continue 时镜头已在存档点，
+        // 若把当前相机当成原点，背景会钉回默认坐标并离开画面。
+        if (Mathf.Abs(camPos.x) > 8f)
+            camPos.x = 0f;
+
+        s_referenceCamPos = camPos;
+        s_hasReferenceCamPos = true;
     }
 
     void RememberCameraPos(Vector3 camPos)

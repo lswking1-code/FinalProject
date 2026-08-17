@@ -22,6 +22,12 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Tooltip("空气墙根节点，启用后阻挡玩家离开区域；敌人弹会命中销毁")]
     [SerializeField] GameObject airWallsRoot;
 
+    [Header("镜头")]
+    [Tooltip("勾选后进入本遭遇时覆盖相机 Orthographic Size（更大=看到更多世界）")]
+    [SerializeField] bool overrideOrthographicSize;
+    [Tooltip("仅在勾选覆盖时生效")]
+    [SerializeField] float encounterOrthographicSize = 8f;
+
     [Header("行为")]
     [SerializeField] bool triggerOnce = true;
     [SerializeField] bool autoEndWhenCleared = true;
@@ -162,7 +168,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         EnsureCameraControl();
         if (cameraControl != null && encounterBounds != null)
-            cameraControl.SetCameraBounds(encounterBounds);
+        {
+            cameraControl.SetCameraBounds(
+                encounterBounds,
+                smooth: true,
+                overrideOrthographicSize,
+                encounterOrthographicSize);
+        }
 
         // 机器人若未进入遭遇锁区，开战时收回，避免锁区外残留
         TryRecallRobotOutsideEncounter();
@@ -198,7 +210,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
     /// </summary>
     public void ApplyCompletedState(bool invokeEndedEvent)
     {
-<<<<<<< Updated upstream
         ApplyCompletedState(invokeEndedEvent, restoreBoundsSmooth: true);
     }
 
@@ -212,11 +223,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
         }
 
         // #region agent log
-        AgentDebugLog.Write914("C", "EncounterZone.cs:ApplyCompletedState", "ending encounter",
+        AgentDebugLog.Write("C", "EncounterZone.cs:ApplyCompletedState", "ending encounter",
             "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"wasActive\":" + (isActive ? "true" : "false") + ",\"alive\":" + aliveRegistered.Count + ",\"pending\":" + pendingSpawnSources + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + ",\"activeZones\":" + s_activeZones.Count + "}");
         // #endregion
-=======
->>>>>>> Stashed changes
         isActive = false;
         hasCompleted = true;
         pendingSpawnSources = 0;
