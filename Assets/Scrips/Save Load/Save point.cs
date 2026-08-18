@@ -12,6 +12,10 @@ public class Savepoint : MonoBehaviour, ISaveable
     [Header("广播")]
     public VoidEventSO saveDataEvent;
 
+    [Header("到达效果")]
+    [Tooltip("开启后，玩家首次到达时先回满生命，再执行存档。")]
+    public bool restoreFullHealthOnSave;
+
     [Header("存档点显示")]
     public SpriteRenderer spriteRenderer;
     public GameObject Light2D;
@@ -40,13 +44,18 @@ public class Savepoint : MonoBehaviour, ISaveable
         if (!other.CompareTag("Player"))
             return;
 
-        TrySave();
+        var character = other.GetComponent<Character>()
+            ?? other.GetComponentInParent<Character>();
+        TrySave(character);
     }
 
-    void TrySave()
+    void TrySave(Character character)
     {
         if (isDone)
             return;
+
+        if (restoreFullHealthOnSave && character != null)
+            character.RestoreFullHealth();
 
         isDone = true;
         ApplyVisualState();

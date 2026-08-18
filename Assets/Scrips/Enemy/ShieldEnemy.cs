@@ -1,13 +1,14 @@
 using UnityEngine;
 
 /// <summary>
-/// 盾兵：有盾时举盾对峙（驻守原地 / 非驻守靠近 holdRange 后停下）；
-/// 玩家离开理想距离一段时间后再次追击；破盾后行为与近战敌人一致。
+/// 盾兵：有盾时举盾对峙；非巡逻生成时立刻靠近 holdRange，之后玩家离开再延迟追击。
+/// 专注模式开启时有盾原地死守。isPatrol 只负责站岗索敌与 Bounds 脱战。
+/// 破盾后行为与近战敌人一致。
 /// </summary>
 public class ShieldEnemy : MeleeEnemy
 {
     [Header("盾兵参数")]
-    [Tooltip("非驻守模式下，举盾停步的水平理想距离")]
+    [Tooltip("举盾停步的水平理想距离")]
     public float holdRange = 1.5f;
     [Tooltip("玩家离开理想距离后，持续多久才再次追击")]
     public float reapproachDelay = 1.5f;
@@ -16,11 +17,17 @@ public class ShieldEnemy : MeleeEnemy
     [Tooltip("未面向玩家时，延迟多久后转身")]
     public float faceTurnDelay = 0.35f;
 
+    [Header("专注模式")]
+    [Tooltip("开启后有盾时原地举盾，不因玩家离开理想距离而追击。与 isPatrol 独立：isPatrol 只负责站岗索敌与 Bounds 脱战。")]
+    public bool enableFocusMode;
+
     [Header("动画")]
     [Tooltip("破盾后切换到的近战 Animator Controller")]
     public RuntimeAnimatorController meleeAnimatorController;
 
     EnemyShieldAbsorb shieldAbsorb;
+    float leaveIdealTimer;
+    bool hasHeldAtIdealRange;
 
     public bool HasShield => shieldAbsorb != null;
 
@@ -29,6 +36,29 @@ public class ShieldEnemy : MeleeEnemy
     {
         float range = reapproachRange > 0f ? reapproachRange : holdRange;
         return Mathf.Max(holdRange, range);
+    }
+
+    /// <summary>
+    /// 玩家持续超出再追距离达到 reapproachDelay 后返回 true。
+    /// 回到范围内则清零计时。
+    /// </summary>
+    public bool TickReapproachDelay()
+    {
+        float dist = GetHorizontalDistanceToPlayer();
+        float range = GetSlottedRange(GetReapproachRange());
+
+        if (dist <= range)
+        {
+            leaveIdealTimer = 0f;
+            return false;
+        }
+
+        leaveIdealTimer += Time.deltaTime;
+        if (leaveIdealTimer < reapproachDelay)
+            return false;
+
+        leaveIdealTimer = 0f;
+        return true;
     }
 
     protected override void Awake()
@@ -42,6 +72,8 @@ public class ShieldEnemy : MeleeEnemy
 
     protected override void OnEnable()
     {
+        hasHeldAtIdealRange = false;
+        leaveIdealTimer = 0f;
         base.OnEnable();
     }
 
@@ -64,6 +96,7 @@ public class ShieldEnemy : MeleeEnemy
     public void NotifyShieldBroken()
     {
         shieldAbsorb = null;
+        leaveIdealTimer = 0f;
         SwitchToMeleeAnimator();
         if (!isDead)
             EvaluateCycle();
@@ -95,14 +128,21 @@ public class ShieldEnemy : MeleeEnemy
         anim.SetTrigger("shieldHurt");
     }
 
+    const float ShieldedMoveSpeedScale = 0.5f;
+
     public override float GetApproachStopRange()
     {
         return HasShield ? holdRange : base.GetApproachStopRange();
     }
 
+    public override float GetMoveSpeedScale()
+    {
+        return HasShield ? ShieldedMoveSpeedScale : 1f;
+    }
+
     /// <summary>
-    /// 有盾：驻守则举盾原地；非驻守超出 holdRange 则靠近，进入后举盾；离开太远一段时间后再追。
-    /// 无盾：走近战 EvaluateCycle。
+    /// 有盾：专注模式则原地举盾。非巡逻首次接敌立刻靠近；到达 holdRange 后举盾，
+    /// 玩家再离开则等待延迟后追击。isPatrol 只做站岗/脱战闸门。无盾：走近战 EvaluateCycle。
     /// </summary>
     public override void EvaluateCycle()
     {
@@ -135,19 +175,45 @@ public class ShieldEnemy : MeleeEnemy
             return;
         }
 
-        if (isPatrol)
+        if (enableFocusMode)
         {
-            SwitchState(NPCState.Skill);
+            SwitchToSkillIfNeeded();
             return;
         }
 
-        if (GetHorizontalDistanceToPlayer() > GetSlottedRange(holdRange))
+        if (GetHorizontalDistanceToPlayer() <= GetSlottedRange(holdRange))
         {
-            SwitchState(NPCState.GetClose);
+            hasHeldAtIdealRange = true;
+            SwitchToSkillIfNeeded();
             return;
         }
+
+        if (CurrentState == getCloseState)
+            return;
+
+        if (!hasHeldAtIdealRange && !isPatrol)
+        {
+            SwitchToGetCloseIfNeeded();
+            return;
+        }
+
+        SwitchToSkillIfNeeded();
+    }
+
+    void SwitchToSkillIfNeeded()
+    {
+        if (CurrentState == skillState)
+            return;
 
         SwitchState(NPCState.Skill);
+    }
+
+    void SwitchToGetCloseIfNeeded()
+    {
+        if (CurrentState == getCloseState)
+            return;
+
+        SwitchState(NPCState.GetClose);
     }
 
     void OnDrawGizmosSelected()

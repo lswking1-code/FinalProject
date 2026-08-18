@@ -144,6 +144,7 @@ public class Enemy : MonoBehaviour
     public bool IsHittable => !deathAnimStarted;
 
     private BaseState currentState;
+    protected BaseState CurrentState => currentState;
     protected BaseState patroState;
     protected BaseState chaseState;
     protected BaseState getCloseState;
@@ -487,7 +488,7 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        rb.linearVelocity = new Vector2(currentSpeed * dir * Time.deltaTime, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(currentSpeed * dir * GetMoveSpeedScale() * Time.deltaTime, rb.linearVelocity.y);
     }
 
     /// <summary>
@@ -711,8 +712,11 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        rb.linearVelocity = new Vector2(currentSpeed * direction, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(currentSpeed * GetMoveSpeedScale() * direction, rb.linearVelocity.y);
     }
+
+    /// <summary>移动速度额外倍率。盾兵持盾时可覆盖为减速。</summary>
+    public virtual float GetMoveSpeedScale() => 1f;
 
     public virtual bool ShouldApplySeparation =>
         enableSeparation && !blockSeparation && !isHurt && !isDead && IsHittable;
@@ -1106,6 +1110,7 @@ public class Enemy : MonoBehaviour
         ammoDropped = true;
         var instance = Instantiate(ammoDropPrefab, transform.position + ammoDropOffset, Quaternion.identity);
         PickupDelay.Arm(instance);
+        EnemySceneCleanup.PlaceInSourceScene(instance, this);
     }
 
     void TryDropHealth()
@@ -1116,6 +1121,7 @@ public class Enemy : MonoBehaviour
         healthDropped = true;
         var instance = Instantiate(healthDropPrefab, transform.position + healthDropOffset, Quaternion.identity);
         PickupDelay.Arm(instance);
+        EnemySceneCleanup.PlaceInSourceScene(instance, this);
     }
 
     /// <summary>

@@ -28923,6 +28923,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saveDataEvent: {fileID: 11400000, guid: 8bfd9c794ad715c4e8bf3300c4083246, type: 2}
+  restoreFullHealthOnSave: 1
   spriteRenderer: {fileID: 459258356}
   Light2D: {fileID: 0}
   darkSprite: {fileID: 6432468869834988093, guid: 6074414106593ad4fb2d9101c77c4082, type: 3}
@@ -33676,6 +33677,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saveDataEvent: {fileID: 11400000, guid: 8bfd9c794ad715c4e8bf3300c4083246, type: 2}
+  restoreFullHealthOnSave: 1
   spriteRenderer: {fileID: 1106511974}
   Light2D: {fileID: 0}
   darkSprite: {fileID: 6432468869834988093, guid: 6074414106593ad4fb2d9101c77c4082, type: 3}

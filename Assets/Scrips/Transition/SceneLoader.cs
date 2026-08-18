@@ -40,6 +40,10 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public FadeEventSO fadeEvent;
     public SceneLoadEventSO unloadedSceneEvent;
 
+    [Header("读档/进场景保护")]
+    [Tooltip("玩家读档或进入关卡后的无敌时长（秒）。0 为关闭。")]
+    public float spawnInvulnerableDuration = 2f;
+
     [Header("场景")]
     public GameSceneSO firstLoadScene;
     public GameSceneSO menuScene;
@@ -397,6 +401,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
             cameraControl?.SnapCameraToFollowTarget();
         }
 
+        GrantPlayerSpawnInvulnerability();
+
         if (fadeScreen)
         {
             fadeEvent.FadeIn(fadeDuration);
@@ -459,6 +465,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
             }
 
             afterSceneLoadedEvent.RaiseEvent();
+            GrantPlayerSpawnInvulnerability();
 
             if (pendingSaveAfterRestart)
             {
@@ -471,6 +478,15 @@ public class SceneLoader : MonoBehaviour, ISaveable
             pendingRecordEntry = false;
             pendingSaveAfterRestart = false;
         }
+    }
+
+    void GrantPlayerSpawnInvulnerability()
+    {
+        if (spawnInvulnerableDuration <= 0f || playerTrans == null)
+            return;
+
+        var character = playerTrans.GetComponent<Character>();
+        character?.TriggerInvulnerable(spawnInvulnerableDuration);
     }
 
     public DataDefination GetDataID()

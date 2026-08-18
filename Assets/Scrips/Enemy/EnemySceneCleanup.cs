@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 敌人战斗实体与抛射物清理：确保实例落在关卡场景内，并在切场景时销毁残留。
+/// 敌人战斗实体、抛射物与运行时掉落物清理：确保实例落在关卡场景内，并在切场景时销毁残留。
 /// </summary>
 public static class EnemySceneCleanup
 {
@@ -23,8 +23,8 @@ public static class EnemySceneCleanup
     }
 
     /// <summary>
-    /// 销毁场景中所有敌人本体 / 子弹 / 导弹 / 手雷 / 爆炸特效。
-    /// 敌人若 Instantiated 到 Persistent，卸关卡时不会随场景消失，需在此一并清掉。
+    /// 销毁场景中所有敌人本体 / 子弹 / 导弹 / 手雷 / 爆炸特效 / 弹药包 / 血包。
+    /// 这些对象若 Instantiated 到 Persistent，卸关卡时不会随场景消失，需在此一并清掉。
     /// </summary>
     public static void ClearAll()
     {
@@ -33,6 +33,8 @@ public static class EnemySceneCleanup
         DestroyAll<EnemyMissile>();
         DestroyAll<EnemyGrenade>();
         DestroyAll<EnemyGrenadeExplosion>();
+        DestroyAll<BulletBox>();
+        DestroyAll<HealthPack>();
     }
 
     static void DestroyAll<T>() where T : Component

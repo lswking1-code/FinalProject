@@ -686,6 +686,8 @@ MonoBehaviour:
   hurtFlashInterval: 0.1
   hurtFlashColor: {r: 1, g: 0.25, b: 0.25, a: 1}
   hurtShakeIntensity: 0.08
+  hurtAnimWindow: 1
+  maxHurtAnimsPerWindow: 2
   centerOffset: {x: 0, y: 0}
   checkSize: {x: 0, y: 0}
   checkDistance: 0
@@ -739,10 +741,11 @@ MonoBehaviour:
   pounceWindupDuration: 0.4
   pounceLandStunDuration: 1.1
   lastPounceTime: -999
-  holdRange: 7.5
-  reapproachDelay: 5
-  reapproachRange: 2.2
+  holdRange: 6
+  reapproachDelay: 3
+  reapproachRange: 6.5
   faceTurnDelay: 1
+  enableFocusMode: 0
   meleeAnimatorController: {fileID: 9100000, guid: e8a4c2b17f9d4e6a8b3c5d0e1f2a3b4c, type: 2}
 --- !u!114 &7759382780292668202
 MonoBehaviour:
