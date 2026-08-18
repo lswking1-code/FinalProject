@@ -39,6 +39,10 @@ public class Enemy : MonoBehaviour
     public Color hurtFlashColor = new Color(1f, 0.25f, 0.25f, 1f);
     [Tooltip("精灵局部抖动幅度")]
     public float hurtShakeIntensity = 0.08f;
+    [Tooltip("受击动画计数窗口时长（秒）；<=0 关闭保护")]
+    public float hurtAnimWindow = 1f;
+    [Tooltip("窗口内最多播放的 hurt 动画次数；<=0 关闭保护")]
+    public int maxHurtAnimsPerWindow = 2;
 
     [Header("检测")]
     public Vector2 centerOffset;
@@ -159,6 +163,8 @@ public class Enemy : MonoBehaviour
     Coroutine hurtRoutine;
     Coroutine noStunFlashRoutine;
     Coroutine deathFlashRoutine;
+    float hurtAnimWindowExpireTime;
+    int hurtAnimCountInWindow;
 
     public Rigidbody2D Rb => rb;
 
@@ -826,18 +832,73 @@ public class Enemy : MonoBehaviour
 
         ApplyFacing(attackTrans.position.x - transform.position.x);
 
-        isHurt = true;
-        anim.SetTrigger("hurt");
-
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
-
-        if (hurtRoutine != null)
-            StopCoroutine(hurtRoutine);
-        RestoreHurtVisuals();
-        hurtRoutine = StartCoroutine(OnHurt());
+        if (isDead || TryConsumeHurtAnim())
+            PlayFullHurtReaction();
+        else
+            PlayCombatFlashNoStun();
 
         if (isPatrol && !isAggro && !isDead)
             OnPatrolAggroFromDamage();
+    }
+
+    bool TryConsumeHurtAnim()
+    {
+        if (hurtAnimWindow <= 0f || maxHurtAnimsPerWindow <= 0)
+            return true;
+
+        if (Time.time >= hurtAnimWindowExpireTime)
+        {
+            hurtAnimCountInWindow = 0;
+            hurtAnimWindowExpireTime = Time.time + hurtAnimWindow;
+        }
+
+        if (hurtAnimCountInWindow >= maxHurtAnimsPerWindow)
+            return false;
+
+        hurtAnimCountInWindow++;
+        return true;
+    }
+
+    void PlayFullHurtReaction()
+    {
+        isHurt = true;
+        if (anim != null)
+            anim.SetTrigger("hurt");
+
+        if (rb != null)
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+
+        StopHurtVisualRoutines();
+        RestoreHurtVisuals();
+        hurtRoutine = StartCoroutine(OnHurt());
+    }
+
+    /// <summary>
+    /// 窗口内超限：只闪红抖动，不播 hurt、不进 isHurt。已在硬直中则不打断。
+    /// </summary>
+    void PlayCombatFlashNoStun()
+    {
+        if (hurtRoutine != null || isHurt)
+            return;
+
+        if (noStunFlashRoutine != null)
+            StopCoroutine(noStunFlashRoutine);
+        RestoreHurtVisuals();
+        noStunFlashRoutine = StartCoroutine(CombatFlashNoStun());
+    }
+
+    void StopHurtVisualRoutines()
+    {
+        if (hurtRoutine != null)
+        {
+            StopCoroutine(hurtRoutine);
+            hurtRoutine = null;
+        }
+        if (noStunFlashRoutine != null)
+        {
+            StopCoroutine(noStunFlashRoutine);
+            noStunFlashRoutine = null;
+        }
     }
 
     /// <summary>
@@ -856,37 +917,15 @@ public class Enemy : MonoBehaviour
 
     IEnumerator HitFeedbackNoStun()
     {
-        float duration = Mathf.Min(0.2f, Mathf.Max(0.05f, hurtDuration));
-        float elapsed = 0f;
-        float flashTimer = 0f;
-        bool flashOn = true;
+        yield return FlashAndShake(
+            Mathf.Min(0.2f, Mathf.Max(0.05f, hurtDuration)),
+            hurtShakeIntensity * 0.5f);
+        noStunFlashRoutine = null;
+    }
 
-        if (spriteRenderer != null)
-            spriteRenderer.color = hurtFlashColor;
-
-        while (elapsed < duration)
-        {
-            float dt = Time.deltaTime;
-            elapsed += dt;
-            flashTimer += dt;
-
-            if (spriteRenderer != null && flashTimer >= hurtFlashInterval)
-            {
-                flashTimer = 0f;
-                flashOn = !flashOn;
-                spriteRenderer.color = flashOn ? hurtFlashColor : spriteOriginalColor;
-            }
-
-            if (spriteRenderer != null && hurtShakeIntensity > 0f)
-            {
-                Vector2 offset = Random.insideUnitCircle * (hurtShakeIntensity * 0.5f);
-                spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
-            }
-
-            yield return null;
-        }
-
-        RestoreHurtVisuals();
+    IEnumerator CombatFlashNoStun()
+    {
+        yield return FlashAndShake(Mathf.Max(0.05f, hurtDuration), hurtShakeIntensity);
         noStunFlashRoutine = null;
     }
 
@@ -903,7 +942,13 @@ public class Enemy : MonoBehaviour
     /// </summary>
     private IEnumerator OnHurt()
     {
-        float duration = Mathf.Max(0.05f, hurtDuration);
+        yield return FlashAndShake(Mathf.Max(0.05f, hurtDuration), hurtShakeIntensity);
+        isHurt = false;
+        hurtRoutine = null;
+    }
+
+    IEnumerator FlashAndShake(float duration, float shakeIntensity)
+    {
         float elapsed = 0f;
         float flashTimer = 0f;
         bool flashOn = true;
@@ -924,9 +969,9 @@ public class Enemy : MonoBehaviour
                 spriteRenderer.color = flashOn ? hurtFlashColor : spriteOriginalColor;
             }
 
-            if (spriteRenderer != null && hurtShakeIntensity > 0f)
+            if (spriteRenderer != null && shakeIntensity > 0f)
             {
-                Vector2 offset = Random.insideUnitCircle * hurtShakeIntensity;
+                Vector2 offset = Random.insideUnitCircle * shakeIntensity;
                 spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
             }
 
@@ -934,8 +979,6 @@ public class Enemy : MonoBehaviour
         }
 
         RestoreHurtVisuals();
-        isHurt = false;
-        hurtRoutine = null;
     }
 
     void RestoreHurtVisuals()
@@ -1023,16 +1066,7 @@ public class Enemy : MonoBehaviour
         if (anim != null)
             anim.SetBool("dead", true);
 
-        if (hurtRoutine != null)
-        {
-            StopCoroutine(hurtRoutine);
-            hurtRoutine = null;
-        }
-        if (noStunFlashRoutine != null)
-        {
-            StopCoroutine(noStunFlashRoutine);
-            noStunFlashRoutine = null;
-        }
+        StopHurtVisualRoutines();
         RestoreHurtVisuals();
         isHurt = false;
 
