@@ -58,6 +58,12 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Header("编辑器显示")]
     [Tooltip("在 Scene 视图中始终绘制遭遇区域（触发区 / 相机 Bounds / 空气墙）")]
     [SerializeField] bool alwaysDrawInEditor = true;
+    [Tooltip("在 Scene 视图中绘制开战时相机单屏视野（以遭遇中心为原点）")]
+    [SerializeField] bool drawCameraViewportInEditor = true;
+    [Tooltip("Game 视图尺寸无效时的回退宽高比")]
+    [SerializeField] float previewAspect = 16f / 9f;
+
+    const float DefaultEncounterOrthographicSize = 6.5f;
 
     readonly HashSet<Character> aliveRegistered = new();
     readonly Dictionary<Character, UnityAction> dieHandlers = new();
@@ -1030,6 +1036,85 @@ public class EncounterZone : MonoBehaviour, ISaveable
                 Gizmos.DrawLine(p + Vector3.up * 0.18f, p + Vector3.down * 0.18f);
             }
         }
+
+        if (drawCameraViewportInEditor)
+        {
+            Vector3 center = GetEncounterCenter();
+            float ortho = GetPreviewOrthographicSize();
+            float aspect = GetPreviewAspect();
+            DrawCameraViewportGizmo(center, ortho, aspect);
+        }
+    }
+
+    Vector3 GetEncounterCenter()
+    {
+        if (encounterBounds != null)
+            return encounterBounds.bounds.center;
+        return transform.position;
+    }
+
+    float GetPreviewOrthographicSize()
+    {
+        if (overrideOrthographicSize)
+            return Mathf.Max(0.01f, encounterOrthographicSize);
+        return DefaultEncounterOrthographicSize;
+    }
+
+    float GetPreviewAspect()
+    {
+#if UNITY_EDITOR
+        Vector2 gameView = UnityEditor.Handles.GetMainGameViewSize();
+        if (gameView.y > 0.01f)
+            return gameView.x / gameView.y;
+#endif
+        if (Application.isPlaying)
+        {
+            Camera cam = Camera.main;
+            if (cam != null && cam.aspect > 0.01f)
+                return cam.aspect;
+            if (Screen.height > 0)
+                return (float)Screen.width / Screen.height;
+        }
+
+        return previewAspect > 0.01f ? previewAspect : 16f / 9f;
+    }
+
+    void DrawCameraViewportGizmo(Vector3 center, float ortho, float aspect)
+    {
+        center.z = 0f;
+        float height = ortho * 2f;
+        float width = height * aspect;
+        Vector3 size = new Vector3(width, height, 0.01f);
+
+        Color fill = new Color(0.85f, 0.25f, 1f, 0.08f);
+        Color wire = new Color(0.9f, 0.35f, 1f, 0.95f);
+
+        Matrix4x4 old = Gizmos.matrix;
+        Gizmos.matrix = Matrix4x4.identity;
+
+        Gizmos.color = fill;
+        Gizmos.DrawCube(center, size);
+        Gizmos.color = wire;
+        Gizmos.DrawWireCube(center, size);
+
+        const float cross = 0.45f;
+        Gizmos.DrawLine(center + Vector3.left * cross, center + Vector3.right * cross);
+        Gizmos.DrawLine(center + Vector3.up * cross, center + Vector3.down * cross);
+
+        Gizmos.matrix = old;
+
+#if UNITY_EDITOR
+        string label = overrideOrthographicSize
+            ? $"Camera {ortho:0.##}"
+            : $"Camera {ortho:0.##} (default)";
+        var style = new GUIStyle(UnityEditor.EditorStyles.boldLabel)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 11
+        };
+        style.normal.textColor = wire;
+        UnityEditor.Handles.Label(center + Vector3.up * (height * 0.5f + 0.35f), label, style);
+#endif
     }
 
     static void DrawCollider2DGizmo(Collider2D col, Color fill, Color wire)
