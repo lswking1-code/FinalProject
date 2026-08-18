@@ -9,6 +9,7 @@ using UnityEngine.Events;
 /// EnemyGenerate 中勾选 infiniteRefresh 的敌人不会登记，不影响清敌结算。
 /// 机关/独立事件等可 UnityEvent 调用 EndEncounter() 强制结算；
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
+/// UnlockLock() 只解开空气墙与镜头，不结束遭遇、不停刷。
 /// 敌人空气墙为单向：区外可穿入，进入后锁定不让出区；敌人弹不能穿过空气墙。
 /// 可选弹药援助：停留过久且 S/M/L 全空时在固定点刷 BulletBox。
 /// </summary>
@@ -54,6 +55,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Header("事件")]
     public UnityEvent OnEncounterStarted;
     public UnityEvent OnEncounterEnded;
+    [Tooltip("提前解锁锁区时触发（空气墙/镜头已恢复，遭遇未结束）")]
+    public UnityEvent OnEncounterUnlocked;
 
     [Header("编辑器显示")]
     [Tooltip("在 Scene 视图中始终绘制遭遇区域（触发区 / 相机 Bounds / 空气墙）")]
@@ -74,6 +77,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     bool isActive;
     bool hasCompleted;
     bool hasRegisteredAny;
+    bool lockReleased;
     bool airWallsSealed;
     int pendingSpawnSources;
     CameraControl cameraControl;
@@ -83,6 +87,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     public bool IsActive => isActive;
     public bool HasCompleted => hasCompleted;
+    public bool LockReleased => lockReleased;
     public int AliveRegisteredCount => aliveRegistered.Count;
 
     /// <summary>是否存在进行中的遭遇战。</summary>
@@ -164,6 +169,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         isActive = true;
         hasRegisteredAny = false;
+        lockReleased = false;
         airWallsSealed = false;
         pendingSpawnSources = 0;
         ClearRegistrations();
@@ -212,6 +218,23 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
+    /// 只解开空气墙与镜头，不结束遭遇、不停刷、不写完成旗标。
+    /// 已解锁或遭遇未激活时直接返回。
+    /// </summary>
+    public void UnlockLock()
+    {
+        if (!isActive || lockReleased)
+            return;
+
+        lockReleased = true;
+        DeactivateAirWalls();
+        EnsureCameraControl();
+        cameraControl?.RestoreCameraBounds(smooth: true);
+        SetEncounterBoundsVisible(false);
+        OnEncounterUnlocked?.Invoke();
+    }
+
+    /// <summary>
     /// 标记遭遇已完成并恢复锁区表现。Load 时可调用；OnEncounterEnded 监听需幂等。
     /// </summary>
     public void ApplyCompletedState(bool invokeEndedEvent)
@@ -230,6 +253,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         isActive = false;
         hasCompleted = true;
+        lockReleased = false;
         pendingSpawnSources = 0;
         UnregisterActiveZone(this);
         StopAmmoAssist();
@@ -254,6 +278,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     void ResetIncompleteEncounter()
     {
         hasCompleted = false;
+        lockReleased = false;
         if (triggerOnce)
             SetEnterTriggerEnabled(true);
 

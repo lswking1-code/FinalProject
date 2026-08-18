@@ -20,7 +20,8 @@ public class EnemyInstanceDropConfig
 /// <summary>
 /// 波内一种敌人：预制体 + 数量 + 可选专用刷怪点。
 /// waitUntilBatchCleared：有限条目本批清光后再刷同波下一类（不循环）。
-/// infiniteRefresh 已自带等本批清光，再勾选 waitUntilBatchCleared 无效。
+/// unlockEncounterOnCleared：有限条目本批清光后只解开遭遇锁区，不结束遭遇。
+/// infiniteRefresh 已自带等本批清光，再勾选 waitUntilBatchCleared / unlockEncounterOnCleared 无效。
 /// </summary>
 [System.Serializable]
 public class EnemyWaveEntry
@@ -35,6 +36,8 @@ public class EnemyWaveEntry
     public bool infiniteRefresh;
     [Tooltip("有限条目：本批清光后再刷同波下一类，不循环。无限刷新条目本身就会等本批清光，此选项无效")]
     public bool waitUntilBatchCleared;
+    [Tooltip("有限条目本批清光后只解开遭遇锁区（空气墙/镜头），不结束遭遇、不停刷。无限刷新条目无效")]
+    public bool unlockEncounterOnCleared;
     [Tooltip("每个生成实例的弹药/血包掉落；长度随 count 自动对齐。Element 0 对应本条目第 1 个刷出的敌人")]
     public EnemyInstanceDropConfig[] drops;
 }
@@ -78,6 +81,7 @@ public class EnemyWaveConfig
 /// 遭遇战：spawnOnStart=false，由 EncounterZone.OnEncounterStarted 调用 StartSpawning；
 /// OnEncounterEnded 调用 StopSpawning。条目勾选 infiniteRefresh 则循环刷且不登记遭遇结算。
 /// 有限波可勾选 waitUntilCleared（整波清光再下一波）与条目 waitUntilBatchCleared（本批清光再刷同波下一类）。
+/// 条目勾选 unlockEncounterOnCleared 则该批清光后只解锁锁区，不停刷、不结束遭遇。
 /// </summary>
 public class EnemyGenerate : MonoBehaviour
 {
@@ -136,6 +140,7 @@ public class EnemyGenerate : MonoBehaviour
 
     Coroutine spawnRoutine;
     readonly List<Coroutine> infiniteRoutines = new();
+    readonly List<Coroutine> unlockLockRoutines = new();
     int totalSpawned;
     int finiteSpawned;
     bool reportedSpawningToZone;
@@ -275,6 +280,7 @@ public class EnemyGenerate : MonoBehaviour
         }
 
         StopInfiniteRoutines();
+        StopUnlockLockRoutines();
 
         if (releaseZone)
             NotifyZoneSpawningCompleted();
@@ -311,6 +317,17 @@ public class EnemyGenerate : MonoBehaviour
         }
 
         infiniteRoutines.Clear();
+    }
+
+    void StopUnlockLockRoutines()
+    {
+        for (int i = 0; i < unlockLockRoutines.Count; i++)
+        {
+            if (unlockLockRoutines[i] != null)
+                StopCoroutine(unlockLockRoutines[i]);
+        }
+
+        unlockLockRoutines.Clear();
     }
 
     void NotifyZoneSpawningStarted()
@@ -540,6 +557,9 @@ public class EnemyGenerate : MonoBehaviour
                     yield return new WaitForSeconds(wave.intraWaveInterval);
             }
 
+            if (entry.unlockEncounterOnCleared && spawnedThisEntry > 0 && encounterZone != null)
+                unlockLockRoutines.Add(StartCoroutine(UnlockLockWhenBatchCleared(entryAlive)));
+
             if (entry.waitUntilBatchCleared && spawnedThisEntry > 0)
             {
                 yield return WaitUntilBatchCleared(entryAlive);
@@ -550,6 +570,30 @@ public class EnemyGenerate : MonoBehaviour
 
         if (wave != null && wave.waitUntilCleared && waveAlive.Count > 0)
             yield return WaitUntilBatchCleared(waveAlive);
+    }
+
+    IEnumerator UnlockLockWhenBatchCleared(HashSet<Character> aliveBatch)
+    {
+        if (aliveBatch == null)
+            yield break;
+
+        // 不依赖 isSpawningActive：有限波刷完后仍要等本批死完才能开墙。
+        // StopSpawning 会停掉本协程，避免遭遇结束后再 Unlock。
+        while (aliveBatch.Count > 0)
+        {
+            if (encounterZone == null || !encounterZone.IsActive)
+                yield break;
+
+            aliveBatch.RemoveWhere(c => c == null || c.IsDead);
+            if (aliveBatch.Count == 0)
+                break;
+            yield return null;
+        }
+
+        if (encounterZone == null || !encounterZone.IsActive)
+            yield break;
+
+        encounterZone.UnlockLock();
     }
 
     IEnumerator WaitAfterWave(EnemyWaveConfig wave, int waveIndex, int waveLen)
