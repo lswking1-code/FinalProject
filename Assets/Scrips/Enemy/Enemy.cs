@@ -102,6 +102,12 @@ public class Enemy : MonoBehaviour
     [Tooltip("地面致死后等待该时长再播死亡动画；期间仍可受击")]
     [SerializeField] float groundDeathDelay = 0.4f;
 
+    [Header("死亡闪烁")]
+    [Tooltip("死亡动画结束前开始透明度闪烁的时长")]
+    [SerializeField] float deathFlashDuration = 0.25f;
+    [Tooltip("死亡闪烁切换间隔")]
+    [SerializeField] float deathFlashInterval = 0.05f;
+
     [HideInInspector] public Transform player;
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
@@ -114,6 +120,8 @@ public class Enemy : MonoBehaviour
 
     const float MinAirDeathTime = 0.12f;
     const float LandedUpwardSpeedMax = 0.1f;
+    const float DeathFlashFallbackClipLength = 0.75f;
+    const string DieStateName = "Die";
     static readonly string[] CombatAnimBools =
     {
         "walk", "shoot", "shootDown", "crouch", "reload",
@@ -124,6 +132,9 @@ public class Enemy : MonoBehaviour
 
     /// <summary>飞行敌人等可关闭濒死窗口，致死立刻播死亡动画。</summary>
     protected virtual bool UseDeathDelay => true;
+
+    /// <summary>地面敌人在死亡动画结束前做透明度闪烁；飞行敌人可关闭。</summary>
+    protected virtual bool UseDeathVanishFlash => true;
 
     /// <summary>存活或濒死窗口内可被攻击；死亡动画开始后不可。</summary>
     public bool IsHittable => !deathAnimStarted;
@@ -147,6 +158,7 @@ public class Enemy : MonoBehaviour
     Vector3 spriteOriginalLocalPos;
     Coroutine hurtRoutine;
     Coroutine noStunFlashRoutine;
+    Coroutine deathFlashRoutine;
 
     public Rigidbody2D Rb => rb;
 
@@ -1023,6 +1035,9 @@ public class Enemy : MonoBehaviour
         }
         RestoreHurtVisuals();
         isHurt = false;
+
+        if (UseDeathVanishFlash)
+            deathFlashRoutine = StartCoroutine(DeathVanishFlash());
     }
 
     void ClearCombatAnimatorBools()
@@ -1072,7 +1087,89 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void DestroyAfterAnimation()
     {
+        StopDeathFlash();
         Destroy(gameObject);
+    }
+
+    IEnumerator DeathVanishFlash()
+    {
+        float duration = Mathf.Max(0f, deathFlashDuration);
+        float interval = Mathf.Max(0.01f, deathFlashInterval);
+        float fallbackWait = Mathf.Max(0f, DeathFlashFallbackClipLength - duration);
+
+        if (anim != null)
+        {
+            float waited = 0f;
+            const float maxWaitForDie = 0.5f;
+            while (waited < maxWaitForDie && !IsInDieState())
+            {
+                waited += Time.deltaTime;
+                yield return null;
+            }
+
+            if (IsInDieState())
+            {
+                while (GetDieRemainingTime() > duration)
+                    yield return null;
+            }
+            else
+            {
+                yield return new WaitForSeconds(fallbackWait);
+            }
+        }
+        else
+        {
+            yield return new WaitForSeconds(fallbackWait);
+        }
+
+        bool visible = false;
+        float flashTimer = 0f;
+        SetDeathFlashVisible(false);
+        while (true)
+        {
+            flashTimer += Time.deltaTime;
+            if (flashTimer >= interval)
+            {
+                flashTimer = 0f;
+                visible = !visible;
+                SetDeathFlashVisible(visible);
+            }
+
+            yield return null;
+        }
+    }
+
+    bool IsInDieState()
+    {
+        return anim != null && anim.GetCurrentAnimatorStateInfo(0).IsName(DieStateName);
+    }
+
+    float GetDieRemainingTime()
+    {
+        if (anim == null)
+            return 0f;
+
+        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
+        return info.length * (1f - info.normalizedTime);
+    }
+
+    void SetDeathFlashVisible(bool visible)
+    {
+        if (spriteRenderer == null)
+            return;
+
+        Color c = spriteOriginalColor;
+        c.a = visible ? spriteOriginalColor.a : 0f;
+        spriteRenderer.color = c;
+    }
+
+    void StopDeathFlash()
+    {
+        if (deathFlashRoutine == null)
+            return;
+
+        StopCoroutine(deathFlashRoutine);
+        deathFlashRoutine = null;
     }
 
     #endregion

@@ -56,6 +56,7 @@ public class FlyingEnemy : Enemy
     float hoverHeightOutOfRangeTimer;
 
     protected override bool UseDeathDelay => false;
+    protected override bool UseDeathVanishFlash => false;
 
     Collider2D bodyCollider;
     ContactFilter2D oneWayPlatformFilter;

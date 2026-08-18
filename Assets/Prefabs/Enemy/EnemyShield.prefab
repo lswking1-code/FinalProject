@@ -692,6 +692,13 @@ MonoBehaviour:
   attackLayer:
     serializedVersion: 2
     m_Bits: 0
+  enableSeparation: 1
+  separationRadius: 1.15
+  separationStrength: 2.5
+  maxSeparationSpeed: 2
+  combatSlotSpacing: 0.75
+  combatSlotGroupRadius: 8
+  blockSeparation: 0
   isPatrol: 0
   patrolDetectRange: 10
   returnArriveDistance: 0.15
@@ -712,6 +719,8 @@ MonoBehaviour:
   healthDropPrefab: {fileID: 0}
   healthDropOffset: {x: 0, y: 0, z: 0}
   groundDeathDelay: 0.4
+  deathFlashDuration: 0.3
+  deathFlashInterval: 0.05
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
@@ -824,6 +833,7 @@ MonoBehaviour:
     m_Bits: 4160
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0

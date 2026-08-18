@@ -78,7 +78,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -5348095254020277920, guid: a736ae4794db736499b46110294d5ce2, type: 3}
   m_Color: {r: 0.9993658, g: 0.94403803, b: 0.26010138, a: 1}
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 6
-  damage: 10
+  damage: 20
   lifetime: 5
 --- !u!114 &785616209480741553
 MonoBehaviour:
@@ -185,5 +185,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12

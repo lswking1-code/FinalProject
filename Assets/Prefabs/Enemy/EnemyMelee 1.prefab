@@ -389,7 +389,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 20
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -604,6 +604,8 @@ MonoBehaviour:
   healthDropPrefab: {fileID: 0}
   healthDropOffset: {x: 0, y: 0, z: 0}
   groundDeathDelay: 0.4
+  deathFlashDuration: 0.3
+  deathFlashInterval: 0.05
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
