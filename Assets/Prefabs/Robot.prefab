@@ -885,7 +885,7 @@ MonoBehaviour:
   shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
-  hitCameraShakeForce: 0.2
+  hitCameraShakeForce: 0.3
 --- !u!1 &4254878822918393790
 GameObject:
   m_ObjectHideFlags: 0
@@ -1246,6 +1246,9 @@ MonoBehaviour:
   attackCooldown: 1.5
   attackLungeSpeed: 4
   attackLungeDuration: 0.25
+  blastComboDetectRangeX: 6
+  blastComboDetectRangeY: 6
+  blastComboExtraLungeMax: 4
   comboAirHangGravityScale: 0.2
   comboAirHangDuration: 0.55
   boostVisual: {fileID: 6508870273959205457}
@@ -1775,7 +1778,7 @@ MonoBehaviour:
   shieldDamageMultiplier: 1
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
-  hitCameraShakeForce: 0.2
+  hitCameraShakeForce: 0.3
 --- !u!1 &7794252293549558152
 GameObject:
   m_ObjectHideFlags: 0

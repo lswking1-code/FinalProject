@@ -79,6 +79,14 @@ public class AllyRobot : MonoBehaviour
     [Tooltip("BeginAttackLunge 无参或 float<=0 时使用的默认时长（秒）")]
     public float attackLungeDuration = 0.15f;
 
+    [Header("Blast 三连击")]
+    [Tooltip("Blast 每段开始时的 X 轴单侧索敌半径")]
+    [SerializeField] float blastComboDetectRangeX = 6f;
+    [Tooltip("Blast 每段开始时的 Y 轴单侧索敌半径（含空中敌）")]
+    [SerializeField] float blastComboDetectRangeY = 6f;
+    [Tooltip("段内前冲补距上限；目标超出 attackDistance 时最多额外冲这么远")]
+    [SerializeField] float blastComboExtraLungeMax = 1.5f;
+
     [Header("连携空中滞空")]
     [Tooltip("空中连携攻击时的重力倍率（相对正常 gravityScale）")]
     [SerializeField] float comboAirHangGravityScale = 0.2f;
@@ -273,6 +281,7 @@ public class AllyRobot : MonoBehaviour
     bool attackLungeActive;
     float attackLungeTimer;
     float attackLungeFaceDir = 1f;
+    float attackLungeCurrentSpeed;
     bool pendingRetarget;
     bool dispatchAnimSeen;
     LineRenderer laserLine;
@@ -453,7 +462,7 @@ public class AllyRobot : MonoBehaviour
             {
                 movingHorizontally = true;
                 moveDir = attackLungeFaceDir;
-                ApplyHorizontalMove(moveDir, attackLungeSpeed, respectLedge: false);
+                ApplyHorizontalMove(moveDir, attackLungeCurrentSpeed, respectLedge: false);
             }
         }
 
@@ -1046,6 +1055,18 @@ public class AllyRobot : MonoBehaviour
         attackLungeActive = true;
         attackLungeTimer = len;
         attackLungeFaceDir = face;
+        attackLungeCurrentSpeed = attackLungeSpeed;
+
+        if (blastComboStep < 0 || !IsValidCombatTarget(currentTarget, allowAirEnemy: true))
+            return;
+
+        float extra = Mathf.Max(0f, GetDistXTo(currentTarget) - attackDistance);
+        if (extra <= 0f)
+            return;
+
+        extra = Mathf.Min(extra, Mathf.Max(0f, blastComboExtraLungeMax));
+        float defaultDist = attackLungeSpeed * len;
+        attackLungeCurrentSpeed = (defaultDist + extra) / len;
     }
 
     /// <summary>
@@ -1058,6 +1079,7 @@ public class AllyRobot : MonoBehaviour
 
         attackLungeActive = false;
         attackLungeTimer = 0f;
+        attackLungeCurrentSpeed = 0f;
         StopMoving();
     }
 
@@ -1114,9 +1136,7 @@ public class AllyRobot : MonoBehaviour
         if (anim != null)
             anim.SetBool(walkBoolName, false);
 
-        // 仅起手段朝向当前目标；后续段朝向由 TryAdvanceBlastCombo 决定（有范围内敌才转）
-        if (step == 0 && IsValidCombatTarget(currentTarget))
-            FaceTarget(currentTarget.position);
+        RetargetBlastComboStep();
 
         string stateName = GetBlastAttackStateName(step);
         // 只靠 Play 切段；不要 SetTrigger(blastAttack)，否则 AnyState→BlastAttack1 会把 2/3 段拉回第一段
@@ -1161,12 +1181,6 @@ public class AllyRobot : MonoBehaviour
         {
             FinishBlastCombo();
             return;
-        }
-
-        if (TryAcquireTarget(out Transform target, includeAirEnemy: true) && IsInAttackRange(target))
-        {
-            currentTarget = target;
-            FaceTarget(currentTarget.position);
         }
 
         blastComboStep = nextStep;
@@ -1595,6 +1609,31 @@ public class AllyRobot : MonoBehaviour
     {
         target = FindClosestEnemy(includeAirEnemy);
         return target != null;
+    }
+
+    bool TryAcquireBlastComboTarget(out Transform target)
+    {
+        target = FindClosestEnemy(
+            includeAirEnemy: true,
+            rangeX: blastComboDetectRangeX,
+            rangeY: blastComboDetectRangeY);
+        return target != null;
+    }
+
+    /// <summary>
+    /// 每段 Blast 开始时用专用索敌范围重锁目标并转向；找不到则保留上一有效目标。
+    /// </summary>
+    void RetargetBlastComboStep()
+    {
+        if (TryAcquireBlastComboTarget(out Transform target))
+        {
+            currentTarget = target;
+            FaceTarget(currentTarget.position);
+            return;
+        }
+
+        if (IsValidCombatTarget(currentTarget, allowAirEnemy: true))
+            FaceTarget(currentTarget.position);
     }
 
     void SetDashActive(bool active)
@@ -2671,7 +2710,7 @@ public class AllyRobot : MonoBehaviour
 
     const string AirEnemyTag = "AirEnemy";
 
-    Transform FindClosestEnemy(bool includeAirEnemy = false)
+    Transform FindClosestEnemy(bool includeAirEnemy = false, float rangeX = -1f, float rangeY = -1f)
     {
         Transform closestMarked = null;
         Transform closestUnmarked = null;
@@ -2680,10 +2719,13 @@ public class AllyRobot : MonoBehaviour
         float minUnmarkedDistY = float.MaxValue;
         float minUnmarkedDistX = float.MaxValue;
 
+        float maxX = rangeX > 0f ? rangeX : detectRangeX;
+        float comboMaxY = rangeY > 0f ? rangeY : detectRangeY;
         // 普通索敌：Y 不得超过到位阈值（过高只走连携）；连携/激光放宽到 detectRangeY
-        float groundMaxY = includeAirEnemy ? detectRangeY : airAttackDistanceY;
+        float groundMaxY = includeAirEnemy ? comboMaxY : airAttackDistanceY;
         ConsiderEnemiesWithTag(
             "Enemy",
+            maxX,
             groundMaxY,
             ref closestMarked, ref closestUnmarked,
             ref minMarkedDistY, ref minMarkedDistX,
@@ -2692,7 +2734,8 @@ public class AllyRobot : MonoBehaviour
         {
             ConsiderEnemiesWithTag(
                 AirEnemyTag,
-                detectRangeY,
+                maxX,
+                comboMaxY,
                 ref closestMarked, ref closestUnmarked,
                 ref minMarkedDistY, ref minMarkedDistX,
                 ref minUnmarkedDistY, ref minUnmarkedDistX);
@@ -2715,6 +2758,7 @@ public class AllyRobot : MonoBehaviour
 
     void ConsiderEnemiesWithTag(
         string tag,
+        float maxDistX,
         float maxDistY,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
@@ -2736,7 +2780,7 @@ public class AllyRobot : MonoBehaviour
             Vector2 aim = GetCombatAimPoint(e.transform);
             float distX = Mathf.Abs(transform.position.x - aim.x);
             float distY = Mathf.Abs(transform.position.y - aim.y);
-            if (distX > detectRangeX || distY > maxDistY)
+            if (distX > maxDistX || distY > maxDistY)
                 continue;
 
             if (!IsAllowedByActiveEncounter(aim))
@@ -2768,8 +2812,11 @@ public class AllyRobot : MonoBehaviour
 
     void DrawDetectRangeGizmo(Vector3 center)
     {
-        float hx = detectRangeX;
-        float hy = detectRangeY;
+        DrawRangeRectGizmo(center, detectRangeX, detectRangeY);
+    }
+
+    void DrawRangeRectGizmo(Vector3 center, float hx, float hy)
+    {
         Vector3 bl = center + new Vector3(-hx, -hy, 0f);
         Vector3 br = center + new Vector3( hx, -hy, 0f);
         Vector3 tr = center + new Vector3( hx,  hy, 0f);
@@ -2786,6 +2833,9 @@ public class AllyRobot : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         DrawDetectRangeGizmo(transform.position);
+
+        Gizmos.color = new Color(0.6f, 0.2f, 1f, 1f);
+        DrawRangeRectGizmo(transform.position, blastComboDetectRangeX, blastComboDetectRangeY);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackDistance);

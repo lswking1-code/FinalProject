@@ -171,11 +171,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: Player
-  enableKnockback: 0
-  knockbackForce: 0
+  enableKnockback: 1
+  knockbackForce: 4
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
