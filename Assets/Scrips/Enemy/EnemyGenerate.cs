@@ -4,6 +4,20 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
+/// 单个生成实例的死亡掉落：弹药与血包可同时开启。
+/// </summary>
+[System.Serializable]
+public class EnemyInstanceDropConfig
+{
+    [Tooltip("该实例死亡时是否掉落弹药包")]
+    public bool dropAmmoOnDeath;
+    [Tooltip("掉落弹药类型，对应 BulletBoxS / M / L")]
+    public AmmoType ammoType = AmmoType.S;
+    [Tooltip("该实例死亡时是否掉落血包")]
+    public bool dropHealthOnDeath;
+}
+
+/// <summary>
 /// 波内一种敌人：预制体 + 数量 + 可选专用刷怪点。
 /// </summary>
 [System.Serializable]
@@ -17,6 +31,8 @@ public class EnemyWaveEntry
     public Transform[] spawnPoints;
     [Tooltip("勾选后：本批清光再刷下一批，直至遭遇结束/StopSpawning；不计入遭遇清敌结算与 maxTotalSpawns")]
     public bool infiniteRefresh;
+    [Tooltip("每个生成实例的弹药/血包掉落；长度随 count 自动对齐。Element 0 对应本条目第 1 个刷出的敌人")]
+    public EnemyInstanceDropConfig[] drops;
 }
 
 /// <summary>
@@ -72,6 +88,16 @@ public class EnemyGenerate : MonoBehaviour
     [Tooltip("默认刷怪位置列表；波未配置专用点时使用。为空则在本物体位置生成。" +
              "遭遇战建议放在空气墙外侧/相机视野外：Enemy 可穿空气墙进入区内，玩家仍被挡住")]
     [SerializeField] Transform[] spawnPoints;
+
+    [Header("掉落预制体")]
+    [Tooltip("S 弹药包预制体（BulletBoxS）")]
+    [SerializeField] GameObject ammoDropPrefabS;
+    [Tooltip("M 弹药包预制体（BulletBoxM）")]
+    [SerializeField] GameObject ammoDropPrefabM;
+    [Tooltip("L 弹药包预制体（BulletBoxL）")]
+    [SerializeField] GameObject ammoDropPrefabL;
+    [Tooltip("血包预制体（HealthPack）")]
+    [SerializeField] GameObject healthDropPrefab;
 
     [Header("编辑器显示")]
     [Tooltip("在 Scene 视图中始终绘制刷怪点")]
@@ -151,7 +177,46 @@ public class EnemyGenerate : MonoBehaviour
                     }
                 };
             }
+
+            if (wave.enemies == null)
+                continue;
+
+            for (int e = 0; e < wave.enemies.Length; e++)
+                SyncEntryDrops(wave.enemies[e]);
         }
+    }
+
+    static void SyncEntryDrops(EnemyWaveEntry entry)
+    {
+        if (entry == null)
+            return;
+
+        int targetCount = Mathf.Max(0, entry.count);
+        if (entry.drops == null)
+        {
+            entry.drops = new EnemyInstanceDropConfig[targetCount];
+            for (int i = 0; i < targetCount; i++)
+                entry.drops[i] = new EnemyInstanceDropConfig();
+            return;
+        }
+
+        if (entry.drops.Length == targetCount)
+        {
+            for (int i = 0; i < entry.drops.Length; i++)
+            {
+                if (entry.drops[i] == null)
+                    entry.drops[i] = new EnemyInstanceDropConfig();
+            }
+            return;
+        }
+
+        var resized = new EnemyInstanceDropConfig[targetCount];
+        int copyCount = Mathf.Min(entry.drops.Length, targetCount);
+        for (int i = 0; i < copyCount; i++)
+            resized[i] = entry.drops[i] ?? new EnemyInstanceDropConfig();
+        for (int i = copyCount; i < targetCount; i++)
+            resized[i] = new EnemyInstanceDropConfig();
+        entry.drops = resized;
     }
 
     public void StartSpawning()
@@ -344,7 +409,9 @@ public class EnemyGenerate : MonoBehaviour
                     wave,
                     GetSpawnPosition(wave, entry, i),
                     registerWithZone: false,
-                    countTowardFiniteBudget: false);
+                    countTowardFiniteBudget: false,
+                    entry,
+                    i);
 
                 if (instance != null)
                 {
@@ -430,7 +497,9 @@ public class EnemyGenerate : MonoBehaviour
                     wave,
                     GetSpawnPosition(wave, entry, i),
                     registerWithZone: true,
-                    countTowardFiniteBudget: true);
+                    countTowardFiniteBudget: true,
+                    entry,
+                    i);
                 spawnedInWave++;
 
                 bool moreInWave = spawnedInWave < totalToSpawn;
@@ -462,7 +531,9 @@ public class EnemyGenerate : MonoBehaviour
         EnemyWaveConfig wave,
         Vector3 position,
         bool registerWithZone,
-        bool countTowardFiniteBudget)
+        bool countTowardFiniteBudget,
+        EnemyWaveEntry entry,
+        int indexInEntry)
     {
         if (prefab == null)
         {
@@ -482,6 +553,7 @@ public class EnemyGenerate : MonoBehaviour
             finiteSpawned++;
 
         ApplyScales(instance, wave);
+        ApplyDrops(instance, entry, indexInEntry);
 
         if (encounterZone != null)
         {
@@ -497,6 +569,63 @@ public class EnemyGenerate : MonoBehaviour
 
         return instance;
     }
+
+    void ApplyDrops(GameObject instance, EnemyWaveEntry entry, int indexInEntry)
+    {
+        if (instance == null)
+            return;
+
+        var enemy = instance.GetComponent<Enemy>() ?? instance.GetComponentInChildren<Enemy>();
+        if (enemy == null)
+            return;
+
+        bool dropAmmo = false;
+        bool dropHealth = false;
+        AmmoType ammoType = AmmoType.S;
+
+        if (entry != null && entry.drops != null
+            && indexInEntry >= 0 && indexInEntry < entry.drops.Length
+            && entry.drops[indexInEntry] != null)
+        {
+            var cfg = entry.drops[indexInEntry];
+            dropAmmo = cfg.dropAmmoOnDeath;
+            dropHealth = cfg.dropHealthOnDeath;
+            ammoType = cfg.ammoType;
+        }
+
+        GameObject ammoPrefab = null;
+        if (dropAmmo)
+        {
+            ammoPrefab = ResolveAmmoDropPrefab(ammoType);
+            if (ammoPrefab == null)
+            {
+                Debug.LogWarning(
+                    $"EnemyGenerate: 已勾选弹药掉落但未配置 {ammoType} 弹药包预制体。", this);
+                dropAmmo = false;
+            }
+        }
+
+        GameObject healthPrefab = null;
+        if (dropHealth)
+        {
+            healthPrefab = healthDropPrefab;
+            if (healthPrefab == null)
+            {
+                Debug.LogWarning("EnemyGenerate: 已勾选血包掉落但未配置 HealthPack 预制体。", this);
+                dropHealth = false;
+            }
+        }
+
+        enemy.ApplyDropOverride(dropAmmo, ammoPrefab, dropHealth, healthPrefab);
+    }
+
+    GameObject ResolveAmmoDropPrefab(AmmoType type) => type switch
+    {
+        AmmoType.S => ammoDropPrefabS,
+        AmmoType.M => ammoDropPrefabM,
+        AmmoType.L => ammoDropPrefabL,
+        _ => null
+    };
 
     static void ApplyScales(GameObject instance, EnemyWaveConfig wave)
     {

@@ -53,10 +53,29 @@ MonoBehaviour:
       count: 2
       spawnPoints:
       - {fileID: 126818036337582627}
+      infiniteRefresh: 0
+      drops:
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 3
       spawnPoints:
       - {fileID: 1551970150448701065}
+      infiniteRefresh: 0
+      drops:
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
     enemyPrefab: {fileID: 0}
     count: 0
     spawnPoints: []
@@ -69,6 +88,10 @@ MonoBehaviour:
   initialDelay: 0
   spawnPoints:
   - {fileID: 4497916325425986163}
+  ammoDropPrefabS: {fileID: 8601159937776506679, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
+  ammoDropPrefabM: {fileID: 1925841936692377135, guid: 1459b11664fa4f742b90654f93d53300, type: 3}
+  ammoDropPrefabL: {fileID: 2051788991309760816, guid: c67900e55696ef542a650c6adf474fb7, type: 3}
+  healthDropPrefab: {fileID: 8601159937776506679, guid: b8d4f02c9e65c015b2c1ad9d3f3905ae, type: 3}
   alwaysDrawSpawnPoints: 1
   encounterZone: {fileID: 1135614538045203894}
   spawnOnStart: 0
@@ -331,9 +354,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   encounterBounds: {fileID: 4388819349686918843}
   airWallsRoot: {fileID: 3377360540569093516}
+  overrideOrthographicSize: 0
+  encounterOrthographicSize: 8
   triggerOnce: 1
   autoEndWhenCleared: 1
   delaySealAirWalls: 1
+  allowEnemiesThroughAirWalls: 1
+  enableAmmoAssist: 0
+  assistInterval: 25
+  ammoDropPrefab: {fileID: 0}
+  ammoDropPoints: []
   OnEncounterStarted:
     m_PersistentCalls:
       m_Calls:

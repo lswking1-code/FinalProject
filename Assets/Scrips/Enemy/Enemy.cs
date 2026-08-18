@@ -910,6 +910,17 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 由生成器覆盖本实例死亡掉落；未勾选的种类会关闭，避免预制体默认值泄漏。
+    /// </summary>
+    public void ApplyDropOverride(bool dropAmmo, GameObject ammoPrefab, bool dropHealth, GameObject healthPrefab)
+    {
+        dropAmmoOnDeath = dropAmmo;
+        ammoDropPrefab = dropAmmo ? ammoPrefab : null;
+        dropHealthOnDeath = dropHealth;
+        healthDropPrefab = dropHealth ? healthPrefab : null;
+    }
+
     void TryDropAmmo()
     {
         if (ammoDropped || !dropAmmoOnDeath || ammoDropPrefab == null)
