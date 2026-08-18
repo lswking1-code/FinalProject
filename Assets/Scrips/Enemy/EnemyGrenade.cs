@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -6,6 +7,7 @@ using UnityEngine;
 public class EnemyGrenade : MonoBehaviour
 {
     const string RollingStateName = "GrenadeRolling";
+    const int PassThroughBufferSize = 16;
 
     [Tooltip("未由投掷者覆盖时的默认抛射角（度，相对水平向上）")]
     [SerializeField] float defaultThrowAngle = 35.5f;
@@ -22,6 +24,8 @@ public class EnemyGrenade : MonoBehaviour
     [Tooltip("命中该层时引爆（地面）")]
     [SerializeField] LayerMask groundLayer;
     [SerializeField] float groundSnapRayDistance = 1.5f;
+    [Tooltip("物理步进前预扫描并 Ignore 平台的额外半径，避免接触当帧被托住")]
+    [SerializeField] float passThroughScanPadding = 1f;
 
     Rigidbody2D rb;
     CircleCollider2D grenadeCollider;
@@ -29,6 +33,11 @@ public class EnemyGrenade : MonoBehaviour
     Transform visual;
     float spinDir = 1f;
     bool hasExploded;
+    Vector2 cachedVelocity;
+    ContactFilter2D passThroughFilter;
+    readonly Collider2D[] overlapBuffer = new Collider2D[PassThroughBufferSize];
+    readonly RaycastHit2D[] castBuffer = new RaycastHit2D[PassThroughBufferSize];
+    readonly HashSet<Collider2D> ignoredPassThroughs = new HashSet<Collider2D>();
 
     void Awake()
     {
@@ -37,6 +46,8 @@ public class EnemyGrenade : MonoBehaviour
         animator = GetComponent<Animator>();
         visual = transform.Find("Sprite");
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        SetupPassThroughFilter();
+        ExcludePassThroughLayers();
     }
 
     public void Init(float faceDir, Vector2 throwerVelocity, Collider2D throwerCollider)
@@ -70,6 +81,9 @@ public class EnemyGrenade : MonoBehaviour
         if (throwerCollider != null && grenadeCollider != null)
             Physics2D.IgnoreCollision(grenadeCollider, throwerCollider);
 
+        cachedVelocity = rb.linearVelocity;
+        IgnoreNearbyPassThroughs();
+
         if (animator != null)
             animator.Play(RollingStateName, 0, 0f);
 
@@ -81,6 +95,8 @@ public class EnemyGrenade : MonoBehaviour
         if (hasExploded)
             return;
 
+        IgnoreNearbyPassThroughs();
+        cachedVelocity = rb.linearVelocity;
         SyncRollAnimSpeed();
         SpinVisual();
     }
@@ -112,11 +128,10 @@ public class EnemyGrenade : MonoBehaviour
         if (hasExploded)
             return;
 
-        // 机器人顶部仅给玩家站立，手雷应穿过、不引爆、不吸附
-        if (IsRobotTopCollider(collision.collider))
+        // 单向平台 / 机器人顶部仅给角色站立，手雷应穿过、不引爆、不吸附
+        if (TryPassThrough(collision.collider))
         {
-            if (grenadeCollider != null)
-                Physics2D.IgnoreCollision(grenadeCollider, collision.collider, true);
+            RestoreFlightVelocity();
             return;
         }
 
@@ -130,6 +145,15 @@ public class EnemyGrenade : MonoBehaviour
             Explode();
     }
 
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (hasExploded)
+            return;
+
+        if (TryPassThrough(collision.collider))
+            RestoreFlightVelocity();
+    }
+
     static bool IsPlayerCollider(Collider2D collider)
     {
         if (collider.CompareTag("Player"))
@@ -137,6 +161,100 @@ public class EnemyGrenade : MonoBehaviour
 
         var character = collider.GetComponentInParent<Character>();
         return character != null && character.CompareTag("Player");
+    }
+
+    void SetupPassThroughFilter()
+    {
+        LayerMask mask = LayerMask.GetMask("Platform", "RobotTop");
+        if (groundLayer.value != 0)
+            mask |= groundLayer;
+
+        passThroughFilter = new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = mask,
+            useTriggers = false
+        };
+    }
+
+    void ExcludePassThroughLayers()
+    {
+        LayerMask excluded = LayerMask.GetMask("Platform", "RobotTop");
+        if (grenadeCollider != null)
+            grenadeCollider.excludeLayers |= excluded;
+        if (rb != null)
+            rb.excludeLayers |= excluded;
+    }
+
+    void IgnoreNearbyPassThroughs()
+    {
+        if (hasExploded || grenadeCollider == null || rb == null)
+            return;
+
+        passThroughFilter.layerMask = LayerMask.GetMask("Platform", "RobotTop");
+        if (groundLayer.value != 0)
+            passThroughFilter.layerMask |= groundLayer;
+
+        float scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+        float radius = grenadeCollider.radius * Mathf.Max(0.01f, scale);
+        float travel = rb.linearVelocity.magnitude * Time.fixedDeltaTime;
+        float probeRadius = radius + travel + Mathf.Max(0f, passThroughScanPadding);
+
+        int overlapCount = Physics2D.OverlapCircle(
+            grenadeCollider.bounds.center,
+            probeRadius,
+            passThroughFilter,
+            overlapBuffer);
+        for (int i = 0; i < overlapCount; i++)
+            TryPassThrough(overlapBuffer[i]);
+
+        if (rb.linearVelocity.sqrMagnitude < 0.0001f)
+            return;
+
+        float castDistance = travel + Mathf.Max(0f, passThroughScanPadding);
+        int hitCount = grenadeCollider.Cast(
+            rb.linearVelocity.normalized,
+            passThroughFilter,
+            castBuffer,
+            castDistance);
+        for (int i = 0; i < hitCount; i++)
+            TryPassThrough(castBuffer[i].collider);
+    }
+
+    void RestoreFlightVelocity()
+    {
+        if (rb != null)
+            rb.linearVelocity = cachedVelocity;
+    }
+
+    bool TryPassThrough(Collider2D collider)
+    {
+        if (!IsPassThroughCollider(collider) || grenadeCollider == null)
+            return false;
+
+        if (ignoredPassThroughs.Add(collider))
+            Physics2D.IgnoreCollision(grenadeCollider, collider, true);
+
+        if (rb != null)
+            rb.WakeUp();
+        return true;
+    }
+
+    static bool IsPassThroughCollider(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        if (IsRobotTopCollider(collider) || IsPlatformLayer(collider))
+            return true;
+
+        return FallingPlatform.IsOneWayPlatformCollider(collider);
+    }
+
+    static bool IsPlatformLayer(Collider2D collider)
+    {
+        int platformLayer = LayerMask.NameToLayer("Platform");
+        return platformLayer >= 0 && collider.gameObject.layer == platformLayer;
     }
 
     static bool IsRobotTopCollider(Collider2D collider)
@@ -156,7 +274,7 @@ public class EnemyGrenade : MonoBehaviour
         if (groundLayer.value == 0 || collider == null)
             return false;
 
-        if (IsRobotTopCollider(collider))
+        if (IsPassThroughCollider(collider))
             return false;
 
         return (groundLayer.value & (1 << collider.gameObject.layer)) != 0;
@@ -196,7 +314,7 @@ public class EnemyGrenade : MonoBehaviour
             for (int i = 0; i < hits.Length; i++)
             {
                 Collider2D col = hits[i].collider;
-                if (col == null || IsRobotTopCollider(col))
+                if (col == null || IsPassThroughCollider(col))
                     continue;
 
                 if (hits[i].distance < bestDistance)

@@ -2,15 +2,12 @@ using UnityEngine;
 
 /// <summary>
 /// 标记炸弹爆炸特效：播放 BombExplosion 动画，结束后自毁。
+/// 伤害由子物体 Attack 负责，由动画手动开关。
 /// </summary>
-[RequireComponent(typeof(CircleCollider2D))]
-[RequireComponent(typeof(Attack))]
 [RequireComponent(typeof(Animator))]
 public class BombBlastExplosion : MonoBehaviour
 {
     const string ExplosionStateName = "BombExplosion";
-
-    [SerializeField] int damage = 40;
 
     Animator animator;
     bool isFinishing;
@@ -18,11 +15,6 @@ public class BombBlastExplosion : MonoBehaviour
     void Awake()
     {
         animator = GetComponent<Animator>();
-
-        var attack = GetComponent<Attack>();
-        attack.damage = damage;
-        attack.attackType = AttackType.Melee;
-        attack.ignoreTag = "Player";
     }
 
     void Start()
