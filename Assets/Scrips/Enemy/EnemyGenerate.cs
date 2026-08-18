@@ -19,6 +19,8 @@ public class EnemyInstanceDropConfig
 
 /// <summary>
 /// 波内一种敌人：预制体 + 数量 + 可选专用刷怪点。
+/// waitUntilBatchCleared：有限条目本批清光后再刷同波下一类（不循环）。
+/// infiniteRefresh 已自带等本批清光，再勾选 waitUntilBatchCleared 无效。
 /// </summary>
 [System.Serializable]
 public class EnemyWaveEntry
@@ -31,12 +33,15 @@ public class EnemyWaveEntry
     public Transform[] spawnPoints;
     [Tooltip("勾选后：本批清光再刷下一批，直至遭遇结束/StopSpawning；不计入遭遇清敌结算与 maxTotalSpawns")]
     public bool infiniteRefresh;
+    [Tooltip("有限条目：本批清光后再刷同波下一类，不循环。无限刷新条目本身就会等本批清光，此选项无效")]
+    public bool waitUntilBatchCleared;
     [Tooltip("每个生成实例的弹药/血包掉落；长度随 count 自动对齐。Element 0 对应本条目第 1 个刷出的敌人")]
     public EnemyInstanceDropConfig[] drops;
 }
 
 /// <summary>
 /// 单波刷怪配置：可包含多种敌人，共享本波刷怪点与节奏。
+/// waitUntilCleared：本波有限敌人全灭后再进入波间等待/下一波。
 /// </summary>
 [System.Serializable]
 public class EnemyWaveConfig
@@ -58,6 +63,9 @@ public class EnemyWaveConfig
     [Tooltip("本波结束后等待（秒）；<=0 时回退组件级 spawnInterval。无限刷新条目在两批之间也用此间隔")]
     public float delayAfterWave;
 
+    [Tooltip("本波有限敌人全灭后，再执行 delayAfterWave / spawnInterval 并刷下一波。不含同波无限刷新敌人")]
+    public bool waitUntilCleared;
+
     [Tooltip("生成后血量倍率（作用于 Character.maxHealth / currentHealth）")]
     public float hpScale = 1f;
 
@@ -69,6 +77,7 @@ public class EnemyWaveConfig
 /// 按波次列表刷怪：每波可指定多种敌人、数量、刷怪点与节奏，支持总刷怪上限。
 /// 遭遇战：spawnOnStart=false，由 EncounterZone.OnEncounterStarted 调用 StartSpawning；
 /// OnEncounterEnded 调用 StopSpawning。条目勾选 infiniteRefresh 则循环刷且不登记遭遇结算。
+/// 有限波可勾选 waitUntilCleared（整波清光再下一波）与条目 waitUntilBatchCleared（本批清光再刷同波下一类）。
 /// </summary>
 public class EnemyGenerate : MonoBehaviour
 {
@@ -120,7 +129,7 @@ public class EnemyGenerate : MonoBehaviour
     [SerializeField] bool spawnOnStart = true;
 
     [Header("事件")]
-    [Tooltip("每一波有限敌人生成完毕时触发（跳过的空波不触发）")]
+    [Tooltip("每一波有限生成流程结束时触发（含本波勾选的清光等待；跳过的空波不触发）")]
     public UnityEvent OnWaveSpawned;
     [Tooltip("全部有限波次刷完（或达到总上限）时触发；无限循环不停该事件")]
     public UnityEvent OnSpawningCompleted;
@@ -438,14 +447,7 @@ public class EnemyGenerate : MonoBehaviour
                 yield break;
             }
 
-            while (isSpawningActive && aliveBatch.Count > 0)
-            {
-                aliveBatch.RemoveWhere(c => c == null || c.IsDead);
-                if (aliveBatch.Count == 0)
-                    break;
-                yield return null;
-            }
-
+            yield return WaitUntilBatchCleared(aliveBatch);
             if (!isSpawningActive)
                 yield break;
 
@@ -468,17 +470,30 @@ public class EnemyGenerate : MonoBehaviour
         if (character == null || character.IsDead)
             return;
 
-        aliveBatch.Add(character);
-
-        var tracker = instance.GetComponent<InfiniteBatchTracker>();
+        var tracker = instance.GetComponent<BatchAliveTracker>();
         if (tracker == null)
-            tracker = instance.AddComponent<InfiniteBatchTracker>();
-        tracker.Bind(aliveBatch, character);
+            tracker = instance.AddComponent<BatchAliveTracker>();
+        tracker.AddToBatch(aliveBatch, character);
+    }
+
+    IEnumerator WaitUntilBatchCleared(HashSet<Character> aliveBatch)
+    {
+        if (aliveBatch == null)
+            yield break;
+
+        while (isSpawningActive && aliveBatch.Count > 0)
+        {
+            aliveBatch.RemoveWhere(c => c == null || c.IsDead);
+            if (aliveBatch.Count == 0)
+                break;
+            yield return null;
+        }
     }
 
     IEnumerator SpawnWaveRoutine(EnemyWaveConfig wave, int remainingBudget)
     {
         List<EnemyWaveEntry> entries = ResolveEntries(wave, infiniteOnly: false);
+        var waveAlive = new HashSet<Character>();
         int spawnedInWave = 0;
         int totalToSpawn = 0;
         for (int i = 0; i < entries.Count; i++)
@@ -495,12 +510,15 @@ public class EnemyGenerate : MonoBehaviour
             if (countThisEntry <= 0)
                 break;
 
+            var entryAlive = new HashSet<Character>();
+            int spawnedThisEntry = 0;
+
             for (int i = 0; i < countThisEntry; i++)
             {
                 if (!isSpawningActive)
                     yield break;
 
-                SpawnEnemyAt(
+                var instance = SpawnEnemyAt(
                     entry.enemyPrefab,
                     wave,
                     GetSpawnPosition(wave, entry, i),
@@ -510,11 +528,28 @@ public class EnemyGenerate : MonoBehaviour
                     i);
                 spawnedInWave++;
 
+                if (instance != null)
+                {
+                    spawnedThisEntry++;
+                    TrackBatchEnemy(instance, entryAlive);
+                    TrackBatchEnemy(instance, waveAlive);
+                }
+
                 bool moreInWave = spawnedInWave < totalToSpawn;
                 if (wave.intraWaveInterval > 0f && moreInWave)
                     yield return new WaitForSeconds(wave.intraWaveInterval);
             }
+
+            if (entry.waitUntilBatchCleared && spawnedThisEntry > 0)
+            {
+                yield return WaitUntilBatchCleared(entryAlive);
+                if (!isSpawningActive)
+                    yield break;
+            }
         }
+
+        if (wave != null && wave.waitUntilCleared && waveAlive.Count > 0)
+            yield return WaitUntilBatchCleared(waveAlive);
     }
 
     IEnumerator WaitAfterWave(EnemyWaveConfig wave, int waveIndex, int waveLen)
@@ -1030,24 +1065,41 @@ public class EnemyGenerate : MonoBehaviour
     }
 
     /// <summary>
-    /// 无限批次死亡/销毁时从存活集合移除。
+    /// 批次死亡/销毁时从存活集合移除；同一敌人可同时属于多个批次。
     /// </summary>
-    class InfiniteBatchTracker : MonoBehaviour
+    class BatchAliveTracker : MonoBehaviour
     {
-        HashSet<Character> batch;
+        readonly List<HashSet<Character>> batches = new();
         Character character;
         UnityAction dieHandler;
 
-        public void Bind(HashSet<Character> aliveBatch, Character target)
+        public void AddToBatch(HashSet<Character> aliveBatch, Character target)
         {
-            Unbind();
-            batch = aliveBatch;
-            character = target;
-            if (character == null || batch == null)
+            if (aliveBatch == null || target == null)
                 return;
 
-            dieHandler = OnDied;
-            character.OnDie.AddListener(dieHandler);
+            if (character == null)
+            {
+                character = target;
+                dieHandler = OnDied;
+                character.OnDie.AddListener(dieHandler);
+            }
+
+            if (!batches.Contains(aliveBatch))
+                batches.Add(aliveBatch);
+
+            aliveBatch.Add(character);
+        }
+
+        void RemoveFromAll()
+        {
+            if (character != null)
+            {
+                for (int i = 0; i < batches.Count; i++)
+                    batches[i]?.Remove(character);
+            }
+
+            batches.Clear();
         }
 
         void Unbind()
@@ -1055,20 +1107,15 @@ public class EnemyGenerate : MonoBehaviour
             if (character != null && dieHandler != null)
                 character.OnDie.RemoveListener(dieHandler);
             dieHandler = null;
-            batch = null;
             character = null;
+            batches.Clear();
         }
 
-        void OnDied()
-        {
-            if (batch != null && character != null)
-                batch.Remove(character);
-        }
+        void OnDied() => RemoveFromAll();
 
         void OnDestroy()
         {
-            if (batch != null && character != null)
-                batch.Remove(character);
+            RemoveFromAll();
             Unbind();
         }
     }

@@ -228,10 +228,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return;
         }
 
-        // #region agent log
-        AgentDebugLog.Write("C", "EncounterZone.cs:ApplyCompletedState", "ending encounter",
-            "{\"sessionId\":\"914a21\",\"zone\":\"" + name + "\",\"wasActive\":" + (isActive ? "true" : "false") + ",\"alive\":" + aliveRegistered.Count + ",\"pending\":" + pendingSpawnSources + ",\"hasRegisteredAny\":" + (hasRegisteredAny ? "true" : "false") + ",\"activeZones\":" + s_activeZones.Count + "}");
-        // #endregion
         isActive = false;
         hasCompleted = true;
         pendingSpawnSources = 0;

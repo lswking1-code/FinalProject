@@ -84,12 +84,12 @@ public class CameraControl : MonoBehaviour
 
         StopBoundsTransition(restoreSettings: true);
         StopParallaxAlignRoutine();
+        DestroyTransitionBoundsCollider();
     }
 
     void OnDestroy()
     {
-        if (transitionBoundsCollider != null)
-            Destroy(transitionBoundsCollider.gameObject);
+        DestroyTransitionBoundsCollider();
     }
 
     private void EnsurePositionComposer()
@@ -345,8 +345,7 @@ public class CameraControl : MonoBehaviour
 
     private void GetNewCameraBounds(bool smooth)
     {
-        var obj = GameObject.FindGameObjectWithTag("Bounds");
-        var shape = obj != null ? obj.GetComponent<Collider2D>() : null;
+        var shape = FindLevelCameraBounds();
         if (shape == null)
         {
             if (!smooth)
@@ -355,6 +354,58 @@ public class CameraControl : MonoBehaviour
         }
 
         SetCameraBounds(shape, smooth, overrideOrthographicSize: false, orthographicSize: 0f);
+    }
+
+    Collider2D FindLevelCameraBounds()
+    {
+        GameObject[] objs = GameObject.FindGameObjectsWithTag("Bounds");
+        if (objs == null || objs.Length == 0)
+            return null;
+
+        Vector2 playerPos = playerTransform != null
+            ? (Vector2)playerTransform.position
+            : (Vector2)GetCameraWorldPosition();
+
+        Collider2D containingLargest = null;
+        float containingArea = -1f;
+        Collider2D anyLargest = null;
+        float anyArea = -1f;
+
+        for (int i = 0; i < objs.Length; i++)
+        {
+            GameObject go = objs[i];
+            if (go == null)
+                continue;
+
+            var scene = go.scene;
+            if (!scene.IsValid())
+                continue;
+            if (scene.name == "Persistent" || scene.name == "DontDestroyOnLoad")
+                continue;
+
+            var col = go.GetComponent<Collider2D>();
+            if (col == null)
+                continue;
+
+            Bounds b = col.bounds;
+            float area = Mathf.Abs(b.size.x * b.size.y);
+            if (area > anyArea)
+            {
+                anyLargest = col;
+                anyArea = area;
+            }
+
+            bool contains = col.OverlapPoint(playerPos)
+                || (playerPos.x >= b.min.x && playerPos.x <= b.max.x
+                    && playerPos.y >= b.min.y && playerPos.y <= b.max.y);
+            if (contains && area > containingArea)
+            {
+                containingLargest = col;
+                containingArea = area;
+            }
+        }
+
+        return containingLargest != null ? containingLargest : anyLargest;
     }
 
     void StartBoundsTransition(Collider2D shape, float targetSize)
@@ -537,8 +588,24 @@ public class CameraControl : MonoBehaviour
         if (transitionBoundsCollider != null)
             return;
 
+        // 勿用 HideAndDontSave：Cinemachine Confiner 在 EditorApplication.update
+        // 里会把 BoundingShape2D 当持久化引用，触发 kDontSaveInEditor 断言。
+        const HideFlags flags = HideFlags.HideInHierarchy | HideFlags.NotEditable;
+        var existing = GameObject.Find("CameraBoundsTransition");
+        if (existing != null)
+        {
+            existing.hideFlags = flags;
+            existing.layer = 2;
+            transitionBoundsCollider = existing.GetComponent<BoxCollider2D>();
+            if (transitionBoundsCollider == null)
+                transitionBoundsCollider = existing.AddComponent<BoxCollider2D>();
+            transitionBoundsCollider.isTrigger = true;
+            existing.SetActive(false);
+            return;
+        }
+
         var go = new GameObject("CameraBoundsTransition");
-        go.hideFlags = HideFlags.HideAndDontSave;
+        go.hideFlags = flags;
         go.layer = 2;
         if (gameObject.scene.IsValid())
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, gameObject.scene);
@@ -546,6 +613,22 @@ public class CameraControl : MonoBehaviour
         transitionBoundsCollider = go.AddComponent<BoxCollider2D>();
         transitionBoundsCollider.isTrigger = true;
         go.SetActive(false);
+    }
+
+    void DestroyTransitionBoundsCollider()
+    {
+        if (transitionBoundsCollider == null)
+            return;
+
+        GameObject go = transitionBoundsCollider.gameObject;
+        transitionBoundsCollider = null;
+        if (go == null)
+            return;
+
+        if (!Application.isPlaying)
+            DestroyImmediate(go);
+        else
+            Destroy(go);
     }
 
     void ApplyTransitionBounds(Bounds worldBounds)
