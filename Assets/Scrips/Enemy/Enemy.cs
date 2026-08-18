@@ -1070,7 +1070,8 @@ public class Enemy : MonoBehaviour
             return;
 
         ammoDropped = true;
-        Instantiate(ammoDropPrefab, transform.position + ammoDropOffset, Quaternion.identity);
+        var instance = Instantiate(ammoDropPrefab, transform.position + ammoDropOffset, Quaternion.identity);
+        PickupDelay.Arm(instance);
     }
 
     void TryDropHealth()
@@ -1079,7 +1080,8 @@ public class Enemy : MonoBehaviour
             return;
 
         healthDropped = true;
-        Instantiate(healthDropPrefab, transform.position + healthDropOffset, Quaternion.identity);
+        var instance = Instantiate(healthDropPrefab, transform.position + healthDropOffset, Quaternion.identity);
+        PickupDelay.Arm(instance);
     }
 
     /// <summary>

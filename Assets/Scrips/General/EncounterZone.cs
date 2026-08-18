@@ -394,6 +394,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
                 continue;
 
             var instance = Instantiate(ammoDropPrefab, point.position, point.rotation);
+            PickupDelay.Arm(instance);
             EnemySceneCleanup.PlaceInSourceScene(instance, this);
             assistSpawned.Add(instance);
         }
