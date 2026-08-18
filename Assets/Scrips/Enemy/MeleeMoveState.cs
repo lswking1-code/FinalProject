@@ -66,7 +66,7 @@ public class MeleeMoveState : BaseState
     /// </summary>
     void KeepIdealDistance()
     {
-        if (meleeEnemy.GetHorizontalDistanceToPlayer() >= meleeEnemy.GetIdealRange() - meleeEnemy.idealRangeSlack)
+        if (meleeEnemy.GetHorizontalDistanceToPlayer() >= meleeEnemy.GetSlottedRange(meleeEnemy.GetIdealRange()) - meleeEnemy.idealRangeSlack)
             return;
 
         float away = meleeEnemy.GetMoveDirAwayFromPlayer();
@@ -84,7 +84,7 @@ public class MeleeMoveState : BaseState
     {
         float prefer;
         float dist = meleeEnemy.GetHorizontalDistanceToPlayer();
-        float ideal = meleeEnemy.GetIdealRange();
+        float ideal = meleeEnemy.GetSlottedRange(meleeEnemy.GetIdealRange());
 
         if (dist < ideal - meleeEnemy.idealRangeSlack)
             prefer = meleeEnemy.GetMoveDirAwayFromPlayer();

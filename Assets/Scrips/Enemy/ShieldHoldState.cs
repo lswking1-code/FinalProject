@@ -18,6 +18,7 @@ public class ShieldHoldState : BaseState
         leaveIdealTimer = 0f;
 
         currentEnemy.currentSpeed = 0f;
+        currentEnemy.blockSeparation = true;
         if (currentEnemy.Rb != null)
             currentEnemy.Rb.linearVelocity = new Vector2(0f, currentEnemy.Rb.linearVelocity.y);
 
@@ -67,6 +68,8 @@ public class ShieldHoldState : BaseState
 
     public override void OnExit()
     {
+        if (currentEnemy != null)
+            currentEnemy.blockSeparation = false;
         turnTimer = 0f;
         leaveIdealTimer = 0f;
     }
@@ -77,7 +80,7 @@ public class ShieldHoldState : BaseState
     bool TryReapproachIfPlayerLeft()
     {
         float dist = shieldEnemy.GetHorizontalDistanceToPlayer();
-        float reapproachRange = shieldEnemy.GetReapproachRange();
+        float reapproachRange = shieldEnemy.GetSlottedRange(shieldEnemy.GetReapproachRange());
 
         if (dist <= reapproachRange)
         {

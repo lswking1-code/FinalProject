@@ -21,6 +21,8 @@ public class FlyingEnemy : Enemy
     public float maxShootRange = 8f;
     [Tooltip("相对玩家的目标悬停高度")]
     public float preferredHoverHeight = 4f;
+    [Tooltip("同侧飞行站位槽的竖直错开幅度")]
+    public float flyingSlotYSpacing = 0.3f;
     [Tooltip("射击前走位时长")]
     public float actionDuration = 2f;
     [Tooltip("射击后原地后摇时长")]
@@ -109,8 +111,54 @@ public class FlyingEnemy : Enemy
         base.FixedUpdate();
     }
 
+    protected override void ApplyPostMoveSeparation()
+    {
+        if (Rb == null || !ShouldApplySeparation)
+            return;
+
+        Vector2 intended = Rb.linearVelocity;
+        // 射击 / 后摇等会把速度清零；站定时不推
+        if (intended.sqrMagnitude <= 0.0025f)
+            return;
+
+        Vector2 correction = EnemySeparation.ComputeFlyingCorrection(this) * GetSeparationScale();
+        correction.x = Mathf.Clamp(correction.x, -maxSeparationSpeed, maxSeparationSpeed);
+        correction.y = Mathf.Clamp(correction.y, -maxSeparationSpeed, maxSeparationSpeed);
+
+        Vector2 vel = intended + correction;
+        if (intended.x > 0.05f)
+            vel.x = Mathf.Max(0f, vel.x);
+        else if (intended.x < -0.05f)
+            vel.x = Mathf.Min(0f, vel.x);
+
+        if (IsInOverheadFan())
+            vel = ClampVelocityInsideFan(vel);
+        Rb.linearVelocity = vel;
+    }
+
+    Vector2 ClampVelocityInsideFan(Vector2 velocity)
+    {
+        EnsurePlayerReference();
+        if (player == null)
+            return velocity;
+
+        float height = Mathf.Max(0.5f, preferredHoverHeight);
+        float maxX = GetFanHalfWidthAtHeight(height);
+        float minWorldX = player.position.x - maxX;
+        float maxWorldX = player.position.x + maxX;
+        float nextX = transform.position.x + velocity.x * Time.fixedDeltaTime;
+
+        if (nextX < minWorldX && velocity.x < 0f)
+            velocity.x = 0f;
+        else if (nextX > maxWorldX && velocity.x > 0f)
+            velocity.x = 0f;
+
+        return velocity;
+    }
+
     protected override void OnEnable()
     {
+        RegisterSeparation();
         CacheHome();
         hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
         bobPhase = 0f;
@@ -367,8 +415,15 @@ public class FlyingEnemy : Enemy
 
         float height = Mathf.Max(0.5f, preferredHoverHeight);
         float maxX = GetFanHalfWidthAtHeight(height);
-        float x = Mathf.Clamp(transform.position.x, player.position.x - maxX, player.position.x + maxX);
-        return new Vector2(x, player.position.y + height);
+        Vector2 slotOffset = enableSeparation
+            ? EnemySeparation.GetFlyingSlotOffset(this)
+            : Vector2.zero;
+        float x = Mathf.Clamp(
+            player.position.x + slotOffset.x,
+            player.position.x - maxX,
+            player.position.x + maxX);
+        float y = player.position.y + height + slotOffset.y;
+        return new Vector2(x, y);
     }
 
     /// <summary>
@@ -556,8 +611,14 @@ public class FlyingEnemy : Enemy
 
         float height = Mathf.Max(0.5f, preferredHoverHeight);
         float maxX = GetFanHalfWidthAtHeight(height);
-        float x = Mathf.Clamp(transform.position.x, player.position.x - maxX, player.position.x + maxX);
-        float idealY = RaiseYAboveOneWayPlatforms(x, hoverBaseY);
+        Vector2 slotOffset = enableSeparation
+            ? EnemySeparation.GetFlyingSlotOffset(this)
+            : Vector2.zero;
+        float x = Mathf.Clamp(
+            player.position.x + slotOffset.x,
+            player.position.x - maxX,
+            player.position.x + maxX);
+        float idealY = RaiseYAboveOneWayPlatforms(x, hoverBaseY + slotOffset.y);
         Vector2 ideal = new Vector2(x, idealY);
 
         bobPhase += bobSpeed * Time.fixedDeltaTime;

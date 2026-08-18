@@ -170,7 +170,7 @@ MonoBehaviour:
   speed: 15
   damage: 20
   lifetime: 2
-  abilityPowerRestore: 5
+  abilityPowerRestore: 3
 --- !u!114 &785616209480741553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -187,11 +187,13 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 0
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12

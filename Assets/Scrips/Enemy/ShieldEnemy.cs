@@ -141,7 +141,7 @@ public class ShieldEnemy : MeleeEnemy
             return;
         }
 
-        if (GetHorizontalDistanceToPlayer() > holdRange)
+        if (GetHorizontalDistanceToPlayer() > GetSlottedRange(holdRange))
         {
             SwitchState(NPCState.GetClose);
             return;

@@ -50,6 +50,7 @@ public class MeleeAttackState : BaseState
 
         if (phase == Phase.CloseIn)
         {
+            meleeEnemy.blockSeparation = true;
             if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.meleeRange)
                 EnterWindup();
             return;
@@ -95,6 +96,9 @@ public class MeleeAttackState : BaseState
 
     public override void OnExit()
     {
+        if (currentEnemy != null)
+            currentEnemy.blockSeparation = false;
+
         SetAttackerActive(false);
 
         if (currentEnemy?.anim == null)
@@ -108,6 +112,7 @@ public class MeleeAttackState : BaseState
     void EnterCloseIn()
     {
         phase = Phase.CloseIn;
+        currentEnemy.blockSeparation = true;
         currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
         meleeEnemy.FacePlayer();
         SetAttackerActive(false);
@@ -123,6 +128,7 @@ public class MeleeAttackState : BaseState
     void EnterWindup()
     {
         phase = Phase.Windup;
+        currentEnemy.blockSeparation = false;
         meleeEnemy.FacePlayer();
         StopHorizontal();
         SetAttackerActive(false);
@@ -140,6 +146,7 @@ public class MeleeAttackState : BaseState
     void EnterSlash()
     {
         phase = Phase.Slash;
+        currentEnemy.blockSeparation = true;
         meleeEnemy.FacePlayer();
         SetAttackerActive(false);
 
@@ -153,6 +160,7 @@ public class MeleeAttackState : BaseState
     void EnterRecovery()
     {
         phase = Phase.Recovery;
+        currentEnemy.blockSeparation = false;
         timer = Mathf.Max(0.01f, meleeEnemy.recoveryDuration);
         SetAttackerActive(false);
 

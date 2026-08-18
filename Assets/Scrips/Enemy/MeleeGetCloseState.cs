@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 近战敌人靠近状态：持续朝玩家移动，进入理想站位距离后进入行动循环。
+/// 近战敌人靠近状态：朝同侧站位槽移动，到达后进入行动循环。
 /// </summary>
 public class MeleeGetCloseState : BaseState
 {
@@ -23,7 +23,7 @@ public class MeleeGetCloseState : BaseState
         if (meleeEnemy == null || currentEnemy.isDead)
             return;
 
-        if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.GetApproachStopRange())
+        if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.GetSlottedRange(meleeEnemy.GetApproachStopRange()))
             meleeEnemy.EvaluateCycle();
     }
 
@@ -32,8 +32,8 @@ public class MeleeGetCloseState : BaseState
         if (meleeEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
 
-        meleeEnemy.MoveTowardPlayer();
-        meleeEnemy.TryFlipOnObstacle(meleeEnemy.GetMoveDirTowardPlayer());
+        meleeEnemy.MoveTowardCombatSlot(meleeEnemy.GetApproachStopRange());
+        meleeEnemy.TryFlipOnObstacle(meleeEnemy.GetCombatSlotMoveDir(meleeEnemy.GetApproachStopRange()));
     }
 
     public override void OnExit()

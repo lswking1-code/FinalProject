@@ -89,6 +89,14 @@ public class EnemyGenerate : MonoBehaviour
              "遭遇战建议放在空气墙外侧/相机视野外：Enemy 可穿空气墙进入区内，玩家仍被挡住")]
     [SerializeField] Transform[] spawnPoints;
 
+    [Header("出生错开")]
+    [Tooltip("同一刷怪点多个实例的水平间距；0 表示不错开")]
+    [SerializeField] float spawnSpreadSpacing = 0.4f;
+    [Tooltip("飞行敌人额外的竖直错开")]
+    [SerializeField] float spawnSpreadYForFlying = 0.25f;
+    [Tooltip("错开后若与该层重叠则回退到原点；留空则使用 Ground")]
+    [SerializeField] LayerMask spawnOverlapMask;
+
     [Header("掉落预制体")]
     [Tooltip("S 弹药包预制体（BulletBoxS）")]
     [SerializeField] GameObject ammoDropPrefabS;
@@ -544,6 +552,7 @@ public class EnemyGenerate : MonoBehaviour
             return null;
         }
 
+        position = ApplySpawnSpread(position, prefab, wave, entry, indexInEntry);
         var instance = Instantiate(prefab, position, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(instance, this);
         var spawnedEnemy = instance.GetComponent<Enemy>() ?? instance.GetComponentInChildren<Enemy>();
@@ -798,6 +807,53 @@ public class EnemyGenerate : MonoBehaviour
 
         var point = points[indexInEntry % points.Length];
         return point != null ? point.position : transform.position;
+    }
+
+    Vector3 ApplySpawnSpread(
+        Vector3 pos,
+        GameObject prefab,
+        EnemyWaveConfig wave,
+        EnemyWaveEntry entry,
+        int indexInEntry)
+    {
+        if (spawnSpreadSpacing <= 0f)
+            return pos;
+
+        int count = entry != null ? Mathf.Max(1, entry.count) : 1;
+        Transform[] points = ResolveSpawnPoints(wave, entry);
+        int pointCount = points != null && points.Length > 0 ? points.Length : 1;
+        int pointIndex = indexInEntry % pointCount;
+        int localIndex = indexInEntry / pointCount;
+        int sharing = 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (i % pointCount == pointIndex)
+                sharing++;
+        }
+
+        if (sharing <= 1)
+            return pos;
+
+        float centered = localIndex - (sharing - 1) * 0.5f;
+        Vector3 candidate = pos;
+        candidate.x += centered * spawnSpreadSpacing;
+
+        bool flying = prefab != null && prefab.GetComponentInChildren<FlyingEnemy>(true) != null;
+        if (flying && spawnSpreadYForFlying != 0f)
+            candidate.y += centered * spawnSpreadYForFlying;
+
+        if (IsSpawnBlocked(candidate))
+            return pos;
+
+        return candidate;
+    }
+
+    bool IsSpawnBlocked(Vector3 pos)
+    {
+        LayerMask mask = spawnOverlapMask;
+        if (mask.value == 0)
+            mask = LayerMask.GetMask("Ground");
+        return Physics2D.OverlapCircle(pos, 0.35f, mask) != null;
     }
 
     /// <summary>

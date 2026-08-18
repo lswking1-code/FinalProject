@@ -643,6 +643,7 @@ MonoBehaviour:
     m_Bits: 36928
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
@@ -694,6 +695,7 @@ MonoBehaviour:
   invulnerableDuration: 0.4
   knockbackResistance: 1
   invulnerable: 0
+  allowHitsWhileDead: 0
   OnHealthChange:
     m_PersistentCalls:
       m_Calls: []
@@ -776,7 +778,7 @@ MonoBehaviour:
   previewMoveSpeed: 3
   maxPreviewDistance: 5
   robotDrainRate: 3
-  minAbilityPowerToSpawn: 1
+  minAbilityPowerToSpawn: 3
   reloadAmmoCosts: 0000000028000000140000000a000000
   reloadLoadCounts: 00000000030000000200000001000000
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}

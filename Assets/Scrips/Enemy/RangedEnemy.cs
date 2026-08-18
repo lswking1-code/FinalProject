@@ -84,6 +84,7 @@ public class RangedEnemy : Enemy
 
     protected override void OnEnable()
     {
+        RegisterSeparation();
         ResetActionProbabilities();
         lastAction = null;
         CacheHome();
@@ -191,7 +192,7 @@ public class RangedEnemy : Enemy
 
         float dist = GetCombatDistanceToPlayer();
 
-        if (dist > shootRange)
+        if (dist > GetSlottedRange(shootRange))
             SwitchState(NPCState.GetClose);
         else
             RollAndEnterAction();

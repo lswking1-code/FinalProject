@@ -633,7 +633,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         bool hasHorizontalInput = Mathf.Abs(moveInput.x) > inputThreshold;
-        // 霰弹蓄力 / 机枪连射：起跳不改朝向、不带水平速度（机械师蓄力可移动）
+        // 霰弹蓄力 / 机枪连射 / 机械师蹲下蓄力：起跳不改朝向、不带水平速度（机械师站立蓄力可移动）
         if (playerAnim.LocksMovementWhileCharging || playerAnim.IsHeavySpinFiring
             || (playerAnim.IsCrouching && playerAnim.IsDispatching))
             hasHorizontalInput = false;

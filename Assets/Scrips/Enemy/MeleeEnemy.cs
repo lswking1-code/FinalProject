@@ -89,6 +89,7 @@ public class MeleeEnemy : Enemy
 
     protected override void OnEnable()
     {
+        RegisterSeparation();
         ResetActionProbabilities();
         lastAction = null;
         CacheHome();
@@ -189,7 +190,7 @@ public class MeleeEnemy : Enemy
         }
 
         float dist = GetHorizontalDistanceToPlayer();
-        float stopRange = GetApproachStopRange();
+        float stopRange = GetSlottedRange(GetApproachStopRange());
 
         if (dist > stopRange)
         {

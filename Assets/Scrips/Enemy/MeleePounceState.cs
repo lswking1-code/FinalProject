@@ -26,6 +26,8 @@ public class MeleePounceState : BaseState
         }
 
         // 尚未实现飞扑位移：兜底回追击，避免死循环卡在 Skill。
+        if (currentEnemy != null)
+            currentEnemy.blockSeparation = true;
         if (meleeEnemy != null && !currentEnemy.isDead)
             meleeEnemy.SwitchState(NPCState.GetClose);
     }
@@ -42,5 +44,9 @@ public class MeleePounceState : BaseState
         currentEnemy.Rb.linearVelocity = vel;
     }
 
-    public override void OnExit() { }
+    public override void OnExit()
+    {
+        if (currentEnemy != null)
+            currentEnemy.blockSeparation = false;
+    }
 }

@@ -46,6 +46,22 @@ public class Enemy : MonoBehaviour
     public float checkDistance;
     public LayerMask attackLayer;
 
+    [Header("间隔")]
+    [Tooltip("关闭后不再做软间隔与站位槽")]
+    public bool enableSeparation = true;
+    [Tooltip("软间隔检测半径")]
+    public float separationRadius = 1.15f;
+    [Tooltip("软间隔推力强度")]
+    public float separationStrength = 2.5f;
+    [Tooltip("间隔修正的最大水平速度")]
+    public float maxSeparationSpeed = 2f;
+    [Tooltip("同侧战斗站位槽间距，叠加在 idealRange / shootRange / holdRange 上")]
+    public float combatSlotSpacing = 0.75f;
+    [Tooltip("参与站位槽分配的同伴水平范围，避免远处敌人把停点排得过远")]
+    public float combatSlotGroupRadius = 8f;
+    /// <summary>近战贴脸、飞扑、举盾等临时关闭间隔。</summary>
+    [HideInInspector] public bool blockSeparation;
+
     [Header("巡逻站岗")]
     [Tooltip("开启后原地 Idle，索敌范围内发现玩家才开战；玩家离开所属 Bounds 后脱战回位")]
     public bool isPatrol;
@@ -200,6 +216,8 @@ public class Enemy : MonoBehaviour
 
         if (ShouldPersistDeath && GetComponent<EnemyDeathPersist>() == null)
             gameObject.AddComponent<EnemyDeathPersist>();
+
+        EnemySeparation.Register(this);
     }
 
     protected void CacheSpriteRenderer()
@@ -387,6 +405,8 @@ public class Enemy : MonoBehaviour
 
     protected virtual void OnEnable()
     {
+        EnemySeparation.Register(this);
+        blockSeparation = false;
         currentState = GetInitialState();
         currentState.OnEnter(this);
     }
@@ -412,6 +432,7 @@ public class Enemy : MonoBehaviour
             Move();
 
         currentState.PhysicsUpdate();
+        ApplyPostMoveSeparation();
     }
 
     protected virtual bool ShouldRunTimeCounter() => true;
@@ -421,6 +442,19 @@ public class Enemy : MonoBehaviour
     protected virtual void OnDisable()
     {
         currentState?.OnExit();
+        EnemySeparation.Unregister(this);
+    }
+
+    protected virtual void OnDestroy()
+    {
+        EnemySeparation.Unregister(this);
+    }
+
+    /// <summary>子类 OnEnable 未调用 base 时仍需登记间隔。</summary>
+    protected void RegisterSeparation()
+    {
+        EnemySeparation.Register(this);
+        blockSeparation = false;
     }
 
     /// <summary>
@@ -586,6 +620,48 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// 朝同侧战斗站位槽移动；已到位则停步并面向玩家。
+    /// </summary>
+    public void MoveTowardCombatSlot(float baseRange)
+    {
+        if (player == null || isHurt || isDead || rb == null)
+            return;
+
+        float dir = GetCombatSlotMoveDir(baseRange);
+        if (Mathf.Approximately(dir, 0f))
+        {
+            ApplyHorizontalMove(0f);
+            FacePlayer();
+            return;
+        }
+
+        ApplyHorizontalMove(dir);
+        FacePlayer();
+    }
+
+    public float GetCombatSlotMoveDir(float baseRange)
+    {
+        if (player == null)
+            return GetMoveDirTowardPlayer();
+
+        float slotted = GetSlottedRange(baseRange);
+        int side = EnemySeparation.GetCombatSide(this);
+        float desiredX = player.position.x + side * slotted;
+        float dx = desiredX - transform.position.x;
+        if (Mathf.Abs(dx) <= 0.08f)
+            return 0f;
+
+        return Mathf.Sign(dx);
+    }
+
+    public float GetSlottedRange(float baseRange)
+    {
+        if (!enableSeparation)
+            return baseRange;
+        return EnemySeparation.GetSlottedRange(this, baseRange);
+    }
+
+    /// <summary>
     /// 沿指定水平方向移动
     /// </summary>
     public void MoveHorizontal(float direction)
@@ -618,6 +694,58 @@ public class Enemy : MonoBehaviour
         }
 
         rb.linearVelocity = new Vector2(currentSpeed * direction, rb.linearVelocity.y);
+    }
+
+    public virtual bool ShouldApplySeparation =>
+        enableSeparation && !blockSeparation && !isHurt && !isDead && IsHittable;
+
+    public virtual float GetSeparationScale() => isReturning ? 0.35f : 1f;
+
+    protected virtual void ApplyPostMoveSeparation()
+    {
+        if (rb == null || !ShouldApplySeparation)
+            return;
+
+        float vx = MixGroundSeparation(rb.linearVelocity.x);
+        rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
+    }
+
+    protected float MixGroundSeparation(float intendedVx)
+    {
+        // 射击 / 投掷 / 换弹等站定状态会清零水平速度；此时不推，避免打乱攻击动作
+        if (Mathf.Abs(intendedVx) <= 0.05f)
+            return intendedVx;
+
+        float correction = EnemySeparation.ComputeGroundCorrectionX(this) * GetSeparationScale();
+        correction = Mathf.Clamp(correction, -maxSeparationSpeed, maxSeparationSpeed);
+
+        if (correction > 0.01f && IsSeparationBlocked(1f))
+            correction = 0f;
+        else if (correction < -0.01f && IsSeparationBlocked(-1f))
+            correction = 0f;
+
+        float vx = intendedVx + correction;
+        if (intendedVx > 0f)
+            vx = Mathf.Max(0f, vx);
+        else
+            vx = Mathf.Min(0f, vx);
+
+        return vx;
+    }
+
+    protected bool IsSeparationBlocked(float direction)
+    {
+        if (Mathf.Approximately(direction, 0f))
+            return false;
+        if (IsLedgeBlocking(direction))
+            return true;
+        if (physicsCheck == null)
+            return false;
+        if (direction > 0f && physicsCheck.touchRightWall)
+            return true;
+        if (direction < 0f && physicsCheck.touchLeftWall)
+            return true;
+        return false;
     }
 
     /// <summary>

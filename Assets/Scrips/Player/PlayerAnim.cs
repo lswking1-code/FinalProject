@@ -189,7 +189,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsCrouching => isCrouching;
     public override bool IsShooting => isShooting;
     public override bool IsCharging => isCharging;
-    public override bool LocksMovementWhileCharging => false;
+    public override bool LocksMovementWhileCharging => isCharging && isCrouching;
     public override bool IsHeavySpinFiring => isHeavySpinFiring;
     public override bool IsDispatching => isDispatching;
     public override MachinistChargeAim ActiveChargeAim => activeChargeAim;
@@ -401,7 +401,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isDispatching && isCrouching)
             return;
 
-        if (isCrouching && (isShooting || isThrowing || isMelee || isSwitchingWeapon))
+        if (isCrouching && (isShooting || isCharging || isThrowing || isMelee || isSwitchingWeapon))
             return;
 
         if (IsPlayingMachinistComboShoot || IsPlayingMachinistChargeShoot)

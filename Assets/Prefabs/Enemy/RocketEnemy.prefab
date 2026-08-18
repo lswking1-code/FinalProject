@@ -289,6 +289,13 @@ MonoBehaviour:
   attackLayer:
     serializedVersion: 2
     m_Bits: 0
+  enableSeparation: 1
+  separationRadius: 1.15
+  separationStrength: 2
+  maxSeparationSpeed: 2
+  combatSlotSpacing: 0.75
+  combatSlotGroupRadius: 8
+  blockSeparation: 0
   isPatrol: 0
   patrolDetectRange: 10
   returnArriveDistance: 0.15
