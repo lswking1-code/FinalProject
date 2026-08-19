@@ -89,8 +89,16 @@ public class EnemyMissile : MonoBehaviour
             return;
         }
 
-        if (EncounterZone.IsAirWallCollider(other))
+        if (AirWallRegistry.IsAirWall(other))
         {
+            Vector2 velocity = rb != null ? rb.linearVelocity : direction;
+            if (AirWallRegistry.IsInbound(other, velocity, transform.position))
+            {
+                if (missileCollider != null)
+                    Physics2D.IgnoreCollision(missileCollider, other, true);
+                return;
+            }
+
             Despawn();
             return;
         }

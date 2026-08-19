@@ -63,8 +63,17 @@ public class EnemyProjectile : MonoBehaviour
     {
         if (destroyed || other == null)
             return;
-        if (!EncounterZone.IsAirWallCollider(other))
+        if (!AirWallRegistry.IsAirWall(other))
             return;
+
+        Vector2 velocity = rb != null ? rb.linearVelocity : direction;
+        if (AirWallRegistry.IsInbound(other, velocity, transform.position))
+        {
+            var body = GetComponent<Collider2D>();
+            if (body != null)
+                Physics2D.IgnoreCollision(body, other, true);
+            return;
+        }
 
         destroyed = true;
         Destroy(gameObject);

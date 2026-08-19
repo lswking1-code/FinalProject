@@ -650,6 +650,8 @@ public class EnemyGenerate : MonoBehaviour
             encounterZone.PrepareSpawnedEnemy(instance);
         }
 
+        OneWayAirWallVolume.PrepareSpawnedEnemyAll(instance);
+
         // #region agent log
         AgentDebugLog.Write("E", "EnemyGenerate.cs:SpawnEnemyAt", "enemy spawned",
             "{\"name\":\"" + name + "\",\"prefab\":\"" + prefab.name + "\",\"totalSpawned\":" + totalSpawned + ",\"finiteSpawned\":" + finiteSpawned + ",\"register\":" + (registerWithZone ? "true" : "false") + ",\"pos\":\"" + position.x.ToString("F1") + "," + position.y.ToString("F1") + "\"}");

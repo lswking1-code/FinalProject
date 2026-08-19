@@ -24,6 +24,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] GameObject airWallsRoot;
 
     [Header("镜头")]
+    [Tooltip("关闭后本遭遇不改相机 Bounds（电梯关楼层事件交给电梯导演）")]
+    [SerializeField] bool controlCamera = true;
     [Tooltip("勾选后进入本遭遇时覆盖相机 Orthographic Size（更大=看到更多世界）")]
     [SerializeField] bool overrideOrthographicSize;
     [Tooltip("仅在勾选覆盖时生效")]
@@ -47,8 +49,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Tooltip("固定刷新点；无效或空点会跳过")]
     [SerializeField] Transform[] ammoDropPoints;
 
-    /// <summary>当前激活的遭遇空气墙碰撞体，供敌人弹判定销毁。</summary>
-    static readonly HashSet<Collider2D> s_activeAirWalls = new();
     /// <summary>当前激活中的遭遇区，供盟友索敌等按区域过滤。</summary>
     static readonly List<EncounterZone> s_activeZones = new();
 
@@ -93,10 +93,10 @@ public class EncounterZone : MonoBehaviour, ISaveable
     /// <summary>是否存在进行中的遭遇战。</summary>
     public static bool HasActiveEncounter => s_activeZones.Count > 0;
 
-    /// <summary>是否为当前遭遇战启用中的空气墙碰撞体。</summary>
+    /// <summary>是否为当前启用中的空气墙碰撞体。</summary>
     public static bool IsAirWallCollider(Collider2D col)
     {
-        return col != null && s_activeAirWalls.Contains(col);
+        return AirWallRegistry.IsAirWall(col);
     }
 
     /// <summary>世界坐标是否落在任一激活遭遇区的 EncounterBounds 内。</summary>
@@ -204,14 +204,17 @@ public class EncounterZone : MonoBehaviour, ISaveable
         SetEncounterBoundsVisible(true);
         ActivateAirWalls(ResolvePlayerCollider(playerCollider));
 
-        EnsureCameraControl();
-        if (cameraControl != null && encounterBounds != null)
+        if (controlCamera)
         {
-            cameraControl.SetCameraBounds(
-                encounterBounds,
-                smooth: true,
-                overrideOrthographicSize,
-                encounterOrthographicSize);
+            EnsureCameraControl();
+            if (cameraControl != null && encounterBounds != null)
+            {
+                cameraControl.SetCameraBounds(
+                    encounterBounds,
+                    smooth: true,
+                    overrideOrthographicSize,
+                    encounterOrthographicSize);
+            }
         }
 
         // 机器人若未进入遭遇锁区，开战时收回，避免锁区外残留
@@ -255,8 +258,11 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         lockReleased = true;
         DeactivateAirWalls();
-        EnsureCameraControl();
-        cameraControl?.RestoreCameraBounds(smooth: true);
+        if (controlCamera)
+        {
+            EnsureCameraControl();
+            cameraControl?.RestoreCameraBounds(smooth: true);
+        }
         SetEncounterBoundsVisible(false);
         OnEncounterUnlocked?.Invoke();
     }
@@ -288,8 +294,11 @@ public class EncounterZone : MonoBehaviour, ISaveable
         ClearRegistrations();
         DeactivateAirWalls();
 
-        EnsureCameraControl();
-        cameraControl?.RestoreCameraBounds(restoreBoundsSmooth);
+        if (controlCamera)
+        {
+            EnsureCameraControl();
+            cameraControl?.RestoreCameraBounds(restoreBoundsSmooth);
+        }
 
         SetEncounterBoundsVisible(false);
         if (triggerOnce)
@@ -318,11 +327,14 @@ public class EncounterZone : MonoBehaviour, ISaveable
         StopAmmoAssist();
         ClearRegistrations();
         DeactivateAirWalls();
-        EnsureCameraControl();
-        // 读档必须立刻恢复场景 Bounds：平滑过渡会把遭遇区阻尼带到 Persistent 相机上，
-        // 视差会在相机尚未回到存档点时采基线。
-        cameraControl?.RestoreCameraBounds(smooth: false);
-        cameraControl?.SnapCameraToFollowTarget();
+        if (controlCamera)
+        {
+            EnsureCameraControl();
+            // 读档必须立刻恢复场景 Bounds：平滑过渡会把遭遇区阻尼带到 Persistent 相机上，
+            // 视差会在相机尚未回到存档点时采基线。
+            cameraControl?.RestoreCameraBounds(smooth: false);
+            cameraControl?.SnapCameraToFollowTarget();
+        }
         SetEncounterBoundsVisible(false);
         OnEncounterEnded?.Invoke();
     }
@@ -529,9 +541,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
                 continue;
 
             if (publish)
-                s_activeAirWalls.Add(wall);
+                AirWallRegistry.Register(wall, oneWay: false, cage: encounterBounds);
             else
-                s_activeAirWalls.Remove(wall);
+                AirWallRegistry.Unregister(wall);
         }
     }
 
