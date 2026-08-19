@@ -577,7 +577,7 @@ public class Enemy : MonoBehaviour
 
     /// <summary>
     /// 移动方向前方是否仍有地面；PhysicsCheck 未配置时视为有地面。
-    /// 单向平台上视为始终有地面，允许走下平台。
+    /// 单向平台上、或已离开实心地面过久时视为始终有地面，允许走下平台。
     /// </summary>
     public bool HasGroundAhead(float moveDir)
     {
@@ -590,7 +590,7 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 贴地移动时前方是否为悬崖（空中与单向平台上不拦截，平台上可走下去）。
+    /// 贴地移动时前方是否为悬崖。单向平台上不拦截；刚离开实心地面的短窗口内仍拦截。
     /// </summary>
     public bool IsLedgeBlocking(float moveDir)
     {
@@ -613,7 +613,7 @@ public class Enemy : MonoBehaviour
 
         bool hitWall = (physicsCheck.touchLeftWall && moveDir < 0f)
             || (physicsCheck.touchRightWall && moveDir > 0f);
-        bool noGroundAhead = !physicsCheck.HasGroundAhead(moveDir);
+        bool noGroundAhead = physicsCheck.ShouldRespectLedge && !physicsCheck.HasGroundAhead(moveDir);
 
         if (!hitWall && !noGroundAhead)
             return false;

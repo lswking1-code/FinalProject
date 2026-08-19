@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -56,6 +57,11 @@ public class MachinistShooting : MonoBehaviour
     [Header("事件")]
     [SerializeField] VoidEventSO robotComboEvent;
     [SerializeField] VoidEventSO robotBlastComboEvent;
+
+    [Header("音效")]
+    [SerializeField] EventReference fireEvent;
+    [Tooltip("FMOD Fire 事件上的标签参数名")]
+    [SerializeField] string shotTypeParam = "Parameter 1";
 
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
@@ -270,6 +276,7 @@ public class MachinistShooting : MonoBehaviour
             if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
                 playerMovement.NotifyAirHangFromDownShot();
 
+            PlayFireSfx(ResolveShotLabel(kind));
             StartMachineBurst(fireDir);
             return;
         }
@@ -290,6 +297,7 @@ public class MachinistShooting : MonoBehaviour
                 playerMovement.NotifyAirHangFromDownShot();
 
             float delay = blastFireDelay >= 0f ? blastFireDelay : comboFireDelay;
+            PlayFireSfx(ResolveShotLabel(kind));
             ScheduleFire(fireDir, specialProjectilePrefabL, delay);
             return;
         }
@@ -316,6 +324,7 @@ public class MachinistShooting : MonoBehaviour
             else
                 delay = comboFireDelay;
 
+            PlayFireSfx(ResolveShotLabel(kind));
             ScheduleFire(fireDir, specialProjectilePrefabM, delay);
             return;
         }
@@ -329,6 +338,7 @@ public class MachinistShooting : MonoBehaviour
 
         var prefab = isCombo ? comboProjectilePrefab : normalProjectilePrefab;
         float normalDelay = isCombo ? comboFireDelay : normalFireDelay;
+        PlayFireSfx(ResolveShotLabel(kind));
         ScheduleFire(fireDir, prefab != null ? prefab.gameObject : null, normalDelay);
 
         if (isCombo)
@@ -442,6 +452,7 @@ public class MachinistShooting : MonoBehaviour
         // 空中蓄力释放：整段 ChargeShoot 满强度滞空（地面调用会被 Notify 内部忽略）
         playerMovement.NotifyAirHangFromDownShot();
 
+        PlayFireSfx("Charge");
         FireProjectile(fireDir, ResolveChargePrefab());
     }
 
@@ -526,6 +537,18 @@ public class MachinistShooting : MonoBehaviour
 
         ammo.Init(dir, faceY, character);
     }
+
+    void PlayFireSfx(string label) =>
+        FmodAudio.Play(fireEvent, shotTypeParam, label);
+
+    static string ResolveShotLabel(MachinistShootKind kind) => kind switch
+    {
+        MachinistShootKind.Combo => "Combo",
+        MachinistShootKind.Machine => "Machine",
+        MachinistShootKind.Electric => "Electric",
+        MachinistShootKind.Blast => "Blast",
+        _ => "Normal",
+    };
 
     Transform GetFirePoint(FireDir dir) => dir switch
     {

@@ -1595,14 +1595,11 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 遭遇战进行中时，只允许锁定 EncounterBounds 内的敌人；平时不限制。
+    /// 锁区未解开时只允许锁定 EncounterBounds 内的敌人；UnlockLock / 遭遇结束后不限制。
     /// </summary>
     static bool IsAllowedByActiveEncounter(Vector2 worldPoint)
     {
-        if (!EncounterZone.HasActiveEncounter)
-            return true;
-
-        return EncounterZone.IsPointInsideAnyActiveEncounter(worldPoint);
+        return EncounterZone.IsAllyTargetingAllowed(worldPoint);
     }
 
     bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false)

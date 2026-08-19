@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,6 +35,9 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
     [Header("事件")]
     [SerializeField] VoidEventSO newGameEvent;
+
+    [Header("音效")]
+    [SerializeField] EventReference loadEvent;
 
     RobotAbilityPhase phase = RobotAbilityPhase.Idle;
     InputSystem_Actions actions;
@@ -209,7 +213,8 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (!TryConvertAmmoToSpecial())
             return;
 
-        playerAnim.TryPlayLoadBulletAnim();
+        if (playerAnim.TryPlayLoadBulletAnim())
+            FmodAudio.Play(loadEvent);
     }
 
     void UpdateRobotManualMove()

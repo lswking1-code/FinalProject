@@ -118,6 +118,32 @@ public class EncounterZone : MonoBehaviour, ISaveable
         return false;
     }
 
+    /// <summary>
+    /// 锁区未解开时，仅 EncounterBounds 内允许盟友索敌；UnlockLock 后或无遭遇时不限制。
+    /// </summary>
+    public static bool IsAllyTargetingAllowed(Vector2 worldPoint)
+    {
+        bool anySealed = false;
+        for (int i = s_activeZones.Count - 1; i >= 0; i--)
+        {
+            EncounterZone zone = s_activeZones[i];
+            if (zone == null)
+            {
+                s_activeZones.RemoveAt(i);
+                continue;
+            }
+
+            if (!zone.IsActive || zone.LockReleased)
+                continue;
+
+            anySealed = true;
+            if (zone.IsPointInsideEncounterBounds(worldPoint))
+                return true;
+        }
+
+        return !anySealed;
+    }
+
     void Awake()
     {
         var col = GetComponent<Collider2D>();
@@ -219,6 +245,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     /// <summary>
     /// 只解开空气墙与镜头，不结束遭遇、不停刷、不写完成旗标。
+    /// 解锁后盟友索敌不再按 EncounterBounds 过滤。
     /// 已解锁或遭遇未激活时直接返回。
     /// </summary>
     public void UnlockLock()
@@ -527,10 +554,34 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (encounterBounds == null)
             return true;
 
-        if (encounterBounds.OverlapPoint(worldPoint))
+        bool boundsLive = encounterBounds.enabled && encounterBounds.gameObject.activeInHierarchy;
+        if (boundsLive && encounterBounds.OverlapPoint(worldPoint))
             return true;
 
-        return encounterBounds.bounds.Contains(worldPoint);
+        return IsPointInsideCollider2D(encounterBounds, worldPoint);
+    }
+
+    /// <summary>
+    /// 2D 几何判定，不依赖 Collider 是否启用，也不用 3D AABB 的 Z。
+    /// UnlockLock 会关掉 EncounterBounds，OverlapPoint / bounds 在未激活物体上不可靠。
+    /// </summary>
+    static bool IsPointInsideCollider2D(Collider2D col, Vector2 worldPoint)
+    {
+        if (col is BoxCollider2D box)
+        {
+            Vector2 local = col.transform.InverseTransformPoint(worldPoint);
+            Vector2 half = box.size * 0.5f;
+            Vector2 min = box.offset - half;
+            Vector2 max = box.offset + half;
+            return local.x >= min.x && local.x <= max.x && local.y >= min.y && local.y <= max.y;
+        }
+
+        Bounds b = col.bounds;
+        if (b.size.x <= 0f && b.size.y <= 0f)
+            return false;
+
+        return worldPoint.x >= b.min.x && worldPoint.x <= b.max.x
+            && worldPoint.y >= b.min.y && worldPoint.y <= b.max.y;
     }
 
     static void RegisterActiveZone(EncounterZone zone)

@@ -97,6 +97,8 @@ public class ShieldEnemy : MeleeEnemy
     {
         shieldAbsorb = null;
         leaveIdealTimer = 0f;
+        if (physicsCheck != null)
+            physicsCheck.RefreshLedgeColliders();
         SwitchToMeleeAnimator();
         if (!isDead)
             EvaluateCycle();

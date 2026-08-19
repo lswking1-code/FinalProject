@@ -37,9 +37,26 @@ public class PhysicsCheck : MonoBehaviour
     public bool isOnSlope;
 
     /// <summary>
-    /// 仅在实心地面上做边缘拦截；空中或单向平台上应允许走下去。
+    /// 实心地面上拦截悬崖；刚离开实心地面且仍在下落的短窗口内也拦截，避免迈出后空中继续追击。
+    /// 单向平台上不拦截，允许走下去。
     /// </summary>
-    public bool ShouldRespectLedge => isGround && !isOnPlatform;
+    public bool ShouldRespectLedge
+    {
+        get
+        {
+            if (isOnPlatform)
+                return false;
+            if (isGround)
+                return true;
+            if (!lastStandingWasSolid)
+                return false;
+            if (Time.time - lastSolidGroundTime > AirLedgeHold)
+                return false;
+            if (rb != null && rb.linearVelocity.y > 0.15f)
+                return false;
+            return true;
+        }
+    }
 
     bool collisionTouchLeft;
     bool collisionTouchRight;
@@ -51,10 +68,18 @@ public class PhysicsCheck : MonoBehaviour
     Vector2 lastGroundNormal;
     int lastGroundFrame = int.MinValue;
     int lastSlopeFrame = int.MinValue;
+    bool lastStandingWasSolid;
+    float lastSolidGroundTime = -999f;
     const int GroundCoyoteFrames = 8;
     const int SlopeCoyoteFrames = 10;
     const float SlopeTransitionCastExtra = 0.45f;
+    const float AirLedgeHold = 0.35f;
+    const float FlatWalkableDrop = 0.28f;
+    const float SlopeWalkableDrop = 0.85f;
+    const float LedgeProbeLift = 0.2f;
+    const float LedgeProbeRadius = 0.08f;
     readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
+    Collider2D[] ledgeColliders;
 
     public bool WasOnSlopeRecently =>
         Time.frameCount - lastSlopeFrame <= SlopeCoyoteFrames;
@@ -68,6 +93,7 @@ public class PhysicsCheck : MonoBehaviour
         else
             robotOneWayPlatformPass = GetComponent<RobotOneWayPlatformPass>();
         RecalculateOffsets();
+        CacheLedgeColliders();
 
         // 玩家与机器人都去掉摩擦/弹性，避免斜面和平台接缝把胶囊绊住
         if (capsuleColl != null && capsuleColl.sharedMaterial == null
@@ -134,6 +160,13 @@ public class PhysicsCheck : MonoBehaviour
 
     public void RefreshOffsets() => RecalculateOffsets();
 
+    public void RefreshLedgeColliders() => CacheLedgeColliders();
+
+    void CacheLedgeColliders()
+    {
+        ledgeColliders = GetComponentsInChildren<Collider2D>(false);
+    }
+
     /// <summary>
     /// 指定水平方向是否被 Ground 层阻挡（含已贴合与即将进入两种情况）。
     /// </summary>
@@ -148,7 +181,8 @@ public class PhysicsCheck : MonoBehaviour
     }
 
     /// <summary>
-    /// 指定水平方向前方脚底是否仍有地面，用于防止走出平台边缘。
+    /// 指定水平方向前方脚底是否仍有可走地面。
+    /// 命中点相对当前脚底落差过大（下层 Ground/Platform）视为悬崖。
     /// </summary>
     public bool HasGroundAhead(float direction, float lookAheadPadding = -1f)
     {
@@ -160,16 +194,53 @@ public class PhysicsCheck : MonoBehaviour
             return true;
 
         float dir = Mathf.Sign(direction);
-        Bounds bounds = coll.bounds;
+        Bounds bounds = GetLedgeProbeBounds();
         float padding = lookAheadPadding >= 0f
             ? lookAheadPadding
             : Mathf.Max(0.12f, bounds.extents.x * 0.35f);
         float probeX = (dir > 0f ? bounds.max.x : bounds.min.x) + dir * padding;
-        Vector2 origin = new Vector2(probeX, bounds.min.y + 0.05f);
-        float castDist = Mathf.Max(checkRaduis + 0.15f, 0.35f);
+        float footY = bounds.min.y;
+        float maxDrop = (isOnSlope || WasOnSlopeRecently) ? SlopeWalkableDrop : FlatWalkableDrop;
+        Vector2 origin = new Vector2(probeX, footY + LedgeProbeLift);
+        float castDist = LedgeProbeLift + maxDrop;
 
-        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, castDist, groundLayer);
-        return hit.collider != null && CountsAsGroundHit(hit);
+        RaycastHit2D hit = Physics2D.CircleCast(
+            origin, LedgeProbeRadius, Vector2.down, castDist, groundLayer);
+        if (hit.collider == null || !CountsAsGroundHit(hit))
+            return false;
+        if (footY - hit.point.y > maxDrop)
+            return false;
+        return true;
+    }
+
+    /// <summary>
+    /// 贴边探测包围盒：根碰撞体 + 同刚体上的身体碰撞体（含盾牌），排除攻击判定盒。
+    /// </summary>
+    Bounds GetLedgeProbeBounds()
+    {
+        if (coll == null)
+            ResolveCollider();
+        if (coll == null)
+            return new Bounds(transform.position, Vector3.one * 0.1f);
+
+        Bounds bounds = coll.bounds;
+        if (ledgeColliders == null || ledgeColliders.Length == 0)
+            CacheLedgeColliders();
+
+        if (ledgeColliders == null)
+            return bounds;
+
+        for (int i = 0; i < ledgeColliders.Length; i++)
+        {
+            Collider2D extra = ledgeColliders[i];
+            if (extra == null || extra == coll || !extra.enabled)
+                continue;
+            if (extra.GetComponent<Attack>() != null)
+                continue;
+            bounds.Encapsulate(extra.bounds);
+        }
+
+        return bounds;
     }
 
     /// <summary>
@@ -455,6 +526,12 @@ public class PhysicsCheck : MonoBehaviour
         isSolidGround = rawGround;
         isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
         UpdateOnPlatform(rawGround, rayGround, groundHit);
+        if (rawGround)
+        {
+            lastStandingWasSolid = !isOnPlatform;
+            if (lastStandingWasSolid)
+                lastSolidGroundTime = Time.time;
+        }
         TryNotifyElectrifiedPlatform(groundOrigin);
         if (isGround && !rawGround)
             groundNormal = lastGroundNormal;

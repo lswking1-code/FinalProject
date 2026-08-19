@@ -758,6 +758,14 @@ MonoBehaviour:
   chargeAmmoCosts: 00000000000000000000000000000000
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
   robotBlastComboEvent: {fileID: 11400000, guid: e2ffee01112233445566778899aabb03, type: 2}
+  fireEvent:
+    Guid:
+      Data1: -421287516
+      Data2: 1214818169
+      Data3: -1861277001
+      Data4: 177510603
+    Path: event:/Player/Machinist/Fire
+  shotTypeParam: Parameter 1
 --- !u!114 &3614759619717667695
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -782,6 +790,13 @@ MonoBehaviour:
   reloadAmmoCosts: 0000000028000000140000000a000000
   reloadLoadCounts: 00000000030000000200000001000000
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
+  loadEvent:
+    Guid:
+      Data1: 1272777878
+      Data2: 1118379121
+      Data3: -1349393788
+      Data4: -1229689059
+    Path: event:/Player/Machinist/Load
 --- !u!114 &5182937465019283746
 MonoBehaviour:
   m_ObjectHideFlags: 0

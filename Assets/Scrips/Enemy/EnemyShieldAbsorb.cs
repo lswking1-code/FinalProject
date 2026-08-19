@@ -24,6 +24,11 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         currentShieldHealth = maxShieldHealth;
         shieldEnemy = GetComponentInParent<ShieldEnemy>();
         enemy = shieldEnemy != null ? shieldEnemy : GetComponentInParent<Enemy>();
+
+        // 盾牌只做伤害吸收体积，不参与地面物理，避免复合碰撞体把人从悬崖边翘下去
+        var absorbCol = GetComponent<Collider2D>();
+        if (absorbCol != null)
+            absorbCol.isTrigger = true;
     }
 
     public bool TryAbsorb(Attack attacker)

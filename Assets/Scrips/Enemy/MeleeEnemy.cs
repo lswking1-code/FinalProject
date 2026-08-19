@@ -84,7 +84,7 @@ public class MeleeEnemy : Enemy
             return;
 
         float halfHeight = coll.size.y * 0.5f + coll.offset.y;
-        physicsCheck.bottomOffset = new Vector2(0f, -halfHeight + 0.1f);
+        physicsCheck.bottomOffset = new Vector2(coll.offset.x, -halfHeight + 0.1f);
     }
 
     protected override void OnEnable()
