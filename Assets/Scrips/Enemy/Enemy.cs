@@ -26,6 +26,11 @@ public class Enemy : MonoBehaviour
     /// 精灵默认朝右时为 true（新像素图）；旧 Metal Slug 资源朝左则为 false。
     /// </summary>
     protected virtual bool SpriteFacesRight => false;
+
+    /// <summary>
+    /// 为 false 时 ApplyFacing 不翻转 localScale（装甲车等永不转向）。
+    /// </summary>
+    protected virtual bool CanChangeFacing => true;
     [System.Obsolete("已废弃，改用 Attack.enableKnockback / knockbackForce")]
     [Tooltip("已废弃，改用 Attack.enableKnockback")]
     public float hurtForce;
@@ -65,6 +70,8 @@ public class Enemy : MonoBehaviour
     public float combatSlotGroupRadius = 8f;
     /// <summary>近战贴脸、飞扑、举盾等临时关闭间隔。</summary>
     [HideInInspector] public bool blockSeparation;
+    /// <summary>本帧水平移动意图；贴边把速度清零后仍用来判断是否该被同伴往内侧挤开。</summary>
+    float lastMoveIntentX;
 
     [Header("巡逻站岗")]
     [Tooltip("开启后原地 Idle，索敌范围内发现玩家才开战；玩家离开所属 Bounds 后脱战回位")]
@@ -130,6 +137,7 @@ public class Enemy : MonoBehaviour
     {
         "walk", "shoot", "shootDown", "crouch", "reload",
         "melee", "meleeWindup", "throw", "jump", "fall", "land", "run",
+        "missile", "ramWindup", "ram",
     };
 
     protected Character character;
@@ -482,6 +490,7 @@ public class Enemy : MonoBehaviour
     public virtual void Move()
     {
         float dir = faceDir.x;
+        lastMoveIntentX = dir;
         if (!Mathf.Approximately(dir, 0f) && IsLedgeBlocking(dir))
         {
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -558,6 +567,9 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void ApplyFacing(float worldDirX)
     {
+        if (!CanChangeFacing)
+            return;
+
         float dir = Mathf.Sign(worldDirX);
         if (Mathf.Approximately(dir, 0f))
             return;
@@ -702,6 +714,7 @@ public class Enemy : MonoBehaviour
 
     protected void ApplyHorizontalMove(float direction)
     {
+        lastMoveIntentX = direction;
         if (rb == null)
             return;
 
@@ -732,12 +745,8 @@ public class Enemy : MonoBehaviour
         rb.linearVelocity = new Vector2(vx, rb.linearVelocity.y);
     }
 
-    protected float MixGroundSeparation(float intendedVx)
+    protected float MixGroundSeparation(float currentVx)
     {
-        // 射击 / 投掷 / 换弹等站定状态会清零水平速度；此时不推，避免打乱攻击动作
-        if (Mathf.Abs(intendedVx) <= 0.05f)
-            return intendedVx;
-
         float correction = EnemySeparation.ComputeGroundCorrectionX(this) * GetSeparationScale();
         correction = Mathf.Clamp(correction, -maxSeparationSpeed, maxSeparationSpeed);
 
@@ -746,11 +755,25 @@ public class Enemy : MonoBehaviour
         else if (correction < -0.01f && IsSeparationBlocked(-1f))
             correction = 0f;
 
-        float vx = intendedVx + correction;
-        if (intendedVx > 0f)
-            vx = Mathf.Max(0f, vx);
-        else
-            vx = Mathf.Min(0f, vx);
+        bool wantedMove = Mathf.Abs(lastMoveIntentX) > 0.01f;
+        bool jammedAtEdge = wantedMove && IsLedgeBlocking(lastMoveIntentX);
+
+        // 攻击 / 就位等真正站定时不推；贴边停步时仍允许被往内侧挤开
+        if (Mathf.Abs(currentVx) <= 0.05f && !jammedAtEdge)
+            return currentVx;
+
+        if (Mathf.Abs(correction) <= 0.01f)
+            return currentVx;
+
+        if (jammedAtEdge)
+            return correction;
+
+        float vx = currentVx + correction;
+        // 只减速让后排，不给前排加速，避免把领头人顶进悬崖 / 台阶
+        if (currentVx > 0.05f)
+            vx = Mathf.Clamp(vx, 0f, currentVx);
+        else if (currentVx < -0.05f)
+            vx = Mathf.Clamp(vx, currentVx, 0f);
 
         return vx;
     }
@@ -814,6 +837,7 @@ public class Enemy : MonoBehaviour
             NPCState.Return => returnState,
             NPCState.MeleeAttack => meleeAttackState,
             NPCState.Skill => skillState,
+            NPCState.Ram => skillState,
             _ => null
         };
 
@@ -828,15 +852,20 @@ public class Enemy : MonoBehaviour
     #region 事件执行方法
 
     /// <summary>
+    /// 为 false 时受击不播 hurt、不进 isHurt 硬直（装甲车等只闪红）。
+    /// </summary>
+    protected virtual bool UseHurtStun => true;
+
+    /// <summary>
     /// 受到伤害时调用，转向攻击者并触发闪红与抖动硬直（推动由 Attack 负责）
     /// </summary>
-    public void OnTakeDamage(Transform attackTrans)
+    public virtual void OnTakeDamage(Transform attackTrans)
     {
         attacker = attackTrans;
 
         ApplyFacing(attackTrans.position.x - transform.position.x);
 
-        if (isDead || TryConsumeHurtAnim())
+        if (UseHurtStun && (isDead || TryConsumeHurtAnim()))
             PlayFullHurtReaction();
         else
             PlayCombatFlashNoStun();

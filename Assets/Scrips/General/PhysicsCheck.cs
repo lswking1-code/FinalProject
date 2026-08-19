@@ -74,10 +74,11 @@ public class PhysicsCheck : MonoBehaviour
     const int SlopeCoyoteFrames = 10;
     const float SlopeTransitionCastExtra = 0.45f;
     const float AirLedgeHold = 0.35f;
-    const float FlatWalkableDrop = 0.28f;
-    const float SlopeWalkableDrop = 0.85f;
-    const float LedgeProbeLift = 0.2f;
-    const float LedgeProbeRadius = 0.08f;
+    const float FlatWalkableDrop = 1.25f;
+    const float SlopeWalkableDrop = 1.35f;
+    const float LedgeProbeLift = 0.35f;
+    const float LedgeProbeContinue = 0.05f;
+    const int LedgeProbeMaxSteps = 8;
     readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
     Collider2D[] ledgeColliders;
 
@@ -182,7 +183,8 @@ public class PhysicsCheck : MonoBehaviour
 
     /// <summary>
     /// 指定水平方向前方脚底是否仍有可走地面。
-    /// 命中点相对当前脚底落差过大（下层 Ground/Platform）视为悬崖。
+    /// 只用身体碰撞体探测，忽略攻击/索敌 Trigger，避免把台阶前方误判成悬崖。
+    /// 一格高的向下台阶视为可走，两格以上的落差仍拦截。
     /// </summary>
     public bool HasGroundAhead(float direction, float lookAheadPadding = -1f)
     {
@@ -194,23 +196,78 @@ public class PhysicsCheck : MonoBehaviour
             return true;
 
         float dir = Mathf.Sign(direction);
-        Bounds bounds = GetLedgeProbeBounds();
-        float padding = lookAheadPadding >= 0f
-            ? lookAheadPadding
-            : Mathf.Max(0.12f, bounds.extents.x * 0.35f);
-        float probeX = (dir > 0f ? bounds.max.x : bounds.min.x) + dir * padding;
-        float footY = bounds.min.y;
+        Bounds body = coll.bounds;
+        float footY = body.min.y;
+        float frontX = dir > 0f ? body.max.x : body.min.x;
         float maxDrop = (isOnSlope || WasOnSlopeRecently) ? SlopeWalkableDrop : FlatWalkableDrop;
-        Vector2 origin = new Vector2(probeX, footY + LedgeProbeLift);
-        float castDist = LedgeProbeLift + maxDrop;
+        float pad = lookAheadPadding >= 0f ? lookAheadPadding : 0.12f;
 
-        RaycastHit2D hit = Physics2D.CircleCast(
-            origin, LedgeProbeRadius, Vector2.down, castDist, groundLayer);
-        if (hit.collider == null || !CountsAsGroundHit(hit))
+        // 在身体前缘附近采几点：近点仍在当前地面则继续走，跨上台阶则检查落差
+        if (TryGetWalkableGroundY(frontX + dir * pad, footY, maxDrop, out _))
+            return true;
+        if (TryGetWalkableGroundY(frontX + dir * (pad + 0.14f), footY, maxDrop, out _))
+            return true;
+        return TryGetWalkableGroundY(frontX + dir * (pad + 0.28f), footY, maxDrop, out _);
+    }
+
+    /// <summary>
+    /// 在指定 X 向下寻找朝上的可走表面。跳过台阶立面 / 自身碰撞体，避免把小落差判成悬崖。
+    /// </summary>
+    bool TryGetWalkableGroundY(float x, float footY, float maxDrop, out float groundY)
+    {
+        groundY = footY;
+        Vector2 origin = new Vector2(x, footY + LedgeProbeLift);
+        float remaining = LedgeProbeLift + maxDrop;
+
+        for (int i = 0; i < LedgeProbeMaxSteps && remaining > 0.01f; i++)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, remaining, groundLayer);
+            if (hit.collider == null)
+                return false;
+
+            if (IsLedgeSelfCollider(hit.collider) || hit.collider.isTrigger)
+            {
+                AdvanceLedgeProbe(ref origin, ref remaining, hit);
+                continue;
+            }
+
+            if (CountsAsGroundHit(hit))
+            {
+                if (footY - hit.point.y > maxDrop)
+                    return false;
+                groundY = hit.point.y;
+                return true;
+            }
+
+            AdvanceLedgeProbe(ref origin, ref remaining, hit);
+        }
+
+        return false;
+    }
+
+    static void AdvanceLedgeProbe(ref Vector2 origin, ref float remaining, RaycastHit2D hit)
+    {
+        float advance = Mathf.Max(LedgeProbeContinue, hit.distance) + LedgeProbeContinue;
+        origin += Vector2.down * advance;
+        remaining -= advance;
+    }
+
+    bool IsLedgeSelfCollider(Collider2D other)
+    {
+        if (other == null)
             return false;
-        if (footY - hit.point.y > maxDrop)
+        if (other == coll)
+            return true;
+        if (ledgeColliders == null)
             return false;
-        return true;
+
+        for (int i = 0; i < ledgeColliders.Length; i++)
+        {
+            if (ledgeColliders[i] == other)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -233,7 +290,7 @@ public class PhysicsCheck : MonoBehaviour
         for (int i = 0; i < ledgeColliders.Length; i++)
         {
             Collider2D extra = ledgeColliders[i];
-            if (extra == null || extra == coll || !extra.enabled)
+            if (extra == null || extra == coll || !extra.enabled || extra.isTrigger)
                 continue;
             if (extra.GetComponent<Attack>() != null)
                 continue;
@@ -257,24 +314,20 @@ public class PhysicsCheck : MonoBehaviour
             return false;
 
         const float step = 0.35f;
-        const float lift = 0.2f;
         float dir = Mathf.Sign(dx);
         float dist = Mathf.Abs(dx);
         float groundY = footY;
-        float drop = Mathf.Max(maxWalkableDrop, 0.5f);
-        float castDist = lift + drop;
+        float drop = Mathf.Max(maxWalkableDrop, FlatWalkableDrop);
 
         int steps = Mathf.Max(1, Mathf.CeilToInt(dist / step));
         for (int i = 1; i <= steps; i++)
         {
             float x = fromX + dir * Mathf.Min(dist, i * step);
-            Vector2 origin = new Vector2(x, groundY + lift);
-            RaycastHit2D hit = Physics2D.CircleCast(origin, 0.08f, Vector2.down, castDist, groundLayer);
-            if (hit.collider == null || !CountsAsGroundHit(hit))
+            if (!TryGetWalkableGroundY(x, groundY, drop, out float nextY))
                 return true;
-            if (groundY - hit.point.y > drop)
+            if (groundY - nextY > drop)
                 return true;
-            groundY = hit.point.y;
+            groundY = nextY;
         }
 
         return false;

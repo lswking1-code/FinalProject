@@ -36,6 +36,8 @@ public class Character : MonoBehaviour,ISaveable
     [Header("击退")]
     [Tooltip("击退阻力，越大越难推（≥1）；敌人默认 1，重物可更大")]
     [SerializeField] float knockbackResistance = 1f;
+    [Tooltip("开启后完全不受击退（装甲车等）")]
+    [SerializeField] bool immuneToKnockback;
 
     private float invulnerableCounter;// 无敌剩余时间
     public bool invulnerable;
@@ -273,6 +275,9 @@ public class Character : MonoBehaviour,ISaveable
 
     void ApplyKnockback(Attack attacker)
     {
+        if (immuneToKnockback)
+            return;
+
         float force = Attack.EffectiveKnockbackForce(attacker, KnockbackResistance);
         if (force <= 0f)
             return;

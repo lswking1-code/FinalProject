@@ -12,7 +12,8 @@ public enum NPCState
     Reload,      // 换弹冷却
     Jump,        // 跃起（精英能力）
     Return,      // 脱战后返回出生点
-    MeleeAttack  // 近战挥刀（前摇 / 挥砍 / 后摇）
+    MeleeAttack, // 近战挥刀（前摇 / 挥砍 / 后摇）
+    Ram          // 装甲车冲撞（预备 / 冲刺 / 后摇）
 }
 
 /// <summary>敌人 Action 类型，用于概率记录（Reload 不参与权重）</summary>
@@ -23,7 +24,9 @@ public enum EnemyAction
     Crouch,
     CrouchShoot,
     Jump,
-    MeleeAttack
+    MeleeAttack,
+    Missile,
+    Ram
 }
 
 /// <summary>场景类型</summary>
