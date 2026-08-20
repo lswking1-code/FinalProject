@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{7e2e7262-d987-4384-ac1f-3dca30a209bf}">
+		<property name="name">
+			<value>AttackType</value>
+		</property>
+		<relationship name="folder">
+			<destination>{9308ac1d-0409-497e-88a0-0849723f18f8}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{66c0689e-fca0-4b40-843c-255898431b18}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{66c0689e-fca0-4b40-843c-255898431b18}">
+		<property name="parameterType">
+			<value>2</value>
+		</property>
+		<property name="maximum">
+			<value>6</value>
+		</property>
+		<property name="enumerationLabels">
+			<value>Normal</value>
+			<value>Combo</value>
+			<value>DashAttack</value>
+			<value>Blast1</value>
+			<value>Blast2</value>
+			<value>Blast3</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

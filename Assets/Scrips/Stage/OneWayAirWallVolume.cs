@@ -22,6 +22,7 @@ public class OneWayAirWallVolume : MonoBehaviour
     readonly List<Collider2D> playerColliders = new();
 
     bool isActive;
+    bool airWallsSealed;
     Coroutine sealAirWallsRoutine;
 
     public bool IsActive => isActive;
@@ -133,7 +134,10 @@ public class OneWayAirWallVolume : MonoBehaviour
         CachePlayerColliders(playerCollider);
 
         if (!delaySealAirWalls || playerColliders.Count == 0)
+        {
+            airWallsSealed = true;
             return;
+        }
 
         SetPlayerAirWallCollisionIgnored(true);
         if (sealAirWallsRoutine != null)
@@ -153,6 +157,7 @@ public class OneWayAirWallVolume : MonoBehaviour
         RestoreAirWallExcludeLayers();
         PublishActiveAirWalls(false);
         playerColliders.Clear();
+        airWallsSealed = false;
         airWallColliders.Clear();
         airWallOriginalExcludeBits.Clear();
 
@@ -277,6 +282,7 @@ public class OneWayAirWallVolume : MonoBehaviour
             if (!IsOverlappingAnyAirWall())
             {
                 SetPlayerAirWallCollisionIgnored(false);
+                airWallsSealed = true;
                 sealAirWallsRoutine = null;
                 yield break;
             }

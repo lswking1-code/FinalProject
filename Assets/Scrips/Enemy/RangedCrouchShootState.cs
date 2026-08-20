@@ -18,8 +18,8 @@ public class RangedCrouchShootState : BaseState
         rangedEnemy.OnActionEntered(EnemyAction.CrouchShoot);
         rangedEnemy.FacePlayer();
 
-        currentEnemy.anim.SetBool("crouch", true);
-        currentEnemy.anim.SetBool("shoot", true);
+        currentEnemy.SetAnimBool("crouch", true);
+        currentEnemy.SetAnimBool("shoot", true);
         rangedEnemy.FireProjectile();
     }
 
@@ -43,7 +43,7 @@ public class RangedCrouchShootState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("shoot", false);
-        currentEnemy.anim.SetBool("crouch", false);
+        currentEnemy.SetAnimBool("shoot", false);
+        currentEnemy.SetAnimBool("crouch", false);
     }
 }

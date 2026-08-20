@@ -9,7 +9,7 @@ public class BoarChaseState : BaseState
     {
         currentEnemy = enemy;
         currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
-        currentEnemy.anim.SetBool("run", true);
+        currentEnemy.SetAnimBool("run", true);
     }
 
     public override void LogicUpdate()
@@ -30,6 +30,6 @@ public class BoarChaseState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("run", false);
+        currentEnemy.SetAnimBool("run", false);
     }
 }

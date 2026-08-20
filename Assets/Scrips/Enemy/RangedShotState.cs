@@ -18,7 +18,7 @@ public class RangedShotState : BaseState
         rangedEnemy.OnActionEntered(EnemyAction.Shot);
         rangedEnemy.FacePlayer();
 
-        currentEnemy.anim.SetBool("shoot", true);
+        currentEnemy.SetAnimBool("shoot", true);
         rangedEnemy.FireProjectile();
     }
 
@@ -42,6 +42,6 @@ public class RangedShotState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("shoot", false);
+        currentEnemy.SetAnimBool("shoot", false);
     }
 }

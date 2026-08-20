@@ -21,7 +21,7 @@ public class GrenadeThrowState : BaseState
 
         actionTimer = grenadeEnemy.actionDuration;
 
-        currentEnemy.anim.SetBool("throw", true);
+        currentEnemy.SetAnimBool("throw", true);
         grenadeEnemy.ThrowGrenade();
     }
 
@@ -48,6 +48,6 @@ public class GrenadeThrowState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("throw", false);
+        currentEnemy.SetAnimBool("throw", false);
     }
 }

@@ -18,9 +18,9 @@ public class MeleeReturnHomeState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("melee", false);
-            currentEnemy.anim.SetBool("meleeWindup", false);
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("melee", false);
+            currentEnemy.SetAnimBool("meleeWindup", false);
+            currentEnemy.SetAnimBool("walk", true);
         }
     }
 
@@ -55,6 +55,6 @@ public class MeleeReturnHomeState : BaseState
     public override void OnExit()
     {
         if (currentEnemy?.anim != null)
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
     }
 }

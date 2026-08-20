@@ -18,8 +18,8 @@ public class FlyingReturnHomeState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("shoot", false);
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("walk", true);
         }
     }
 
@@ -46,6 +46,6 @@ public class FlyingReturnHomeState : BaseState
     public override void OnExit()
     {
         if (currentEnemy?.anim != null)
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
     }
 }

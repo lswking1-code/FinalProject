@@ -28,14 +28,14 @@ public class RangedMoveState : BaseState
             currentEnemy.currentSpeed = 0f;
             rangedEnemy.MoveHorizontal(0f);
             rangedEnemy.FacePlayer();
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
             return;
         }
 
         moveDir = PickSafeMoveDir();
         rangedEnemy.FaceDirection(moveDir);
         currentEnemy.currentSpeed = currentEnemy.normalSpeed;
-        currentEnemy.anim.SetBool("walk", true);
+        currentEnemy.SetAnimBool("walk", true);
     }
 
     public override void LogicUpdate()
@@ -77,7 +77,7 @@ public class RangedMoveState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("walk", false);
+        currentEnemy.SetAnimBool("walk", false);
     }
 
     float PickSafeMoveDir()

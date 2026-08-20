@@ -20,11 +20,11 @@ public class BoarPatrolState : BaseState
             || (currentEnemy.physicsCheck.touchRightWall && currentEnemy.faceDir.x > 0))
         {
             currentEnemy.wait = true;
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
         }
         else
         {
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("walk", true);
         }
     }
 
@@ -32,6 +32,6 @@ public class BoarPatrolState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("walk", false);
+        currentEnemy.SetAnimBool("walk", false);
     }
 }

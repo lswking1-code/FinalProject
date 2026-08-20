@@ -13,7 +13,7 @@ public class RangedGetCloseState : BaseState
         rangedEnemy = enemy as RangedEnemy;
         currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
         currentEnemy.FacePlayer();
-        currentEnemy.anim.SetBool("walk", true);
+        currentEnemy.SetAnimBool("walk", true);
     }
 
     public override void LogicUpdate()
@@ -36,6 +36,6 @@ public class RangedGetCloseState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("walk", false);
+        currentEnemy.SetAnimBool("walk", false);
     }
 }

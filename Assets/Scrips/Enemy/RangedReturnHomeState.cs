@@ -21,10 +21,10 @@ public class RangedReturnHomeState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("shoot", false);
-            currentEnemy.anim.SetBool("crouch", false);
-            currentEnemy.anim.SetBool("reload", false);
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("crouch", false);
+            currentEnemy.SetAnimBool("reload", false);
+            currentEnemy.SetAnimBool("walk", true);
         }
     }
 
@@ -59,6 +59,6 @@ public class RangedReturnHomeState : BaseState
     public override void OnExit()
     {
         if (currentEnemy?.anim != null)
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
     }
 }

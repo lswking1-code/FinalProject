@@ -104,9 +104,9 @@ public class MeleeAttackState : BaseState
         if (currentEnemy?.anim == null)
             return;
 
-        currentEnemy.anim.SetBool("walk", false);
-        currentEnemy.anim.SetBool("melee", false);
-        currentEnemy.anim.SetBool("meleeWindup", false);
+        currentEnemy.SetAnimBool("walk", false);
+        currentEnemy.SetAnimBool("melee", false);
+        currentEnemy.SetAnimBool("meleeWindup", false);
     }
 
     void EnterCloseIn()
@@ -119,9 +119,9 @@ public class MeleeAttackState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("melee", false);
-            currentEnemy.anim.SetBool("meleeWindup", false);
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("melee", false);
+            currentEnemy.SetAnimBool("meleeWindup", false);
+            currentEnemy.SetAnimBool("walk", true);
         }
     }
 
@@ -135,9 +135,9 @@ public class MeleeAttackState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("walk", false);
-            currentEnemy.anim.SetBool("melee", false);
-            currentEnemy.anim.SetBool("meleeWindup", true);
+            currentEnemy.SetAnimBool("walk", false);
+            currentEnemy.SetAnimBool("melee", false);
+            currentEnemy.SetAnimBool("meleeWindup", true);
         }
 
         timer = Mathf.Max(0.01f, meleeEnemy.windupDuration);
@@ -152,8 +152,8 @@ public class MeleeAttackState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("meleeWindup", false);
-            currentEnemy.anim.SetBool("melee", true);
+            currentEnemy.SetAnimBool("meleeWindup", false);
+            currentEnemy.SetAnimBool("melee", true);
         }
     }
 
@@ -165,7 +165,7 @@ public class MeleeAttackState : BaseState
         SetAttackerActive(false);
 
         if (currentEnemy.anim != null)
-            currentEnemy.anim.SetBool("melee", false);
+            currentEnemy.SetAnimBool("melee", false);
     }
 
     /// <summary>

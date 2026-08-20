@@ -23,9 +23,9 @@ public class FlyingShotState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("walk", false);
-            currentEnemy.anim.SetBool("shoot", !firingDown);
-            currentEnemy.anim.SetBool("shootDown", firingDown);
+            currentEnemy.SetAnimBool("walk", false);
+            currentEnemy.SetAnimBool("shoot", !firingDown);
+            currentEnemy.SetAnimBool("shootDown", firingDown);
         }
 
         // #region agent log
@@ -66,7 +66,7 @@ public class FlyingShotState : BaseState
         if (currentEnemy?.anim == null)
             return;
 
-        currentEnemy.anim.SetBool("shoot", false);
-        currentEnemy.anim.SetBool("shootDown", false);
+        currentEnemy.SetAnimBool("shoot", false);
+        currentEnemy.SetAnimBool("shootDown", false);
     }
 }

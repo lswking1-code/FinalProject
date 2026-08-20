@@ -21,9 +21,9 @@ public class FlyingRecoveryState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("shoot", false);
-            currentEnemy.anim.SetBool("shootDown", false);
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("shootDown", false);
+            currentEnemy.SetAnimBool("walk", false);
         }
 
         flyingEnemy.StopHorizontalMotion();

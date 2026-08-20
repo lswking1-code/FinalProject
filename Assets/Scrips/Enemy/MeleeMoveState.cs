@@ -23,7 +23,7 @@ public class MeleeMoveState : BaseState
         meleeEnemy.FaceDirection(moveDir);
         actionTimer = meleeEnemy.actionDuration;
         currentEnemy.currentSpeed = currentEnemy.normalSpeed;
-        currentEnemy.anim.SetBool("walk", true);
+        currentEnemy.SetAnimBool("walk", true);
     }
 
     public override void LogicUpdate()
@@ -58,7 +58,7 @@ public class MeleeMoveState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("walk", false);
+        currentEnemy.SetAnimBool("walk", false);
     }
 
     /// <summary>

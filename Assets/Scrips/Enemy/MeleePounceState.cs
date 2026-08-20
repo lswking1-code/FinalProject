@@ -20,9 +20,9 @@ public class MeleePounceState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("walk", false);
-            currentEnemy.anim.SetBool("melee", false);
-            currentEnemy.anim.SetBool("meleeWindup", false);
+            currentEnemy.SetAnimBool("walk", false);
+            currentEnemy.SetAnimBool("melee", false);
+            currentEnemy.SetAnimBool("meleeWindup", false);
         }
 
         // 尚未实现飞扑位移：兜底回追击，避免死循环卡在 Skill。

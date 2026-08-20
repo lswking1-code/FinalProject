@@ -61,7 +61,7 @@ public class MachinistShooting : MonoBehaviour
     [Header("音效")]
     [SerializeField] EventReference fireEvent;
     [Tooltip("FMOD Fire 事件上的标签参数名")]
-    [SerializeField] string shotTypeParam = "Parameter 1";
+    [SerializeField] string shotTypeParam = "FireType";
 
     InputSystem_Actions actions;
     PlayerAnim playerAnim;

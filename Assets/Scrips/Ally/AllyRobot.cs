@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMOD.Studio;
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -197,6 +199,13 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] VoidEventSO robotComboEvent;
     [SerializeField] VoidEventSO robotBlastComboEvent;
 
+    [Header("音效")]
+    [SerializeField] EventReference attackEvent;
+    [Tooltip("FMOD Attack 事件上的标签参数名")]
+    [SerializeField] string attackTypeParam = "AttackType";
+    [SerializeField] EventReference dashEvent;
+    [SerializeField] EventReference laserEvent;
+
     [Header("牵引召回 (Ability2 短按)")]
     [Tooltip("钩爪伸出速度（单位/秒）")]
     public float pullExtendSpeed = 12f;
@@ -287,6 +296,7 @@ public class AllyRobot : MonoBehaviour
     LineRenderer laserLine;
     Coroutine laserVisualRoutine;
     Attack laserAttackSource;
+    EventInstance dashInstance;
 
     RobotDeployMode deployMode = RobotDeployMode.Stationed;
     Transform followPoint;
@@ -379,6 +389,7 @@ public class AllyRobot : MonoBehaviour
         airComboBoostLatched = false;
         verticalComboDashLatched = false;
         SetBoostActive(false);
+        StopDashSfx();
     }
 
     void OnDestroy()
@@ -842,6 +853,25 @@ public class AllyRobot : MonoBehaviour
         BeginComboDashWindup();
     }
 
+    public void PlayAttackSfx(string attackType)
+    {
+        if (string.IsNullOrEmpty(attackType))
+            return;
+
+        FmodAudio.Play(attackEvent, attackTypeParam, attackType);
+    }
+
+    void StartDashSfx()
+    {
+        StopDashSfx();
+        dashInstance = FmodAudio.PlayHeld(dashEvent);
+    }
+
+    void StopDashSfx()
+    {
+        FmodAudio.Stop(ref dashInstance);
+    }
+
     /// <summary>
     /// 取消落地锁停，让 ForcePlayCombatAnim 能立刻切到连携动画。
     /// 逻辑空中阶段保留，连携结束后由 SyncAirVisualAfterBusy 接回 Fall/Ground。
@@ -904,6 +934,7 @@ public class AllyRobot : MonoBehaviour
 
         ApplyPierceLaserDamage(origin, dir);
         ShowPierceLaserVisual(origin, dir);
+        FmodAudio.Play(laserEvent);
         return true;
     }
 
@@ -1102,6 +1133,7 @@ public class AllyRobot : MonoBehaviour
 
     void BeginDashAttack()
     {
+        StopDashSfx();
         if (pendingBlastFinisher)
         {
             BeginBlastAttack();
@@ -1125,6 +1157,7 @@ public class AllyRobot : MonoBehaviour
 
     void BeginBlastAttack()
     {
+        StopDashSfx();
         blastComboStep = 0;
         PlayBlastAttackStep(0);
     }
@@ -1205,6 +1238,7 @@ public class AllyRobot : MonoBehaviour
             FaceTarget(currentTarget.position);
 
         ForcePlayCombatAnim(dashStartStateName, dashStartTriggerName);
+        StartDashSfx();
 
         SwitchState(AllyState.ComboDashWindup);
     }
@@ -1641,6 +1675,7 @@ public class AllyRobot : MonoBehaviour
 
     void ExitComboDash()
     {
+        StopDashSfx();
         EndAttackLunge();
         StopMoving();
         SetDashActive(false);

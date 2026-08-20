@@ -420,14 +420,6 @@ public class ArmoredVehicleEnemy : Enemy
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
     }
 
-    public void SetAnimBool(string name, bool value)
-    {
-        if (anim == null || string.IsNullOrEmpty(name))
-            return;
-
-        anim.SetBool(name, value);
-    }
-
     public bool HasAnimatorController =>
         anim != null && anim.runtimeAnimatorController != null;
 

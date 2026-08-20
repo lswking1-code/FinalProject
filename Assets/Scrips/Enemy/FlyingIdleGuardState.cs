@@ -19,9 +19,9 @@ public class FlyingIdleGuardState : BaseState
 
         if (currentEnemy.anim != null)
         {
-            currentEnemy.anim.SetBool("walk", false);
-            currentEnemy.anim.SetBool("shoot", false);
-            currentEnemy.anim.SetBool("shootDown", false);
+            currentEnemy.SetAnimBool("walk", false);
+            currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("shootDown", false);
         }
     }
 

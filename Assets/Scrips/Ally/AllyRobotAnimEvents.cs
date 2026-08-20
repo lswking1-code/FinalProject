@@ -22,8 +22,8 @@ public class AllyRobotAnimEvents : MonoBehaviour
         robot?.BeginAttackLunge();
     }
 
-    /// <summary>Animation Event：float 为前冲时长（秒）。</summary>
-    public void BeginAttackLunge(float duration)
+    /// <summary>Animation Event：float 为前冲时长（秒）。不用 BeginAttackLunge 重载，避免 Unity Animation Event 警告。</summary>
+    public void BeginAttackLungeTimed(float duration)
     {
         if (robot == null)
             robot = GetComponentInParent<AllyRobot>();
@@ -36,5 +36,13 @@ public class AllyRobotAnimEvents : MonoBehaviour
         if (robot == null)
             robot = GetComponentInParent<AllyRobot>();
         robot?.EndAttackLunge();
+    }
+
+    /// <summary>Animation Event：String 为 FMOD AttackType 标签（Normal/Combo/DashAttack/Blast1-3）。</summary>
+    public void PlayAttackSfx(string attackType)
+    {
+        if (robot == null)
+            robot = GetComponentInParent<AllyRobot>();
+        robot?.PlayAttackSfx(attackType);
     }
 }

@@ -24,7 +24,7 @@ public class FlyingMoveState : BaseState
         moveDir = flyingEnemy.ClampMoveDirInsideFan(moveDir);
 
         if (currentEnemy.anim != null)
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("walk", true);
 
         // #region agent log
         try
@@ -76,6 +76,6 @@ public class FlyingMoveState : BaseState
     public override void OnExit()
     {
         if (currentEnemy?.anim != null)
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
     }
 }

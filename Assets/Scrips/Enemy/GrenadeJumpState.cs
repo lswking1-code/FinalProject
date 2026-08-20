@@ -35,7 +35,7 @@ public class GrenadeJumpState : BaseState
         FaceJumpDirection(jumpDir);
 
         ClearLocomotionBools();
-        currentEnemy.anim.SetBool("jump", true);
+        currentEnemy.SetAnimBool("jump", true);
 
         phase = Phase.Rising;
         leftGround = false;
@@ -112,15 +112,15 @@ public class GrenadeJumpState : BaseState
         if (landTimer > 0f)
             return;
 
-        currentEnemy.anim.SetBool("land", false);
+        currentEnemy.SetAnimBool("land", false);
         grenadeEnemy.EvaluateCycle();
     }
 
     void EnterFalling()
     {
         phase = Phase.Falling;
-        currentEnemy.anim.SetBool("jump", false);
-        currentEnemy.anim.SetBool("fall", true);
+        currentEnemy.SetAnimBool("jump", false);
+        currentEnemy.SetAnimBool("fall", true);
     }
 
     void EnterLanding()
@@ -128,9 +128,9 @@ public class GrenadeJumpState : BaseState
         phase = Phase.Landing;
         landTimer = grenadeEnemy.landDuration;
 
-        currentEnemy.anim.SetBool("jump", false);
-        currentEnemy.anim.SetBool("fall", false);
-        currentEnemy.anim.SetBool("land", true);
+        currentEnemy.SetAnimBool("jump", false);
+        currentEnemy.SetAnimBool("fall", false);
+        currentEnemy.SetAnimBool("land", true);
 
         if (currentEnemy.Rb != null)
         {
@@ -181,24 +181,16 @@ public class GrenadeJumpState : BaseState
 
     void ClearLocomotionBools()
     {
-        var anim = currentEnemy.anim;
-        if (anim == null)
-            return;
-
-        anim.SetBool("walk", false);
-        anim.SetBool("throw", false);
-        anim.SetBool("fall", false);
-        anim.SetBool("land", false);
+        currentEnemy.SetAnimBool("walk", false);
+        currentEnemy.SetAnimBool("throw", false);
+        currentEnemy.SetAnimBool("fall", false);
+        currentEnemy.SetAnimBool("land", false);
     }
 
     void ClearAirBools()
     {
-        var anim = currentEnemy.anim;
-        if (anim == null)
-            return;
-
-        anim.SetBool("jump", false);
-        anim.SetBool("fall", false);
-        anim.SetBool("land", false);
+        currentEnemy.SetAnimBool("jump", false);
+        currentEnemy.SetAnimBool("fall", false);
+        currentEnemy.SetAnimBool("land", false);
     }
 }

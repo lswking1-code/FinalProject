@@ -15,7 +15,7 @@ public class MeleeGetCloseState : BaseState
         currentEnemy.FacePlayer();
 
         if (currentEnemy.anim != null)
-            currentEnemy.anim.SetBool("walk", true);
+            currentEnemy.SetAnimBool("walk", true);
     }
 
     public override void LogicUpdate()
@@ -39,6 +39,6 @@ public class MeleeGetCloseState : BaseState
     public override void OnExit()
     {
         if (currentEnemy?.anim != null)
-            currentEnemy.anim.SetBool("walk", false);
+            currentEnemy.SetAnimBool("walk", false);
     }
 }

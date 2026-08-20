@@ -19,10 +19,10 @@ public class RangedReloadState : BaseState
         rangedEnemy.FacePlayer();
         reloadTimer = rangedEnemy.reloadDuration;
 
-        currentEnemy.anim.SetBool("shoot", false);
-        currentEnemy.anim.SetBool("crouch", false);
-        currentEnemy.anim.SetBool("walk", false);
-        currentEnemy.anim.SetBool("reload", true);
+        currentEnemy.SetAnimBool("shoot", false);
+        currentEnemy.SetAnimBool("crouch", false);
+        currentEnemy.SetAnimBool("walk", false);
+        currentEnemy.SetAnimBool("reload", true);
     }
 
     public override void LogicUpdate()
@@ -48,6 +48,6 @@ public class RangedReloadState : BaseState
 
     public override void OnExit()
     {
-        currentEnemy.anim.SetBool("reload", false);
+        currentEnemy.SetAnimBool("reload", false);
     }
 }

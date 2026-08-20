@@ -293,6 +293,17 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    /// <summary>仅当当前 Animator Controller 存在该 Bool 时设置，避免 Parameter does not exist 刷屏。</summary>
+    public void SetAnimBool(string name, bool value)
+    {
+        if (anim == null || string.IsNullOrEmpty(name))
+            return;
+        if (animBoolNames == null || !animBoolNames.Contains(name))
+            return;
+
+        anim.SetBool(name, value);
+    }
+
     /// <summary>
     /// 缓存玩家引用。玩家在 Persistent 场景中可能晚于敌人 Awake 才激活。
     /// </summary>
@@ -1096,8 +1107,7 @@ public class Enemy : MonoBehaviour
         }
 
         gameObject.layer = 2;
-        if (anim != null)
-            anim.SetBool("dead", true);
+        SetAnimBool("dead", true);
 
         StopHurtVisualRoutines();
         RestoreHurtVisuals();
