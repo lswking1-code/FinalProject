@@ -23,7 +23,7 @@ public static class EnemySceneCleanup
     }
 
     /// <summary>
-    /// 销毁场景中所有敌人本体 / 子弹 / 导弹 / 手雷 / 爆炸特效 / 弹药包 / 血包。
+    /// 销毁场景中所有敌人本体 / 子弹 / 导弹 / 手雷 / 爆炸特效 / 掉落盾 / 弹药包 / 血包。
     /// 这些对象若 Instantiated 到 Persistent，卸关卡时不会随场景消失，需在此一并清掉。
     /// </summary>
     public static void ClearAll()
@@ -33,6 +33,7 @@ public static class EnemySceneCleanup
         DestroyAll<EnemyMissile>();
         DestroyAll<EnemyGrenade>();
         DestroyAll<EnemyGrenadeExplosion>();
+        DestroyAll<ShieldDropVisual>();
         DestroyAll<BulletBox>();
         DestroyAll<HealthPack>();
     }

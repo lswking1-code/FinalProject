@@ -26,6 +26,7 @@ public class ShieldEnemy : MeleeEnemy
     public RuntimeAnimatorController meleeAnimatorController;
 
     EnemyShieldAbsorb shieldAbsorb;
+    ShieldDropVisual shieldDropVisual;
     float leaveIdealTimer;
     bool hasHeldAtIdealRange;
 
@@ -82,6 +83,7 @@ public class ShieldEnemy : MeleeEnemy
     void CacheShield()
     {
         shieldAbsorb = GetComponentInChildren<EnemyShieldAbsorb>(true);
+        shieldDropVisual = GetComponentInChildren<ShieldDropVisual>(true);
     }
 
     void DisableShieldOverlaySprite()
@@ -101,6 +103,7 @@ public class ShieldEnemy : MeleeEnemy
         leaveIdealTimer = 0f;
         if (physicsCheck != null)
             physicsCheck.RefreshLedgeColliders();
+        shieldDropVisual?.Drop();
         SwitchToMeleeAnimator();
         if (!isDead)
             EvaluateCycle();
