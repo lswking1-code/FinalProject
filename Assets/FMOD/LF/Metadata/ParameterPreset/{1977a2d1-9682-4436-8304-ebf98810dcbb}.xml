@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{1977a2d1-9682-4436-8304-ebf98810dcbb}">
+		<property name="name">
+			<value>MeleeType</value>
+		</property>
+		<relationship name="folder">
+			<destination>{9308ac1d-0409-497e-88a0-0849723f18f8}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{4eb01955-dc40-4459-a7b4-2834f0eb0004}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{4eb01955-dc40-4459-a7b4-2834f0eb0004}">
+		<property name="parameterType">
+			<value>2</value>
+		</property>
+		<property name="maximum">
+			<value>10</value>
+		</property>
+		<property name="enumerationLabels">
+			<value>Idle</value>
+			<value>Rush</value>
+			<value>RushSpecial</value>
+			<value>Whip</value>
+			<value>WhipSpecial</value>
+			<value>Buzzsaw</value>
+			<value>BuzzsawSpecial</value>
+			<value>DownMelee</value>
+			<value>JumpDownStart</value>
+			<value>JumpDownImpact</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

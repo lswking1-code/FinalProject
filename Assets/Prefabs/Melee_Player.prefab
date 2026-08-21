@@ -601,41 +601,42 @@ MonoBehaviour:
   jumpDownImpactDamage: 10
   jumpDownImpactRadius: 1.98
   jumpDownImpactOffset: {x: -0.72, y: 0}
-  sfxSource: {fileID: 0}
-  sfxVolume: 1
-  weaponSfxProfiles:
-  - weaponId: 0
-    melee: {fileID: 8300000, guid: c87926fbd642c497ea9a1569dbf15e6c, type: 3}
-    airMelee: {fileID: 0}
-    upMelee: {fileID: 0}
-    crouchMelee: {fileID: 8300000, guid: c87926fbd642c497ea9a1569dbf15e6c, type: 3}
-    special: {fileID: 0}
-  - weaponId: 1
-    melee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
-    airMelee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
-    upMelee: {fileID: 8300000, guid: 58bddbd0bd81e4649addf959ee187e3a, type: 3}
-    crouchMelee: {fileID: 0}
-    special: {fileID: 8300000, guid: a9c3726996e4c4d1e949142edb507b4c, type: 3}
-  - weaponId: 2
-    melee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
-    airMelee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
-    upMelee: {fileID: 8300000, guid: b8434722764f34636a7ad8d2443a020f, type: 3}
-    crouchMelee: {fileID: 0}
-    special: {fileID: 8300000, guid: 158fbee07f5c04910a1e716563c2f921, type: 3}
-  - weaponId: 3
-    melee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
-    airMelee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
-    upMelee: {fileID: 8300000, guid: bd81c29cab4897b48a1b93c2b2b19302, type: 3}
-    crouchMelee: {fileID: 0}
-    special: {fileID: 8300000, guid: 1e7e0e98d80fa4e59ae54fe894302a78, type: 3}
-  fallbackMeleeSfx: {fileID: 0}
-  downMeleeSfx: {fileID: 8300000, guid: ccb529983ec8e4402bcd08aa934b1f2d, type: 3}
-  jumpDownStartSfx: {fileID: 0}
-  jumpDownImpactSfx: {fileID: 8300000, guid: 44eb24dcb55444384b74fed9bf643e6f, type: 3}
-  jumpSfx: {fileID: 8300000, guid: 1fd20201af0da42eab85264140c53df3, type: 3}
-  doubleJumpSfx: {fileID: 8300000, guid: 317bfffdd196b48998a13bcb4c0c6e1a, type: 3}
-  switchWeaponSfx: {fileID: 8300000, guid: c155f0e25b38d4742aac6fd2877214ef, type: 3}
-  dieSfx: {fileID: 8300000, guid: f83349a6a1873473e8ce8fce025f2232, type: 3}
+  attackEvent:
+    Guid:
+      Data1: 1818543693
+      Data2: 1077829228
+      Data3: -768683855
+      Data4: 1605668700
+    Path: event:/Player/Bob/Attack
+  meleeTypeParam: MeleeType
+  jumpEvent:
+    Guid:
+      Data1: -261737073
+      Data2: 1265021974
+      Data3: -1208809313
+      Data4: -433869806
+    Path: event:/Player/Bob/Jump
+  doubleJumpEvent:
+    Guid:
+      Data1: -1732711925
+      Data2: 1279034836
+      Data3: 1904465080
+      Data4: 1063068119
+    Path: event:/Player/Bob/DoubleJump
+  switchWeaponEvent:
+    Guid:
+      Data1: 710909082
+      Data2: 1280225156
+      Data3: -965599860
+      Data4: 1313001760
+    Path: event:/Player/Bob/SwitchWeapon
+  dieEvent:
+    Guid:
+      Data1: 125739868
+      Data2: 1282662749
+      Data3: 1138191807
+      Data4: 1075392899
+    Path: event:/Player/Bob/Die
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1

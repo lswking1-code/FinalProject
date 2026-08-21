@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -99,22 +100,6 @@ public class Bob_Controller : MonoBehaviour
         public float knockbackForce;
         [Tooltip("击退持续时间（秒）")]
         public float knockbackDuration;
-    }
-
-    [System.Serializable]
-    public struct WeaponActionSfx
-    {
-        public int weaponId;
-        [Tooltip("站立/默认近战")]
-        public AudioClip melee;
-        [Tooltip("空中近战；空则回退 melee")]
-        public AudioClip airMelee;
-        [Tooltip("向上近战；空则回退 melee")]
-        public AudioClip upMelee;
-        [Tooltip("蹲攻；空则回退 melee")]
-        public AudioClip crouchMelee;
-        [Tooltip("特技 Ability1")]
-        public AudioClip special;
     }
 
     [Header("二段跳")]
@@ -271,28 +256,13 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] Vector2 jumpDownImpactOffset = new Vector2(0f, 0.4f);
 
     [Header("音效")]
-    [Tooltip("留空则运行时自动挂 AudioSource（2D）")]
-    [SerializeField] AudioSource sfxSource;
-    [Range(0f, 1f)] [SerializeField] float sfxVolume = 1f;
-    [Tooltip("按武器 ID 配置近战/特技音效；未填的动作会回退")]
-    [SerializeField] WeaponActionSfx[] weaponSfxProfiles =
-    {
-        new WeaponActionSfx { weaponId = 0 },
-        new WeaponActionSfx { weaponId = 1 },
-        new WeaponActionSfx { weaponId = 2 },
-        new WeaponActionSfx { weaponId = 3 },
-    };
-    [SerializeField] AudioClip fallbackMeleeSfx;
-    [Tooltip("地面滑行（CrouchMelee / default_down_melee）四武器共用；不走分武器 melee/crouchMelee")]
-    [SerializeField] AudioClip downMeleeSfx;
-    [Tooltip("空中落地砸地起始（四武器共用；不走分武器 melee/airMelee）")]
-    [SerializeField] AudioClip jumpDownStartSfx;
-    [Tooltip("空中落地砸地落地冲击（四武器共用）")]
-    [SerializeField] AudioClip jumpDownImpactSfx;
-    [SerializeField] AudioClip jumpSfx;
-    [SerializeField] AudioClip doubleJumpSfx;
-    [SerializeField] AudioClip switchWeaponSfx;
-    [SerializeField] AudioClip dieSfx;
+    [SerializeField] EventReference attackEvent;
+    [Tooltip("FMOD Attack 事件上的标签参数名")]
+    [SerializeField] string meleeTypeParam = "MeleeType";
+    [SerializeField] EventReference jumpEvent;
+    [SerializeField] EventReference doubleJumpEvent;
+    [SerializeField] EventReference switchWeaponEvent;
+    [SerializeField] EventReference dieEvent;
 
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
@@ -375,7 +345,6 @@ public class Bob_Controller : MonoBehaviour
         selfCharacter = GetComponent<Character>();
         playerRoll = GetComponent<PlayerRoll>();
         actions = new InputSystem_Actions();
-        EnsureSfxSource();
 
         if (meleeHitbox != null)
         {
@@ -456,7 +425,7 @@ public class Bob_Controller : MonoBehaviour
 
         // 一段跳由 PlayerMovement 执行；此处只补音效
         if (playerMovement != null && playerMovement.DidGroundJumpThisFixedUpdate)
-            PlaySfx(jumpSfx);
+            PlaySfx(jumpEvent);
 
         if (physicsCheck.isGround)
         {
@@ -1098,7 +1067,7 @@ public class Bob_Controller : MonoBehaviour
         }
 
         ApplyActiveProfileToColliders();
-        PlaySfx(ResolveWeaponSpecialSfx(weaponId));
+        PlayAttackSfx(ResolveWeaponSpecialLabel(weaponId));
         BeginAttackInputLock();
         LogSkillCast();
     }
@@ -2044,7 +2013,7 @@ public class Bob_Controller : MonoBehaviour
             fullBodyAnim.HoldJumpDownAttackUntilImpact = true;
 
         BeginAttackInputLock();
-        PlaySfx(jumpDownStartSfx);
+        PlayAttackSfx("JumpDownStart");
 
         if (rb != null)
         {
@@ -2109,7 +2078,7 @@ public class Bob_Controller : MonoBehaviour
 
         ApplyJumpDownImpact();
         jumpDownImpactApplied = true;
-        PlaySfx(jumpDownImpactSfx);
+        PlayAttackSfx("JumpDownImpact");
 
         if (fullBodyAnim != null)
             fullBodyAnim.HoldJumpDownAttackUntilImpact = false;
@@ -2421,7 +2390,7 @@ public class Bob_Controller : MonoBehaviour
 
         rb.linearVelocity = new Vector2(velocityX, jumpVelocity);
         hasUsedDoubleJump = true;
-        PlaySfx(doubleJumpSfx);
+        PlaySfx(doubleJumpEvent);
 
         if (fullBodyAnim != null)
             fullBodyAnim.PlayDoubleJumpAnim(hasHorizontal);
@@ -2439,39 +2408,27 @@ public class Bob_Controller : MonoBehaviour
         airborneYLock?.NotifyAirJump();
     }
 
-    void EnsureSfxSource()
-    {
-        if (sfxSource == null)
-            sfxSource = GetComponent<AudioSource>();
-
-        if (sfxSource == null)
-            sfxSource = gameObject.AddComponent<AudioSource>();
-
-        sfxSource.playOnAwake = false;
-        sfxSource.loop = false;
-        sfxSource.spatialBlend = 0f;
-    }
-
     void UpdateCommonActionSfx()
     {
         bool dead = playerAnim != null && playerAnim.IsDead;
         if (dead && !wasDeadForSfx)
-            PlaySfx(dieSfx);
+            PlaySfx(dieEvent);
         wasDeadForSfx = dead;
 
         bool switching = playerAnim != null && playerAnim.IsSwitchingWeapon;
         if (switching && !wasSwitchingWeaponForSfx)
-            PlaySfx(switchWeaponSfx);
+            PlaySfx(switchWeaponEvent);
         wasSwitchingWeaponForSfx = switching;
     }
 
-    void PlaySfx(AudioClip clip)
+    void PlaySfx(EventReference evt) => FmodAudio.Play(evt);
+
+    void PlayAttackSfx(string label)
     {
-        if (clip == null)
+        if (string.IsNullOrEmpty(label))
             return;
 
-        EnsureSfxSource();
-        sfxSource.PlayOneShot(clip, sfxVolume);
+        FmodAudio.Play(attackEvent, meleeTypeParam, label);
     }
 
     void PlayMeleeActionSfx()
@@ -2485,46 +2442,28 @@ public class Bob_Controller : MonoBehaviour
         // 地面滑行四武器同一套动画，只播共用音效，避免叠上 rush/whip/buzzsaw 的 melee
         if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
         {
-            PlaySfx(downMeleeSfx != null ? downMeleeSfx : fallbackMeleeSfx);
+            PlayAttackSfx("DownMelee");
             return;
         }
 
-        int weaponId = ResolveCurrentWeaponId();
-        WeaponActionSfx profile = FindWeaponSfx(weaponId);
-
-        AudioClip clip;
-        if (fullBodyAnim != null && fullBodyAnim.IsUpwardMelee)
-            clip = profile.upMelee != null ? profile.upMelee : profile.melee;
-        else if (physicsCheck != null && !physicsCheck.isGround)
-            clip = profile.airMelee != null ? profile.airMelee : profile.melee;
-        else
-            clip = profile.melee;
-
-        if (clip == null)
-            clip = fallbackMeleeSfx;
-
-        PlaySfx(clip);
+        PlayAttackSfx(ResolveWeaponMeleeLabel(ResolveCurrentWeaponId()));
     }
 
-    AudioClip ResolveWeaponSpecialSfx(int weaponId)
+    static string ResolveWeaponMeleeLabel(int weaponId) => weaponId switch
     {
-        WeaponActionSfx profile = FindWeaponSfx(weaponId);
-        return profile.special;
-    }
+        1 => "Rush",
+        2 => "Whip",
+        3 => "Buzzsaw",
+        _ => "Idle",
+    };
 
-    WeaponActionSfx FindWeaponSfx(int weaponId)
+    static string ResolveWeaponSpecialLabel(int weaponId) => weaponId switch
     {
-        if (weaponSfxProfiles != null)
-        {
-            for (int i = 0; i < weaponSfxProfiles.Length; i++)
-            {
-                if (weaponSfxProfiles[i].weaponId == weaponId)
-                    return weaponSfxProfiles[i];
-            }
-        }
-
-        return default;
-    }
+        1 => "RushSpecial",
+        2 => "WhipSpecial",
+        3 => "BuzzsawSpecial",
+        _ => null,
+    };
 
     void OnDrawGizmos()
     {
