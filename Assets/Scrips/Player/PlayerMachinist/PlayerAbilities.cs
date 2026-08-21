@@ -39,6 +39,15 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     [Header("音效")]
     [SerializeField] EventReference loadEvent;
 
+    [Header("RobotCore 演出")]
+    [SerializeField] GameObject robotCorePrefab;
+    [Tooltip("收回时 Core 飞回玩家的速度（单位/秒）")]
+    [SerializeField] float robotCoreFlySpeed = 12f;
+    [Tooltip("判定已到达目标点的距离阈值")]
+    [SerializeField] float robotCoreArriveThreshold = 0.2f;
+    [Tooltip("飞回目标相对玩家 Transform 的偏移。玩家枢轴在脚底时，把 Y 调到身体中心")]
+    [SerializeField] Vector3 robotCoreReturnOffset = new Vector3(0f, 1f, 0f);
+
     RobotAbilityPhase phase = RobotAbilityPhase.Idle;
     InputSystem_Actions actions;
     PlayerMovement playerMovement;
@@ -48,6 +57,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     SpecialMagazine specialMagazine;
     GameObject activeRobot;
     AllyRobot activeRobotController;
+    RobotCoreVisual returningCore;
 
     public bool HasRobot => HasActiveRobot();
     public float PullCooldownNormalized =>
@@ -90,6 +100,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             phase = RobotAbilityPhase.Idle;
 
         EndPlayerDispatch();
+        DestroyReturningCoreImmediate();
         actions.Player.Disable();
         ((ISaveable)this).UnregisterSaveData();
     }
@@ -98,6 +109,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     {
         if (newGameEvent != null)
             newGameEvent.OnEventRaised -= ResetForNewGame;
+        DestroyReturningCoreImmediate();
         actions?.Dispose();
     }
 
@@ -111,6 +123,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             phase = RobotAbilityPhase.Idle;
         }
 
+        DestroyReturningCoreImmediate();
         DestroyActiveRobot();
         specialMagazine?.Clear();
     }
@@ -137,7 +150,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
                 {
                     if (HasActiveRobot())
                     {
-                        DestroyActiveRobot();
+                        BeginRecall(playPlayerAnim: true);
                         EndPlayerDispatch();
                         phase = RobotAbilityPhase.Idle;
                     }
@@ -225,30 +238,54 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         activeRobotController.SetManualMoveInput(actions.Player.RobotMove.ReadValue<Vector2>());
     }
 
-    bool HasActiveRobot() => activeRobot != null;
+    bool HasActiveRobot()
+    {
+        if (activeRobot)
+            return true;
+
+        // 机器人自销毁后 Unity 把引用当成 null，但 C# 包装还在，必须清掉暂停回复。
+        if ((object)activeRobot != null || (object)activeRobotController != null)
+            OnRobotRemoved();
+
+        return false;
+    }
+
+    bool HasReturningCore()
+    {
+        if (returningCore == null)
+            return false;
+
+        if (!returningCore)
+        {
+            returningCore = null;
+            return false;
+        }
+
+        return true;
+    }
+
+    bool IsRecallInProgress() =>
+        HasReturningCore()
+        || (activeRobotController != null && activeRobotController.IsRecalling);
 
     bool CanSpawnRobot()
     {
         return !HasActiveRobot()
+            && !HasReturningCore()
             && character != null
             && character.AbilityPower >= minAbilityPowerToSpawn;
     }
 
     void UpdateRobotDrain()
     {
-        if (activeRobot != null && !activeRobot)
-        {
-            OnRobotRemoved();
-            return;
-        }
-
         if (!HasActiveRobot())
             return;
 
         character.DrainAbilityPower(robotDrainRate * Time.deltaTime);
 
-        if (character.AbilityPower <= 0f)
-            DestroyActiveRobot();
+        if (character.AbilityPower <= 0f
+            && (activeRobotController == null || !activeRobotController.IsRecalling))
+            BeginRecall(playPlayerAnim: false);
     }
 
     void OnRobotSpawned(GameObject robot)
@@ -275,8 +312,18 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         OnRobotRemoved();
     }
 
-    /// <summary>立刻收回当前机器人（能量耗尽 / 死亡区等外部调用）。</summary>
-    public void RecallRobot() => DestroyActiveRobot();
+    /// <summary>收回当前机器人（播 Recall + Core；读档/新游戏请用立刻销毁）。</summary>
+    public void RecallRobot() => BeginRecall(playPlayerAnim: false);
+
+    /// <summary>切场景时立刻清掉机器人和飞回中的 Core，不播收回动画。</summary>
+    public void DismissRobotImmediate()
+    {
+        DestroyReturningCoreImmediate();
+        DestroyActiveRobot();
+    }
+
+    public bool OwnsRobot(AllyRobot robot) =>
+        robot != null && activeRobotController == robot;
 
     /// <summary>
     /// 若当前有机器人且不在任一激活遭遇区的 EncounterBounds 内，则收回。
@@ -295,7 +342,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
     void BeginPress()
     {
-        if (playerMovement.IsActionLocked)
+        if (playerMovement.IsActionLocked || IsRecallInProgress())
             return;
 
         phase = RobotAbilityPhase.Pressing;
@@ -375,6 +422,72 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
         robot.GetComponent<AllyRobot>()?.Initialize(transform, mode, robotFollowPoint);
         OnRobotSpawned(robot);
+        SpawnOpenCore(worldPos);
+    }
+
+    void SpawnOpenCore(Vector3 worldPos)
+    {
+        RobotCoreVisual core = InstantiateCore(worldPos);
+        core?.PlayOpenThenDestroy();
+    }
+
+    void BeginRecall(bool playPlayerAnim)
+    {
+        if (!HasActiveRobot() || IsRecallInProgress())
+            return;
+
+        if (playPlayerAnim)
+            playerAnim.TryPlayRecallAnim();
+
+        Vector3 corePos = activeRobot.transform.position;
+        SpawnReturningCore(corePos);
+
+        if (activeRobotController != null)
+            activeRobotController.BeginRecall();
+        else
+            DestroyActiveRobot();
+    }
+
+    void SpawnReturningCore(Vector3 worldPos)
+    {
+        RobotCoreVisual core = InstantiateCore(worldPos);
+        if (core == null)
+            return;
+
+        returningCore = core;
+        core.PlayCloseThenReturn(
+            transform,
+            robotCoreReturnOffset,
+            robotCoreFlySpeed,
+            robotCoreArriveThreshold,
+            ClearReturningCore);
+    }
+
+    RobotCoreVisual InstantiateCore(Vector3 worldPos)
+    {
+        if (robotCorePrefab == null)
+        {
+            Debug.LogWarning("PlayerAbilities: robotCorePrefab 未配置。", this);
+            return null;
+        }
+
+        var go = Instantiate(robotCorePrefab, worldPos, Quaternion.identity);
+        var visual = go.GetComponent<RobotCoreVisual>();
+        if (visual == null)
+            visual = go.AddComponent<RobotCoreVisual>();
+        return visual;
+    }
+
+    void ClearReturningCore()
+    {
+        returningCore = null;
+    }
+
+    void DestroyReturningCoreImmediate()
+    {
+        if (returningCore != null)
+            returningCore.CancelAndDestroy();
+        returningCore = null;
     }
 
     /// <summary>
@@ -458,6 +571,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             phase = RobotAbilityPhase.Idle;
         }
 
+        DestroyReturningCoreImmediate();
         DestroyActiveRobot();
     }
 }

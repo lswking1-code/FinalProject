@@ -87,10 +87,12 @@ public class DeathZone : MonoBehaviour
         if (player != null)
             abilities = player.GetComponent<PlayerAbilities>();
 
-        if (abilities != null)
+        if (abilities != null && abilities.OwnsRobot(robot))
+        {
             abilities.RecallRobot();
+            return;
+        }
 
-        // 若未挂在玩家能力上（或已非当前登记机器人），仍销毁该实例
         if (robot != null)
             Destroy(robot.gameObject);
     }

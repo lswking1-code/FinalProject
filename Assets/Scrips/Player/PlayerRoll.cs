@@ -97,7 +97,7 @@ public class PlayerRoll : MonoBehaviour
         if (!physicsCheck.isGround)
             return false;
 
-        if (playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsSwitchingWeapon)
+        if (playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsSwitchingWeapon || playerAnim.IsRecalling)
             return false;
 
         if (playerAnim.IsDispatching || playerAnim.IsCharging || playerAnim.IsHeavySpinFiring

@@ -412,8 +412,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
         unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
 
-        // 子弹可能落在 Persistent，卸载关卡前统一清掉
+        // 子弹 / 机器人可能落在 Persistent，卸载关卡前统一清掉
         EnemySceneCleanup.ClearAll();
+        playerTrans?.GetComponent<PlayerAbilities>()?.DismissRobotImmediate();
 
         yield return currentLoadedScene.sceneReference.UnLoadScene();
         if (playerTrans != null)

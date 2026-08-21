@@ -398,7 +398,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 1
   m_Sprite: {fileID: -3118176627302311660, guid: 30da8d6decf52cb44beec41516fe1754, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -694,6 +694,7 @@ MonoBehaviour:
   maxBulletL: 60
   invulnerableDuration: 0.4
   knockbackResistance: 1
+  immuneToKnockback: 0
   invulnerable: 0
   allowHitsWhileDead: 0
   OnHealthChange:
@@ -797,6 +798,10 @@ MonoBehaviour:
       Data3: -1349393788
       Data4: -1229689059
     Path: event:/Player/Machinist/Load
+  robotCorePrefab: {fileID: 3177721398730685325, guid: a4d26d920a139924ca47d033e728a135, type: 3}
+  robotCoreFlySpeed: 25
+  robotCoreArriveThreshold: 0.2
+  robotCoreReturnOffset: {x: 0, y: 1, z: 0}
 --- !u!114 &5182937465019283746
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -956,7 +961,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -1065181757042302025, guid: b4e06902dd5ed434ea07d73f9a0f553f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1067,7 +1072,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 1018721849255436521, guid: 780a1e3c7c613aa4388866c06eb57a85, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

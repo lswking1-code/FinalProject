@@ -95,6 +95,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string RollStateName = "Roll";
     const string WeaponSwitchStateName = "WeaponSwitch";
     const string CrouchWeaponSwitchStateName = "CrouchWeaponSwitch";
+    const string RecallStateName = "M_Back";
     const int UpperLookAirPhaseBlock = 5; // 无 AnyState 映射，Look 期间阻止 Ground→Idle 抢状态
     const string IsLookUpParam = "IsLookUp";
     const string IsLookDownParam = "IsLookDown";
@@ -143,6 +144,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isThrowing;
     bool isMelee;
     bool isSwitchingWeapon;
+    bool isRecalling;
     bool isDead;
     bool isRolling;
     bool rollPoseActive;
@@ -173,6 +175,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     Animator activeMeleeAnimator;
     string activeWeaponSwitchStateName;
     Animator activeWeaponSwitchAnimator;
+    string activeRecallStateName;
+    Animator activeRecallAnimator;
     AnimatorOverrideController upperOverrideController;
     AnimatorOverrideController crouchOverrideController;
     RuntimeAnimatorController upperBaseController;
@@ -210,6 +214,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsThrowing => isThrowing;
     public override bool IsMelee => isMelee;
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
+    public override bool IsRecalling => isRecalling;
     public override bool IsDead => isDead;
     public override bool IsLookingUp => isLookingUp || isEndingLookUp;
     public override bool IsLookingDown => isLookingDown || isEndingLookDown;
@@ -274,6 +279,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             MaintainThrowCompletion();
             MaintainMeleeCompletion();
             MaintainWeaponSwitchCompletion();
+            MaintainRecallCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -292,6 +298,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             MaintainChargeCompletion();
             MaintainDispatchCompletion();
             MaintainWeaponSwitchCompletion();
+            MaintainRecallCompletion();
             wasGrounded = grounded;
             return;
         }
@@ -304,6 +311,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         MaintainThrowCompletion();
         MaintainMeleeCompletion();
         MaintainWeaponSwitchCompletion();
+        MaintainRecallCompletion();
         wasGrounded = grounded;
         airStateInitialized = true;
     }
@@ -339,7 +347,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (IsPlayingLand)
             InterruptLand();
 
-        if (isCrouching || displayMode == BodyDisplayMode.FullBody || isDispatching)
+        if (isCrouching || displayMode == BodyDisplayMode.FullBody || isDispatching || isRecalling)
             return false;
         if (airPhase != AirPhaseType.Ground)
             return false;
@@ -350,7 +358,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool PlayCrouchTurnAnim() // 蹲伏转身，保持全身层
     {
-        if (!isCrouching || crouchAnimator == null || isDispatching)
+        if (!isCrouching || crouchAnimator == null || isDispatching || isRecalling)
             return false;
         if (activeFullBodyState == CrouchTurnStateName)
             return false;
@@ -379,7 +387,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     bool IsOccupiedByAction() =>
         isShooting || isCharging || isDispatching || isThrowing || isMelee
-        || isSwitchingWeapon || isRolling || IsUpperLookActive();
+        || isSwitchingWeapon || isRecalling || isRolling || IsUpperLookActive();
 
     public override void PlayIdleAnim() // 停止移动；地面 Split 层清除射击状态
     {
@@ -392,7 +400,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         }
 
         if (displayMode == BodyDisplayMode.Split && airPhase == AirPhaseType.Ground
-            && !isShooting && !isCharging && !isDispatching && !isThrowing && !isMelee && !isSwitchingWeapon)
+            && !isShooting && !isCharging && !isDispatching && !isThrowing && !isMelee && !isSwitchingWeapon && !isRecalling)
             SyncSplitAnimators();
     }
 
@@ -401,7 +409,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isDispatching && isCrouching)
             return;
 
-        if (isCrouching && (isShooting || isCharging || isThrowing || isMelee || isSwitchingWeapon))
+        if (isCrouching && (isShooting || isCharging || isThrowing || isMelee || isSwitchingWeapon || isRecalling))
             return;
 
         if (IsPlayingMachinistComboShoot || IsPlayingMachinistChargeShoot)
@@ -436,6 +444,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
+        if (isRecalling)
+            CompleteRecall();
+
         InterruptLand();
 
         isCrouching = true;
@@ -460,6 +471,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
+        if (isRecalling)
+            CompleteRecall();
+
         isCrouching = false;
         ResetFullBodyParams();
 
@@ -478,7 +492,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayShootAnim() // 射击中再次按 J 会从头重播；可打断转身/着陆/蹲伏起步/仰视俯视起步
     {
-        if (isSwitchingWeapon || isRolling)
+        if (isSwitchingWeapon || isRecalling || isRolling)
             return false;
 
         if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
@@ -560,7 +574,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayMachinistShootAnim(MachinistShootKind kind)
     {
-        if (isSwitchingWeapon)
+        if (isSwitchingWeapon || isRecalling)
             return false;
 
         if (isDispatching)
@@ -1121,7 +1135,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     /// </summary>
     public override bool TryPlayLoadBulletAnim()
     {
-        if (isSwitchingWeapon || isDispatching || isDead)
+        if (isSwitchingWeapon || isRecalling || isDispatching || isDead)
             return false;
 
         if (IsPlayingMachinistComboShoot || IsPlayingMachineShoot || IsPlayingLoadBullet)
@@ -1281,7 +1295,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool BeginMachinistCharge()
     {
-        if (isSwitchingWeapon)
+        if (isSwitchingWeapon || isRecalling)
             return false;
 
         if (isDispatching)
@@ -1500,7 +1514,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool BeginDispatch()
     {
-        if (isDead || isSwitchingWeapon)
+        if (isDead || isSwitchingWeapon || isRecalling)
             return false;
 
         if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot || IsPlayingMachineShoot)
@@ -1675,7 +1689,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayThrowAnim() // 投掷中再次按 U 会从头重播；可打断转身/着陆/蹲伏起步
     {
-        if (isSwitchingWeapon || isRolling)
+        if (isSwitchingWeapon || isRecalling || isRolling)
             return false;
 
         if (isDispatching)
@@ -1736,7 +1750,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
     {
-        if (isSwitchingWeapon || isRolling)
+        if (isSwitchingWeapon || isRecalling || isRolling)
             return false;
 
         if (isDispatching)
@@ -1827,6 +1841,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return true;
         }
 
+        if (isRecalling)
+            CompleteRecall();
+
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
@@ -1887,6 +1904,53 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool TryPlayWeaponSwitchAnim(WeaponDefinition fromDef, WeaponDefinition toDef)
         => TryPlayWeaponSwitchAnim(toDef);
 
+    public override bool TryPlayRecallAnim()
+    {
+        if (isDead || isCrouching)
+            return false;
+
+        if (isRolling || isDispatching || IsPlayingLoadBullet || IsPlayingMachinistComboShoot)
+            return false;
+
+        if (isRecalling)
+            CompleteRecall();
+
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
+
+        if (isShooting)
+            CompleteShoot();
+        if (isThrowing)
+            CompleteThrow();
+        if (isMelee)
+            CompleteMelee();
+        if (isCharging)
+            CancelMachinistCharge();
+
+        if (IsPlayingLand)
+            InterruptLand();
+        else if (activeFullBodyState == TurnStateName)
+            InterruptTurn();
+        else if (activeFullBodyState == CrouchTurnStateName)
+        {
+            activeFullBodyState = null;
+            fullBodyAutoExit = false;
+            ResetFullBodyParams();
+        }
+
+        if (upperAnimator == null)
+            return false;
+
+        if (IsUpperLookActive())
+            StopLook();
+
+        isRecalling = true;
+        activeRecallStateName = RecallStateName;
+        activeRecallAnimator = upperAnimator;
+        upperAnimator.Play(RecallStateName, 0, 0f);
+        return true;
+    }
+
     public override bool TryGetMeleeAnimProgress(out float normalizedTime)
     {
         normalizedTime = 0f;
@@ -1920,6 +1984,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         isThrowing = false;
         isMelee = false;
         isSwitchingWeapon = false;
+        isRecalling = false;
+        activeRecallStateName = null;
+        activeRecallAnimator = null;
         ClearLookState();
         ResetFullBodyParams();
         EnterFullBody(DieStateName, autoExitOnComplete: false);
@@ -2201,6 +2268,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
 
+        if (isRecalling)
+            CompleteRecall();
+
         isCrouching = false;
         ResetFullBodyParams();
         SetSplitDisplay();
@@ -2436,7 +2506,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isDead || isRolling)
             return false;
 
-        if (isDispatching || isSwitchingWeapon)
+        if (isDispatching || isSwitchingWeapon || isRecalling)
             return false;
 
         if (isMelee)
@@ -2671,7 +2741,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
         }
 
-        if (isShooting || isCharging || isDispatching || isThrowing || isMelee || isSwitchingWeapon)
+        if (isShooting || isCharging || isDispatching || isThrowing || isMelee || isSwitchingWeapon || isRecalling)
             return;
 
         if (upperAnimator == null)
@@ -3167,6 +3237,42 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         isSwitchingWeapon = false;
         activeWeaponSwitchStateName = null;
         activeWeaponSwitchAnimator = null;
+
+        if (isCrouching)
+        {
+            if (crouchAnimator != null)
+                crouchAnimator.Play(CrouchStateName, 0, 0f);
+            return;
+        }
+
+        InvalidateUpperLocomotionCache();
+        if (displayMode == BodyDisplayMode.Split)
+            SyncUpperLocomotionViaPlay();
+    }
+
+    void MaintainRecallCompletion()
+    {
+        if (!isRecalling || activeRecallAnimator == null || string.IsNullOrEmpty(activeRecallStateName))
+            return;
+
+        var info = activeRecallAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(activeRecallStateName))
+        {
+            CompleteRecall();
+            return;
+        }
+
+        if (info.normalizedTime < 1f)
+            return;
+
+        CompleteRecall();
+    }
+
+    void CompleteRecall()
+    {
+        isRecalling = false;
+        activeRecallStateName = null;
+        activeRecallAnimator = null;
 
         if (isCrouching)
         {

@@ -39,6 +39,7 @@ public class PlayerAnimBase : MonoBehaviour
     /// <summary>近战特技（Ability1）播放中；默认实现为 false。</summary>
     public virtual bool IsSpecial => false;
     public virtual bool IsSwitchingWeapon => false;
+    public virtual bool IsRecalling => false;
     public virtual bool IsDead => false;
     public virtual bool IsLookingUp => false;
     public virtual bool IsLookingDown => false;
@@ -121,6 +122,9 @@ public class PlayerAnimBase : MonoBehaviour
     /// </summary>
     public virtual bool TryPlayWeaponSwitchAnim(WeaponDefinition fromDef, WeaponDefinition toDef)
         => TryPlayWeaponSwitchAnim(toDef);
+
+    /// <summary>机械师收回机器人（M_Back）；规则对齐切枪。蹲姿或不允许打断的动作中不播放。</summary>
+    public virtual bool TryPlayRecallAnim() => false;
 
     public virtual bool TryGetMeleeAnimProgress(out float normalizedTime)
     {

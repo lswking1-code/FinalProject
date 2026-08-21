@@ -45,10 +45,10 @@ MonoBehaviour:
   Path: Assets/FMOD/LF/Build/Desktop/Master.strings.bank
   Name: Master.strings
   StudioPath: bank:/Master.strings
-  lastModified: 639227897292797004
+  lastModified: 639228722179648237
   FileSizes:
   - Name: Desktop
-    Value: 1112
+    Value: 1198
   Exists: 1
 --- !u!114 &-8147448427222414881
 MonoBehaviour:
@@ -78,6 +78,33 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 0
+--- !u!114 &-6574915217749642357
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Robot/CoreOpen
+  m_EditorClassIdentifier: 
+  Path: event:/Robot/CoreOpen
+  Guid:
+    Data1: -1929882447
+    Data2: 1085517828
+    Data3: -1361766263
+    Data4: -940206769
+  Banks:
+  - {fileID: 7483203839839679042}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1080
 --- !u!114 &-5484136867497971472
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,13 +212,15 @@ MonoBehaviour:
   - {fileID: 257695108447382244}
   - {fileID: 2866254009822529147}
   - {fileID: -4227920979717997633}
+  - {fileID: 8622545965130318022}
+  - {fileID: -6574915217749642357}
   EditorParameters: []
   MasterBanks:
   - {fileID: 7483203839839679042}
   StringsBanks:
   - {fileID: -8726442254296899881}
   cacheVersion: 131860
-  cacheTime: 639227897292797004
+  cacheTime: 639228722179648237
   SerializableEventsDict:
   - key: event:/Player/Machinist/Fire
     index: 0
@@ -205,6 +234,10 @@ MonoBehaviour:
     index: 4
   - key: event:/Robot/Attack
     index: 5
+  - key: event:/Robot/CoreClose
+    index: 6
+  - key: event:/Robot/CoreOpen
+    index: 7
 --- !u!114 &257695108447382244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -258,7 +291,7 @@ MonoBehaviour:
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 1044
+  Length: 900
 --- !u!114 &7483203839839679042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -274,10 +307,10 @@ MonoBehaviour:
   Path: Assets/FMOD/LF/Build/Desktop/Master.bank
   Name: Master
   StudioPath: bank:/Master
-  lastModified: 639227897292758664
+  lastModified: 639228722179617980
   FileSizes:
   - Name: Desktop
-    Value: 235456
+    Value: 271136
   Exists: 1
 --- !u!114 &8139686948233943034
 MonoBehaviour:
@@ -306,3 +339,30 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 320
+--- !u!114 &8622545965130318022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Robot/CoreClose
+  m_EditorClassIdentifier: 
+  Path: event:/Robot/CoreClose
+  Guid:
+    Data1: 786612013
+    Data2: 1220800656
+    Data3: -294273915
+    Data4: -143850655
+  Banks:
+  - {fileID: 7483203839839679042}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1091

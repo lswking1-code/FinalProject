@@ -35,7 +35,8 @@ public class AllyRobot : MonoBehaviour
         ComboAttacking,
         ComboDashWindup,
         ComboDashing,
-        ManualMove
+        ManualMove,
+        Recalling
     }
 
     enum RobotAirPhase
@@ -189,6 +190,8 @@ public class AllyRobot : MonoBehaviour
     public string dashActiveBoolName = "dashActive";
     [Tooltip("生成动画 Animator 状态名")]
     public string dispatchStateName = "Robot_Dispatch";
+    [Tooltip("收回动画 Animator 状态名")]
+    public string recallStateName = "RobotRecall";
     [Tooltip("AirPhase Int 参数名（0 Ground / 1 Jump / 2 Fall）")]
     public string airPhaseParamName = "AirPhase";
     public string jumpStateName = "Jump";
@@ -241,6 +244,8 @@ public class AllyRobot : MonoBehaviour
 
     public bool IsComboDashing => currentState == AllyState.ComboDashing;
 
+    public bool IsRecalling => currentState == AllyState.Recalling;
+
     bool IsAirborneBusy =>
         airPhase != RobotAirPhase.Ground || isLanding;
 
@@ -249,6 +254,7 @@ public class AllyRobot : MonoBehaviour
     /// </summary>
     bool SuppressAirAnim =>
         currentState == AllyState.Spawning
+        || currentState == AllyState.Recalling
         || IsPulling
         || IsBusyWithCombo;
 
@@ -293,6 +299,7 @@ public class AllyRobot : MonoBehaviour
     float attackLungeCurrentSpeed;
     bool pendingRetarget;
     bool dispatchAnimSeen;
+    bool recallAnimSeen;
     LineRenderer laserLine;
     Coroutine laserVisualRoutine;
     Attack laserAttackSource;
@@ -413,7 +420,8 @@ public class AllyRobot : MonoBehaviour
         jumpCooldownTimer = Mathf.Max(0f, jumpCooldownTimer - Time.deltaTime);
         idleFollowing = false;
 
-        UpdateAirAndLanding();
+        if (currentState != AllyState.Recalling)
+            UpdateAirAndLanding();
 
         // 并行钩锁（Blast 等忙碌态）需在原状态 Update 之外单独推进
         if (pullInProgress && currentState != AllyState.Pulling)
@@ -422,6 +430,7 @@ public class AllyRobot : MonoBehaviour
         switch (currentState)
         {
             case AllyState.Spawning:         UpdateSpawning();         break;
+            case AllyState.Recalling:        UpdateRecalling();        break;
             case AllyState.Idle:             UpdateIdle();             break;
             case AllyState.Chase:            UpdateChase();            break;
             case AllyState.Attack:           UpdateAttack();           break;
@@ -536,6 +545,7 @@ public class AllyRobot : MonoBehaviour
                     }
                     break;
                 case AllyState.Spawning:
+                case AllyState.Recalling:
                 case AllyState.Pulling:
                 case AllyState.ComboAttacking:
                 case AllyState.ComboDashWindup:
@@ -582,11 +592,39 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
+    /// 播放 RobotRecall，结束后销毁自身。已在收回中则忽略。
+    /// </summary>
+    public bool BeginRecall()
+    {
+        if (currentState == AllyState.Recalling)
+            return false;
+
+        CancelPullForRecall();
+        EndAttackLunge();
+        EndComboAirHang();
+        isLanding = false;
+        landTimer = 0f;
+        SwitchState(AllyState.Recalling);
+        return true;
+    }
+
+    void CancelPullForRecall()
+    {
+        if (!pullInProgress)
+            return;
+
+        pullVisual?.Cancel();
+        pullInProgress = false;
+        pullOverlayMode = false;
+        EndPull();
+    }
+
+    /// <summary>
     /// 由玩家每帧下发 RobotMove。牵引 / 生成中输入无效。
     /// </summary>
     public void SetManualMoveInput(Vector2 input)
     {
-        if (currentState == AllyState.Spawning || IsPulling)
+        if (currentState == AllyState.Spawning || currentState == AllyState.Recalling || IsPulling)
             return;
 
         bool hasInput = Mathf.Abs(input.x) > ManualMoveInputThreshold
@@ -733,7 +771,8 @@ public class AllyRobot : MonoBehaviour
 
     public void RequestRetarget()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning || isLanding
+        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+            || currentState == AllyState.Recalling || isLanding
             || currentState == AllyState.ManualMove || pendingStationOnLand)
         {
             pendingRetarget = true;
@@ -763,6 +802,9 @@ public class AllyRobot : MonoBehaviour
     public bool TryStartPull()
     {
         if (IsPulling || pullCooldownTimer > 0f)
+            return false;
+
+        if (currentState == AllyState.Recalling)
             return false;
 
         if (owner == null || ownerMovement == null || ownerRb == null)
@@ -809,6 +851,7 @@ public class AllyRobot : MonoBehaviour
     public void ComboAttack()
     {
         if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+            || currentState == AllyState.Recalling
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
@@ -833,6 +876,7 @@ public class AllyRobot : MonoBehaviour
     public void BlastCombo()
     {
         if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+            || currentState == AllyState.Recalling
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
 
@@ -884,7 +928,7 @@ public class AllyRobot : MonoBehaviour
 
     public bool TryFirePierceLaser()
     {
-        if (currentState == AllyState.Spawning || IsPulling
+        if (currentState == AllyState.Spawning || currentState == AllyState.Recalling || IsPulling
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return false;
 
@@ -1398,7 +1442,8 @@ public class AllyRobot : MonoBehaviour
             airComboBoostLatched = false;
             verticalComboDashLatched = false;
             SetBoostActive(false);
-            SyncAirVisualAfterBusy();
+            if (next != AllyState.Recalling)
+                SyncAirVisualAfterBusy();
         }
     }
 
@@ -1420,6 +1465,29 @@ public class AllyRobot : MonoBehaviour
                 }
                 StopMoving();
                 dispatchAnimSeen = false;
+                break;
+            case AllyState.Recalling:
+                SetDashActive(false);
+                SetBoostActive(false);
+                if (anim != null)
+                {
+                    anim.SetBool(walkBoolName, false);
+                    anim.ResetTrigger(attackTriggerName);
+                    anim.ResetTrigger(comboAttackTriggerName);
+                    anim.ResetTrigger(dashAttackTriggerName);
+                    anim.ResetTrigger(blastAttackTriggerName);
+                    anim.ResetTrigger(dashStartTriggerName);
+                    anim.ResetTrigger(pullTriggerName);
+                    anim.Play(recallStateName, 0, 0f);
+                    anim.Update(0f);
+                }
+                StopMoving();
+                if (rb != null)
+                {
+                    rb.linearVelocity = Vector2.zero;
+                    rb.bodyType = RigidbodyType2D.Kinematic;
+                }
+                recallAnimSeen = false;
                 break;
             case AllyState.Idle:
                 SetDashActive(false);
@@ -1737,6 +1805,35 @@ public class AllyRobot : MonoBehaviour
 
         anim.Play("Idle", 0, 0f);
         SwitchState(AllyState.Idle);
+    }
+
+    void UpdateRecalling()
+    {
+        if (anim == null)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.IsName(recallStateName))
+        {
+            recallAnimSeen = true;
+            if (info.normalizedTime < 1f)
+                return;
+
+            Destroy(gameObject);
+            return;
+        }
+
+        if (recallAnimSeen)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        anim.Play(recallStateName, 0, 0f);
+        anim.Update(0f);
     }
 
     void UpdateIdle()
@@ -2537,6 +2634,7 @@ public class AllyRobot : MonoBehaviour
             return;
 
         if (currentState == AllyState.Spawning
+            || currentState == AllyState.Recalling
             || IsPulling
             || currentState == AllyState.Attack
             || currentState == AllyState.ManualMove
