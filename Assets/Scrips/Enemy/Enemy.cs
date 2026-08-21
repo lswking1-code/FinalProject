@@ -94,6 +94,8 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public bool isMarked;
     [HideInInspector] public bool isAggro;
     [HideInInspector] public bool isReturning;
+    [HideInInspector] public bool isApproachingSpawnTarget;
+    protected Vector3 spawnTargetPosition;
 
     [Header("死亡掉落")]
     [Tooltip("开启后死亡时掉落弹药包")]
@@ -165,6 +167,7 @@ public class Enemy : MonoBehaviour
     protected BaseState returnState;
     protected BaseState meleeAttackState;
     protected BaseState skillState;
+    protected BaseState approachTargetState;
 
     SpriteRenderer spriteRenderer;
     Color spriteOriginalColor = Color.white;
@@ -240,6 +243,8 @@ public class Enemy : MonoBehaviour
 
         EnsurePlayerReference();
         CacheHome();
+
+        approachTargetState = new EnemyApproachTargetState();
 
         if (ShouldPersistDeath && GetComponent<EnemyDeathPersist>() == null)
             gameObject.AddComponent<EnemyDeathPersist>();
@@ -393,7 +398,7 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void BeginReturnHome()
     {
-        if (isDead || isReturning)
+        if (isDead || isReturning || isApproachingSpawnTarget)
             return;
 
         isAggro = false;
@@ -439,6 +444,109 @@ public class Enemy : MonoBehaviour
             return;
 
         isAggro = true;
+    }
+
+    /// <summary>
+    /// 遭遇刷怪条目覆盖专注模式。默认无效果；远程与盾兵子类写入 enableFocusMode。
+    /// </summary>
+    public virtual void ApplyEncounterFocusMode(bool enabled)
+    {
+    }
+
+    /// <summary>
+    /// 生成后先走到目标点；已在点上则直接进入战斗/巡逻。
+    /// </summary>
+    public void BeginSpawnApproach(Vector3 worldPosition)
+    {
+        if (isDead)
+            return;
+
+        spawnTargetPosition = worldPosition;
+        isApproachingSpawnTarget = true;
+        isReturning = false;
+        isAggro = false;
+
+        if (HasReachedSpawnTarget())
+        {
+            FinishSpawnApproach();
+            return;
+        }
+
+        SwitchState(NPCState.ApproachTarget);
+    }
+
+    public virtual bool HasReachedSpawnTarget()
+    {
+        return Mathf.Abs(spawnTargetPosition.x - transform.position.x) <= returnArriveDistance;
+    }
+
+    public virtual void MoveTowardSpawnTarget()
+    {
+        float dx = spawnTargetPosition.x - transform.position.x;
+        if (Mathf.Abs(dx) <= returnArriveDistance)
+            return;
+
+        float dir = Mathf.Sign(dx);
+        if (dir == 0f)
+            return;
+
+        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        MoveHorizontal(dir);
+        TryFlipOnObstacle(dir);
+        FaceDirection(dir);
+    }
+
+    /// <summary>
+    /// 抵达目标点：把出生点改到此处，再进入原本的开战/巡逻逻辑。
+    /// </summary>
+    public void FinishSpawnApproach()
+    {
+        if (isDead)
+            return;
+
+        isApproachingSpawnTarget = false;
+        SnapToSpawnTarget();
+        CacheHome();
+        OnSpawnApproachFinished();
+        EnterPostSpawnBehavior();
+    }
+
+    protected virtual void SnapToSpawnTarget()
+    {
+        Vector3 pos = transform.position;
+        pos.x = spawnTargetPosition.x;
+        transform.position = pos;
+
+        if (rb != null)
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    protected virtual void OnSpawnApproachFinished()
+    {
+    }
+
+    /// <summary>
+    /// 遭遇覆盖专注/目标点后，重新进入巡逻或战斗循环。
+    /// </summary>
+    public virtual void EnterPostSpawnBehavior()
+    {
+        if (isDead)
+            return;
+
+        if (isPatrol)
+        {
+            isAggro = false;
+            SwitchState(NPCState.Patrol);
+            return;
+        }
+
+        isAggro = true;
+        StartCombatCycle();
+    }
+
+    /// <summary>非巡逻开战入口。近战/远程/飞行/装甲车子类覆盖为 EvaluateCycle。</summary>
+    protected virtual void StartCombatCycle()
+    {
     }
 
     protected virtual void OnEnable()
@@ -849,6 +957,7 @@ public class Enemy : MonoBehaviour
             NPCState.MeleeAttack => meleeAttackState,
             NPCState.Skill => skillState,
             NPCState.Ram => skillState,
+            NPCState.ApproachTarget => approachTargetState,
             _ => null
         };
 
@@ -881,7 +990,7 @@ public class Enemy : MonoBehaviour
         else
             PlayCombatFlashNoStun();
 
-        if (isPatrol && !isAggro && !isDead)
+        if (isPatrol && !isAggro && !isDead && !isApproachingSpawnTarget)
             OnPatrolAggroFromDamage();
     }
 

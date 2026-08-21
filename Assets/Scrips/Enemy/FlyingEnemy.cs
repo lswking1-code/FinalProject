@@ -283,8 +283,13 @@ public class FlyingEnemy : Enemy
 
     protected override bool ShouldAutoMove() => false;
 
+    protected override void StartCombatCycle() => EvaluateCycle();
+
     protected override void OnPatrolAggroFromDamage()
     {
+        if (isApproachingSpawnTarget)
+            return;
+
         if (isReturning)
             isReturning = false;
 
@@ -294,7 +299,7 @@ public class FlyingEnemy : Enemy
 
     public override void BeginReturnHome()
     {
-        if (isDead || isReturning)
+        if (isDead || isReturning || isApproachingSpawnTarget)
             return;
 
         isAggro = false;
@@ -339,7 +344,7 @@ public class FlyingEnemy : Enemy
     /// </summary>
     public void EvaluateCycle()
     {
-        if (isDead)
+        if (isDead || isApproachingSpawnTarget)
             return;
 
         EnsurePlayerReference();
@@ -680,6 +685,51 @@ public class FlyingEnemy : Enemy
     public float GetDistanceToHome()
     {
         return Vector2.Distance(transform.position, homePosition);
+    }
+
+    public override bool HasReachedSpawnTarget()
+    {
+        return Vector2.Distance(transform.position, spawnTargetPosition) <= returnArriveDistance;
+    }
+
+    public override void MoveTowardSpawnTarget()
+    {
+        if (isHurt || isDead || Rb == null)
+            return;
+
+        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        Vector2 target = spawnTargetPosition;
+        target.y = RaiseYAboveOneWayPlatforms(target.x, target.y);
+        Vector2 toTarget = target - (Vector2)transform.position;
+        float dist = toTarget.magnitude;
+        if (dist <= returnArriveDistance)
+        {
+            Rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        Rb.linearVelocity = toTarget / dist * currentSpeed;
+
+        if (toTarget.x > 0f)
+            transform.localScale = new Vector3(-1f, 1f, 1f);
+        else if (toTarget.x < 0f)
+            transform.localScale = new Vector3(1f, 1f, 1f);
+    }
+
+    protected override void SnapToSpawnTarget()
+    {
+        Vector3 pos = spawnTargetPosition;
+        pos.y = RaiseYAboveOneWayPlatforms(pos.x, pos.y);
+        transform.position = pos;
+        if (Rb != null)
+            Rb.linearVelocity = Vector2.zero;
+    }
+
+    protected override void OnSpawnApproachFinished()
+    {
+        hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
+        bobPhase = 0f;
+        hoverHeightOutOfRangeTimer = 0f;
     }
 
     void UpdateOneWayPlatformIgnores()

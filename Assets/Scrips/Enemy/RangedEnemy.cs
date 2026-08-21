@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot / Jump 循环，带动态 Action 概率。
 /// 射击类（Shot / CrouchShoot）进入后只开一枪，随后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
+/// 可选专注模式：MOVE 时原地停留，时长与 actionDuration 一致。
 /// 可选 isPatrol：原地站岗，索敌开战，离开所属 Bounds 后脱战回位。
 /// </summary>
 public class RangedEnemy : Enemy
@@ -43,6 +44,10 @@ public class RangedEnemy : Enemy
     [Tooltip("开启后，Jump 才会进入权重掷骰（手雷精英等）")]
     public bool enableJumpAction;
 
+    [Header("专注模式")]
+    [Tooltip("开启后，MOVE 指令不再走位，而是原地停留，时长与 actionDuration 一致")]
+    public bool enableFocusMode;
+
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
 
@@ -63,6 +68,8 @@ public class RangedEnemy : Enemy
         if (chaseSpeed <= 0f)
             chaseSpeed = 4f;
     }
+
+    protected override void StartCombatCycle() => EvaluateCycle();
 
     void Start()
     {
@@ -112,6 +119,9 @@ public class RangedEnemy : Enemy
 
     protected override void OnPatrolAggroFromDamage()
     {
+        if (isApproachingSpawnTarget)
+            return;
+
         if (isReturning)
             isReturning = false;
 
@@ -157,17 +167,19 @@ public class RangedEnemy : Enemy
 
     protected override bool ShouldAutoMove() => false;
 
+    public override void ApplyEncounterFocusMode(bool enabled) => enableFocusMode = enabled;
+
     /// <summary>
-    /// MOVE 时是否原地停留（不走位）。火箭兵专注模式等子类可覆盖。
+    /// MOVE 时是否原地停留（不走位）。枪兵/火箭兵专注模式使用。
     /// </summary>
-    public virtual bool ShouldHoldPositionOnMove() => false;
+    public virtual bool ShouldHoldPositionOnMove() => enableFocusMode;
 
     /// <summary>
     /// 每轮循环入口：巡逻闸门 → 距离判断 → GetClose 或 Action 判定
     /// </summary>
     public void EvaluateCycle()
     {
-        if (isDead)
+        if (isDead || isApproachingSpawnTarget)
             return;
 
         EnsurePlayerReference();

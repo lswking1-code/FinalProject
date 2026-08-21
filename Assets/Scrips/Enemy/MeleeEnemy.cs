@@ -69,6 +69,8 @@ public class MeleeEnemy : Enemy
             chaseSpeed = 4f;
     }
 
+    protected override void StartCombatCycle() => EvaluateCycle();
+
     void Start()
     {
         ConfigurePhysicsCheck();
@@ -117,6 +119,9 @@ public class MeleeEnemy : Enemy
 
     protected override void OnPatrolAggroFromDamage()
     {
+        if (isApproachingSpawnTarget)
+            return;
+
         if (isReturning)
             isReturning = false;
 
@@ -166,7 +171,7 @@ public class MeleeEnemy : Enemy
     /// </summary>
     public virtual void EvaluateCycle()
     {
-        if (isDead)
+        if (isDead || isApproachingSpawnTarget)
             return;
 
         EnsurePlayerReference();

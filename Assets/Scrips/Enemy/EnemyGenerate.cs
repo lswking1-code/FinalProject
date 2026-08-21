@@ -32,6 +32,12 @@ public class EnemyWaveEntry
     [Min(0)] public int count = 1;
     [Tooltip("本种敌人专用刷怪点；为空则回退到本波 spawnPoints，再空则用组件级点")]
     public Transform[] spawnPoints;
+    [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵 MOVE 时原地停留。近战/飞行/装甲车无效")]
+    public bool enableFocusMode;
+    [Tooltip("开启后，生成后先走到目标点，再进入战斗/专注模式")]
+    public bool enableTargetPoint;
+    [Tooltip("目标点；为空则使用本条目该实例的刷怪位置（脚下）")]
+    public Transform targetPoint;
     [Tooltip("勾选后：本批清光再刷下一批，直至遭遇结束/StopSpawning；不计入遭遇清敌结算与 maxTotalSpawns")]
     public bool infiniteRefresh;
     [Tooltip("有限条目：本批清光后再刷同波下一类，不循环。无限刷新条目本身就会等本批清光，此选项无效")]
@@ -642,6 +648,7 @@ public class EnemyGenerate : MonoBehaviour
 
         ApplyScales(instance, wave);
         ApplyDrops(instance, entry, indexInEntry);
+        ApplyEncounterBehavior(instance, entry, position);
 
         if (encounterZone != null)
         {
@@ -707,6 +714,27 @@ public class EnemyGenerate : MonoBehaviour
         }
 
         enemy.ApplyDropOverride(dropAmmo, ammoPrefab, dropHealth, healthPrefab);
+    }
+
+    void ApplyEncounterBehavior(GameObject instance, EnemyWaveEntry entry, Vector3 spawnPosition)
+    {
+        if (instance == null || entry == null)
+            return;
+
+        var enemy = instance.GetComponent<Enemy>() ?? instance.GetComponentInChildren<Enemy>();
+        if (enemy == null)
+            return;
+
+        enemy.ApplyEncounterFocusMode(entry.enableFocusMode);
+
+        if (entry.enableTargetPoint)
+        {
+            Vector3 target = entry.targetPoint != null ? entry.targetPoint.position : spawnPosition;
+            enemy.BeginSpawnApproach(target);
+            return;
+        }
+
+        enemy.EnterPostSpawnBehavior();
     }
 
     GameObject ResolveAmmoDropPrefab(AmmoType type) => type switch
@@ -1023,6 +1051,77 @@ public class EnemyGenerate : MonoBehaviour
 
         // 子物体刷怪点：即使还没挂到 spawnPoints（如 Stage2 的 Point3）也画出位置
         DrawUnassignedChildSpawnPoints();
+        DrawTargetPoints();
+    }
+
+    void DrawTargetPoints()
+    {
+        if (waves == null)
+            return;
+
+        Color targetColor = new Color(0.95f, 0.25f, 0.75f, 1f);
+
+        for (int w = 0; w < waves.Length; w++)
+        {
+            var wave = waves[w];
+            if (wave?.enemies == null)
+                continue;
+
+            for (int e = 0; e < wave.enemies.Length; e++)
+            {
+                var entry = wave.enemies[e];
+                if (entry == null || !entry.enableTargetPoint)
+                    continue;
+
+                Transform[] points = ResolveSpawnPoints(wave, entry);
+                Vector3 fallback = transform.position;
+                if (points != null)
+                {
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        if (points[i] != null)
+                        {
+                            fallback = points[i].position;
+                            break;
+                        }
+                    }
+                }
+
+                if (entry.targetPoint != null)
+                {
+                    Vector3 targetPos = entry.targetPoint.position;
+                    DrawSpawnMarker(targetPos, targetColor, 0.22f, entry.targetPoint.name);
+
+                    Gizmos.color = targetColor;
+                    if (points == null || points.Length == 0)
+                    {
+                        Gizmos.DrawLine(fallback, targetPos);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < points.Length; i++)
+                        {
+                            if (points[i] == null)
+                                continue;
+                            Gizmos.DrawLine(points[i].position, targetPos);
+                        }
+                    }
+                }
+                else if (points == null || points.Length == 0)
+                {
+                    DrawSpawnMarker(fallback, targetColor, 0.18f, "脚下");
+                }
+                else
+                {
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        if (points[i] == null)
+                            continue;
+                        DrawSpawnMarker(points[i].position, targetColor, 0.18f, "脚下");
+                    }
+                }
+            }
+        }
     }
 
     void DrawUnassignedChildSpawnPoints()
@@ -1056,7 +1155,10 @@ public class EnemyGenerate : MonoBehaviour
                 continue;
             for (int e = 0; e < wave.enemies.Length; e++)
             {
-                if (wave.enemies[e] != null && ContainsSpawnPoint(wave.enemies[e].spawnPoints, point))
+                var entry = wave.enemies[e];
+                if (entry == null)
+                    continue;
+                if (ContainsSpawnPoint(entry.spawnPoints, point) || entry.targetPoint == point)
                     return true;
             }
         }

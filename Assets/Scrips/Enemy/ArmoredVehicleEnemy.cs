@@ -108,6 +108,8 @@ public class ArmoredVehicleEnemy : Enemy
         SetBumpersActive(false);
     }
 
+    protected override void StartCombatCycle() => EvaluateCycle();
+
     void Start()
     {
         ConfigurePhysicsCheck();
@@ -192,6 +194,9 @@ public class ArmoredVehicleEnemy : Enemy
 
     protected override void OnPatrolAggroFromDamage()
     {
+        if (isApproachingSpawnTarget)
+            return;
+
         if (isReturning)
             isReturning = false;
 
@@ -253,7 +258,7 @@ public class ArmoredVehicleEnemy : Enemy
 
     public void EvaluateCycle()
     {
-        if (isDead)
+        if (isDead || isApproachingSpawnTarget)
             return;
 
         EnsurePlayerReference();
@@ -418,6 +423,26 @@ public class ArmoredVehicleEnemy : Enemy
             return;
 
         Rb.linearVelocity = new Vector2(0f, Rb.linearVelocity.y);
+    }
+
+    public override void MoveTowardSpawnTarget()
+    {
+        float dx = spawnTargetPosition.x - transform.position.x;
+        if (Mathf.Abs(dx) <= returnArriveDistance)
+            return;
+
+        float dir = Mathf.Sign(dx);
+        if (dir == 0f)
+            return;
+
+        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        if (IsWallInDirection(dir) || IsLedgeBlocking(dir))
+        {
+            StopHorizontalMotion();
+            return;
+        }
+
+        MoveHorizontal(dir);
     }
 
     public bool HasAnimatorController =>

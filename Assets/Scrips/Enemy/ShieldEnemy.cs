@@ -38,6 +38,8 @@ public class ShieldEnemy : MeleeEnemy
         return Mathf.Max(holdRange, range);
     }
 
+    public override void ApplyEncounterFocusMode(bool enabled) => enableFocusMode = enabled;
+
     /// <summary>
     /// 玩家持续超出再追距离达到 reapproachDelay 后返回 true。
     /// 回到范围内则清零计时。
@@ -148,7 +150,7 @@ public class ShieldEnemy : MeleeEnemy
     /// </summary>
     public override void EvaluateCycle()
     {
-        if (isDead)
+        if (isDead || isApproachingSpawnTarget)
             return;
 
         EnsurePlayerReference();
