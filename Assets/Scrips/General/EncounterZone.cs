@@ -10,6 +10,7 @@ using UnityEngine.Events;
 /// 机关/独立事件等可 UnityEvent 调用 EndEncounter() 强制结算；
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
 /// UnlockLock() 只解开空气墙与镜头，不结束遭遇、不停刷。
+/// startOnPlayerEnter：默认 true（进区开战）；取消后仅外部 StartEncounter() 开战。
 /// 敌人空气墙为单向：区外可穿入，进入后锁定不让出区；敌人弹不能穿过空气墙。
 /// 可选弹药援助：停留过久且 S/M/L 全空时在固定点刷 BulletBox。
 /// </summary>
@@ -35,6 +36,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     [Header("行为")]
     [SerializeField] bool triggerOnce = true;
+    [Tooltip("勾选（默认）：玩家一进入遭遇触发区就开战。\n取消：提前进入不会开战，仅可由 CountdownDevice / StartEncounter() 等外部调用触发。")]
+    [SerializeField] bool startOnPlayerEnter = true;
     [SerializeField] bool autoEndWhenCleared = true;
     [Tooltip("启用空气墙后先与玩家忽略碰撞，直到玩家不再与空气墙重叠，避免卡在墙外")]
     [SerializeField] bool delaySealAirWalls = true;
@@ -93,6 +96,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public bool HasCompleted => hasCompleted;
     public bool LockReleased => lockReleased;
     public int AliveRegisteredCount => aliveRegistered.Count;
+    /// <summary>是否在玩家进入触发区时自动开战（默认 true）。</summary>
+    public bool StartOnPlayerEnter => startOnPlayerEnter;
 
     /// <summary>是否存在进行中的遭遇战。</summary>
     public static bool HasActiveEncounter => s_activeZones.Count > 0;
@@ -182,6 +187,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (!startOnPlayerEnter)
+            return;
         if (!other.CompareTag("Player"))
             return;
 

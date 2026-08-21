@@ -13,7 +13,7 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
 
     [Header("驱动目标")]
     [SerializeField] ElectrifiedPlatform[] targets;
-    [SerializeField] UnityEvent<bool> onToggled;
+    public UnityEvent<bool> onToggled;
 
     [Header("视觉")]
     [SerializeField] Transform lever;

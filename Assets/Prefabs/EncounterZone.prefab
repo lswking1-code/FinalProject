@@ -435,6 +435,7 @@ MonoBehaviour:
   overrideOrthographicSize: 0
   encounterOrthographicSize: 8
   triggerOnce: 1
+  startOnPlayerEnter: 1
   autoEndWhenCleared: 1
   delaySealAirWalls: 1
   allowEnemiesThroughAirWalls: 1
@@ -476,6 +477,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   alwaysDrawInEditor: 1
+  drawSlotsInEditor: 1
   drawCameraViewportInEditor: 1
   previewAspect: 1.7777778
 --- !u!114 &1135614538045203895

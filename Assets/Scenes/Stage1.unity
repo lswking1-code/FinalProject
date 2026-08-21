@@ -34483,6 +34483,14 @@ PrefabInstance:
       value: -35.1
       objectReference: {fileID: 0}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].delayAfterWave
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].intraWaveInterval
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.size
       value: 3
       objectReference: {fileID: 0}
@@ -34510,6 +34518,10 @@ PrefabInstance:
       propertyPath: waves.Array.data[0].enemies.Array.data[2].enemyPrefab
       value: 
       objectReference: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[2].targetPoint
+      value: 
+      objectReference: {fileID: 1136004959}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[0].enableFocusMode
       value: 1
@@ -34540,7 +34552,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[2].enableTargetPoint
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[2].spawnPoints.Array.size
@@ -34569,6 +34581,14 @@ PrefabInstance:
     - target: {fileID: 3407642271933610316, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
       value: 6.72
+      objectReference: {fileID: 0}
+    - target: {fileID: 4230848072165693857, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -12.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 4230848072165693857, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -35.55
       objectReference: {fileID: 0}
     - target: {fileID: 4386729725390146006, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_LocalPosition.x
@@ -34678,6 +34698,11 @@ Transform:
 --- !u!4 &1136004958 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6424043244325365916, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+  m_PrefabInstance: {fileID: 1136004954}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1136004959 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4230848072165693857, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
   m_PrefabInstance: {fileID: 1136004954}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1168552727
