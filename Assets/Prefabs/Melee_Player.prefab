@@ -185,7 +185,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   runSpeed: 5.5
   crouchMoveSpeed: 2.5
-  jumpHeight: 4.5
+  jumpHeight: 3.5
   inputThreshold: 0.5
   jumpBufferTime: 0.2
   coyoteTime: 0.12
@@ -292,6 +292,7 @@ MonoBehaviour:
     m_Bits: 36928
   isGround: 0
   isSolidGround: 0
+  isOnPlatform: 0
   touchLeftWall: 0
   touchRightWall: 0
   onWall: 0
@@ -325,8 +326,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 11400000, guid: 39fb76877e5d30149be5a9a19544c3e3, type: 2}
-  maxHealth: 100
-  currentHealth: 100
+  maxHealth: 150
+  currentHealth: 150
   maxPower: 0.06
   currentPower: 0
   powerRecoverSpeed: 0
@@ -342,6 +343,7 @@ MonoBehaviour:
   maxBulletL: 1000
   invulnerableDuration: 0.4
   knockbackResistance: 1
+  immuneToKnockback: 0
   invulnerable: 0
   allowHitsWhileDead: 0
   OnHealthChange:
@@ -431,7 +433,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ecf0b10534094e5082a58e83925f59a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  doubleJumpHeight: 4.5
+  doubleJumpHeight: 3.5
   usePlayerJumpHeight: 1
   inputThreshold: 0.5
   meleeDamage: 10
@@ -594,7 +596,7 @@ MonoBehaviour:
   rushUltimateLaunchSpeedY: 13
   rushUltimateLaunchSpeedX: 2.5
   rushUltimateLaunchHoldDuration: 0.45
-  shortMeleeDashSpeed: 10
+  shortMeleeDashSpeed: 20
   shortMeleeDashStart: 0.08
   shortMeleeDashEnd: 0.38
   jumpDownSlamSpeed: 25
@@ -751,7 +753,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 1
   m_Sprite: {fileID: -6585611207321660851, guid: 679d7b52bb6d77b48a78d2fd622f2a35, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -955,7 +957,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -659687615706119044, guid: c3787c45b241b44af85e2549b0c3b32e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -1077,7 +1079,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -624170957
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: -1187161852, guid: 679d7b52bb6d77b48a78d2fd622f2a35, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
