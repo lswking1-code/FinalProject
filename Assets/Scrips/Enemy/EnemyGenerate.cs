@@ -32,7 +32,7 @@ public class EnemyWaveEntry
     [Min(0)] public int count = 1;
     [Tooltip("本种敌人专用刷怪点；为空则回退到本波 spawnPoints，再空则用组件级点")]
     public Transform[] spawnPoints;
-    [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵 MOVE 时原地停留。近战/飞行/装甲车无效")]
+    [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵不靠近玩家，MOVE 时原地停留。近战/飞行/装甲车无效")]
     public bool enableFocusMode;
     [Tooltip("开启后，生成后先走到目标点，再进入战斗/专注模式")]
     public bool enableTargetPoint;

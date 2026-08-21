@@ -21,7 +21,8 @@ public class RangedGetCloseState : BaseState
         if (rangedEnemy == null)
             return;
 
-        if (rangedEnemy.GetCombatDistanceToPlayer() <= rangedEnemy.GetSlottedRange(rangedEnemy.shootRange))
+        if (rangedEnemy.ShouldHoldPositionOnMove()
+            || rangedEnemy.GetCombatDistanceToPlayer() <= rangedEnemy.GetSlottedRange(rangedEnemy.shootRange))
             rangedEnemy.EvaluateCycle();
     }
 
@@ -29,6 +30,12 @@ public class RangedGetCloseState : BaseState
     {
         if (rangedEnemy == null || currentEnemy.isHurt || currentEnemy.isDead)
             return;
+
+        if (rangedEnemy.ShouldHoldPositionOnMove())
+        {
+            rangedEnemy.MoveHorizontal(0f);
+            return;
+        }
 
         rangedEnemy.MoveTowardCombatSlot(rangedEnemy.shootRange);
         rangedEnemy.TryFlipOnObstacle(rangedEnemy.GetCombatSlotMoveDir(rangedEnemy.shootRange));

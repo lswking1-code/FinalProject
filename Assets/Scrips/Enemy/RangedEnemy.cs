@@ -45,7 +45,7 @@ public class RangedEnemy : Enemy
     public bool enableJumpAction;
 
     [Header("专注模式")]
-    [Tooltip("开启后，MOVE 指令不再走位，而是原地停留，时长与 actionDuration 一致")]
+    [Tooltip("开启后不再靠近玩家：MOVE 原地停留，超出射程也不进入 GetClose")]
     public bool enableFocusMode;
 
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
@@ -170,7 +170,7 @@ public class RangedEnemy : Enemy
     public override void ApplyEncounterFocusMode(bool enabled) => enableFocusMode = enabled;
 
     /// <summary>
-    /// MOVE 时是否原地停留（不走位）。枪兵/火箭兵专注模式使用。
+    /// MOVE 时是否原地停留，且不进入 GetClose。枪兵/火箭兵专注模式使用。
     /// </summary>
     public virtual bool ShouldHoldPositionOnMove() => enableFocusMode;
 
@@ -204,7 +204,8 @@ public class RangedEnemy : Enemy
 
         float dist = GetCombatDistanceToPlayer();
 
-        if (dist > GetSlottedRange(shootRange))
+        // 专注模式：不靠近玩家，原地射击/停留（与盾兵死守一致）
+        if (!ShouldHoldPositionOnMove() && dist > GetSlottedRange(shootRange))
             SwitchState(NPCState.GetClose);
         else
             RollAndEnterAction();
