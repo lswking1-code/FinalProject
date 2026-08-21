@@ -804,7 +804,7 @@ public class AllyRobot : MonoBehaviour
         if (IsPulling || pullCooldownTimer > 0f)
             return false;
 
-        if (currentState == AllyState.Recalling)
+        if (currentState == AllyState.Spawning || currentState == AllyState.Recalling)
             return false;
 
         if (owner == null || ownerMovement == null || ownerRb == null)
@@ -821,9 +821,8 @@ public class AllyRobot : MonoBehaviour
         if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
             return false;
 
-        // 生成 / 空中落地 / 连携 / 手动遥控等：并行钩锁，不切 Pulling、不播机器人 pull、不转身
-        bool overlay = currentState == AllyState.Spawning
-            || IsAirborneBusy
+        // 空中落地 / 连携 / 手动遥控等：并行钩锁，不切 Pulling、不播机器人 pull、不转身
+        bool overlay = IsAirborneBusy
             || IsBusyWithCombo
             || currentState == AllyState.ManualMove
             || pendingStationOnLand;
@@ -850,7 +849,7 @@ public class AllyRobot : MonoBehaviour
 
     public void ComboAttack()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+        if (IsPulling || IsBusyWithCombo
             || currentState == AllyState.Recalling
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
@@ -875,7 +874,7 @@ public class AllyRobot : MonoBehaviour
 
     public void BlastCombo()
     {
-        if (IsPulling || IsBusyWithCombo || currentState == AllyState.Spawning
+        if (IsPulling || IsBusyWithCombo
             || currentState == AllyState.Recalling
             || currentState == AllyState.ManualMove || pendingStationOnLand)
             return;
