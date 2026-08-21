@@ -5,6 +5,8 @@ public class BulletBox : MonoBehaviour
     [SerializeField] AmmoType ammoType = AmmoType.S;
     [SerializeField] int amount = 1;
 
+    public AmmoType AmmoType => ammoType;
+
     PickupDelay pickupDelay;
 
     void Awake()

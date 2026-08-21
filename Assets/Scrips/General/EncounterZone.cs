@@ -22,6 +22,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] Collider2D encounterBounds;
     [Tooltip("空气墙根节点，启用后阻挡玩家离开区域；敌人弹会命中销毁")]
     [SerializeField] GameObject airWallsRoot;
+    [Tooltip("站位 Slot 根节点（子物体 Slot1/Slot2…）；为空则自动查找名为 Slots 的子物体")]
+    [SerializeField] Transform slotsRoot;
 
     [Header("镜头")]
     [Tooltip("关闭后本遭遇不改相机 Bounds（电梯关楼层事件交给电梯导演）")]
@@ -61,6 +63,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [Header("编辑器显示")]
     [Tooltip("在 Scene 视图中始终绘制遭遇区域（触发区 / 相机 Bounds / 空气墙）")]
     [SerializeField] bool alwaysDrawInEditor = true;
+    [Tooltip("在 Scene 视图中绘制站位 Slot 点")]
+    [SerializeField] bool drawSlotsInEditor = true;
     [Tooltip("在 Scene 视图中绘制开战时相机单屏视野（以遭遇中心为原点）")]
     [SerializeField] bool drawCameraViewportInEditor = true;
     [Tooltip("Game 视图尺寸无效时的回退宽高比")]
@@ -1122,6 +1126,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
             }
         }
 
+        if (drawSlotsInEditor)
+            DrawSlotPointsGizmo();
+
         if (drawCameraViewportInEditor)
         {
             Vector3 center = GetEncounterCenter();
@@ -1129,6 +1136,80 @@ public class EncounterZone : MonoBehaviour, ISaveable
             float aspect = GetPreviewAspect();
             DrawCameraViewportGizmo(center, ortho, aspect);
         }
+    }
+
+    void DrawSlotPointsGizmo()
+    {
+        Transform root = ResolveSlotsRoot();
+        if (root == null)
+            return;
+
+        Color color = new Color(0.95f, 0.55f, 0.15f, 1f);
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform slot = root.GetChild(i);
+            if (slot == null)
+                continue;
+            DrawSlotMarker(slot.position, color, 0.26f, slot.name);
+        }
+    }
+
+    Transform ResolveSlotsRoot()
+    {
+        if (slotsRoot != null)
+            return slotsRoot;
+
+        return FindChildNamed(transform, "Slots");
+    }
+
+    static Transform FindChildNamed(Transform root, string childName)
+    {
+        if (root == null)
+            return null;
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform child = root.GetChild(i);
+            if (child == null)
+                continue;
+            if (child.name == childName)
+                return child;
+
+            Transform nested = FindChildNamed(child, childName);
+            if (nested != null)
+                return nested;
+        }
+
+        return null;
+    }
+
+    static void DrawSlotMarker(Vector3 pos, Color color, float radius, string label)
+    {
+        Color fill = color;
+        fill.a = 0.35f;
+        Gizmos.color = fill;
+        Gizmos.DrawSphere(pos, radius * 0.65f);
+
+        Gizmos.color = color;
+        Gizmos.DrawWireSphere(pos, radius);
+
+        float arm = radius * 1.35f;
+        Gizmos.DrawLine(pos + Vector3.left * arm, pos + Vector3.right * arm);
+        Gizmos.DrawLine(pos + Vector3.up * arm, pos + Vector3.down * arm);
+        Gizmos.DrawIcon(pos, "sv_icon_dot3_pix16_gizmo", true);
+
+#if UNITY_EDITOR
+        if (!string.IsNullOrEmpty(label))
+        {
+            var style = new GUIStyle(UnityEditor.EditorStyles.boldLabel)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 11
+            };
+            style.normal.textColor = color;
+            UnityEditor.Handles.Label(pos + Vector3.up * 0.45f, label, style);
+        }
+#endif
     }
 
     Vector3 GetEncounterCenter()

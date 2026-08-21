@@ -1131,6 +1131,9 @@ public class EnemyGenerate : MonoBehaviour
             Transform child = transform.GetChild(i);
             if (child == null || IsAssignedSpawnPoint(child))
                 continue;
+            // Slot 点由 EncounterZone 的编辑器绘制负责
+            if (child.name == "Slots")
+                continue;
 
             DrawSpawnMarker(child.position, new Color(1f, 0.85f, 0.2f, 1f), 0.28f, child.name);
         }

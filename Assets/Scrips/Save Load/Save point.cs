@@ -16,6 +16,16 @@ public class Savepoint : MonoBehaviour, ISaveable
     [Tooltip("开启后，玩家首次到达时先回满生命，再执行存档。")]
     public bool restoreFullHealthOnSave;
 
+    [Header("弹药保底（谜题入口）")]
+    [Tooltip("开启后，存档前若指定弹药低于下限则补到下限（避免空弹存档卡谜题）。")]
+    public bool ensureMinAmmoOnSave;
+    [Tooltip("存档时 BulletM 至少保留的数量；ensureMinAmmoOnSave 开启时生效。")]
+    public int minBulletM = 3;
+    [Tooltip("存档时 BulletS 至少保留的数量；0 表示不保底。")]
+    public int minBulletS;
+    [Tooltip("存档时 BulletL 至少保留的数量；0 表示不保底。")]
+    public int minBulletL;
+
     [Header("存档点显示")]
     public SpriteRenderer spriteRenderer;
     public GameObject Light2D;
@@ -57,9 +67,31 @@ public class Savepoint : MonoBehaviour, ISaveable
         if (restoreFullHealthOnSave && character != null)
             character.RestoreFullHealth();
 
+        if (ensureMinAmmoOnSave && character != null)
+            EnsureMinimumAmmo(character);
+
         isDone = true;
         ApplyVisualState();
         saveDataEvent?.RaiseEvent();
+    }
+
+    void EnsureMinimumAmmo(Character character)
+    {
+        EnsureAmmoAtLeast(character, AmmoType.M, minBulletM);
+        EnsureAmmoAtLeast(character, AmmoType.S, minBulletS);
+        EnsureAmmoAtLeast(character, AmmoType.L, minBulletL);
+    }
+
+    static void EnsureAmmoAtLeast(Character character, AmmoType type, int minAmount)
+    {
+        if (minAmount <= 0)
+            return;
+
+        int current = character.GetAmmo(type);
+        if (current >= minAmount)
+            return;
+
+        character.AddAmmo(type, minAmount - current);
     }
 
     void ApplyVisualState()
