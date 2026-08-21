@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# FMOD macOS bundles: Info.plist must stay LF.
+# Windows core.autocrlf would otherwise convert them to CRLF and
+# Unity/FMOD would show "Repair FMOD Libraries" on every clone/pull.
+Assets/Plugins/FMOD/platforms/mac/**/*.plist text eol=lf
