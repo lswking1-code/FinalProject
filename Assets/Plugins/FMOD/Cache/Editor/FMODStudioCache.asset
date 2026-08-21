@@ -1,216 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8658599873946472106
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Robot/CoreClose
-  m_EditorClassIdentifier: 
-  Path: event:/Robot/CoreClose
-  Guid:
-    Data1: 786612013
-    Data2: 1220800656
-    Data3: -294273915
-    Data4: -143850655
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 1091
---- !u!114 &-8316379633590894472
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Bob/Jump
-  m_EditorClassIdentifier: 
-  Path: event:/Player/Bob/Jump
-  Guid:
-    Data1: -261737073
-    Data2: 1265021974
-    Data3: -1208809313
-    Data4: -433869806
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 1306
---- !u!114 &-7491104606572163111
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
-  m_Name: bank:/Master.strings.bank
-  m_EditorClassIdentifier: 
-  Path: Assets/FMOD/LF/Build/Desktop/Master.strings.bank
-  Name: Master.strings
-  StudioPath: bank:/Master.strings
-  lastModified: 639229344064541818
-  FileSizes:
-  - Name: Desktop
-    Value: 1546
-  Exists: 1
---- !u!114 &-3214027926761435081
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Bob/Attack
-  m_EditorClassIdentifier: 
-  Path: event:/Player/Bob/Attack
-  Guid:
-    Data1: 1818543693
-    Data2: 1077829228
-    Data3: -768683855
-    Data4: 1605668700
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters:
-  - {fileID: 8691629837267517563}
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 0
---- !u!114 &-2922982150160167675
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Robot/Laser
-  m_EditorClassIdentifier: 
-  Path: event:/Robot/Laser
-  Guid:
-    Data1: 463403860
-    Data2: 1088534792
-    Data3: -1193730882
-    Data4: -1925493843
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 900
---- !u!114 &-2344728619611247560
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Robot/Dash
-  m_EditorClassIdentifier: 
-  Path: event:/Robot/Dash
-  Guid:
-    Data1: -2045812398
-    Data2: 1157706179
-    Data3: 268842943
-    Data4: -2000569675
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 1565
---- !u!114 &-2155983550401762553
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Machinist/ChargeLoop
-  m_EditorClassIdentifier: 
-  Path: event:/Player/Machinist/ChargeLoop
-  Guid:
-    Data1: -2010445853
-    Data2: 1294587078
-    Data3: 1734562209
-    Data4: -1859697694
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 0
---- !u!114 &-2103135160668704681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Bob/DoubleJump
-  m_EditorClassIdentifier: 
-  Path: event:/Player/Bob/DoubleJump
-  Guid:
-    Data1: -1732711925
-    Data2: 1279034836
-    Data3: 1904465080
-    Data4: 1063068119
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 2184
---- !u!114 &-1510324259444081638
+--- !u!114 &-6561580555671703896
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -229,7 +19,7 @@ MonoBehaviour:
     Data3: -1361766263
     Data4: -940206769
   Banks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   IsStream: 0
   Is3D: 0
   IsOneShot: 1
@@ -237,7 +27,7 @@ MonoBehaviour:
   MinDistance: 1
   MaxDistance: 20
   Length: 1080
---- !u!114 &-1077123369822542449
+--- !u!114 &-6416974417163005303
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -247,24 +37,152 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Bob/Die
+  m_Name: event:/Robot/Laser
   m_EditorClassIdentifier: 
-  Path: event:/Player/Bob/Die
+  Path: event:/Robot/Laser
   Guid:
-    Data1: 125739868
-    Data2: 1282662749
-    Data3: 1138191807
-    Data4: 1075392899
+    Data1: 463403860
+    Data2: 1088534792
+    Data3: -1193730882
+    Data4: -1925493843
   Banks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   IsStream: 0
   Is3D: 0
   IsOneShot: 1
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 5511
---- !u!114 &-1074317042615882942
+  Length: 900
+--- !u!114 &-4640368044764431864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Robot/CoreClose
+  m_EditorClassIdentifier: 
+  Path: event:/Robot/CoreClose
+  Guid:
+    Data1: 786612013
+    Data2: 1220800656
+    Data3: -294273915
+    Data4: -143850655
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1091
+--- !u!114 &-3524947933693390100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Player/Bob/SwitchWeapon
+  m_EditorClassIdentifier: 
+  Path: event:/Player/Bob/SwitchWeapon
+  Guid:
+    Data1: 710909082
+    Data2: 1280225156
+    Data3: -965599860
+    Data4: 1313001760
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 653
+--- !u!114 &-1412578996373786214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Player/Bob/Jump
+  m_EditorClassIdentifier: 
+  Path: event:/Player/Bob/Jump
+  Guid:
+    Data1: -261737073
+    Data2: 1265021974
+    Data3: -1208809313
+    Data4: -433869806
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1306
+--- !u!114 &-1309523349335741565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Robot/Dash
+  m_EditorClassIdentifier: 
+  Path: event:/Robot/Dash
+  Guid:
+    Data1: -2045812398
+    Data2: 1157706179
+    Data3: 268842943
+    Data4: -2000569675
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 1565
+--- !u!114 &-544718492020712527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.bank
+  m_EditorClassIdentifier: 
+  Path: Assets/FMOD/LF/Build/Desktop/Master.bank
+  Name: Master
+  StudioPath: bank:/Master
+  lastModified: 639229387353412148
+  FileSizes:
+  - Name: Desktop
+    Value: 1687808
+  Exists: 1
+--- !u!114 &-296954005380735603
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -283,12 +201,12 @@ MonoBehaviour:
     Data3: -1861277001
     Data4: 177510603
   Banks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   IsStream: 0
   Is3D: 0
   IsOneShot: 1
   Parameters:
-  - {fileID: 760505047361691657}
+  - {fileID: 7435984542130288548}
   MinDistance: 1
   MaxDistance: 20
   Length: 0
@@ -305,30 +223,30 @@ MonoBehaviour:
   m_Name: FMODStudioCache
   m_EditorClassIdentifier: 
   EditorBanks:
-  - {fileID: -7491104606572163111}
-  - {fileID: 4703008337567501319}
+  - {fileID: 7659402072523078672}
+  - {fileID: -544718492020712527}
   EditorEvents:
-  - {fileID: -2103135160668704681}
-  - {fileID: 3529244638757885272}
-  - {fileID: -8658599873946472106}
-  - {fileID: -3214027926761435081}
-  - {fileID: -2344728619611247560}
-  - {fileID: -2922982150160167675}
-  - {fileID: -1077123369822542449}
-  - {fileID: -8316379633590894472}
-  - {fileID: 632778872992237626}
-  - {fileID: 8963170969015880078}
-  - {fileID: -1074317042615882942}
-  - {fileID: -1510324259444081638}
-  - {fileID: -2155983550401762553}
-  - {fileID: 2965433019285910707}
+  - {fileID: 3881005049257457917}
+  - {fileID: 5298978337981254246}
+  - {fileID: -4640368044764431864}
+  - {fileID: 746867496694711422}
+  - {fileID: -1309523349335741565}
+  - {fileID: -6416974417163005303}
+  - {fileID: 8415535162446473315}
+  - {fileID: -1412578996373786214}
+  - {fileID: 6402316821982166959}
+  - {fileID: -3524947933693390100}
+  - {fileID: -296954005380735603}
+  - {fileID: -6561580555671703896}
+  - {fileID: 2055940398276654439}
+  - {fileID: 6141709388071114494}
   EditorParameters: []
   MasterBanks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   StringsBanks:
-  - {fileID: -7491104606572163111}
+  - {fileID: 7659402072523078672}
   cacheVersion: 131860
-  cacheTime: 639229344064541818
+  cacheTime: 639229387353442300
   SerializableEventsDict:
   - key: event:/Player/Bob/DoubleJump
     index: 0
@@ -358,37 +276,7 @@ MonoBehaviour:
     index: 12
   - key: event:/Robot/Attack
     index: 13
---- !u!114 &116037890335955169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
-  m_Name: parameter:/Attack/AttackType
-  m_EditorClassIdentifier: 
-  Name: AttackType
-  StudioPath: 
-  Min: 0
-  Max: 5
-  Default: 0
-  ID:
-    data1: 3882906052
-    data2: 636796398
-  Type: 2
-  IsGlobal: 0
-  Labels:
-  - Normal
-  - Combo
-  - DashAttack
-  - Blast1
-  - Blast2
-  - Blast3
-  Exists: 1
---- !u!114 &632778872992237626
+--- !u!114 &746867496694711422
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -398,129 +286,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Machinist/Load
+  m_Name: event:/Player/Bob/Attack
   m_EditorClassIdentifier: 
-  Path: event:/Player/Machinist/Load
+  Path: event:/Player/Bob/Attack
   Guid:
-    Data1: 1272777878
-    Data2: 1118379121
-    Data3: -1349393788
-    Data4: -1229689059
+    Data1: 1818543693
+    Data2: 1077829228
+    Data3: -768683855
+    Data4: 1605668700
   Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 0
-  Is3D: 0
-  IsOneShot: 1
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 320
---- !u!114 &760505047361691657
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
-  m_Name: parameter:/Fire/FireType
-  m_EditorClassIdentifier: 
-  Name: FireType
-  StudioPath: 
-  Min: 0
-  Max: 5
-  Default: 0
-  ID:
-    data1: 2672823410
-    data2: 2079376965
-  Type: 2
-  IsGlobal: 0
-  Labels:
-  - Normal
-  - Combo
-  - Machine
-  - Electric
-  - Blast
-  - Charge
-  Exists: 1
---- !u!114 &2965433019285910707
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Robot/Attack
-  m_EditorClassIdentifier: 
-  Path: event:/Robot/Attack
-  Guid:
-    Data1: 963251188
-    Data2: 1202152268
-    Data3: 1439044995
-    Data4: 517934274
-  Banks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   IsStream: 0
   Is3D: 0
   IsOneShot: 1
   Parameters:
-  - {fileID: 116037890335955169}
+  - {fileID: 804936475242231459}
   MinDistance: 1
   MaxDistance: 20
   Length: 0
---- !u!114 &3529244638757885272
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Music/Stage1
-  m_EditorClassIdentifier: 
-  Path: event:/Music/Stage1
-  Guid:
-    Data1: -1070089179
-    Data2: 1210944610
-    Data3: -1594804604
-    Data4: 276432055
-  Banks:
-  - {fileID: 4703008337567501319}
-  IsStream: 1
-  Is3D: 0
-  IsOneShot: 0
-  Parameters: []
-  MinDistance: 1
-  MaxDistance: 20
-  Length: 74254
---- !u!114 &4703008337567501319
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
-  m_Name: bank:/Master.bank
-  m_EditorClassIdentifier: 
-  Path: Assets/FMOD/LF/Build/Desktop/Master.bank
-  Name: Master
-  StudioPath: bank:/Master
-  lastModified: 639229344064506262
-  FileSizes:
-  - Name: Desktop
-    Value: 1687808
-  Exists: 1
---- !u!114 &8691629837267517563
+--- !u!114 &804936475242231459
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -554,7 +338,7 @@ MonoBehaviour:
   - JumpDownStart
   - JumpDownImpact
   Exists: 1
---- !u!114 &8963170969015880078
+--- !u!114 &2055940398276654439
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -564,20 +348,236 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
-  m_Name: event:/Player/Bob/SwitchWeapon
+  m_Name: event:/Player/Machinist/ChargeLoop
   m_EditorClassIdentifier: 
-  Path: event:/Player/Bob/SwitchWeapon
+  Path: event:/Player/Machinist/ChargeLoop
   Guid:
-    Data1: 710909082
-    Data2: 1280225156
-    Data3: -965599860
-    Data4: 1313001760
+    Data1: -2010445853
+    Data2: 1294587078
+    Data3: 1734562209
+    Data4: -1859697694
   Banks:
-  - {fileID: 4703008337567501319}
+  - {fileID: -544718492020712527}
   IsStream: 0
   Is3D: 0
   IsOneShot: 1
   Parameters: []
   MinDistance: 1
   MaxDistance: 20
-  Length: 653
+  Length: 0
+--- !u!114 &3483137556371025963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/Attack/AttackType
+  m_EditorClassIdentifier: 
+  Name: AttackType
+  StudioPath: 
+  Min: 0
+  Max: 5
+  Default: 0
+  ID:
+    data1: 3882906052
+    data2: 636796398
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - Normal
+  - Combo
+  - DashAttack
+  - Blast1
+  - Blast2
+  - Blast3
+  Exists: 1
+--- !u!114 &3881005049257457917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Player/Bob/DoubleJump
+  m_EditorClassIdentifier: 
+  Path: event:/Player/Bob/DoubleJump
+  Guid:
+    Data1: -1732711925
+    Data2: 1279034836
+    Data3: 1904465080
+    Data4: 1063068119
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 2184
+--- !u!114 &5298978337981254246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Music/Stage1
+  m_EditorClassIdentifier: 
+  Path: event:/Music/Stage1
+  Guid:
+    Data1: -1070089179
+    Data2: 1210944610
+    Data3: -1594804604
+    Data4: 276432055
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 1
+  Is3D: 0
+  IsOneShot: 0
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 74254
+--- !u!114 &6141709388071114494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Robot/Attack
+  m_EditorClassIdentifier: 
+  Path: event:/Robot/Attack
+  Guid:
+    Data1: 963251188
+    Data2: 1202152268
+    Data3: 1439044995
+    Data4: 517934274
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters:
+  - {fileID: 3483137556371025963}
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 0
+--- !u!114 &6402316821982166959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Player/Machinist/Load
+  m_EditorClassIdentifier: 
+  Path: event:/Player/Machinist/Load
+  Guid:
+    Data1: 1272777878
+    Data2: 1118379121
+    Data3: -1349393788
+    Data4: -1229689059
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 320
+--- !u!114 &7435984542130288548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fecb8ef7f94ca804a8ab72049b86782e, type: 3}
+  m_Name: parameter:/Fire/FireType
+  m_EditorClassIdentifier: 
+  Name: FireType
+  StudioPath: 
+  Min: 0
+  Max: 5
+  Default: 0
+  ID:
+    data1: 2672823410
+    data2: 2079376965
+  Type: 2
+  IsGlobal: 0
+  Labels:
+  - Normal
+  - Combo
+  - Machine
+  - Electric
+  - Blast
+  - Charge
+  Exists: 1
+--- !u!114 &7659402072523078672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c18180ecb35941f4682ae60107b85b7c, type: 3}
+  m_Name: bank:/Master.strings.bank
+  m_EditorClassIdentifier: 
+  Path: Assets/FMOD/LF/Build/Desktop/Master.strings.bank
+  Name: Master.strings
+  StudioPath: bank:/Master.strings
+  lastModified: 639229387353442300
+  FileSizes:
+  - Name: Desktop
+    Value: 1546
+  Exists: 1
+--- !u!114 &8415535162446473315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceb653cd98e289a4e8697a1af55201f2, type: 3}
+  m_Name: event:/Player/Bob/Die
+  m_EditorClassIdentifier: 
+  Path: event:/Player/Bob/Die
+  Guid:
+    Data1: 125739868
+    Data2: 1282662749
+    Data3: 1138191807
+    Data4: 1075392899
+  Banks:
+  - {fileID: -544718492020712527}
+  IsStream: 0
+  Is3D: 0
+  IsOneShot: 1
+  Parameters: []
+  MinDistance: 1
+  MaxDistance: 20
+  Length: 5511
