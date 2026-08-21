@@ -63,6 +63,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
     private bool isLoading;
     public float fadeDuration;
 
+    [Header("音频")]
+    public BgmManager bgmManager;
+
     Vector3 currentSceneEntryPosition;
     bool hasSceneEntry;
     bool pendingRecordEntry;
@@ -70,6 +73,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     private void Awake()
     {
+        if (bgmManager == null)
+            bgmManager = GetComponent<BgmManager>();
+        if (bgmManager == null)
+            Debug.LogWarning("SceneLoader: 未找到 BgmManager，关卡 BGM 不会播放。");
+
         EnsureSelectedCharacter();
         ApplyPlayerSelection();
     }
@@ -408,6 +416,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
             fadeEvent.FadeIn(fadeDuration);
         }
 
+        bgmManager?.StopCurrent();
+
         yield return new WaitForSeconds(fadeDuration);
 
         unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
@@ -438,6 +448,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (playerTrans == null)
         {
             Debug.LogError("SceneLoader: 场景加载完成但 playerTrans 为空，无法显示玩家。");
+            bgmManager?.PlayForScene(currentLoadedScene);
             isLoading = false;
             pendingRecordEntry = false;
             pendingSaveAfterRestart = false;
@@ -453,6 +464,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             fadeEvent.FadeOut(fadeDuration);
         }
+
+        bgmManager?.PlayForScene(currentLoadedScene);
 
         isLoading = false;
 

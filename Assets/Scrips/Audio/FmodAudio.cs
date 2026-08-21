@@ -24,13 +24,18 @@ public static class FmodAudio
 
     public static void Stop(ref EventInstance instance)
     {
+        Stop(ref instance, FMOD.Studio.STOP_MODE.IMMEDIATE);
+    }
+
+    public static void Stop(ref EventInstance instance, FMOD.Studio.STOP_MODE mode)
+    {
         if (!instance.isValid())
         {
             instance.clearHandle();
             return;
         }
 
-        instance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+        instance.stop(mode);
         instance.release();
         instance.clearHandle();
     }
