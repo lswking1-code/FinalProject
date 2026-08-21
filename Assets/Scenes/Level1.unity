@@ -505,67 +505,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
---- !u!1001 &275664697
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 40.152176
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.9633787
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7963831275336051305, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: isPatrol
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8190837749373279148, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_Name
-      value: EnemyMelee 1 (1)
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
 --- !u!1001 &353989584
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1002,67 +941,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31d2cbd7a06cebd4e81b845508c82262, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1001 &579587191
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 5.04
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8190837749373279148, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_Name
-      value: EnemyMelee 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8190837749373279148, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3e555a2b2111b3f41801ec5240996587, type: 3}
 --- !u!1 &644121036
 GameObject:
   m_ObjectHideFlags: 0
@@ -1364,6 +1242,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1377,6 +1258,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1393,6 +1277,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1406,6 +1293,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1428,6 +1318,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1444,6 +1337,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 2000000000000000001, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1457,6 +1353,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1470,6 +1369,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 1
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1480,6 +1382,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1502,6 +1407,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1518,6 +1426,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 2000000000000000001, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1534,6 +1445,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -1547,6 +1461,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -9974,6 +9891,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 4
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -9993,6 +9913,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -10009,6 +9932,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -10031,6 +9957,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 4
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -10050,6 +9979,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -10063,6 +9995,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       count: 3
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -10079,6 +10014,9 @@ MonoBehaviour:
     - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       count: 2
       spawnPoints: []
+      enableFocusMode: 0
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
       infiniteRefresh: 0
       waitUntilBatchCleared: 0
       unlockEncounterOnCleared: 0
@@ -12001,7 +11939,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5818432256658939258, guid: d2c66a4c21f83c840bfb9f64bca58ddf, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7123901847265012341, guid: d2c66a4c21f83c840bfb9f64bca58ddf, type: 3}
       propertyPath: mgFireInterval
@@ -12031,7 +11969,6 @@ SceneRoots:
   - {fileID: 2111793316}
   - {fileID: 246195986}
   - {fileID: 2076216150}
-  - {fileID: 579587191}
   - {fileID: 880000002}
   - {fileID: 1064247577}
   - {fileID: 1458020316}
@@ -12045,7 +11982,6 @@ SceneRoots:
   - {fileID: 1322391854}
   - {fileID: 886750879}
   - {fileID: 1543907759}
-  - {fileID: 275664697}
   - {fileID: 2080068284}
   - {fileID: 37322034}
   - {fileID: 1403104590}
