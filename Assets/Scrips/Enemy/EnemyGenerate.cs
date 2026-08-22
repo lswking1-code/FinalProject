@@ -32,8 +32,10 @@ public class EnemyWaveEntry
     [Min(0)] public int count = 1;
     [Tooltip("本种敌人专用刷怪点；为空则回退到本波 spawnPoints，再空则用组件级点")]
     public Transform[] spawnPoints;
-    [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵不靠近玩家，MOVE 时原地停留。近战/飞行/装甲车无效")]
+    [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵不靠近玩家；直升机只原地召唤。近战、无人机、装甲车无效")]
     public bool enableFocusMode;
+    [Tooltip("仅直升机：覆盖预制体默认召唤编制。枪兵等条目留空即可")]
+    public HelicopterSummonProfile summonProfile;
     [Tooltip("开启后，生成后先走到目标点，再进入战斗/专注模式")]
     public bool enableTargetPoint;
     [Tooltip("目标点；为空则使用本条目该实例的刷怪位置（脚下）")]
@@ -143,6 +145,8 @@ public class EnemyGenerate : MonoBehaviour
     public UnityEvent OnWaveSpawned;
     [Tooltip("全部有限波次刷完（或达到总上限）时触发；无限循环不停该事件")]
     public UnityEvent OnSpawningCompleted;
+    [Tooltip("直升机本轮召唤（全部 Instantiate）完成时触发")]
+    public UnityEvent OnSummonCompleted;
 
     Coroutine spawnRoutine;
     readonly List<Coroutine> infiniteRoutines = new();
@@ -156,6 +160,8 @@ public class EnemyGenerate : MonoBehaviour
     public int TotalSpawned => totalSpawned;
     public int MaxTotalSpawns => GetEffectiveTotalLimit();
     public bool IsSpawning => isSpawningActive;
+    public bool IsSummoning => isSpawningActive;
+    public bool HasConfiguredFiniteWaves => HasAnyFiniteValidWave();
 
     void Start()
     {
@@ -274,6 +280,56 @@ public class EnemyGenerate : MonoBehaviour
     }
 
     public void StopSpawning() => StopSpawningInternal(releaseZone: true);
+
+    public void BindEncounterZone(EncounterZone zone) => encounterZone = zone;
+
+    public void CopyDropPrefabsFrom(EnemyGenerate other)
+    {
+        if (other == null)
+            return;
+
+        ammoDropPrefabS = other.ammoDropPrefabS;
+        ammoDropPrefabM = other.ammoDropPrefabM;
+        ammoDropPrefabL = other.ammoDropPrefabL;
+        healthDropPrefab = other.healthDropPrefab;
+    }
+
+    public void SetFallbackSpawnPoint(Transform point)
+    {
+        if (point == null)
+            return;
+        if (spawnPoints != null && spawnPoints.Length > 0)
+            return;
+        spawnPoints = new[] { point };
+    }
+
+    public void ApplySummonProfile(HelicopterSummonProfile profile)
+    {
+        waves = profile != null ? profile.BuildWaves() : System.Array.Empty<EnemyWaveConfig>();
+    }
+
+    /// <summary>
+    /// 直升机攻击召唤：只刷有限条目，忽略 initialDelay / 清光等待 / 无限刷。
+    /// 已在召唤中则返回 true，让状态机继续等待。
+    /// </summary>
+    public bool StartSummon()
+    {
+        if (isSpawningActive)
+            return true;
+
+        if (!HasAnyFiniteValidWave())
+            return false;
+
+        StopSpawningInternal(releaseZone: false);
+        totalSpawned = 0;
+        finiteSpawned = 0;
+        isSpawningActive = true;
+        NotifyZoneSpawningStarted();
+        spawnRoutine = StartCoroutine(SummonRoutine());
+        return true;
+    }
+
+    public void StopSummon() => StopSpawningInternal(releaseZone: true);
 
     void StopSpawningInternal(bool releaseZone)
     {
@@ -637,6 +693,13 @@ public class EnemyGenerate : MonoBehaviour
             return null;
         }
 
+        if (GetComponent<HelicopterEnemy>() != null
+            && prefab.GetComponentInChildren<HelicopterEnemy>(true) != null)
+        {
+            Debug.LogWarning("EnemyGenerate: 直升机召唤名单含 Helicopter，已跳过以免递归召唤。", this);
+            return null;
+        }
+
         position = ApplySpawnSpread(position, prefab, wave, entry, indexInEntry);
         var instance = Instantiate(prefab, position, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(instance, this);
@@ -648,6 +711,7 @@ public class EnemyGenerate : MonoBehaviour
 
         ApplyScales(instance, wave);
         ApplyDrops(instance, entry, indexInEntry);
+        BindSpawnedSummoner(instance, entry);
         ApplyEncounterBehavior(instance, entry, position);
 
         if (encounterZone != null)
@@ -714,6 +778,90 @@ public class EnemyGenerate : MonoBehaviour
         }
 
         enemy.ApplyDropOverride(dropAmmo, ammoPrefab, dropHealth, healthPrefab);
+    }
+
+    void BindSpawnedSummoner(GameObject instance, EnemyWaveEntry entry)
+    {
+        if (instance == null)
+            return;
+
+        var helicopter = instance.GetComponent<HelicopterEnemy>()
+            ?? instance.GetComponentInChildren<HelicopterEnemy>();
+        if (helicopter == null)
+            return;
+
+        var childGen = instance.GetComponent<EnemyGenerate>()
+            ?? instance.GetComponentInChildren<EnemyGenerate>();
+        if (childGen != null && childGen != this)
+        {
+            childGen.BindEncounterZone(encounterZone);
+            childGen.CopyDropPrefabsFrom(this);
+        }
+
+        if (entry != null && entry.summonProfile != null)
+            helicopter.ApplySummonProfile(entry.summonProfile);
+    }
+
+    IEnumerator SummonRoutine()
+    {
+        if (!HasAnyFiniteValidWave())
+        {
+            FinishSummon();
+            yield break;
+        }
+
+        for (int waveIndex = 0; waveIndex < WaveCount; waveIndex++)
+        {
+            if (!isSpawningActive)
+                yield break;
+
+            var wave = waves[waveIndex];
+            var entries = ResolveEntries(wave, infiniteOnly: false);
+            if (entries.Count == 0)
+                continue;
+
+            int spawnedInWave = 0;
+            int totalToSpawn = 0;
+            for (int i = 0; i < entries.Count; i++)
+                totalToSpawn += entries[i].count;
+
+            for (int e = 0; e < entries.Count; e++)
+            {
+                if (!isSpawningActive)
+                    yield break;
+
+                var entry = entries[e];
+                for (int i = 0; i < entry.count; i++)
+                {
+                    if (!isSpawningActive)
+                        yield break;
+
+                    SpawnEnemyAt(
+                        entry.enemyPrefab,
+                        wave,
+                        GetSpawnPosition(wave, entry, i),
+                        registerWithZone: true,
+                        countTowardFiniteBudget: true,
+                        entry,
+                        i);
+                    spawnedInWave++;
+
+                    bool moreInWave = spawnedInWave < totalToSpawn;
+                    if (wave != null && wave.intraWaveInterval > 0f && moreInWave && isSpawningActive)
+                        yield return new WaitForSeconds(wave.intraWaveInterval);
+                }
+            }
+        }
+
+        FinishSummon();
+    }
+
+    void FinishSummon()
+    {
+        spawnRoutine = null;
+        NotifyZoneSpawningCompleted();
+        OnSummonCompleted?.Invoke();
+        isSpawningActive = false;
     }
 
     void ApplyEncounterBehavior(GameObject instance, EnemyWaveEntry entry, Vector3 spawnPosition)

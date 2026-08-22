@@ -177,9 +177,15 @@ public class FlyingEnemy : Enemy
         else
         {
             isAggro = true;
-            EvaluateCycle();
+            if (ShouldStartCombatOnEnable())
+                EvaluateCycle();
         }
     }
+
+    /// <summary>
+    /// 直升机等需要等遭遇条目写入召唤编制后再开战时，可关掉首次 OnEnable 循环。
+    /// </summary>
+    protected virtual bool ShouldStartCombatOnEnable() => true;
 
     protected override void Update()
     {
@@ -342,7 +348,7 @@ public class FlyingEnemy : Enemy
     /// <summary>
     /// 每轮循环入口：巡逻闸门 → 不在扇区则追入，在扇区则先走位。
     /// </summary>
-    public void EvaluateCycle()
+    public virtual void EvaluateCycle()
     {
         if (isDead || isApproachingSpawnTarget)
             return;

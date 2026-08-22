@@ -1042,7 +1042,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         ApplyFacing();
     }
 
-    public void BeginExternalControl()
+    public void BeginExternalControl(bool disableCollider = true)
     {
         if (IsActionLocked)
             return;
@@ -1054,10 +1054,20 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.gravityScale = 0f;
         rb.linearVelocity = Vector2.zero;
-        if (capsuleCollider != null)
+        if (disableCollider && capsuleCollider != null)
             capsuleCollider.enabled = false;
 
         IsActionLocked = true;
+    }
+
+    public void SetForceOneWayPass(bool forcePass)
+    {
+        platformDropThrough?.SetForcePassOneWay(forcePass);
+    }
+
+    public void RefreshForceOneWayPass()
+    {
+        platformDropThrough?.UpdateCollisions();
     }
 
     public void EndExternalControl()
@@ -1069,6 +1079,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (capsuleCollider != null)
             capsuleCollider.enabled = savedColliderEnabled;
 
+        platformDropThrough?.SetForcePassOneWay(false);
         IsActionLocked = false;
     }
 

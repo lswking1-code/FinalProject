@@ -41,6 +41,8 @@ public class AllyRobotPullVisual : MonoBehaviour
     float activeRetractSpeed;
     float activeGrabRadius;
     float activeArriveThreshold;
+    Vector2 lastDesiredHook;
+    bool hasDesiredHook;
 
     Transform hookHeadParent;
     Vector3 hookHeadBaseScale = Vector3.one;
@@ -105,6 +107,7 @@ public class AllyRobotPullVisual : MonoBehaviour
         activeArriveThreshold = arriveThreshold > 0f ? arriveThreshold : hookArriveThreshold;
 
         hookWorldPos = GetMuzzleWorldPosition();
+        hasDesiredHook = false;
         phase = PullVisualPhase.Extending;
 
         if (hookHeadSpriteOpen != null && hookHeadRenderer != null)
@@ -120,6 +123,7 @@ public class AllyRobotPullVisual : MonoBehaviour
     {
         phase = PullVisualPhase.Idle;
         owner = null;
+        hasDesiredHook = false;
         SetVisualActive(false);
     }
 
@@ -179,13 +183,36 @@ public class AllyRobotPullVisual : MonoBehaviour
 
     void TickRetracting()
     {
-        Vector2 target = robot.GetPullLandingPoint() + Vector2.up * grabTargetYOffset;
-        hookWorldPos = Vector2.MoveTowards(hookWorldPos, target, activeRetractSpeed * Time.fixedDeltaTime);
+        Vector2 landingHook = robot.GetPullLandingPoint() + Vector2.up * grabTargetYOffset;
+
+        if (robot.IsPlayerHooked)
+        {
+            Vector2 actualGrab = GetPlayerGrabTarget();
+            float attachSlack = Mathf.Max(
+                activeArriveThreshold,
+                activeRetractSpeed * Time.fixedDeltaTime * 0.75f);
+
+            if (hasDesiredHook && Vector2.Distance(actualGrab, lastDesiredHook) > attachSlack)
+                hookWorldPos = actualGrab;
+            else
+                hookWorldPos = Vector2.MoveTowards(
+                    hookWorldPos, landingHook, activeRetractSpeed * Time.fixedDeltaTime);
+
+            lastDesiredHook = hookWorldPos;
+            hasDesiredHook = true;
+            robot.OnHookRetractStep(GetPlayerCenterFromHook(hookWorldPos));
+        }
+        else
+        {
+            hasDesiredHook = false;
+            hookWorldPos = Vector2.MoveTowards(
+                hookWorldPos, landingHook, activeRetractSpeed * Time.fixedDeltaTime);
+        }
+
         UpdateHookTransform(hookWorldPos);
         UpdateRope();
-        robot.OnHookRetractStep(GetPlayerCenterFromHook(hookWorldPos));
 
-        if (Vector2.Distance(hookWorldPos, target) <= activeArriveThreshold)
+        if (Vector2.Distance(hookWorldPos, landingHook) <= activeArriveThreshold)
             CompleteRetract();
     }
 
@@ -214,7 +241,19 @@ public class AllyRobotPullVisual : MonoBehaviour
             return;
 
         hookHead.position = position;
-        ApplyHookFacing(GetHookFaceTowardPlayer());
+        ApplyHookFacing(GetHookFaceDirection());
+    }
+
+    Vector2 GetHookFaceDirection()
+    {
+        if (robot == null || phase != PullVisualPhase.Retracting || robot.IsPlayerHooked)
+            return GetHookFaceTowardPlayer();
+
+        Vector2 towardLanding = robot.GetPullLandingPoint() - hookWorldPos;
+        if (towardLanding.sqrMagnitude > 0.0001f)
+            return towardLanding;
+
+        return GetHookFaceTowardPlayer();
     }
 
     Vector2 GetHookFaceTowardPlayer()

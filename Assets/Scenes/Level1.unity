@@ -1243,6 +1243,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1259,6 +1260,7 @@ MonoBehaviour:
       count: 3
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1278,6 +1280,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1294,6 +1297,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1319,6 +1323,7 @@ MonoBehaviour:
       count: 3
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1338,6 +1343,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1354,6 +1360,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1370,6 +1377,7 @@ MonoBehaviour:
       count: 1
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1383,6 +1391,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1408,6 +1417,7 @@ MonoBehaviour:
       count: 3
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1427,6 +1437,7 @@ MonoBehaviour:
       count: 3
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1446,6 +1457,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1462,6 +1474,7 @@ MonoBehaviour:
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -1504,6 +1517,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnSpawningCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSummonCompleted:
     m_PersistentCalls:
       m_Calls: []
 --- !u!4 &798759396
@@ -2211,6 +2227,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveDataEvent: {fileID: 11400000, guid: 8bfd9c794ad715c4e8bf3300c4083246, type: 2}
   restoreFullHealthOnSave: 0
+  ensureMinAmmoOnSave: 0
+  minBulletM: 3
+  minBulletS: 0
+  minBulletL: 0
   spriteRenderer: {fileID: 1064247578}
   Light2D: {fileID: 0}
   darkSprite: {fileID: 6432468869834988093, guid: 6074414106593ad4fb2d9101c77c4082, type: 3}
@@ -9889,50 +9909,10 @@ MonoBehaviour:
   waves:
   - enemies:
     - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
-      count: 4
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    - enemyPrefab: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
-      count: 3
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       count: 2
       spawnPoints: []
       enableFocusMode: 0
+      summonProfile: {fileID: 0}
       enableTargetPoint: 0
       targetPoint: {fileID: 0}
       infiniteRefresh: 0
@@ -9942,92 +9922,24 @@ MonoBehaviour:
       - dropAmmoOnDeath: 0
         ammoType: 0
         dropHealthOnDeath: 0
+      - dropAmmoOnDeath: 0
+        ammoType: 0
+        dropHealthOnDeath: 0
+    - enemyPrefab: {fileID: 7941320343728532676, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      count: 1
+      spawnPoints: []
+      enableFocusMode: 0
+      summonProfile: {fileID: 11400000, guid: d0f6b24a5e8071f32b4c9d1a6f8e0534, type: 2}
+      enableTargetPoint: 0
+      targetPoint: {fileID: 0}
+      infiniteRefresh: 0
+      waitUntilBatchCleared: 0
+      unlockEncounterOnCleared: 0
+      drops:
       - dropAmmoOnDeath: 0
         ammoType: 0
         dropHealthOnDeath: 0
     enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
-    count: 3
-    spawnPoints: []
-    intraWaveInterval: 0
-    delayAfterWave: 0
-    waitUntilCleared: 0
-    hpScale: 1
-    speedScale: 1
-  - enemies:
-    - enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      count: 4
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    - enemyPrefab: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
-      count: 2
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    - enemyPrefab: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
-      count: 3
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    - enemyPrefab: {fileID: 8190837749373279148, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
-      count: 2
-      spawnPoints: []
-      enableFocusMode: 0
-      enableTargetPoint: 0
-      targetPoint: {fileID: 0}
-      infiniteRefresh: 0
-      waitUntilBatchCleared: 0
-      unlockEncounterOnCleared: 0
-      drops:
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-      - dropAmmoOnDeath: 0
-        ammoType: 0
-        dropHealthOnDeath: 0
-    enemyPrefab: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
     count: 3
     spawnPoints: []
     intraWaveInterval: 0
@@ -10057,6 +9969,9 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   OnSpawningCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnSummonCompleted:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &1215786183
@@ -10436,6 +10351,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveDataEvent: {fileID: 11400000, guid: 8bfd9c794ad715c4e8bf3300c4083246, type: 2}
   restoreFullHealthOnSave: 0
+  ensureMinAmmoOnSave: 0
+  minBulletM: 3
+  minBulletS: 0
+  minBulletL: 0
   spriteRenderer: {fileID: 1458020312}
   Light2D: {fileID: 0}
   darkSprite: {fileID: 6432468869834988093, guid: 6074414106593ad4fb2d9101c77c4082, type: 3}
@@ -11360,6 +11279,22 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 9.895996
       objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[0].enemyPrefab
+      value: 
+      objectReference: {fileID: 7941320343728532676, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[0].summonProfile
+      value: 
+      objectReference: {fileID: 11400000, guid: d0f6b24a5e8071f32b4c9d1a6f8e0534, type: 2}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[0].drops.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2857053122825877580, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -11370,7 +11305,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3323314801615092429, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3377360540569093516, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: m_IsActive
@@ -11939,7 +11874,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5818432256658939258, guid: d2c66a4c21f83c840bfb9f64bca58ddf, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7123901847265012341, guid: d2c66a4c21f83c840bfb9f64bca58ddf, type: 3}
       propertyPath: mgFireInterval
@@ -11954,6 +11889,87 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d2c66a4c21f83c840bfb9f64bca58ddf, type: 3}
+--- !u!1001 &4288448374014922051
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2088329559750682848, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2404163436556377708, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.8247596
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.4468038
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3578140821622650813, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5369084961620226584, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6880726949632667443, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941320343728532676, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_Name
+      value: Helicopter
+      objectReference: {fileID: 0}
+    - target: {fileID: 7941320343728532676, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200092386045523544, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: bc4a076652dbbe2488815ee82afa99fb, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -11994,3 +12010,4 @@ SceneRoots:
   - {fileID: 2141000002}
   - {fileID: 1512140934}
   - {fileID: 3587184238156548110}
+  - {fileID: 4288448374014922051}

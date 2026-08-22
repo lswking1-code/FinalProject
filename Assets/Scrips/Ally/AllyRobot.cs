@@ -226,8 +226,13 @@ public class AllyRobot : MonoBehaviour
     public float pullCooldown = 1f;
     [Tooltip("牵引结束后玩家无敌残留时长（秒）")]
     public float pullInvulnerableLinger = 0.5f;
+    [Tooltip("收回时玩家距落点几乎不再接近超过此时长则自动放下（秒，0 = 关闭）")]
+    [SerializeField] float pullStuckTimeout = 1.5f;
+    [Tooltip("每帧向落点靠近少于此值（世界单位）视为无进展")]
+    [SerializeField] float pullStuckProgressEpsilon = 0.02f;
 
     public bool IsPulling => pullInProgress;
+    public bool IsPlayerHooked => playerHooked;
     public bool IsManualMoving =>
         currentState == AllyState.ManualMove || pendingStationOnLand;
     public float PullCooldown => Mathf.Max(0f, pullCooldown);
@@ -281,6 +286,9 @@ public class AllyRobot : MonoBehaviour
     bool pullInProgress;
     /// <summary>忙碌态并行钩锁：不切 Pulling、不播机器人 pull 动画、结束后不改当前状态。</summary>
     bool pullOverlayMode;
+    bool playerHooked;
+    float pullStuckTimer;
+    float lastPullRemaining = -1f;
 
     Transform owner;
     PlayerMovement ownerMovement;
@@ -409,7 +417,9 @@ public class AllyRobot : MonoBehaviour
             pullVisual?.Cancel();
             pullInProgress = false;
             pullOverlayMode = false;
-            EndPull();
+            if (playerHooked)
+                EndPull();
+            ClearPullHookState();
         }
     }
 
@@ -616,7 +626,9 @@ public class AllyRobot : MonoBehaviour
         pullVisual?.Cancel();
         pullInProgress = false;
         pullOverlayMode = false;
-        EndPull();
+        if (playerHooked)
+            EndPull();
+        ClearPullHookState();
     }
 
     /// <summary>
@@ -801,7 +813,10 @@ public class AllyRobot : MonoBehaviour
 
     public bool TryStartPull()
     {
-        if (IsPulling || pullCooldownTimer > 0f)
+        if (IsPulling)
+            return TryReleasePulledPlayer();
+
+        if (pullCooldownTimer > 0f)
             return false;
 
         if (currentState == AllyState.Spawning || currentState == AllyState.Recalling)
@@ -1307,33 +1322,111 @@ public class AllyRobot : MonoBehaviour
 
     void BeginPullWithoutVisual()
     {
+        playerHooked = true;
+        ResetPullStuckTracking();
         if (ownerCharacter != null)
             ownerCharacter.SetForcedInvulnerable(true);
         if (ownerMovement != null)
-            ownerMovement.BeginExternalControl();
+        {
+            ownerMovement.BeginExternalControl(false);
+            ownerMovement.SetForceOneWayPass(true);
+        }
     }
 
     public Vector2 GetPullLandingPoint() => ComputeLandingPoint();
 
     public void OnHookGrabbed()
     {
+        playerHooked = true;
+        ResetPullStuckTracking();
         if (ownerCharacter != null)
             ownerCharacter.SetForcedInvulnerable(true);
         if (ownerMovement != null && !ownerMovement.IsActionLocked)
-            ownerMovement.BeginExternalControl();
+        {
+            ownerMovement.BeginExternalControl(false);
+            ownerMovement.SetForceOneWayPass(true);
+        }
+        else if (ownerMovement != null)
+        {
+            ownerMovement.SetForceOneWayPass(true);
+        }
     }
 
     public void OnHookRetractStep(Vector2 hookPos)
     {
-        if (ownerRb != null)
-            ownerRb.MovePosition(hookPos);
+        if (!playerHooked || ownerRb == null)
+            return;
+
+        UpdatePullStuck(Vector2.Distance(ownerRb.position, ComputeLandingPoint()));
+        if (!playerHooked)
+            return;
+
+        ownerMovement?.RefreshForceOneWayPass();
+        ownerRb.MovePosition(hookPos);
     }
 
     public void OnHookRetractComplete()
     {
-        if (ownerRb != null)
+        if (playerHooked && ownerRb != null)
             ownerRb.position = ComputeLandingPoint();
         FinishPullSession();
+    }
+
+    public bool TryReleasePulledPlayer()
+    {
+        if (!playerHooked)
+            return false;
+
+        ReleasePulledPlayer();
+        return true;
+    }
+
+    void ReleasePulledPlayer()
+    {
+        if (!playerHooked)
+            return;
+
+        playerHooked = false;
+        ResetPullStuckTracking();
+        EndPull();
+    }
+
+    void ResetPullStuckTracking()
+    {
+        pullStuckTimer = 0f;
+        lastPullRemaining = -1f;
+    }
+
+    void ClearPullHookState()
+    {
+        playerHooked = false;
+        ResetPullStuckTracking();
+    }
+
+    void UpdatePullStuck(float remaining)
+    {
+        if (lastPullRemaining < 0f)
+        {
+            lastPullRemaining = remaining;
+            return;
+        }
+
+        float progress = lastPullRemaining - remaining;
+        lastPullRemaining = remaining;
+
+        if (remaining <= pullArriveThreshold)
+        {
+            pullStuckTimer = 0f;
+            return;
+        }
+
+        if (progress < pullStuckProgressEpsilon)
+            pullStuckTimer += Time.fixedDeltaTime;
+        else
+            pullStuckTimer = 0f;
+
+        if (pullStuckTimeout > 0f && pullStuckTimer >= pullStuckTimeout)
+            ReleasePulledPlayer();
     }
 
     Vector2 ComputeLandingPoint()
@@ -1355,7 +1448,9 @@ public class AllyRobot : MonoBehaviour
             bool overlay = pullOverlayMode;
             pullInProgress = false;
             pullOverlayMode = false;
-            EndPull();
+            if (playerHooked)
+                EndPull();
+            ClearPullHookState();
             if (!overlay && currentState == AllyState.Pulling)
             {
                 if (anim != null)
@@ -1374,11 +1469,25 @@ public class AllyRobot : MonoBehaviour
         if (ownerMovement == null || ownerRb == null)
             return;
 
+        if (!playerHooked)
+        {
+            FinishPullSession();
+            return;
+        }
+
         if (!ownerMovement.IsActionLocked)
             BeginPullWithoutVisual();
 
         Vector2 landing = ComputeLandingPoint();
+        ownerMovement.RefreshForceOneWayPass();
         ownerMovement.StepExternalMove(landing, pullSpeed);
+        UpdatePullStuck(Vector2.Distance(ownerRb.position, landing));
+
+        if (!playerHooked)
+        {
+            FinishPullSession();
+            return;
+        }
 
         if (Vector2.Distance(ownerRb.position, landing) <= pullArriveThreshold)
         {
@@ -1411,7 +1520,9 @@ public class AllyRobot : MonoBehaviour
         bool overlay = pullOverlayMode;
         pullInProgress = false;
         pullOverlayMode = false;
-        EndPull();
+        if (playerHooked)
+            EndPull();
+        ClearPullHookState();
 
         if (overlay)
             return;
@@ -1775,7 +1886,9 @@ public class AllyRobot : MonoBehaviour
                 pullVisual?.Cancel();
                 pullInProgress = false;
                 pullOverlayMode = false;
-                EndPull();
+                if (playerHooked)
+                    EndPull();
+                ClearPullHookState();
             }
             if (anim != null)
                 anim.Play("Idle", 0, 0f);

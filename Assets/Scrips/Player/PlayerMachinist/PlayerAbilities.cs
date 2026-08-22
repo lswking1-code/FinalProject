@@ -141,7 +141,11 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         {
             case RobotAbilityPhase.Idle:
                 if (actions.Player.Ability2.WasPressedThisFrame())
+                {
+                    if (TryReleasePullOnAbility2())
+                        break;
                     BeginPress();
+                }
                 break;
 
             case RobotAbilityPhase.Pressing:
@@ -340,9 +344,22 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         RecallRobot();
     }
 
+    bool TryReleasePullOnAbility2()
+    {
+        if (activeRobotController == null || !activeRobotController.IsPlayerHooked)
+            return false;
+
+        return activeRobotController.TryReleasePulledPlayer();
+    }
+
     void BeginPress()
     {
-        if (playerMovement.IsActionLocked || IsRecallInProgress())
+        if (IsRecallInProgress())
+            return;
+
+        // 钩锁收回会锁操作；仍允许短按进入 Pressing，以便松手走放下。
+        if (playerMovement.IsActionLocked
+            && (activeRobotController == null || !activeRobotController.IsPulling))
             return;
 
         phase = RobotAbilityPhase.Pressing;

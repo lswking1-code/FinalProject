@@ -15,6 +15,8 @@ public class PlatformDropThrough : MonoBehaviour
     [Header("单向平台判定")]
     [SerializeField] float surfaceMargin = 0.05f;
     [SerializeField] LayerMask oneWayPlatformLayer;
+    [Tooltip("钩锁等强制穿透时，相对身体扩大的预扫描，避免 MovePosition 撞板前未 Ignore")]
+    [SerializeField] float forcePassScanPadding = 0.75f;
 
     [Header("主动下穿（下 + 跳）")]
     [SerializeField] float dropThroughResetMargin = 0.05f;
@@ -27,12 +29,15 @@ public class PlatformDropThrough : MonoBehaviour
 
     readonly Collider2D[] overlapBuffer = new Collider2D[OverlapBufferSize];
     readonly HashSet<Collider2D> trackedPlatforms = new HashSet<Collider2D>();
+    readonly HashSet<Collider2D> forcePassLinger = new HashSet<Collider2D>();
     ContactFilter2D platformFilter;
 
     Collider2D activeDropPlatform;
     float dropThroughTimer;
+    bool forcePassOneWay;
 
     public bool IsDroppingThrough => activeDropPlatform != null;
+    public bool IsForcePassingOneWay => forcePassOneWay;
 
     void Awake()
     {
@@ -57,8 +62,37 @@ public class PlatformDropThrough : MonoBehaviour
         };
     }
 
+    public void SetForcePassOneWay(bool forcePass)
+    {
+        if (forcePassOneWay == forcePass)
+        {
+            if (forcePass)
+                UpdateCollisions();
+            return;
+        }
+
+        if (!forcePass)
+        {
+            foreach (Collider2D tracked in trackedPlatforms)
+            {
+                if (tracked != null)
+                    forcePassLinger.Add(tracked);
+            }
+        }
+        else
+        {
+            forcePassLinger.Clear();
+        }
+
+        forcePassOneWay = forcePass;
+        UpdateCollisions();
+    }
+
     public void UpdateCollisions()
     {
+        if (capsuleCollider == null)
+            return;
+
         UpdateDropThroughState();
 
         float playerFeet = capsuleCollider.bounds.min.y;
@@ -66,7 +100,7 @@ public class PlatformDropThrough : MonoBehaviour
         float vy = rb.linearVelocity.y;
         var activeThisFrame = new HashSet<Collider2D>();
 
-        int count = capsuleCollider.Overlap(platformFilter, overlapBuffer);
+        int count = CollectNearbyPlatforms();
         for (int i = 0; i < count; i++)
         {
             Collider2D col = overlapBuffer[i];
@@ -76,7 +110,7 @@ public class PlatformDropThrough : MonoBehaviour
                 continue;
 
             activeThisFrame.Add(col);
-            bool collide = ShouldCollide(col, playerFeet, feetPos, vy);
+            bool collide = ShouldCollideThisFrame(col, playerFeet, feetPos, vy);
             SetCollisionIgnored(col, !collide);
             trackedPlatforms.Add(col);
         }
@@ -87,6 +121,7 @@ public class PlatformDropThrough : MonoBehaviour
             if (tracked == null)
             {
                 toRemove.Add(tracked);
+                forcePassLinger.Remove(tracked);
                 continue;
             }
 
@@ -94,11 +129,34 @@ public class PlatformDropThrough : MonoBehaviour
                 continue;
 
             SetCollisionIgnored(tracked, false);
+            forcePassLinger.Remove(tracked);
             toRemove.Add(tracked);
         }
 
         for (int i = 0; i < toRemove.Count; i++)
             trackedPlatforms.Remove(toRemove[i]);
+    }
+
+    int CollectNearbyPlatforms()
+    {
+        if (!forcePassOneWay || forcePassScanPadding <= 0.001f)
+            return capsuleCollider.Overlap(platformFilter, overlapBuffer);
+
+        Bounds bounds = capsuleCollider.bounds;
+        Vector2 size = (Vector2)bounds.size + Vector2.one * (forcePassScanPadding * 2f);
+        return Physics2D.OverlapBox(bounds.center, size, 0f, platformFilter, overlapBuffer);
+    }
+
+    bool ShouldCollideThisFrame(Collider2D col, float playerFeet, Vector2 feetPos, float vy)
+    {
+        if (forcePassOneWay)
+            return false;
+
+        if (forcePassLinger.Contains(col) && IsEmbeddedInOneWay(col, playerFeet, feetPos))
+            return false;
+
+        forcePassLinger.Remove(col);
+        return ShouldCollide(col, playerFeet, feetPos, vy);
     }
 
     public bool TryBeginDropThrough(Vector2 moveInput, float inputThreshold)
@@ -121,7 +179,13 @@ public class PlatformDropThrough : MonoBehaviour
         if (platform == null || !IsOneWayPlatform(platform))
             return true;
 
+        if (forcePassOneWay)
+            return false;
+
         Vector2 feetPos = GetFeetPosition();
+        if (forcePassLinger.Contains(platform) && IsEmbeddedInOneWay(platform, capsuleCollider.bounds.min.y, feetPos))
+            return false;
+
         return ShouldCollide(platform, capsuleCollider.bounds.min.y, feetPos, rb.linearVelocity.y);
     }
 
@@ -129,6 +193,9 @@ public class PlatformDropThrough : MonoBehaviour
     {
         if (platform == null || !IsOneWayPlatform(platform))
             return true;
+
+        if (forcePassOneWay)
+            return false;
 
         if (hitNormal.y <= 0.5f)
             return false;
@@ -148,6 +215,21 @@ public class PlatformDropThrough : MonoBehaviour
 
     Vector2 GetFeetPosition() =>
         new Vector2(capsuleCollider.bounds.center.x, capsuleCollider.bounds.min.y);
+
+    bool IsEmbeddedInOneWay(Collider2D platform, float playerFeet, Vector2 feetPos)
+    {
+        var pathSlope = platform.GetComponent<SlopePathSegment>()
+            ?? platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return !pathSlope.IsFeetAboveSurface(feetPos);
+
+        var legacySlope = platform.GetComponent<SlopeOneWayPlatform>()
+            ?? platform.GetComponentInParent<SlopeOneWayPlatform>();
+        if (legacySlope != null)
+            return !legacySlope.IsFeetAboveSurface(feetPos);
+
+        return playerFeet < platform.bounds.max.y - surfaceMargin;
+    }
 
     bool ShouldCollide(Collider2D platform, float playerFeet, Vector2 feetPos, float vy)
     {
@@ -311,6 +393,8 @@ public class PlatformDropThrough : MonoBehaviour
                 SetCollisionIgnored(tracked, false);
         }
         trackedPlatforms.Clear();
+        forcePassLinger.Clear();
+        forcePassOneWay = false;
         ResetDropThrough();
     }
 }
