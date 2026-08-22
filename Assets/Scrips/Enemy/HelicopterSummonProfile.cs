@@ -42,6 +42,13 @@ public class HelicopterSummonProfile : ScriptableObject
     [Tooltip("勾选后循环刷新本编制：本批刷完直升机可继续走位，场上这批清光后再按 Spawn Interval 补刷。覆盖条目 infiniteRefresh")]
     public bool infiniteRefresh;
 
+    [Header("刷完离场")]
+    [Tooltip("有限召唤全部刷完后垂直向上飞离并销毁。Infinite Refresh 开启时无效")]
+    public bool leaveAfterSpawn;
+
+    [Tooltip("离场后多少秒销毁自身")]
+    [Min(0.1f)] public float leaveDestroyDelay = 3f;
+
     void OnValidate()
     {
         if (minions == null)

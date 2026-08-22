@@ -168,6 +168,7 @@ public class Enemy : MonoBehaviour
     protected BaseState meleeAttackState;
     protected BaseState skillState;
     protected BaseState approachTargetState;
+    protected BaseState departState;
 
     SpriteRenderer spriteRenderer;
     Color spriteOriginalColor = Color.white;
@@ -958,6 +959,7 @@ public class Enemy : MonoBehaviour
             NPCState.Skill => skillState,
             NPCState.Ram => skillState,
             NPCState.ApproachTarget => approachTargetState,
+            NPCState.Depart => departState,
             _ => null
         };
 

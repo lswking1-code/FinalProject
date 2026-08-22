@@ -38,8 +38,16 @@ public class HelicopterSpawnState : BaseState
         if (helicopter == null || currentEnemy.isDead)
             return;
 
-        if (!summonStarted || helicopter.IsSummonFinished)
+        if (!summonStarted)
+        {
             helicopter.SwitchState(NPCState.Reload);
+            return;
+        }
+
+        if (!helicopter.IsSummonFinished)
+            return;
+
+        helicopter.SwitchState(helicopter.ShouldDepartAfterSummon ? NPCState.Depart : NPCState.Reload);
     }
 
     public override void PhysicsUpdate()

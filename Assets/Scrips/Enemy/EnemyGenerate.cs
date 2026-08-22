@@ -166,6 +166,7 @@ public class EnemyGenerate : MonoBehaviour
     public bool IsSummoning => IsSummonAttackBusy;
     public bool IsSummonAttackBusy => spawnRoutine != null || infiniteSpawnLocks > 0;
     public bool HasConfiguredFiniteWaves => HasAnyFiniteValidWave();
+    public bool HasInfiniteRefresh => HasAnyInfiniteEntry();
 
     void Start()
     {

@@ -15,14 +15,18 @@ public class HelicopterEnemy : FlyingEnemy
     public HelicopterSummonProfile defaultSummonProfile;
 
     EnemyGenerate summonGenerator;
+    HelicopterSummonProfile currentProfile;
     bool summonProfileApplied;
     bool hasStarted;
     bool subscribedDie;
+    bool isDeparting;
+    Collider2D[] departDisabledColliders;
 
     protected override void Awake()
     {
         base.Awake();
         shotState = new HelicopterSpawnState();
+        departState = new HelicopterDepartState();
         RecacheSpriteRendererFromChild("Sprite");
         if (GetComponent<SpriteRenderer>() == null)
             RecacheSpriteRendererFromChild("Visual");
@@ -37,7 +41,7 @@ public class HelicopterEnemy : FlyingEnemy
     {
         base.OnEnable();
         SubscribeDie();
-        if (hasStarted && !isPatrol && !isApproachingSpawnTarget && !isDead)
+        if (hasStarted && !isPatrol && !isApproachingSpawnTarget && !isDead && !isDeparting)
         {
             isAggro = true;
             EvaluateCycle();
@@ -69,7 +73,7 @@ public class HelicopterEnemy : FlyingEnemy
     {
         hasStarted = true;
         EnsureSummonProfileApplied();
-        if (isDead || isApproachingSpawnTarget || isPatrol)
+        if (isDead || isApproachingSpawnTarget || isPatrol || isDeparting)
             return;
         if (CurrentState != null)
             return;
@@ -85,14 +89,34 @@ public class HelicopterEnemy : FlyingEnemy
     public void ApplySummonProfile(HelicopterSummonProfile profile)
     {
         summonProfileApplied = true;
+        currentProfile = profile;
         summonGenerator?.ApplySummonProfile(profile);
+    }
+
+    public bool ShouldDepartAfterSummon =>
+        currentProfile != null
+        && currentProfile.leaveAfterSpawn
+        && !currentProfile.infiniteRefresh
+        && (summonGenerator == null || !summonGenerator.HasInfiniteRefresh);
+
+    public float DepartDestroyDelay =>
+        currentProfile != null ? Mathf.Max(0.1f, currentProfile.leaveDestroyDelay) : 3f;
+
+    public override void BeginReturnHome()
+    {
+        if (isDeparting)
+            return;
+        base.BeginReturnHome();
     }
 
     public override void EvaluateCycle()
     {
+        if (isDeparting || isDead)
+            return;
+
         if (enableFocusMode)
         {
-            if (isDead || isApproachingSpawnTarget)
+            if (isApproachingSpawnTarget)
                 return;
 
             EnsurePlayerReference();
@@ -165,8 +189,78 @@ public class HelicopterEnemy : FlyingEnemy
         subscribedDie = false;
     }
 
+    public void BeginDepart()
+    {
+        isDeparting = true;
+        blockSeparation = true;
+        SetDepartCollidersEnabled(false);
+    }
+
+    public void ApplyDepartAscent()
+    {
+        if (Rb == null)
+            return;
+
+        float speed = chaseSpeed > 0f ? chaseSpeed : Mathf.Max(normalSpeed, 2f);
+        Rb.linearVelocity = new Vector2(0f, speed);
+    }
+
+    public void FinishDepartDestroy()
+    {
+        if (isDead)
+            return;
+
+        Destroy(gameObject);
+    }
+
+    public void EndDepart()
+    {
+        blockSeparation = false;
+        SetDepartCollidersEnabled(true);
+        if (Rb != null && !isDead)
+            Rb.linearVelocity = Vector2.zero;
+    }
+
+    void SetDepartCollidersEnabled(bool enabled)
+    {
+        if (!enabled)
+        {
+            var all = GetComponentsInChildren<Collider2D>(true);
+            int count = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] != null && all[i].enabled && !all[i].isTrigger)
+                    count++;
+            }
+
+            departDisabledColliders = count > 0 ? new Collider2D[count] : null;
+            int write = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] == null || !all[i].enabled || all[i].isTrigger)
+                    continue;
+                departDisabledColliders[write++] = all[i];
+                all[i].enabled = false;
+            }
+
+            return;
+        }
+
+        if (departDisabledColliders == null)
+            return;
+
+        for (int i = 0; i < departDisabledColliders.Length; i++)
+        {
+            if (departDisabledColliders[i] != null)
+                departDisabledColliders[i].enabled = true;
+        }
+
+        departDisabledColliders = null;
+    }
+
     void OnHelicopterDied()
     {
+        isDeparting = false;
         StopSummonAttack();
     }
 }

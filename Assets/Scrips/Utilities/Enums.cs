@@ -14,7 +14,8 @@ public enum NPCState
     Return,      // 脱战后返回出生点
     MeleeAttack, // 近战挥刀（前摇 / 挥砍 / 后摇）
     Ram,         // 装甲车冲撞（预备 / 冲刺 / 后摇）
-    ApproachTarget // 遭遇生成后先走到目标点
+    ApproachTarget, // 遭遇生成后先走到目标点
+    Depart       // 直升机刷完离场
 }
 
 /// <summary>敌人 Action 类型，用于概率记录（Reload 不参与权重）</summary>

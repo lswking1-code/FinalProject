@@ -32,7 +32,9 @@ MonoBehaviour:
       ammoType: 0
       dropHealthOnDeath: 0
   intraWaveInterval: 0.4
-  maxTotalSpawns: 0
-  spawnInterval: 3
+  maxTotalSpawns: 8
+  spawnInterval: 5
   initialDelay: 0
   infiniteRefresh: 0
+  leaveAfterSpawn: 1
+  leaveDestroyDelay: 3
