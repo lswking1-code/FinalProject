@@ -155,12 +155,16 @@ public class EnemyGenerate : MonoBehaviour
     int finiteSpawned;
     bool reportedSpawningToZone;
     bool isSpawningActive;
+    bool summonSession;
+    bool summonInstantiateCompleted;
+    int infiniteSpawnLocks;
 
     public int WaveCount => waves != null ? waves.Length : 0;
     public int TotalSpawned => totalSpawned;
     public int MaxTotalSpawns => GetEffectiveTotalLimit();
     public bool IsSpawning => isSpawningActive;
-    public bool IsSummoning => isSpawningActive;
+    public bool IsSummoning => IsSummonAttackBusy;
+    public bool IsSummonAttackBusy => spawnRoutine != null || infiniteSpawnLocks > 0;
     public bool HasConfiguredFiniteWaves => HasAnyFiniteValidWave();
 
     void Start()
@@ -259,24 +263,7 @@ public class EnemyGenerate : MonoBehaviour
         AgentDebugLog.Write("A", "EnemyGenerate.cs:StartSpawning", "StartSpawning called",
             "{\"name\":\"" + name + "\",\"waveCount\":" + WaveCount + ",\"totalLimit\":" + GetEffectiveTotalLimit() + ",\"hasAnyValidWave\":" + (HasAnyValidWave() ? "true" : "false") + ",\"hasFinite\":" + (HasAnyFiniteValidWave() ? "true" : "false") + "}");
         // #endregion
-        // 重启时不要先 NotifyCompleted，否则波间空窗会误触发遭遇区解锁
-        StopSpawningInternal(releaseZone: false);
-        totalSpawned = 0;
-        finiteSpawned = 0;
-        isSpawningActive = true;
-
-        if (HasAnyFiniteValidWave())
-            NotifyZoneSpawningStarted();
-
-        StartInfiniteRoutines();
-
-        if (HasAnyFiniteValidWave())
-            spawnRoutine = StartCoroutine(SpawnRoutine());
-        else if (!HasAnyInfiniteEntry())
-        {
-            Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
-            FinishFiniteSpawning();
-        }
+        StartSpawningSession(summon: false);
     }
 
     public void StopSpawning() => StopSpawningInternal(releaseZone: true);
@@ -305,31 +292,61 @@ public class EnemyGenerate : MonoBehaviour
 
     public void ApplySummonProfile(HelicopterSummonProfile profile)
     {
-        waves = profile != null ? profile.BuildWaves() : System.Array.Empty<EnemyWaveConfig>();
+        if (profile == null)
+        {
+            waves = System.Array.Empty<EnemyWaveConfig>();
+            return;
+        }
+
+        waves = profile.BuildWaves();
+        maxTotalSpawns = profile.maxTotalSpawns;
+        spawnInterval = profile.spawnInterval;
+        initialDelay = profile.initialDelay;
     }
 
     /// <summary>
-    /// 直升机攻击召唤：只刷有限条目，忽略 initialDelay / 清光等待 / 无限刷。
-    /// 已在召唤中则返回 true，让状态机继续等待。
+    /// 直升机攻击召唤：使用编制覆盖后的 maxTotalSpawns / spawnInterval / initialDelay / infiniteRefresh。
+    /// 本批 Instantiate 完成后返回结束，无限刷新在后台等清光 + 间隔再补刷。
+    /// 已在实例化中则返回 true，让状态机继续等待；仅在等清光/间隔时返回 false。
     /// </summary>
     public bool StartSummon()
     {
         if (isSpawningActive)
-            return true;
+            return IsSummonAttackBusy;
 
-        if (!HasAnyFiniteValidWave())
+        if (!HasAnyFiniteValidWave() && !HasAnyInfiniteEntry())
             return false;
 
-        StopSpawningInternal(releaseZone: false);
-        totalSpawned = 0;
-        finiteSpawned = 0;
-        isSpawningActive = true;
-        NotifyZoneSpawningStarted();
-        spawnRoutine = StartCoroutine(SummonRoutine());
+        StartSpawningSession(summon: true);
         return true;
     }
 
     public void StopSummon() => StopSpawningInternal(releaseZone: true);
+
+    void StartSpawningSession(bool summon)
+    {
+        summonSession = summon;
+        summonInstantiateCompleted = false;
+        // 重启时不要先 NotifyCompleted，否则波间空窗会误触发遭遇区解锁
+        StopSpawningInternal(releaseZone: false);
+        totalSpawned = 0;
+        finiteSpawned = 0;
+        isSpawningActive = true;
+
+        if (HasAnyFiniteValidWave())
+            NotifyZoneSpawningStarted();
+
+        StartInfiniteRoutines();
+
+        if (HasAnyFiniteValidWave())
+            spawnRoutine = StartCoroutine(SpawnRoutine());
+        else if (!HasAnyInfiniteEntry())
+        {
+            if (!summon)
+                Debug.LogWarning("EnemyGenerate: waves 未配置或全部无效。", this);
+            FinishFiniteSpawning();
+        }
+    }
 
     void StopSpawningInternal(bool releaseZone)
     {
@@ -343,6 +360,7 @@ public class EnemyGenerate : MonoBehaviour
 
         StopInfiniteRoutines();
         StopUnlockLockRoutines();
+        infiniteSpawnLocks = 0;
 
         if (releaseZone)
             NotifyZoneSpawningCompleted();
@@ -414,7 +432,10 @@ public class EnemyGenerate : MonoBehaviour
     {
         spawnRoutine = null;
         NotifyZoneSpawningCompleted();
-        OnSpawningCompleted?.Invoke();
+        if (summonSession)
+            OnSummonCompleted?.Invoke();
+        else
+            OnSpawningCompleted?.Invoke();
 
         if (!HasAnyInfiniteEntryRunning())
             isSpawningActive = false;
@@ -487,18 +508,50 @@ public class EnemyGenerate : MonoBehaviour
 
     IEnumerator InfiniteEntryRoutine(EnemyWaveConfig wave, EnemyWaveEntry entry)
     {
+        bool lockHeld = false;
+
+        void HoldSpawnLock()
+        {
+            if (lockHeld)
+                return;
+            infiniteSpawnLocks++;
+            lockHeld = true;
+        }
+
+        void ReleaseSpawnLock()
+        {
+            if (!lockHeld)
+                return;
+            if (infiniteSpawnLocks > 0)
+                infiniteSpawnLocks--;
+            lockHeld = false;
+            TryNotifySummonInstantiateDone();
+        }
+
+        HoldSpawnLock();
         if (initialDelay > 0f)
             yield return new WaitForSeconds(initialDelay);
 
+        if (!isSpawningActive)
+        {
+            ReleaseSpawnLock();
+            yield break;
+        }
+
         while (isSpawningActive)
         {
+            HoldSpawnLock();
+
             var aliveBatch = new HashSet<Character>();
             int spawnedThisBatch = 0;
 
             for (int i = 0; i < entry.count; i++)
             {
                 if (!isSpawningActive)
+                {
+                    ReleaseSpawnLock();
                     yield break;
+                }
 
                 var instance = SpawnEnemyAt(
                     entry.enemyPrefab,
@@ -523,8 +576,11 @@ public class EnemyGenerate : MonoBehaviour
             if (spawnedThisBatch <= 0)
             {
                 Debug.LogWarning("EnemyGenerate: 无限刷新条目无法生成敌人，已停止该循环。", this);
+                ReleaseSpawnLock();
                 yield break;
             }
+
+            ReleaseSpawnLock();
 
             yield return WaitUntilBatchCleared(aliveBatch);
             if (!isSpawningActive)
@@ -534,6 +590,17 @@ public class EnemyGenerate : MonoBehaviour
             if (delay > 0f)
                 yield return new WaitForSeconds(delay);
         }
+
+        ReleaseSpawnLock();
+    }
+
+    void TryNotifySummonInstantiateDone()
+    {
+        if (!summonSession || summonInstantiateCompleted || IsSummonAttackBusy)
+            return;
+
+        summonInstantiateCompleted = true;
+        OnSummonCompleted?.Invoke();
     }
 
     void TrackBatchEnemy(GameObject instance, HashSet<Character> aliveBatch)
@@ -800,68 +867,6 @@ public class EnemyGenerate : MonoBehaviour
 
         if (entry != null && entry.summonProfile != null)
             helicopter.ApplySummonProfile(entry.summonProfile);
-    }
-
-    IEnumerator SummonRoutine()
-    {
-        if (!HasAnyFiniteValidWave())
-        {
-            FinishSummon();
-            yield break;
-        }
-
-        for (int waveIndex = 0; waveIndex < WaveCount; waveIndex++)
-        {
-            if (!isSpawningActive)
-                yield break;
-
-            var wave = waves[waveIndex];
-            var entries = ResolveEntries(wave, infiniteOnly: false);
-            if (entries.Count == 0)
-                continue;
-
-            int spawnedInWave = 0;
-            int totalToSpawn = 0;
-            for (int i = 0; i < entries.Count; i++)
-                totalToSpawn += entries[i].count;
-
-            for (int e = 0; e < entries.Count; e++)
-            {
-                if (!isSpawningActive)
-                    yield break;
-
-                var entry = entries[e];
-                for (int i = 0; i < entry.count; i++)
-                {
-                    if (!isSpawningActive)
-                        yield break;
-
-                    SpawnEnemyAt(
-                        entry.enemyPrefab,
-                        wave,
-                        GetSpawnPosition(wave, entry, i),
-                        registerWithZone: true,
-                        countTowardFiniteBudget: true,
-                        entry,
-                        i);
-                    spawnedInWave++;
-
-                    bool moreInWave = spawnedInWave < totalToSpawn;
-                    if (wave != null && wave.intraWaveInterval > 0f && moreInWave && isSpawningActive)
-                        yield return new WaitForSeconds(wave.intraWaveInterval);
-                }
-            }
-        }
-
-        FinishSummon();
-    }
-
-    void FinishSummon()
-    {
-        spawnRoutine = null;
-        NotifyZoneSpawningCompleted();
-        OnSummonCompleted?.Invoke();
-        isSpawningActive = false;
     }
 
     void ApplyEncounterBehavior(GameObject instance, EnemyWaveEntry entry, Vector3 spawnPosition)

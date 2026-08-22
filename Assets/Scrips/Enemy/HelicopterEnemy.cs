@@ -133,7 +133,7 @@ public class HelicopterEnemy : FlyingEnemy
         return summonGenerator.StartSummon();
     }
 
-    public bool IsSummonFinished => summonGenerator == null || !summonGenerator.IsSummoning;
+    public bool IsSummonFinished => summonGenerator == null || !summonGenerator.IsSummonAttackBusy;
 
     public void StopSummonAttack()
     {

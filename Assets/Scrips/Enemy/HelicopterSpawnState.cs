@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 直升机攻击：原地召唤小兵，召唤完成前保持静止，随后进入后摇。
+/// 直升机攻击：原地召唤小兵，本批 Instantiate 完成前保持静止，随后进入后摇。
+/// 无限刷新在后台等本批清光后再按间隔补刷，不挡住走位。
 /// </summary>
 public class HelicopterSpawnState : BaseState
 {

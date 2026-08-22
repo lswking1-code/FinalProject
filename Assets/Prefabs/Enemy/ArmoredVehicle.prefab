@@ -590,6 +590,7 @@ MonoBehaviour:
   isMarked: 0
   isAggro: 0
   isReturning: 0
+  isApproachingSpawnTarget: 0
   dropAmmoOnDeath: 0
   ammoDropPrefab: {fileID: 0}
   ammoDropOffset: {x: 0, y: 0, z: 0}
@@ -610,9 +611,9 @@ MonoBehaviour:
   gunBase: {fileID: 2924554388925795902}
   firePoint: {fileID: 3183371843956330800}
   projectilePrefab: {fileID: 1207313983663696913, guid: 504c5d92d03bea14b9beba43ecef18e9, type: 3}
-  mgAimDuration: 1.2
+  mgAimDuration: 1.5
   mgBurstCount: 5
-  mgFireInterval: 0.18
+  mgFireInterval: 0.25
   mgCycleMin: 3
   mgCycleMax: 5
   missilePrefab: {fileID: 7100000000000000006, guid: 29f6e1d2a3b4456789c0d1e2f3041526, type: 3}

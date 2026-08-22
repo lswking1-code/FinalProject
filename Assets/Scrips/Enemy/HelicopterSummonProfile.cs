@@ -16,6 +16,7 @@ public class HelicopterSummonMinion
 
 /// <summary>
 /// 直升机召唤编制。预制体挂默认档，遭遇波次条目可另拖一份覆盖。
+/// 数量/间隔/无限刷会覆盖直升机 EnemyGenerate 上的对应设置。
 /// </summary>
 [CreateAssetMenu(
     fileName = "HelicopterSummonProfile",
@@ -27,6 +28,19 @@ public class HelicopterSummonProfile : ScriptableObject
 
     [Tooltip("相邻两个敌人的间隔（秒）；0 表示本批瞬间刷完")]
     [Min(0f)] public float intraWaveInterval = 0.4f;
+
+    [Header("覆盖 EnemyGenerate")]
+    [Tooltip("有限刷怪总上限；0 表示不额外限制（实际总数 = 各小兵数量之和）。不含无限刷新。覆盖直升机 maxTotalSpawns")]
+    [Min(0)] public int maxTotalSpawns;
+
+    [Tooltip("相邻两波之间的默认等待时间（秒）；无限刷新两批之间也用此间隔。覆盖直升机 spawnInterval")]
+    [Min(0f)] public float spawnInterval = 3f;
+
+    [Tooltip("开始召唤前的首次延迟（秒）。覆盖直升机 initialDelay")]
+    [Min(0f)] public float initialDelay;
+
+    [Tooltip("勾选后循环刷新本编制：本批刷完直升机可继续走位，场上这批清光后再按 Spawn Interval 补刷。覆盖条目 infiniteRefresh")]
+    public bool infiniteRefresh;
 
     void OnValidate()
     {
@@ -86,7 +100,7 @@ public class HelicopterSummonProfile : ScriptableObject
     }
 
     /// <summary>
-    /// 转成 EnemyGenerate 可用的一波有限配置（不含清光等待 / 无限刷）。
+    /// 转成 EnemyGenerate 可用的波次配置。infiniteRefresh 时条目会循环刷。
     /// </summary>
     public EnemyWaveConfig[] BuildWaves()
     {
@@ -116,7 +130,8 @@ public class HelicopterSummonProfile : ScriptableObject
             {
                 enemyPrefab = minion.enemyPrefab,
                 count = minion.count,
-                drops = CloneDrops(minion.drops, minion.count)
+                drops = CloneDrops(minion.drops, minion.count),
+                infiniteRefresh = infiniteRefresh
             };
         }
 
@@ -126,6 +141,7 @@ public class HelicopterSummonProfile : ScriptableObject
             {
                 enemies = entries,
                 intraWaveInterval = intraWaveInterval,
+                delayAfterWave = spawnInterval,
                 waitUntilCleared = false,
                 hpScale = 1f,
                 speedScale = 1f
