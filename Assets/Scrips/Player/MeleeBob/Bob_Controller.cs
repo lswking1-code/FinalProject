@@ -1210,12 +1210,10 @@ public class Bob_Controller : MonoBehaviour
                 && (selfCharacter == null || selfCharacter.AbilityPower < ultimateAbilityPowerCost))
                 return;
         }
-        else
-        {
-            int specialCost = ResolveSpecialAmmoCost(weaponId);
-            if (!HasWeaponAmmo(weaponId, specialCost))
-                return;
-        }
+
+        int specialCost = ResolveSpecialAmmoCost(weaponId);
+        if (!HasWeaponAmmo(weaponId, specialCost))
+            return;
 
         if (detectZone != null && detectZone.HasValidTarget)
         {
@@ -1237,15 +1235,12 @@ public class Bob_Controller : MonoBehaviour
         if (!played)
             return;
 
-        if (ultimate)
-        {
-            if (ultimateAbilityPowerCost > 0f && selfCharacter != null)
-                selfCharacter.DrainAbilityPower(ultimateAbilityPowerCost);
-        }
-        else
-        {
-            TryConsumeWeaponAmmo(weaponId, ResolveSpecialAmmoCost(weaponId));
-        }
+        if (ultimate
+            && ultimateAbilityPowerCost > 0f
+            && selfCharacter != null)
+            selfCharacter.DrainAbilityPower(ultimateAbilityPowerCost);
+
+        TryConsumeWeaponAmmo(weaponId, specialCost);
 
         ApplyActiveProfileToColliders();
         PlayAttackSfx(ResolveWeaponSpecialLabel(weaponId));
