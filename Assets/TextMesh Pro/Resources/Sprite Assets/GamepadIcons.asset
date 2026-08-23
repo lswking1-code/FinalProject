@@ -41,22 +41,22 @@ MonoBehaviour:
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 0
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: xbox_a
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 1
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: xbox_b
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 2
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: xbox_x
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 3
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: xbox_y
   - m_ElementType: 2
     m_Unicode: 0
@@ -121,12 +121,12 @@ MonoBehaviour:
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 16
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: left_shoulder
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 17
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: right_shoulder
   - m_ElementType: 2
     m_Unicode: 0
@@ -141,12 +141,12 @@ MonoBehaviour:
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 20
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: left_trigger
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 21
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: right_trigger
   - m_ElementType: 2
     m_Unicode: 0
@@ -161,12 +161,12 @@ MonoBehaviour:
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 24
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: left_stick
   - m_ElementType: 2
     m_Unicode: 0
     m_GlyphIndex: 25
-    m_Scale: 1
+    m_Scale: 1.5
     m_Name: right_stick
   - m_ElementType: 2
     m_Unicode: 0
@@ -181,64 +181,64 @@ MonoBehaviour:
   m_GlyphTable:
   - m_Index: 0
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
       m_X: 0
-      m_Y: 0
-      m_Width: 15
-      m_Height: 15
+      m_Y: 56
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 1
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 0
-      m_Y: 17
-      m_Width: 15
-      m_Height: 15
+      m_X: 18
+      m_Y: 56
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 2
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 0
-      m_Y: 34
-      m_Width: 15
-      m_Height: 15
+      m_X: 36
+      m_Y: 56
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 3
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 17
-      m_Y: 0
-      m_Width: 15
-      m_Height: 15
+      m_X: 54
+      m_Y: 56
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
@@ -251,8 +251,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 17
-      m_Y: 17
+      m_X: 72
+      m_Y: 57
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -267,8 +267,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 17
-      m_Y: 34
+      m_X: 90
+      m_Y: 57
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -283,8 +283,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 34
-      m_Y: 0
+      m_X: 108
+      m_Y: 57
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -299,8 +299,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 34
-      m_Y: 17
+      m_X: 0
+      m_Y: 39
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -315,8 +315,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 34
-      m_Y: 34
+      m_X: 18
+      m_Y: 39
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -331,8 +331,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 51
-      m_Y: 0
+      m_X: 36
+      m_Y: 39
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -347,8 +347,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 51
-      m_Y: 17
+      m_X: 54
+      m_Y: 39
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -363,8 +363,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 12.75
       m_HorizontalAdvance: 15
     m_GlyphRect:
-      m_X: 51
-      m_Y: 34
+      m_X: 72
+      m_Y: 39
       m_Width: 15
       m_Height: 15
     m_Scale: 1
@@ -373,96 +373,96 @@ MonoBehaviour:
     sprite: {fileID: 0}
   - m_Index: 12
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 68
-      m_Y: 0
-      m_Width: 15
-      m_Height: 15
+      m_X: 90
+      m_Y: 38
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 13
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 85
-      m_Y: 0
-      m_Width: 15
-      m_Height: 15
+      m_X: 108
+      m_Y: 38
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 14
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 102
-      m_Y: 0
-      m_Width: 15
-      m_Height: 15
+      m_X: 0
+      m_Y: 20
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 15
     m_Metrics:
-      m_Width: 15
-      m_Height: 15
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 12.75
-      m_HorizontalAdvance: 15
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 68
-      m_Y: 17
-      m_Width: 15
-      m_Height: 15
+      m_X: 18
+      m_Y: 20
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 16
     m_Metrics:
-      m_Width: 14
-      m_Height: 10
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 8.5
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 85
-      m_Y: 30
-      m_Width: 14
-      m_Height: 10
+      m_X: 36
+      m_Y: 20
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 17
     m_Metrics:
-      m_Width: 14
-      m_Height: 10
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 8.5
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 85
-      m_Y: 42
-      m_Width: 14
-      m_Height: 10
+      m_X: 54
+      m_Y: 20
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
@@ -475,8 +475,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 8.5
       m_HorizontalAdvance: 14
     m_GlyphRect:
-      m_X: 85
-      m_Y: 54
+      m_X: 72
+      m_Y: 26
       m_Width: 14
       m_Height: 10
     m_Scale: 1
@@ -491,8 +491,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 8.5
       m_HorizontalAdvance: 14
     m_GlyphRect:
-      m_X: 101
-      m_Y: 30
+      m_X: 90
+      m_Y: 26
       m_Width: 14
       m_Height: 10
     m_Scale: 1
@@ -501,32 +501,32 @@ MonoBehaviour:
     sprite: {fileID: 0}
   - m_Index: 20
     m_Metrics:
-      m_Width: 14
-      m_Height: 13
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 11.05
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 0
-      m_Y: 51
-      m_Width: 14
-      m_Height: 13
+      m_X: 108
+      m_Y: 20
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 21
     m_Metrics:
-      m_Width: 14
-      m_Height: 13
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 11.05
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 17
-      m_Y: 51
-      m_Width: 14
-      m_Height: 13
+      m_X: 0
+      m_Y: 2
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
@@ -539,8 +539,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 11.05
       m_HorizontalAdvance: 14
     m_GlyphRect:
-      m_X: 34
-      m_Y: 51
+      m_X: 18
+      m_Y: 5
       m_Width: 14
       m_Height: 13
     m_Scale: 1
@@ -555,8 +555,8 @@ MonoBehaviour:
       m_HorizontalBearingY: 11.05
       m_HorizontalAdvance: 14
     m_GlyphRect:
-      m_X: 51
-      m_Y: 51
+      m_X: 36
+      m_Y: 5
       m_Width: 14
       m_Height: 13
     m_Scale: 1
@@ -565,64 +565,64 @@ MonoBehaviour:
     sprite: {fileID: 0}
   - m_Index: 24
     m_Metrics:
-      m_Width: 14
-      m_Height: 14
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 11.900001
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 68
-      m_Y: 34
-      m_Width: 14
-      m_Height: 14
+      m_X: 54
+      m_Y: 2
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 25
     m_Metrics:
-      m_Width: 14
-      m_Height: 14
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 11.900001
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 68
-      m_Y: 50
-      m_Width: 14
-      m_Height: 14
+      m_X: 72
+      m_Y: 2
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 26
     m_Metrics:
-      m_Width: 14
-      m_Height: 11
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 9.35
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 85
-      m_Y: 17
-      m_Width: 14
-      m_Height: 11
+      m_X: 90
+      m_Y: 2
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
     sprite: {fileID: 0}
   - m_Index: 27
     m_Metrics:
-      m_Width: 14
-      m_Height: 11
+      m_Width: 16
+      m_Height: 16
       m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 9.35
-      m_HorizontalAdvance: 14
+      m_HorizontalBearingY: 13.6
+      m_HorizontalAdvance: 16
     m_GlyphRect:
-      m_X: 101
-      m_Y: 17
-      m_Width: 14
-      m_Height: 11
+      m_X: 108
+      m_Y: 2
+      m_Width: 16
+      m_Height: 16
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0

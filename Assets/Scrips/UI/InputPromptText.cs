@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// 把带 {Action} 占位符的引导文案渲染成按键图标混排。
+/// 把带 {Action} / {Move/down} 占位符的引导文案渲染成按键图标混排。
 /// 挂在任意 TMP_Text（世界空间背景板或 HUD）上。
 /// </summary>
 [DisallowMultipleComponent]

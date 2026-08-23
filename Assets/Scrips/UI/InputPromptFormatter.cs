@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.DualShock;
 
 /// <summary>
-/// 把 {Ability2} / {Player/Jump} 换成当前设备对应的 TMP 按键精灵标签。
+/// 把 {Ability2} / {Player/Jump} / {Move/down} 换成当前设备对应的 TMP 按键精灵标签。
 /// </summary>
 public static class InputPromptFormatter
 {
@@ -82,12 +82,18 @@ public static class InputPromptFormatter
 
     static string ResolveToken(string token)
     {
-        var action = FindAction(token);
-        if (action == null)
+        if (!TryResolveAction(token, out InputAction action, out string partName))
             return token;
 
         bool useGamepad = InputPromptDeviceTracker.UsesGamepad;
         GamepadFamily family = InputPromptDeviceTracker.CurrentGamepadFamily;
+
+        if (!string.IsNullOrEmpty(partName))
+        {
+            if (TryFormatCompositePart(action, partName, useGamepad, family, out string part))
+                return part;
+            return token;
+        }
 
         if (TryFormatComposite(action, useGamepad, family, out string composite))
             return composite;
@@ -106,6 +112,34 @@ public static class InputPromptFormatter
         return string.IsNullOrEmpty(fallback) ? token : fallback;
     }
 
+    static bool TryResolveAction(string token, out InputAction action, out string partName)
+    {
+        action = null;
+        partName = null;
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        string trimmed = token.Trim();
+        action = FindAction(trimmed);
+        if (action != null)
+            return true;
+
+        int slash = trimmed.LastIndexOf('/');
+        if (slash <= 0 || slash >= trimmed.Length - 1)
+            return false;
+
+        partName = trimmed.Substring(slash + 1).Trim();
+        action = FindAction(trimmed.Substring(0, slash).Trim());
+        if (action == null || string.IsNullOrEmpty(partName))
+        {
+            action = null;
+            partName = null;
+            return false;
+        }
+
+        return true;
+    }
+
     static InputAction FindAction(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -120,6 +154,65 @@ public static class InputPromptFormatter
             return Asset.FindAction("Player/" + trimmed, false);
 
         return null;
+    }
+
+    static bool TryFormatCompositePart(
+        InputAction action,
+        string partName,
+        bool useGamepad,
+        GamepadFamily family,
+        out string result)
+    {
+        result = null;
+        var bindings = action.bindings;
+
+        for (int i = 0; i < bindings.Count; i++)
+        {
+            var binding = bindings[i];
+            if (!binding.isComposite)
+                continue;
+            if (!CompositeMatchesDevice(action, i, useGamepad))
+                continue;
+
+            for (int j = i + 1; j < bindings.Count; j++)
+            {
+                var part = bindings[j];
+                if (!part.isPartOfComposite)
+                    break;
+                if (!string.Equals(part.name, partName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (!PathMatchesDevice(part.effectivePath, useGamepad))
+                    continue;
+
+                string tag = SpriteTagFromPath(part.effectivePath, useGamepad, family);
+                result = string.IsNullOrEmpty(tag) ? part.name : tag;
+                return true;
+            }
+        }
+
+        if (useGamepad && ActionHasComposite(action))
+        {
+            string padSprite = ResolveGamepadSprite(partName, family);
+            if (!string.IsNullOrEmpty(padSprite))
+            {
+                result = SpriteTag(GamepadSpriteAsset, padSprite);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    static bool ActionHasComposite(InputAction action)
+    {
+        var bindings = action.bindings;
+        for (int i = 0; i < bindings.Count; i++)
+        {
+            if (bindings[i].isComposite)
+                return true;
+        }
+
+        return false;
     }
 
     static bool TryFormatComposite(

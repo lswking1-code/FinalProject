@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.TextCore;
 
 /// <summary>
-/// 从 Pixel Keys / ExIcons 打包 TMP Sprite Asset，供引导字混排按键图标。
+/// 从 Pixel Keys / gdb-xbox-2 large / ExIcons 打包 TMP Sprite Asset，供引导字混排按键图标。
 /// </summary>
 public static class InputPromptSpriteAssetBuilder
 {
@@ -18,6 +18,30 @@ public static class InputPromptSpriteAssetBuilder
     const string GamepadAssetPath = OutputFolder + "/GamepadIcons.asset";
     const string PixelKeysFolder = "Assets/Arts/Icons/Pixel Keys x16/Tiles White";
     const string ExIconsFolder = "Assets/Arts/Icons/ExIcons/Sprites_Cropped";
+    const string XboxSheetPath = "Assets/Arts/Icons/gdb-xbox-2.png";
+
+    /// <summary>
+    /// gdb-xbox-2 large 静态帧（Unity 纹理坐标，原点左下）。
+    /// </summary>
+    static readonly Dictionary<string, RectInt> XboxLargeCrops = new()
+    {
+        ["xbox_x"] = new RectInt(16, 592, 16, 16),
+        ["xbox_a"] = new RectInt(16, 576, 16, 16),
+        ["xbox_y"] = new RectInt(16, 560, 16, 16),
+        ["xbox_b"] = new RectInt(16, 544, 16, 16),
+        ["select"] = new RectInt(16, 528, 16, 16),
+        ["start"] = new RectInt(16, 512, 16, 16),
+        ["left_stick"] = new RectInt(216, 592, 16, 16),
+        ["right_stick"] = new RectInt(280, 592, 16, 16),
+        ["left_trigger"] = new RectInt(336, 576, 16, 16),
+        ["right_trigger"] = new RectInt(336, 560, 16, 16),
+        ["left_shoulder"] = new RectInt(336, 544, 16, 16),
+        ["right_shoulder"] = new RectInt(336, 528, 16, 16),
+        ["dpad_up"] = new RectInt(160, 576, 16, 16),
+        ["dpad_down"] = new RectInt(176, 576, 16, 16),
+        ["dpad_left"] = new RectInt(160, 560, 16, 16),
+        ["dpad_right"] = new RectInt(176, 560, 16, 16),
+    };
 
     static readonly string[] GamepadSourceNames =
     {
@@ -107,9 +131,9 @@ public static class InputPromptSpriteAssetBuilder
             "KeyIcons",
             StripPxkwPrefix);
 
-        var gamepadEntries = CollectGamepadEntries();
-        var gamepadAsset = BuildFromEntries(
-            gamepadEntries,
+        var gamepadTextures = CollectGamepadTextures();
+        var gamepadAsset = BuildFromTextures(
+            gamepadTextures,
             GamepadAtlasPath,
             GamepadAssetPath,
             "GamepadIcons");
@@ -137,25 +161,72 @@ public static class InputPromptSpriteAssetBuilder
         return name;
     }
 
-    static List<(string name, string path)> CollectGamepadEntries()
+    static List<(string name, Texture2D texture)> CollectGamepadTextures()
     {
-        var list = new List<(string, string)>();
+        var list = new List<(string, Texture2D)>();
+        Texture2D xboxSheet = null;
+        string xboxFullPath = ToFullPath(XboxSheetPath);
+        if (File.Exists(xboxFullPath))
+            xboxSheet = LoadPng(xboxFullPath);
+        else
+            Debug.LogWarning($"缺少 Xbox 图集：{XboxSheetPath}");
+
         foreach (string source in GamepadSourceNames)
         {
-            string path = $"{ExIconsFolder}/{source}.png";
-            if (!File.Exists(ToFullPath(path)))
-            {
-                Debug.LogWarning($"缺少手柄图标：{path}");
-                continue;
-            }
-
             string spriteName = GamepadSpriteNames.TryGetValue(source, out string mapped)
                 ? mapped
                 : source;
-            list.Add((spriteName, path));
+
+            Texture2D texture = null;
+            if (xboxSheet != null && XboxLargeCrops.TryGetValue(spriteName, out RectInt crop))
+            {
+                texture = CropFromSheet(xboxSheet, crop);
+                if (texture == null)
+                    Debug.LogWarning($"无法从 {XboxSheetPath} 裁切 {spriteName} {crop}");
+            }
+
+            if (texture == null)
+            {
+                string path = $"{ExIconsFolder}/{source}.png";
+                if (!File.Exists(ToFullPath(path)))
+                {
+                    Debug.LogWarning($"缺少手柄图标：{path}");
+                    continue;
+                }
+
+                texture = LoadPng(ToFullPath(path));
+                if (texture == null)
+                {
+                    Debug.LogWarning($"无法读取图标：{path}");
+                    continue;
+                }
+            }
+
+            list.Add((spriteName, texture));
         }
 
         return list;
+    }
+
+    static Texture2D CropFromSheet(Texture2D sheet, RectInt crop)
+    {
+        if (sheet == null
+            || crop.width <= 0
+            || crop.height <= 0
+            || crop.x < 0
+            || crop.y < 0
+            || crop.x + crop.width > sheet.width
+            || crop.y + crop.height > sheet.height)
+            return null;
+
+        var texture = new Texture2D(crop.width, crop.height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Point,
+            wrapMode = TextureWrapMode.Clamp,
+        };
+        texture.SetPixels(sheet.GetPixels(crop.x, crop.y, crop.width, crop.height));
+        texture.Apply(false, false);
+        return texture;
     }
 
     static TMP_SpriteAsset BuildFromFolder(
@@ -182,11 +253,25 @@ public static class InputPromptSpriteAssetBuilder
         }
 
         entries.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
-        return BuildFromEntries(entries, atlasPath, assetPath, assetName);
+
+        var textures = new List<(string name, Texture2D texture)>(entries.Count);
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var loaded = LoadPng(ToFullPath(entries[i].path));
+            if (loaded == null)
+            {
+                Debug.LogError($"无法读取图标：{entries[i].path}");
+                return null;
+            }
+
+            textures.Add((entries[i].name, loaded));
+        }
+
+        return BuildFromTextures(textures, atlasPath, assetPath, assetName);
     }
 
-    static TMP_SpriteAsset BuildFromEntries(
-        List<(string name, string path)> entries,
+    static TMP_SpriteAsset BuildFromTextures(
+        List<(string name, Texture2D texture)> entries,
         string atlasPath,
         string assetPath,
         string assetName)
@@ -200,10 +285,10 @@ public static class InputPromptSpriteAssetBuilder
         var textures = new Texture2D[entries.Count];
         for (int i = 0; i < entries.Count; i++)
         {
-            textures[i] = LoadPng(ToFullPath(entries[i].path));
+            textures[i] = entries[i].texture;
             if (textures[i] == null)
             {
-                Debug.LogError($"无法读取图标：{entries[i].path}");
+                Debug.LogError($"无法读取图标：{entries[i].name}");
                 return null;
             }
         }
