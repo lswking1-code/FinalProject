@@ -73,3 +73,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# FMOD: editor cache is generated locally per machine and must not be versioned.
+# Official guidance: https://www.fmod.com/docs/unity/user-guide.html#using-source-control
+/[Aa]ssets/Plugins/FMOD/Cache/*
+/[Aa]ssets/**/FMODStudioCache.asset
+/[Aa]ssets/**/FMODStudioCache.asset.meta

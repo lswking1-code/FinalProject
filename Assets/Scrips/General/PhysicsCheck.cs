@@ -225,7 +225,7 @@ public class PhysicsCheck : MonoBehaviour
             if (hit.collider == null)
                 return false;
 
-            if (IsLedgeSelfCollider(hit.collider) || hit.collider.isTrigger)
+            if (IsLedgeSelfCollider(hit.collider) || hit.collider.isTrigger || IsPickupCollider(hit.collider))
             {
                 AdvanceLedgeProbe(ref origin, ref remaining, hit);
                 continue;
@@ -503,6 +503,9 @@ public class PhysicsCheck : MonoBehaviour
         if (obstacle == null)
             return true;
 
+        if (IsPickupCollider(obstacle))
+            return false;
+
         if (platformDropThrough != null)
             return platformDropThrough.ShouldCollideWith(obstacle);
 
@@ -531,7 +534,19 @@ public class PhysicsCheck : MonoBehaviour
 
     bool IsCollisionIgnored(Collider2D other)
     {
+        if (IsPickupCollider(other))
+            return true;
         return coll != null && other != null && Physics2D.GetIgnoreCollision(coll, other);
+    }
+
+    static bool IsPickupCollider(Collider2D other)
+    {
+        if (other == null)
+            return false;
+
+        return other.GetComponent<BulletBox>() != null
+            || other.GetComponent<HealthPack>() != null
+            || other.GetComponent<LifePack>() != null;
     }
 
     /// <summary>
