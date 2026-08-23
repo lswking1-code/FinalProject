@@ -1,0 +1,546 @@
+fileFormatVersion: 2
+guid: 45b8e75ac2ea1594a9ba596eb127b9b2
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6164163770514957472
+    second: enemy_rocket_walk_0
+  - first:
+      213: 1056205924017635705
+    second: enemy_rocket_walk_1
+  - first:
+      213: -1831693442530359140
+    second: enemy_rocket_walk_2
+  - first:
+      213: -767755197992776922
+    second: enemy_rocket_walk_3
+  - first:
+      213: -3730830668020867649
+    second: enemy_rocket_walk_4
+  - first:
+      213: -1780810460247824111
+    second: enemy_rocket_walk_5
+  - first:
+      213: -3661713855537024239
+    second: enemy_rocket_walk_6
+  - first:
+      213: -6479266762404367166
+    second: enemy_rocket_walk_7
+  - first:
+      213: -1885697720014452482
+    second: enemy_rocket_walk_8
+  - first:
+      213: 3973952588095159505
+    second: enemy_rocket_walk_9
+  - first:
+      213: -8561537445456379503
+    second: enemy_rocket_walk_10
+  - first:
+      213: 2039464255155539262
+    second: enemy_rocket_walk_11
+  - first:
+      213: 1668716594474715939
+    second: enemy_rocket_walk_12
+  - first:
+      213: -4277529943684228964
+    second: enemy_rocket_walk_13
+  - first:
+      213: 7154500834542078094
+    second: enemy_rocket_walk_14
+  - first:
+      213: 3076398840466653567
+    second: enemy_rocket_walk_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_rocket_walk_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a460e64a428b8550800000000000000
+      internalID: 6164163770514957472
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_1
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9710cbe11b568ae00800000000000000
+      internalID: 1056205924017635705
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_2
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 204
+        width: 34
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c98c09cc4848496e0800000000000000
+      internalID: -1831693442530359140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_3
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 204
+        width: 34
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62b4e2517b26855f0800000000000000
+      internalID: -767755197992776922
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_4
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbd9b73364d693cc0800000000000000
+      internalID: -3730830668020867649
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_5
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 140
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 119e0a0525a4947e0800000000000000
+      internalID: -1780810460247824111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_6
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 113f69326aafe2dc0800000000000000
+      internalID: -3661713855537024239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_7
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c474ed45350516a0800000000000000
+      internalID: -6479266762404367166
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_8
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 76
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef846cc1ae7a4d5e0800000000000000
+      internalID: -1885697720014452482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_9
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 76
+        width: 34
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dcf7afe2d0562730800000000000000
+      internalID: 3973952588095159505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_10
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 76
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1910e58ed0f4f2980800000000000000
+      internalID: -8561537445456379503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_11
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 76
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3d07ac3fe1ad4c10800000000000000
+      internalID: 2039464255155539262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_12
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 12
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 32b0774c6e8782710800000000000000
+      internalID: 1668716594474715939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_13
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 12
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c98da96fd2923a4c0800000000000000
+      internalID: -4277529943684228964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_14
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 12
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e88cd145a94e94360800000000000000
+      internalID: 7154500834542078094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_walk_15
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 12
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f714079227091ba20800000000000000
+      internalID: 3076398840466653567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_rocket_walk_0: 6164163770514957472
+      enemy_rocket_walk_1: 1056205924017635705
+      enemy_rocket_walk_10: -8561537445456379503
+      enemy_rocket_walk_11: 2039464255155539262
+      enemy_rocket_walk_12: 1668716594474715939
+      enemy_rocket_walk_13: -4277529943684228964
+      enemy_rocket_walk_14: 7154500834542078094
+      enemy_rocket_walk_15: 3076398840466653567
+      enemy_rocket_walk_2: -1831693442530359140
+      enemy_rocket_walk_3: -767755197992776922
+      enemy_rocket_walk_4: -3730830668020867649
+      enemy_rocket_walk_5: -1780810460247824111
+      enemy_rocket_walk_6: -3661713855537024239
+      enemy_rocket_walk_7: -6479266762404367166
+      enemy_rocket_walk_8: -1885697720014452482
+      enemy_rocket_walk_9: 3973952588095159505
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
