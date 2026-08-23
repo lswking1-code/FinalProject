@@ -465,7 +465,7 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 1
-    damage: 30
+    damage: 20
     hitboxSize: {x: 2.6, y: 1.8}
     hitboxOffset: {x: 1.2, y: 0.15}
     upHitboxSize: {x: 1.5, y: 2.6}
@@ -484,11 +484,11 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 2
-    damage: 20
-    hitboxSize: {x: 4, y: 0.85}
+    damage: 10
+    hitboxSize: {x: 7.28, y: 1.27}
     hitboxOffset: {x: 2, y: 0.05}
-    upHitboxSize: {x: 0.55, y: 3.6}
-    upHitboxOffset: {x: 0, y: 2}
+    upHitboxSize: {x: 1.74, y: 6.12}
+    upHitboxOffset: {x: -0.67, y: 3.02}
     detectSize: {x: 4.4, y: 1.4}
     detectOffset: {x: 2.1, y: 0.1}
     maxTargets: 6
@@ -552,7 +552,7 @@ MonoBehaviour:
     knockbackDuration: 0.22
   - weaponId: 2
     damage: 30
-    hitboxSize: {x: 5.98, y: 0.6}
+    hitboxSize: {x: 7.49, y: 1.1}
     hitboxOffset: {x: 2.2, y: 0}
     maxTargets: 6
     hitStart: 0.18
@@ -571,14 +571,14 @@ MonoBehaviour:
   - weaponId: 3
     damage: 20
     hitboxSize: {x: 2, y: 1.6}
-    hitboxOffset: {x: 0, y: 0}
+    hitboxOffset: {x: -1.01, y: -0.18}
     maxTargets: 6
     hitStart: 0.18
     hitEnd: 0.62
     rearHitStart: 0
     rearHitEnd: 0
-    outerRadius: 3.2
-    innerRadius: 1.5
+    outerRadius: 3.4
+    innerRadius: 2.11
     innerDamage: 55
     rushSpeed: 0
     rushStart: 0
@@ -597,6 +597,8 @@ MonoBehaviour:
   rushUltimateLaunchSpeedY: 13
   rushUltimateLaunchSpeedX: 2.5
   rushUltimateLaunchHoldDuration: 0.45
+  rushAttackComboEnabled: 1
+  rushComboBufferEarliest: 0.05
   shortMeleeDashSpeed: 15
   shortMeleeDashStart: 0.08
   shortMeleeDashEnd: 0.38

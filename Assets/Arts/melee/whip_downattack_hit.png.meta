@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7d261869180a040b897708f9f6d2c3ec
+guid: bce528fb6776e5f45b1b5be2dfa8b727
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7793414279092725360
-    second: rush_attack_hit_0
+      213: 4103766387345317335
+    second: whip_downattack_hit_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: rush_attack_hit_0
+      name: whip_downattack_hit_0
       rect:
         serializedVersion: 2
-        x: 22
-        y: 31
-        width: 53
-        height: 57
+        x: 33
+        y: 22
+        width: 50
+        height: 106
       alignment: 9
-      pivot: {x: 0.14683108, y: 0.04545443}
+      pivot: {x: 0.6334431, y: 0.59938663}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0999833210b38d390800000000000000
-      internalID: -7793414279092725360
+      spriteID: 7ddd7ee59c183f830800000000000000
+      internalID: 4103766387345317335
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5ed29c056c2c44def95854ef15ee0ce7
+    spriteID: 9a40876c1210d5d4ebba69d5f253551c
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      rush_attack_hit_0: -7793414279092725360
+      whip_downattack_hit_0: 4103766387345317335
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

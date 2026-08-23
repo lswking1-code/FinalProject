@@ -4,7 +4,8 @@ using UnityEngine;
 /// <summary>
 /// 单 Animator 全身动画（近战角色 / Bob）。Animator 状态名需与 <see cref="PlayerAnim"/> 全身层一致：
 /// Idle, Run, Jump, Fall, Leap, LeapAir, Land, Turn, CrouchStart, Crouch, CrouchTurn, CrouchMove,
-/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, JumpDownAttack, CrouchMelee, Special, Die, WeaponSwitch。
+/// Melee, AirMelee, UpMelee, AirUpMelee, DownMelee, JumpDownAttack, CrouchMelee, Special,
+/// rush_ult / whip_ult / buzzsaw_ult, Die, WeaponSwitch。
 /// 推荐 AnimatorController：<c>Assets/Animations/melee/melee_full.controller</c>。
 /// 切枪：Apply 目标姿后，按 from→to 覆盖 default_switch（三武器六边；空手相关用 to.weaponSwitch）。
 /// </summary>
@@ -24,6 +25,9 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     const string JumpDownAttackStateName = "JumpDownAttack";
     const string CrouchMeleeStateName = "CrouchMelee";
     const string SpecialStateName = "Special";
+    const string RushUltStateName = "rush_ult";
+    const string WhipUltStateName = "whip_ult";
+    const string BuzzsawUltStateName = "buzzsaw_ult";
     const string DieStateName = "Die";
     const string WeaponSwitchStateName = "WeaponSwitch";
     const string DefaultSwitchClipName = "default_switch";
@@ -90,6 +94,7 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     string activeMeleeStateName;
     float meleeStartedAt = -1f;
     float oneShotStartedAt = -1f;
+    bool? meleeLookUpOverride;
     AnimatorOverrideController bodyOverrideController;
     RuntimeAnimatorController bodyBaseController;
     WeaponDefinition appliedWeaponDef;
@@ -116,12 +121,13 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     /// <summary>当前是否为蹲伏攻击（CrouchMelee）。</summary>
     public bool IsCrouchMelee =>
         isMelee && activeMeleeStateName == CrouchMeleeStateName;
-    /// <summary>当前是否为武器特技（Special）。大招也走同一状态。</summary>
+    /// <summary>当前是否为武器特技（Special）或大招（命中逻辑共用 special profile）。</summary>
     public override bool IsSpecial =>
-        isMelee && activeMeleeStateName == SpecialStateName;
-    /// <summary>当前是否为大招（I / Ability2）：同特技动画，更高伤害。</summary>
+        isMelee
+        && (activeMeleeStateName == SpecialStateName || IsUltimateStateName(activeMeleeStateName));
+    /// <summary>当前是否为大招（I / Ability2）：各武器独立 *_ult 状态。</summary>
     public bool IsUltimate =>
-        isMelee && isUltimate && activeMeleeStateName == SpecialStateName;
+        isMelee && isUltimate && IsUltimateStateName(activeMeleeStateName);
     public override bool IsSwitchingWeapon => isSwitchingWeapon;
     public override bool IsDead => isDead;
     public override bool IsLookingUp => isLookingUp;
@@ -399,8 +405,12 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
     public override bool TryPlayMeleeAnim()
     {
-        if (isSwitchingWeapon || isDead || bodyAnimator == null)
+        if (isDead || bodyAnimator == null)
             return false;
+
+        // 切枪可被近战取消；近战本身仍须播完才能接下一段（由 Bob 输入锁保证）
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
 
         if (IsPlayingLand)
             InterruptLand();
@@ -420,6 +430,17 @@ public class PlayerFullBodyAnim : PlayerAnimBase
     }
 
     /// <summary>
+    /// 强制仰视/非仰视解析近战状态（忽略摇杆），用于 Rush 普攻↔上攻连段。
+    /// </summary>
+    public bool TryPlayMeleeAnimForcedLookUp(bool lookUp)
+    {
+        meleeLookUpOverride = lookUp;
+        bool played = TryPlayMeleeAnim();
+        meleeLookUpOverride = null;
+        return played;
+    }
+
+    /// <summary>
     /// 播放当前武器特技（Special）。仅 weaponId 1/2/3 且 WeaponDefinition.special 已配置时可用。
     /// 走与近战相同的 IsMelee / 完成检测，便于 Bob_Controller 复用命中窗。
     /// </summary>
@@ -427,19 +448,30 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         => TryPlaySpecialAnimInternal(ultimate: false);
 
     /// <summary>
-    /// 大招：复用 Special 动画与命中逻辑，由 Bob_Controller 提高伤害并消耗 AbilityPower。
+    /// 大招：播放当前武器对应的 *_ult 状态（rush_ult / whip_ult / buzzsaw_ult）。
+    /// 命中逻辑仍走 special profile，由 Bob_Controller 提高伤害并消耗 AbilityPower。
     /// </summary>
     public bool TryPlayUltimateAnim()
         => TryPlaySpecialAnimInternal(ultimate: true);
 
     bool TryPlaySpecialAnimInternal(bool ultimate)
     {
-        if (isSwitchingWeapon || isDead || bodyAnimator == null)
+        if (isDead || bodyAnimator == null)
             return false;
+
+        // 切枪可被特技/大招取消
+        if (isSwitchingWeapon)
+            CompleteWeaponSwitch();
 
         if (appliedWeaponDef == null
             || appliedWeaponDef.weaponId == 0
             || appliedWeaponDef.special == null)
+            return false;
+
+        string stateName = ultimate
+            ? ResolveUltimateStateName(appliedWeaponDef.weaponId)
+            : SpecialStateName;
+        if (string.IsNullOrEmpty(stateName))
             return false;
 
         if (IsPlayingLand)
@@ -452,22 +484,53 @@ public class PlayerFullBodyAnim : PlayerAnimBase
 
         isMelee = true;
         isUltimate = ultimate;
-        activeMeleeStateName = SpecialStateName;
+        activeMeleeStateName = stateName;
         meleeStartedAt = Time.time;
-        bodyAnimator.Play(SpecialStateName, 0, 0f);
+        bodyAnimator.Play(stateName, 0, 0f);
         return true;
     }
+
+    static string ResolveUltimateStateName(int weaponId)
+    {
+        switch (weaponId)
+        {
+            case 1: return RushUltStateName;
+            case 2: return WhipUltStateName;
+            case 3: return BuzzsawUltStateName;
+            default: return null;
+        }
+    }
+
+    static bool IsUltimateStateName(string stateName)
+        => stateName == RushUltStateName
+            || stateName == WhipUltStateName
+            || stateName == BuzzsawUltStateName;
 
     string ResolveMeleeStateName()
     {
         if (isCrouching)
+        {
+            meleeLookUpOverride = null;
             return CrouchMeleeStateName;
+        }
 
         bool grounded = airPhase == AirPhaseType.Ground;
-        bool lookUp = IsLookUpHeld();
-        bool lookDown = IsLookDownHeld();
-        // 空手（weapon 0）无独立上攻：上看时仍走 attack / jump_attack
-        bool allowUpMelee = AppliedWeaponId != 0;
+        bool lookUp;
+        bool lookDown;
+        if (meleeLookUpOverride.HasValue)
+        {
+            lookUp = meleeLookUpOverride.Value;
+            lookDown = false;
+            meleeLookUpOverride = null;
+        }
+        else
+        {
+            lookUp = IsLookUpHeld();
+            lookDown = IsLookDownHeld();
+        }
+
+        // 空手仅地面有独立上攻；空中上看仍走 jump_attack。Rush 等武器空中可上攻。
+        bool allowUpMelee = AppliedWeaponId != 0 || grounded;
 
         if (grounded)
         {
@@ -553,11 +616,12 @@ public class PlayerFullBodyAnim : PlayerAnimBase
         if (toDef == null || isDead || bodyAnimator == null)
             return false;
 
+        // 攻击/特技/大招须播完；不可用切枪打断
+        if (isMelee)
+            return false;
+
         if (isSwitchingWeapon)
             CompleteWeaponSwitch();
-
-        if (isMelee)
-            CompleteMelee();
 
         if (IsPlayingLand)
             InterruptLand();

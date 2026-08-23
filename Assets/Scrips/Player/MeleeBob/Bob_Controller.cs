@@ -66,7 +66,7 @@ public class Bob_Controller : MonoBehaviour
         public int damage;
         [Tooltip("特技 Hitbox 本地尺寸（Rush / Whip 前方盒）")]
         public Vector2 hitboxSize;
-        [Tooltip("特技 Hitbox 本地偏移（面向右为正 X）")]
+        [Tooltip("特技 Hitbox / Buzzsaw 圆心本地偏移（面向右为正 X；Buzzsaw 双圆圆心也用此值）")]
         public Vector2 hitboxOffset;
         [Tooltip("0 = 不限制命中数；>0 为单次特技最多命中敌人数")]
         public int maxTargets;
@@ -80,12 +80,13 @@ public class Bob_Controller : MonoBehaviour
         [Range(0f, 1f)] public float rearHitEnd;
 
         [Header("Buzzsaw · 双层圆形判定")]
-        [Tooltip("外圈半径（高伤害，使用 damage）")]
+        [Tooltip("外圈半径（低伤害，使用 innerDamage）")]
         public float outerRadius;
-        [Tooltip("内圈半径（低伤害，使用 innerDamage）")]
+        [Tooltip("内圈半径（高伤害，使用 damage）")]
         public float innerRadius;
-        [Tooltip("内圈伤害（应低于 damage）")]
+        [Tooltip("外圈伤害（应低于 damage；内圈用 damage）")]
         public int innerDamage;
+        // 圆心相对 MeleePoint 的偏移：复用上方 hitboxOffset（正 X 为面向前方）
 
         [Header("Rush · 向前冲刺 + 推动")]
         [Tooltip("冲刺水平速度（单位/秒）")]
@@ -239,6 +240,12 @@ public class Bob_Controller : MonoBehaviour
     [Tooltip("击飞后压住敌人水平速度的时长，避免 AI 立刻把人拉回地面走位")]
     [SerializeField] float rushUltimateLaunchHoldDuration = 0.45f;
 
+    [Header("近战连段（普攻 ↔ 上攻）")]
+    [Tooltip("空手 / Rush：仅地面。普攻或上攻动画结束前再按攻击，衔接另一段")]
+    [SerializeField] bool rushAttackComboEnabled = true;
+    [Tooltip("连段缓冲最早可登记的归一化时间（避免与起手同一帧误触）")]
+    [Range(0f, 0.5f)] [SerializeField] float rushComboBufferEarliest = 0.05f;
+
     [Header("短距冲刺（CrouchMelee · 无推怪）")]
     [Tooltip("蹲攻短距冲刺速度；应明显短于 rush_special")]
     [SerializeField] float shortMeleeDashSpeed = 10f;
@@ -330,6 +337,8 @@ public class Bob_Controller : MonoBehaviour
     bool jumpDownImpactApplied;
     bool wasDeadForSfx;
     bool wasSwitchingWeaponForSfx;
+    bool hasPendingRushCombo;
+    bool pendingRushComboUpward;
     readonly List<WhipKnockbackEntry> whipKnockbackEntries = new();
 
     struct WhipKnockbackEntry
@@ -406,6 +415,9 @@ public class Bob_Controller : MonoBehaviour
     {
         RefreshWeaponProfile(force: false);
 
+        // 须在近战 Complete 之前登记缓冲，否则最后一帧按键会丢
+        TryBufferRushComboInput();
+
         // 攻击锁期间关掉了 PlayerMovement，需自行推进空中/近战完成检测
         if (holdingAttackInputLock)
             MaintainAttackLockAnimation();
@@ -417,6 +429,7 @@ public class Bob_Controller : MonoBehaviour
         TryStartSpecialAttack();
         TryStartUltimateAttack();
         UpdateMeleeHitbox();
+        TryConsumePendingRushCombo();
         UpdateCommonActionSfx();
     }
 
@@ -963,6 +976,10 @@ public class Bob_Controller : MonoBehaviour
 
     void TryStartMeleeAttack()
     {
+        // 有 Rush 连段待接时本帧不走普通起手，交给 TryConsumePendingRushCombo
+        if (hasPendingRushCombo)
+            return;
+
         if (holdingAttackInputLock)
             return;
 
@@ -1021,6 +1038,133 @@ public class Bob_Controller : MonoBehaviour
         }
     }
 
+    bool IsAttackUpComboWeapon(int weaponId)
+        => weaponId == 0 || weaponId == 1;
+
+    bool IsRushComboMeleeEligible()
+    {
+        if (!rushAttackComboEnabled || fullBodyAnim == null)
+            return false;
+        if (!IsAttackUpComboWeapon(ResolveCurrentWeaponId()))
+            return false;
+        // 仅地面可登记/衔接连段
+        if (physicsCheck == null || !physicsCheck.isGround)
+            return false;
+        if (playerAnim == null || !playerAnim.IsMelee)
+            return false;
+        if (IsCurrentSwingSpecial() || IsCurrentSwingUltimate())
+            return false;
+        if (IsCurrentSwingCrouchMelee() || IsCurrentSwingJumpDownAttack())
+            return false;
+        // 仅普攻 / 上攻可交替连段
+        return true;
+    }
+
+    void TryBufferRushComboInput()
+    {
+        if (!actions.Player.Attack.WasPressedThisFrame())
+            return;
+        if (!IsRushComboMeleeEligible())
+            return;
+
+        if (playerAnim.TryGetMeleeAnimProgress(out float t) && t < rushComboBufferEarliest)
+            return;
+
+        // 当前上攻 → 下一段普攻；当前普攻 → 下一段上攻
+        pendingRushComboUpward = !IsCurrentSwingUpward();
+        hasPendingRushCombo = true;
+    }
+
+    void TryConsumePendingRushCombo()
+    {
+        if (!hasPendingRushCombo)
+            return;
+        if (!rushAttackComboEnabled || fullBodyAnim == null)
+        {
+            ClearPendingRushCombo();
+            return;
+        }
+        if (!IsAttackUpComboWeapon(ResolveCurrentWeaponId()))
+        {
+            ClearPendingRushCombo();
+            return;
+        }
+        // 离地则丢弃缓冲，不做空中接技
+        if (physicsCheck == null || !physicsCheck.isGround)
+        {
+            ClearPendingRushCombo();
+            return;
+        }
+        if (playerAnim == null || playerAnim.IsDead || playerAnim.IsMelee || playerAnim.IsSpecial)
+            return;
+        if (holdingAttackInputLock)
+            return;
+        if (playerMovement != null && playerMovement.IsActionLocked)
+        {
+            ClearPendingRushCombo();
+            return;
+        }
+
+        bool upward = pendingRushComboUpward;
+        ClearPendingRushCombo();
+        TryStartRushComboMelee(upward);
+    }
+
+    void ClearPendingRushCombo()
+    {
+        hasPendingRushCombo = false;
+        pendingRushComboUpward = false;
+    }
+
+    void TryStartRushComboMelee(bool upward)
+    {
+        if (fullBodyAnim == null || playerAnim == null)
+            return;
+        if (playerAnim.IsMelee || playerAnim.IsSpecial || playerAnim.IsDead)
+            return;
+        if (holdingAttackInputLock)
+            return;
+        if (physicsCheck == null || !physicsCheck.isGround)
+            return;
+
+        int weaponId = ResolveCurrentWeaponId();
+        if (!IsAttackUpComboWeapon(weaponId))
+            return;
+
+        int meleeAmmoCost = ResolveMeleeAmmoCost(weaponId);
+        if (!HasWeaponAmmo(weaponId, meleeAmmoCost))
+            return;
+
+        if (detectZone != null && detectZone.HasValidTarget)
+        {
+            var target = detectZone.GetNearestTarget(transform.position);
+            if (target != null && playerMovement != null)
+                playerMovement.FaceTowardWorldX(target.position.x);
+        }
+
+        playerAnim.SetLookUp(upward);
+        playerAnim.SetLookDown(false);
+
+        swingHitTargets.Clear();
+        specialRearHitTargets.Clear();
+        swingHitCountables.Clear();
+        buzzsawActiveHitTick = -1;
+        playerAnim.InterruptTurn();
+
+        if (!fullBodyAnim.TryPlayMeleeAnimForcedLookUp(upward))
+            return;
+
+        // 强制上攻连段不应落成下砸；且连段仅地面
+        if (fullBodyAnim.IsJumpDownAttack || !physicsCheck.isGround)
+            return;
+
+        TryConsumeWeaponAmmo(weaponId, meleeAmmoCost);
+        ApplyActiveProfileToColliders();
+        LogSkillCast();
+        PlayMeleeActionSfx();
+        BeginAttackInputLock();
+    }
+
     void TryStartSpecialAttack()
     {
         if (!actions.Player.Ability1.WasPressedThisFrame())
@@ -1040,10 +1184,12 @@ public class Bob_Controller : MonoBehaviour
         if (holdingAttackInputLock)
             return;
 
+        ClearPendingRushCombo();
+
         if (playerMovement != null && playerMovement.IsActionLocked)
             return;
 
-        if (playerAnim == null || playerAnim.IsDead || playerAnim.IsSwitchingWeapon)
+        if (playerAnim == null || playerAnim.IsDead)
             return;
 
         if (playerAnim.IsMelee)
@@ -1575,8 +1721,8 @@ public class Bob_Controller : MonoBehaviour
         Vector2 center = ResolveSpecialCenter();
         float outer = activeSpecialProfile.outerRadius;
         float inner = activeSpecialProfile.innerRadius;
-        int outerDamage = SplitDamageAcrossTicks(ResolveSpecialSwingDamage(), BuzzsawSpecialHitTicks, tick);
-        int innerDamage = SplitDamageAcrossTicks(ResolveSpecialInnerDamage(), BuzzsawSpecialHitTicks, tick);
+        int highDamage = SplitDamageAcrossTicks(ResolveSpecialSwingDamage(), BuzzsawSpecialHitTicks, tick);
+        int lowDamage = SplitDamageAcrossTicks(ResolveSpecialInnerDamage(), BuzzsawSpecialHitTicks, tick);
         int maxTargets = activeSpecialProfile.maxTargets;
 
         if (maxTargets > 0 && swingHitTargets.Count >= maxTargets)
@@ -1617,10 +1763,12 @@ public class Bob_Controller : MonoBehaviour
                 continue;
 
             float distSq = ((Vector2)target.transform.position - center).sqrMagnitude;
-            meleeAttack.damage = distSq <= innerSq ? innerDamage : outerDamage;
+            // 内圈高伤（damage），外圈低伤（innerDamage）
+            bool inInner = distSq <= innerSq;
+            meleeAttack.damage = inInner ? highDamage : lowDamage;
             TryDealMeleeDamage(
                 target,
-                distSq <= innerSq
+                inInner
                     ? $"内圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段"
                     : $"外圈 第{tick + 1}/{BuzzsawSpecialHitTicks}段");
             swingHitTargets.Add(target);
@@ -1872,7 +2020,10 @@ public class Bob_Controller : MonoBehaviour
         Transform anchor = playerAnim != null && playerAnim.IsCrouching ? meleePoint2 : meleePoint1;
         if (anchor == null)
             anchor = transform;
-        return anchor.position;
+
+        Vector2 localOffset = hasSpecialProfile ? activeSpecialProfile.hitboxOffset : Vector2.zero;
+        // MeleePoint 通常随角色翻转，TransformPoint 会带上面向
+        return anchor.TransformPoint(localOffset);
     }
 
     bool TryResolveAttackTarget(Collider2D col, HashSet<Character> alreadyHit, out Character target)
@@ -2793,8 +2944,7 @@ public class Bob_Controller : MonoBehaviour
             DrawLocalBoxGizmo(standMatrix, profile.hitboxOffset, profile.hitboxSize, meleeColor, filled: false);
             DrawHitboxLabel(standMatrix, profile.hitboxOffset, $"{weaponName} Melee");
 
-            // 上攻（空手无独立上攻）
-            if (weaponId != 0)
+            // 上攻
             {
                 Vector2 upSize = profile.upHitboxSize.x > 0.01f ? profile.upHitboxSize : defaultUpHitboxSize;
                 Vector2 upOffset = profile.upHitboxSize.x > 0.01f ? profile.upHitboxOffset : defaultUpHitboxOffset;
@@ -2815,7 +2965,7 @@ public class Bob_Controller : MonoBehaviour
 
             if (weaponId == 3 && special.outerRadius > 0.01f)
             {
-                Vector3 center = meleePoint1 != null ? meleePoint1.position : transform.position;
+                Vector3 center = standMatrix.MultiplyPoint3x4(special.hitboxOffset);
                 DrawWireCircleGizmo(center, special.outerRadius, specialColor);
                 DrawWireCircleGizmo(center, special.innerRadius, new Color(1f, 0.75f, 0.2f, 0.28f));
                 DrawWorldLabel(center + Vector3.up * (special.outerRadius + 0.2f), $"{weaponName} Special");
@@ -2905,7 +3055,9 @@ public class Bob_Controller : MonoBehaviour
         {
             Vector3 center = Application.isPlaying
                 ? (Vector3)ResolveSpecialCenter()
-                : (meleePoint1 != null ? meleePoint1.position : transform.position);
+                : (meleePoint1 != null
+                    ? meleePoint1.TransformPoint(specialDraw.hitboxOffset)
+                    : transform.position + (Vector3)specialDraw.hitboxOffset);
             bool live = drawSpecial;
             Color outer = live
                 ? new Color(1f, 0.25f, 0.2f, 0.35f)
@@ -2958,7 +3110,7 @@ public class Bob_Controller : MonoBehaviour
             DrawLocalBoxGizmo(hitMatrix, rearOffset, specialDraw.hitboxSize, rearColor, filled: false);
         }
 
-        if (!drawUp && !drawSpecial && drawWeaponId != 0 && !(Application.isPlaying && IsCurrentSwingCrouchMelee()))
+        if (!drawUp && !drawSpecial && !(Application.isPlaying && IsCurrentSwingCrouchMelee()))
         {
             Vector2 upSize = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize;
             Vector2 upOffset = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset;
