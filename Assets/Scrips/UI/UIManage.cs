@@ -85,10 +85,8 @@ public class UIManage : MonoBehaviour
 
     void EnsureGameClearUI()
     {
-        if (gameClearPannel == null)
-            return;
-
-        if (FindChildButton(gameClearPannel.transform, "Replay", "ReplayButton") != null)
+        // 场景里已有设计好的 GameClearPanel（子物体常为 Restart，而非 Replay）时不要再生成一套
+        if (gameClearPannel == null || gameClearPannel.transform.childCount > 0)
             return;
 
         var overlay = CreateUIObject("Overlay", gameClearPannel.transform);
@@ -155,12 +153,16 @@ public class UIManage : MonoBehaviour
 
         if (gameClearPannel != null)
         {
-            var replay = FindChildButton(gameClearPannel.transform, "Replay", "ReplayButton");
+            var replay = FindChildButton(gameClearPannel.transform, "Replay", "ReplayButton", "Restart");
             if (replay != null)
             {
                 replayBtn = replay.gameObject;
                 BindButton(replay, endGameActions.OnReplay);
             }
+
+            var backToMenu = FindChildButton(gameClearPannel.transform, "Backtomenu", "BackToMenu", "Back");
+            if (backToMenu != null)
+                BindButton(backToMenu, endGameActions.OnBackToMenu);
         }
     }
 
@@ -232,7 +234,8 @@ public class UIManage : MonoBehaviour
 
     private void OnGameClearEvent()
     {
-        gameClearPannel.SetActive(true);
+        if (gameClearPannel != null)
+            gameClearPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(replayBtn);
     }
 
@@ -248,6 +251,7 @@ public class UIManage : MonoBehaviour
             gameOverPannel.SetActive(false);
         if (gameClearPannel != null)
             gameClearPannel.SetActive(false);
+        GameplayHold.Release();
     }
 
     private void OnCloseEndGamePanels() => CloseEndGamePanels();
