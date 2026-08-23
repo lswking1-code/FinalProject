@@ -1,0 +1,624 @@
+fileFormatVersion: 2
+guid: 5430822621c1a3d4aa7fc21a24a40485
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -3402233276462944414
+    second: enemy_rocket_attack_0
+  - first:
+      213: 5938458373528292134
+    second: enemy_rocket_attack_1
+  - first:
+      213: 3646749581284784232
+    second: enemy_rocket_attack_2
+  - first:
+      213: 3341437773620008115
+    second: enemy_rocket_attack_3
+  - first:
+      213: 9121185330533194923
+    second: enemy_rocket_attack_4
+  - first:
+      213: 7214767104229715798
+    second: enemy_rocket_attack_5
+  - first:
+      213: 8975952680409012384
+    second: enemy_rocket_attack_6
+  - first:
+      213: -4490169518628024114
+    second: enemy_rocket_attack_7
+  - first:
+      213: -4885224501664498388
+    second: enemy_rocket_attack_8
+  - first:
+      213: 7800855319121033516
+    second: enemy_rocket_attack_9
+  - first:
+      213: 6519882771611223637
+    second: enemy_rocket_attack_10
+  - first:
+      213: -6255607179651342347
+    second: enemy_rocket_attack_11
+  - first:
+      213: 4514261712938756200
+    second: enemy_rocket_attack_12
+  - first:
+      213: 6264412035499247120
+    second: enemy_rocket_attack_13
+  - first:
+      213: 5634193426397021592
+    second: enemy_rocket_attack_14
+  - first:
+      213: -168283024919184171
+    second: enemy_rocket_attack_15
+  - first:
+      213: 3059263169760660063
+    second: enemy_rocket_attack_16
+  - first:
+      213: -4818920996217684033
+    second: enemy_rocket_attack_17
+  - first:
+      213: 8935970512267282241
+    second: enemy_rocket_attack_18
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_rocket_attack_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 26fa9616cd6d8c0d0800000000000000
+      internalID: -3402233276462944414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_1
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62b099b6d64a96250800000000000000
+      internalID: 5938458373528292134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_2
+      rect:
+        serializedVersion: 2
+        x: 142
+        y: 204
+        width: 39
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 868b8414c6bdb9230800000000000000
+      internalID: 3646749581284784232
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_3
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 204
+        width: 52
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3b451bf83fb2f5e20800000000000000
+      internalID: 3341437773620008115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_4
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 140
+        width: 55
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bac5fe46bb5f49e70800000000000000
+      internalID: 9121185330533194923
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_5
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 140
+        width: 55
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65f29c0b470002460800000000000000
+      internalID: 7214767104229715798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_6
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 140
+        width: 38
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0a89e7cf76df09c70800000000000000
+      internalID: 8975952680409012384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_7
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 148
+        width: 15
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec0d3ecdc96bfa1c0800000000000000
+      internalID: -4490169518628024114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_8
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 140
+        width: 53
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2db042e232343cb0800000000000000
+      internalID: -4885224501664498388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_9
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 76
+        width: 38
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c29fc600594324c60800000000000000
+      internalID: 7800855319121033516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_10
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 76
+        width: 38
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 556831346d64b7a50800000000000000
+      internalID: 6519882771611223637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_11
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 76
+        width: 51
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ff9f7ae96e9f29a0800000000000000
+      internalID: -6255607179651342347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_12
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 76
+        width: 54
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8686cde3c11e5ae30800000000000000
+      internalID: 4514261712938756200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_13
+      rect:
+        serializedVersion: 2
+        x: 10
+        y: 12
+        width: 55
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0164d965e89afe650800000000000000
+      internalID: 6264412035499247120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_14
+      rect:
+        serializedVersion: 2
+        x: 74
+        y: 12
+        width: 42
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8954c30f11da03e40800000000000000
+      internalID: 5634193426397021592
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_15
+      rect:
+        serializedVersion: 2
+        x: 121
+        y: 44
+        width: 6
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5dcb6fdfa732aadf0800000000000000
+      internalID: -168283024919184171
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_16
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 12
+        width: 53
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f5a050ce4afa47a20800000000000000
+      internalID: 3059263169760660063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_17
+      rect:
+        serializedVersion: 2
+        x: 202
+        y: 12
+        width: 38
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbff5cbb2e0cf1db0800000000000000
+      internalID: -4818920996217684033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_attack_18
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 21
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1478e0b06d1f20c70800000000000000
+      internalID: 8935970512267282241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_rocket_attack_0: -3402233276462944414
+      enemy_rocket_attack_1: 5938458373528292134
+      enemy_rocket_attack_10: 6519882771611223637
+      enemy_rocket_attack_11: -6255607179651342347
+      enemy_rocket_attack_12: 4514261712938756200
+      enemy_rocket_attack_13: 6264412035499247120
+      enemy_rocket_attack_14: 5634193426397021592
+      enemy_rocket_attack_15: -168283024919184171
+      enemy_rocket_attack_16: 3059263169760660063
+      enemy_rocket_attack_17: -4818920996217684033
+      enemy_rocket_attack_18: 8935970512267282241
+      enemy_rocket_attack_2: 3646749581284784232
+      enemy_rocket_attack_3: 3341437773620008115
+      enemy_rocket_attack_4: 9121185330533194923
+      enemy_rocket_attack_5: 7214767104229715798
+      enemy_rocket_attack_6: 8975952680409012384
+      enemy_rocket_attack_7: -4490169518628024114
+      enemy_rocket_attack_8: -4885224501664498388
+      enemy_rocket_attack_9: 7800855319121033516
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

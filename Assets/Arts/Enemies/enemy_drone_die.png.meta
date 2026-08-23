@@ -1,0 +1,676 @@
+fileFormatVersion: 2
+guid: fd71a47cb3f57ef4c84d1522370b6d68
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -2645020184315304135
+    second: enemy_drone_die_0
+  - first:
+      213: 1015826540705849056
+    second: enemy_drone_die_1
+  - first:
+      213: -2358591884895590574
+    second: enemy_drone_die_2
+  - first:
+      213: -5703018672300365511
+    second: enemy_drone_die_3
+  - first:
+      213: -8678681292127936227
+    second: enemy_drone_die_4
+  - first:
+      213: 7142843271163613409
+    second: enemy_drone_die_5
+  - first:
+      213: -9215293081720760376
+    second: enemy_drone_die_6
+  - first:
+      213: -7557609220660046406
+    second: enemy_drone_die_7
+  - first:
+      213: -6841128401426500689
+    second: enemy_drone_die_8
+  - first:
+      213: -92096566664176069
+    second: enemy_drone_die_9
+  - first:
+      213: -6019236530191184763
+    second: enemy_drone_die_10
+  - first:
+      213: -2449129535362579287
+    second: enemy_drone_die_11
+  - first:
+      213: -5242446108263116175
+    second: enemy_drone_die_12
+  - first:
+      213: -6391687185689347904
+    second: enemy_drone_die_13
+  - first:
+      213: 1749850576452210502
+    second: enemy_drone_die_14
+  - first:
+      213: 4278877364282134158
+    second: enemy_drone_die_15
+  - first:
+      213: 5294291844698245879
+    second: enemy_drone_die_16
+  - first:
+      213: -4257131807100354361
+    second: enemy_drone_die_17
+  - first:
+      213: 9185087040342436565
+    second: enemy_drone_die_18
+  - first:
+      213: -6414773477563230357
+    second: enemy_drone_die_19
+  - first:
+      213: -456320319642766083
+    second: enemy_drone_die_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_drone_die_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 204
+        width: 52
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 937e52208200b4bd0800000000000000
+      internalID: -2645020184315304135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_1
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 203
+        width: 53
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ee9f205bd0f81e00800000000000000
+      internalID: 1015826540705849056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_2
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 202
+        width: 54
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 257eda25d29944fd0800000000000000
+      internalID: -2358591884895590574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_3
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 201
+        width: 55
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 939ed12cbbecad0b0800000000000000
+      internalID: -5703018672300365511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_4
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 136
+        width: 55
+        height: 43
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d11e2efa8512f8780800000000000000
+      internalID: -8678681292127936227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_5
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 135
+        width: 56
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1e01ff75c1a702360800000000000000
+      internalID: 7142843271163613409
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_6
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 135
+        width: 56
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8c75be254c3bc1080800000000000000
+      internalID: -9215293081720760376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_7
+      rect:
+        serializedVersion: 2
+        x: 196
+        y: 133
+        width: 56
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ab5575ba47afd1790800000000000000
+      internalID: -7557609220660046406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_8
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 65
+        width: 62
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa3332af6fd6f01a0800000000000000
+      internalID: -6841128401426500689
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_9
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 68
+        width: 57
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3ed2fa19aec8bef0800000000000000
+      internalID: -92096566664176069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_10
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 68
+        width: 58
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58c46ee5440677ca0800000000000000
+      internalID: -6019236530191184763
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_11
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 68
+        width: 59
+        height: 55
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a4cbc3e9a1f20ed0800000000000000
+      internalID: -2449129535362579287
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_12
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 3
+        width: 53
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 17219da4a071f37b0800000000000000
+      internalID: -5242446108263116175
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_13
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 3
+        width: 52
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c8f1958e5a2c47a0800000000000000
+      internalID: -6391687185689347904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_14
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 3
+        width: 51
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64f427304d7b84810800000000000000
+      internalID: 1749850576452210502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_15
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 3
+        width: 47
+        height: 51
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8e0f77da40a16b30800000000000000
+      internalID: 4278877364282134158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_16
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 48
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7fa8c74e16a197940800000000000000
+      internalID: 5294291844698245879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_17
+      rect:
+        serializedVersion: 2
+        x: 41
+        y: 8
+        width: 21
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c044cb3d21abe4c0800000000000000
+      internalID: -4257131807100354361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_18
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 8
+        width: 21
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5daa7ae9ffbf77f70800000000000000
+      internalID: 9185087040342436565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_19
+      rect:
+        serializedVersion: 2
+        x: 174
+        y: 15
+        width: 16
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b671f3352852af6a0800000000000000
+      internalID: -6414773477563230357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_die_20
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 15
+        width: 13
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df476e34613daa9f0800000000000000
+      internalID: -456320319642766083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_drone_die_0: -2645020184315304135
+      enemy_drone_die_1: 1015826540705849056
+      enemy_drone_die_10: -6019236530191184763
+      enemy_drone_die_11: -2449129535362579287
+      enemy_drone_die_12: -5242446108263116175
+      enemy_drone_die_13: -6391687185689347904
+      enemy_drone_die_14: 1749850576452210502
+      enemy_drone_die_15: 4278877364282134158
+      enemy_drone_die_16: 5294291844698245879
+      enemy_drone_die_17: -4257131807100354361
+      enemy_drone_die_18: 9185087040342436565
+      enemy_drone_die_19: -6414773477563230357
+      enemy_drone_die_2: -2358591884895590574
+      enemy_drone_die_20: -456320319642766083
+      enemy_drone_die_3: -5703018672300365511
+      enemy_drone_die_4: -8678681292127936227
+      enemy_drone_die_5: 7142843271163613409
+      enemy_drone_die_6: -9215293081720760376
+      enemy_drone_die_7: -7557609220660046406
+      enemy_drone_die_8: -6841128401426500689
+      enemy_drone_die_9: -92096566664176069
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

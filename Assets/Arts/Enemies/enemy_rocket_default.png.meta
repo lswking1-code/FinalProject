@@ -1,0 +1,546 @@
+fileFormatVersion: 2
+guid: 65f17d57ffb892a4da9c622f9ea3fe45
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5521360060268278224
+    second: enemy_rocket_default_0
+  - first:
+      213: -2794640624048971481
+    second: enemy_rocket_default_1
+  - first:
+      213: 9062370632299337172
+    second: enemy_rocket_default_2
+  - first:
+      213: -6830219116815526706
+    second: enemy_rocket_default_3
+  - first:
+      213: -5514484634990885864
+    second: enemy_rocket_default_4
+  - first:
+      213: -4393869968634228698
+    second: enemy_rocket_default_5
+  - first:
+      213: -5930030276392955857
+    second: enemy_rocket_default_6
+  - first:
+      213: 3223254039288297447
+    second: enemy_rocket_default_7
+  - first:
+      213: 5796421827517007586
+    second: enemy_rocket_default_8
+  - first:
+      213: -8459999955961192540
+    second: enemy_rocket_default_9
+  - first:
+      213: 9199027894085678290
+    second: enemy_rocket_default_10
+  - first:
+      213: 8207581082453475376
+    second: enemy_rocket_default_11
+  - first:
+      213: -5678956043949958794
+    second: enemy_rocket_default_12
+  - first:
+      213: 8764186732746184646
+    second: enemy_rocket_default_13
+  - first:
+      213: -1389364145468761613
+    second: enemy_rocket_default_14
+  - first:
+      213: 6686265363915806570
+    second: enemy_rocket_default_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_rocket_default_0
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0d1f15da8bfcf9c40800000000000000
+      internalID: 5521360060268278224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_1
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 204
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7216fa8b8217739d0800000000000000
+      internalID: -2794640624048971481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_2
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 204
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d55229531204cd70800000000000000
+      internalID: 9062370632299337172
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_3
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 204
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ec4d02cb6ef2631a0800000000000000
+      internalID: -6830219116815526706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_4
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 814c404017d9873b0800000000000000
+      internalID: -5514484634990885864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_5
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 620dc421b86d503c0800000000000000
+      internalID: -4393869968634228698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_6
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 140
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f20594cd1ec44bda0800000000000000
+      internalID: -5930030276392955857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_7
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 140
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e73f90a87c4bbc20800000000000000
+      internalID: 3223254039288297447
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_8
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 76
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e6c87df0f6017050800000000000000
+      internalID: 5796421827517007586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_9
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 76
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4afdc11fcda089a80800000000000000
+      internalID: -8459999955961192540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_10
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 76
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2d4f2e1912389af70800000000000000
+      internalID: 9199027894085678290
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_11
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 76
+        width: 33
+        height: 41
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0300bd4428f27e170800000000000000
+      internalID: 8207581082453475376
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_12
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 12
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6791e41019b4031b0800000000000000
+      internalID: -5678956043949958794
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_13
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 12
+        width: 33
+        height: 42
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c717861665a0a970800000000000000
+      internalID: 8764186732746184646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_14
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 12
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f99badbbacf7bce0800000000000000
+      internalID: -1389364145468761613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_rocket_default_15
+      rect:
+        serializedVersion: 2
+        x: 207
+        y: 12
+        width: 33
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6713325ce26acc50800000000000000
+      internalID: 6686265363915806570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_rocket_default_0: 5521360060268278224
+      enemy_rocket_default_1: -2794640624048971481
+      enemy_rocket_default_10: 9199027894085678290
+      enemy_rocket_default_11: 8207581082453475376
+      enemy_rocket_default_12: -5678956043949958794
+      enemy_rocket_default_13: 8764186732746184646
+      enemy_rocket_default_14: -1389364145468761613
+      enemy_rocket_default_15: 6686265363915806570
+      enemy_rocket_default_2: 9062370632299337172
+      enemy_rocket_default_3: -6830219116815526706
+      enemy_rocket_default_4: -5514484634990885864
+      enemy_rocket_default_5: -4393869968634228698
+      enemy_rocket_default_6: -5930030276392955857
+      enemy_rocket_default_7: 3223254039288297447
+      enemy_rocket_default_8: 5796421827517007586
+      enemy_rocket_default_9: -8459999955961192540
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

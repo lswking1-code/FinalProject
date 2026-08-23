@@ -1,0 +1,546 @@
+fileFormatVersion: 2
+guid: 66a689397956de146bdf8a5ba085696a
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5045325332794843289
+    second: enemy_drone_hurt_0
+  - first:
+      213: -1099481546887763865
+    second: enemy_drone_hurt_1
+  - first:
+      213: 1309990720649774964
+    second: enemy_drone_hurt_2
+  - first:
+      213: -7691761940500115715
+    second: enemy_drone_hurt_3
+  - first:
+      213: -5198667895755497885
+    second: enemy_drone_hurt_4
+  - first:
+      213: 5257976249695534578
+    second: enemy_drone_hurt_5
+  - first:
+      213: 7384174907960982258
+    second: enemy_drone_hurt_6
+  - first:
+      213: -3764554680776577717
+    second: enemy_drone_hurt_7
+  - first:
+      213: -1693471441567840825
+    second: enemy_drone_hurt_8
+  - first:
+      213: -2850986756619653023
+    second: enemy_drone_hurt_9
+  - first:
+      213: -3583425610000012616
+    second: enemy_drone_hurt_10
+  - first:
+      213: -8362659760727298170
+    second: enemy_drone_hurt_11
+  - first:
+      213: -183625657030708421
+    second: enemy_drone_hurt_12
+  - first:
+      213: -1288170631908081536
+    second: enemy_drone_hurt_13
+  - first:
+      213: 1327518878786554703
+    second: enemy_drone_hurt_14
+  - first:
+      213: 6859302280637392849
+    second: enemy_drone_hurt_15
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: enemy_drone_hurt_0
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 204
+        width: 52
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 990248da8a8940640800000000000000
+      internalID: 5045325332794843289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_1
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 204
+        width: 52
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76868a0cb5bddb0f0800000000000000
+      internalID: -1099481546887763865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_2
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 204
+        width: 52
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 477436bae950e2210800000000000000
+      internalID: 1309990720649774964
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_3
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 204
+        width: 52
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dfe0f9f844f514590800000000000000
+      internalID: -7691761940500115715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_4
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 140
+        width: 53
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 36e1440b71f9ad7b0800000000000000
+      internalID: -5198667895755497885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_5
+      rect:
+        serializedVersion: 2
+        x: 69
+        y: 140
+        width: 53
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fdfa888a8518f840800000000000000
+      internalID: 5257976249695534578
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_6
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 140
+        width: 52
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fafd5ca4fbd97660800000000000000
+      internalID: 7384174907960982258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_7
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 140
+        width: 52
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b4d27ca967d91cbc0800000000000000
+      internalID: -3764554680776577717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_8
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 77
+        width: 52
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7c5841042b49f78e0800000000000000
+      internalID: -1693471441567840825
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_9
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 77
+        width: 52
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 160b75866a24f68d0800000000000000
+      internalID: -2850986756619653023
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_10
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 78
+        width: 52
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8ba69ecb46d154ec0800000000000000
+      internalID: -3583425610000012616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_11
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 78
+        width: 52
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 68f6560414dd1fb80800000000000000
+      internalID: -8362659760727298170
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_12
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 15
+        width: 52
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3379051071a37df0800000000000000
+      internalID: -183625657030708421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_13
+      rect:
+        serializedVersion: 2
+        x: 70
+        y: 16
+        width: 52
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0804703a2af7f1ee0800000000000000
+      internalID: -1288170631908081536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_14
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 16
+        width: 52
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4b82b2036b4c6210800000000000000
+      internalID: 1327518878786554703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: enemy_drone_hurt_15
+      rect:
+        serializedVersion: 2
+        x: 198
+        y: 16
+        width: 52
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d72b640513213f50800000000000000
+      internalID: 6859302280637392849
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      enemy_drone_hurt_0: 5045325332794843289
+      enemy_drone_hurt_1: -1099481546887763865
+      enemy_drone_hurt_10: -3583425610000012616
+      enemy_drone_hurt_11: -8362659760727298170
+      enemy_drone_hurt_12: -183625657030708421
+      enemy_drone_hurt_13: -1288170631908081536
+      enemy_drone_hurt_14: 1327518878786554703
+      enemy_drone_hurt_15: 6859302280637392849
+      enemy_drone_hurt_2: 1309990720649774964
+      enemy_drone_hurt_3: -7691761940500115715
+      enemy_drone_hurt_4: -5198667895755497885
+      enemy_drone_hurt_5: 5257976249695534578
+      enemy_drone_hurt_6: 7384174907960982258
+      enemy_drone_hurt_7: -3764554680776577717
+      enemy_drone_hurt_8: -1693471441567840825
+      enemy_drone_hurt_9: -2850986756619653023
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
