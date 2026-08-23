@@ -31,6 +31,10 @@ public class Attack : MonoBehaviour
     [Tooltip("对 IDamageAbsorb（敌人盾牌）的伤害倍率；1 = 不额外加成。不影响打到本体的伤害")]
     public float shieldDamageMultiplier = 1f;
 
+    [Header("抵销敌人飞行道具")]
+    [Tooltip("为 true 时，近战判定可抵销敌人子弹/导弹/手雷等")]
+    public bool cancelEnemyProjectiles;
+
     [Header("命中横向震屏（opt-in）")]
     [Tooltip("仅对 Character 成功造成伤害时触发；与动画事件旧震屏独立")]
     [SerializeField] bool enableHitCameraShake;
@@ -210,13 +214,22 @@ public class Attack : MonoBehaviour
         }
         else
         {
-            var hitCountable = collision.GetComponentInParent<IHitCountable>();
-            if (hitCountable != null && CanHitCountable(hitCountable))
+            var cancelable = collision.GetComponentInParent<IEnemyProjectileCancelable>();
+            if (cancelable != null)
             {
-                if (hitCountable.RegisterHit(this))
-                {
-                    MarkHitCountable(hitCountable);
+                if (cancelEnemyProjectiles && cancelable.TryCancelByMelee(this))
                     hitSomething = true;
+            }
+            else
+            {
+                var hitCountable = collision.GetComponentInParent<IHitCountable>();
+                if (hitCountable != null && CanHitCountable(hitCountable))
+                {
+                    if (hitCountable.RegisterHit(this))
+                    {
+                        MarkHitCountable(hitCountable);
+                        hitSomething = true;
+                    }
                 }
             }
 

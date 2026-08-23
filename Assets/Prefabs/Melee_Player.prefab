@@ -419,6 +419,7 @@ MonoBehaviour:
   oneWayPlatformLayer:
     serializedVersion: 2
     m_Bits: 36864
+  forcePassScanPadding: 0.75
   dropThroughResetMargin: 0.05
   dropThroughTimeout: 1
 --- !u!114 &8012345678901234501
@@ -551,7 +552,7 @@ MonoBehaviour:
     knockbackDuration: 0.22
   - weaponId: 2
     damage: 30
-    hitboxSize: {x: 4.5, y: 0.6}
+    hitboxSize: {x: 5.98, y: 0.6}
     hitboxOffset: {x: 2.2, y: 0}
     maxTargets: 6
     hitStart: 0.18
@@ -596,7 +597,7 @@ MonoBehaviour:
   rushUltimateLaunchSpeedY: 13
   rushUltimateLaunchSpeedX: 2.5
   rushUltimateLaunchHoldDuration: 0.45
-  shortMeleeDashSpeed: 20
+  shortMeleeDashSpeed: 15
   shortMeleeDashStart: 0.08
   shortMeleeDashEnd: 0.38
   jumpDownSlamSpeed: 25
@@ -642,6 +643,8 @@ MonoBehaviour:
   defaultUpHitboxSize: {x: 1.3, y: 1.8}
   defaultUpHitboxOffset: {x: 0, y: 1.2}
   showAttackRangesInScene: 1
+  showAllAttackHitboxes: 1
+  showHitboxLabels: 1
   detectZoneGizmoColor: {r: 1, g: 0.85, b: 0.2, a: 0.25}
   hitboxIdleGizmoColor: {r: 0.2, g: 0.85, b: 1, a: 0.2}
   hitboxActiveGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.45}
@@ -1342,6 +1345,7 @@ MonoBehaviour:
   knockbackForce: 0
   knockbackDuration: 0.15
   shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 0
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12

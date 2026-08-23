@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
 [RequireComponent(typeof(Animator))]
-public class EnemyGrenade : MonoBehaviour
+public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
 {
     const string RollingStateName = "GrenadeRolling";
     const int PassThroughBufferSize = 16;
@@ -294,6 +294,17 @@ public class EnemyGrenade : MonoBehaviour
         }
 
         Destroy(gameObject);
+    }
+
+    public bool TryCancelByMelee(Attack attacker)
+    {
+        if (hasExploded || attacker == null)
+            return false;
+
+        // 抵销：直接销毁，不引爆
+        hasExploded = true;
+        Destroy(gameObject);
+        return true;
     }
 
     Vector3 GetExplosionPosition()

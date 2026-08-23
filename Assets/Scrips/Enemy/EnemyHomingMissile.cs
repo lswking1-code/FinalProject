@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
-public class EnemyHomingMissile : MonoBehaviour, IHitCountable
+public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectileCancelable
 {
     [SerializeField] float speed = 8f;
     [SerializeField] float ascentDuration = 0.45f;
@@ -193,6 +193,11 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable
 
     public bool RegisterHit(Attack attacker)
     {
+        return TryCancelByMelee(attacker);
+    }
+
+    public bool TryCancelByMelee(Attack attacker)
+    {
         if (hasExploded || attacker == null)
             return false;
 
@@ -202,7 +207,10 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable
         if (attacker.ignoreTag == "Enemy")
             return false;
 
-        Explode();
+        // 抵销：直接销毁，不引爆
+        CancelInvoke(nameof(Despawn));
+        hasExploded = true;
+        Destroy(gameObject);
         return true;
     }
 

@@ -268,9 +268,13 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
     [SerializeField] Vector2 defaultUpHitboxOffset = new Vector2(0f, 1.2f);
 
-    [Header("攻击范围可视化（Scene View）")]
-    [Tooltip("运行中/编辑器 Scene 视图始终显示判定框，无需选中角色")]
+    [Header("攻击范围可视化（Scene / Prefab 预览）")]
+    [Tooltip("Scene 与 Prefab 编辑模式始终显示判定框，无需选中")]
     [SerializeField] bool showAttackRangesInScene = true;
+    [Tooltip("编辑器中叠加显示全部武器的普攻/上攻/蹲攻/特技/下砸范围（方便 Prefab 调试）")]
+    [SerializeField] bool showAllAttackHitboxes = true;
+    [Tooltip("在框旁显示文字标签（仅编辑器）")]
+    [SerializeField] bool showHitboxLabels = true;
     [SerializeField] Color detectZoneGizmoColor = new Color(1f, 0.85f, 0.2f, 0.25f);
     [SerializeField] Color hitboxIdleGizmoColor = new Color(0.2f, 0.85f, 1f, 0.2f);
     [SerializeField] Color hitboxActiveGizmoColor = new Color(1f, 0.2f, 0.2f, 0.45f);
@@ -302,6 +306,8 @@ public class Bob_Controller : MonoBehaviour
     bool hasSpecialProfile;
     readonly HashSet<Character> swingHitTargets = new();
     readonly HashSet<Character> specialRearHitTargets = new();
+    readonly HashSet<Character> rushCarriedTargets = new();
+    readonly List<Collider2D> rushIgnoredEnemyColliders = new();
     readonly HashSet<IHitCountable> swingHitCountables = new();
     readonly List<Character> overlapCharacters = new();
     readonly Collider2D[] overlapBuffer = new Collider2D[48];
@@ -310,6 +316,7 @@ public class Bob_Controller : MonoBehaviour
     const int BuzzsawSpecialHitTicks = 5;
     int buzzsawActiveHitTick = -1;
 
+    Collider2D playerBodyCollider;
     bool rushDashActive;
     bool savedAttackKnockbackEnable;
     float savedAttackKnockbackForce;
@@ -345,6 +352,9 @@ public class Bob_Controller : MonoBehaviour
         selfCharacter = GetComponent<Character>();
         playerRoll = GetComponent<PlayerRoll>();
         actions = new InputSystem_Actions();
+        playerBodyCollider = GetComponent<CapsuleCollider2D>();
+        if (playerBodyCollider == null)
+            playerBodyCollider = GetComponent<Collider2D>();
 
         if (meleeHitbox != null)
         {
@@ -413,8 +423,9 @@ public class Bob_Controller : MonoBehaviour
     void LateUpdate()
     {
         SyncDetectZoneAnchor();
-        // 放在 LateUpdate：盖过敌人 FixedUpdate 里写回的 AI 速度
+        // 放在 LateUpdate：盖过敌人 FixedUpdate 里写回的 AI 速度 / 物理挤出
         ApplyWhipKnockbackVelocities();
+        MaintainRushCarriedTargets();
     }
 
     void FixedUpdate()
@@ -689,14 +700,16 @@ public class Bob_Controller : MonoBehaviour
         {
             int damage = special && hasSpecialProfile
                 ? ResolveSpecialSwingDamage()
-                : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
+                : ResolveMeleeSwingDamage();
             int maxTargets = special && hasSpecialProfile
                 ? activeSpecialProfile.maxTargets
                 : activeProfile.maxTargets;
 
-            // Whip 前后双段 / Buzzsaw 双层圆 一律手动结算，避免 Trigger 重复或形状不符
+            // Whip / Buzzsaw / Rush 特技均手动结算；Rush 不用 Attack 击退冲量
             bool manualSpecial = special && hasSpecialProfile
-                && (activeSpecialProfile.weaponId == 2 || activeSpecialProfile.weaponId == 3);
+                && (activeSpecialProfile.weaponId == 1
+                    || activeSpecialProfile.weaponId == 2
+                    || activeSpecialProfile.weaponId == 3);
 
             meleeAttack.damage = damage;
             meleeAttack.attackType = AttackType.Melee;
@@ -704,8 +717,9 @@ public class Bob_Controller : MonoBehaviour
             meleeAttack.chargesEnergyNode = activeProfile.weaponId == 2;
             meleeAttack.enabled = !manualSpecial && maxTargets <= 0;
             SyncBuzzsawShieldMultiplier();
+            SyncCancelEnemyProjectiles();
 
-            if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 1)
+            if (special && hasSpecialProfile && activeSpecialProfile.weaponId == 2)
                 ApplyRushAttackKnockback(true);
             else
                 RestoreRushAttackKnockback();
@@ -722,6 +736,18 @@ public class Bob_Controller : MonoBehaviour
             ? ResolveBuzzsawShieldMultiplier()
             : 1f;
     }
+
+    void SyncCancelEnemyProjectiles()
+    {
+        if (meleeAttack == null)
+            return;
+
+        // 空手（weapon 0）不抵销；Rush / Whip / Buzzsaw 的普攻、特技、大招均可
+        meleeAttack.cancelEnemyProjectiles = CanCancelEnemyProjectiles();
+    }
+
+    bool CanCancelEnemyProjectiles()
+        => ResolveCurrentWeaponId() != 0;
 
     float ResolveBuzzsawShieldMultiplier()
         => buzzsawShieldDamageMultiplier > 0f ? buzzsawShieldDamageMultiplier : 2f;
@@ -924,6 +950,14 @@ public class Bob_Controller : MonoBehaviour
             return Mathf.Max(1, jumpDownImpactDamage);
         if (IsCurrentSwingSpecial() && hasSpecialProfile)
             return ResolveSpecialSwingDamage();
+        return ResolveMeleeSwingDamage();
+    }
+
+    /// <summary>普通近战伤害。蹲攻四武器统一为空手 meleeDamage。</summary>
+    int ResolveMeleeSwingDamage()
+    {
+        if (IsCurrentSwingCrouchMelee())
+            return Mathf.Max(1, meleeDamage);
         return activeProfile.damage > 0 ? activeProfile.damage : meleeDamage;
     }
 
@@ -1046,6 +1080,7 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        ClearRushCarryState();
         swingHitCountables.Clear();
         buzzsawActiveHitTick = -1;
         playerAnim.InterruptTurn();
@@ -1211,9 +1246,10 @@ public class Bob_Controller : MonoBehaviour
         {
             int damage = special && hasSpecialProfile
                 ? ResolveSpecialSwingDamage()
-                : (activeProfile.damage > 0 ? activeProfile.damage : meleeDamage);
+                : ResolveMeleeSwingDamage();
             meleeAttack.damage = damage;
             meleeAttack.enabled = maxTargets <= 0;
+            SyncCancelEnemyProjectiles();
         }
 
         bool inHitWindow = playerAnim.TryGetMeleeAnimProgress(out float t)
@@ -1226,6 +1262,8 @@ public class Bob_Controller : MonoBehaviour
 
             if (maxTargets > 0)
                 ProcessLimitedHitTargets(maxTargets);
+            else if (CanCancelEnemyProjectiles())
+                CancelEnemyProjectilesInCurrentHitbox();
         }
         else if (meleeHitbox.activeSelf)
         {
@@ -1239,11 +1277,12 @@ public class Bob_Controller : MonoBehaviour
         {
             meleeAttack.damage = ResolveSpecialSwingDamage();
             meleeAttack.enabled = false;
+            SyncCancelEnemyProjectiles();
         }
 
         if (!playerAnim.TryGetMeleeAnimProgress(out float t))
         {
-            ApplyRushAttackKnockback(true);
+            ForceDisableAttackKnockback();
             ApplyHitboxShape(upward: false, special: true);
             if (meleeHitbox != null && meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(false);
@@ -1265,7 +1304,8 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
-        ApplyRushAttackKnockback(true);
+        // Rush 冲刺段强制关掉击退冲量；推动只靠钉在判定盒前端
+        ForceDisableAttackKnockback();
         ApplyHitboxShape(upward: false, special: true);
 
         if (dashWindow)
@@ -1278,7 +1318,10 @@ public class Bob_Controller : MonoBehaviour
                 activeSpecialProfile.hitboxSize,
                 ResolveSpecialSwingDamage(),
                 swingHitTargets,
-                activeSpecialProfile.maxTargets);
+                activeSpecialProfile.maxTargets,
+                hitNote: null,
+                launchUpward: false,
+                registerRushCarry: true);
         }
         else if (meleeHitbox != null && meleeHitbox.activeSelf)
         {
@@ -1288,7 +1331,8 @@ public class Bob_Controller : MonoBehaviour
 
     void UpdateRushUltimateLaunchHits()
     {
-        ApplyRushAttackKnockback(false);
+        ForceDisableAttackKnockback();
+        ClearRushCarryState();
 
         Vector2 size = rushUltimateLaunchHitboxSize.x > 0.01f && rushUltimateLaunchHitboxSize.y > 0.01f
             ? rushUltimateLaunchHitboxSize
@@ -1304,12 +1348,12 @@ public class Bob_Controller : MonoBehaviour
         if (meleeHitbox != null && !meleeHitbox.activeSelf)
             meleeHitbox.SetActive(true);
 
-        bool savedKnockback = false;
         if (meleeAttack != null)
         {
-            savedKnockback = meleeAttack.enableKnockback;
             meleeAttack.enableKnockback = false;
+            meleeAttack.knockbackForce = 0f;
             meleeAttack.damage = ResolveRushUltimateLaunchDamage();
+            SyncCancelEnemyProjectiles();
         }
 
         ProcessSpecialBoxHits(
@@ -1320,9 +1364,6 @@ public class Bob_Controller : MonoBehaviour
             activeSpecialProfile.maxTargets,
             hitNote: "击飞",
             launchUpward: true);
-
-        if (meleeAttack != null)
-            meleeAttack.enableKnockback = savedKnockback;
     }
 
     bool HasRushUltimateLaunchWindow()
@@ -1343,6 +1384,7 @@ public class Bob_Controller : MonoBehaviour
         {
             meleeAttack.damage = ResolveSpecialSwingDamage();
             meleeAttack.enabled = false;
+            SyncCancelEnemyProjectiles();
         }
 
         if (!playerAnim.TryGetMeleeAnimProgress(out float t))
@@ -1420,7 +1462,7 @@ public class Bob_Controller : MonoBehaviour
         ApplyHitboxShape(upward: IsCurrentSwingUpward(), special: false);
         ResolveMeleeHitWindow(out float windowStart, out float windowEnd);
 
-        int totalDamage = activeProfile.damage > 0 ? activeProfile.damage : meleeDamage;
+        int totalDamage = ResolveMeleeSwingDamage();
         if (meleeAttack != null)
             meleeAttack.enabled = false;
 
@@ -1437,6 +1479,7 @@ public class Bob_Controller : MonoBehaviour
             meleeAttack.damage = tickDamage;
 
         SyncBuzzsawShieldMultiplier();
+        SyncCancelEnemyProjectiles();
 
         if (meleeHitbox != null && !meleeHitbox.activeSelf)
             meleeHitbox.SetActive(true);
@@ -1464,6 +1507,7 @@ public class Bob_Controller : MonoBehaviour
             return;
 
         SyncBuzzsawShieldMultiplier();
+        SyncCancelEnemyProjectiles();
         ProcessBuzzsawCircleHits(tick);
     }
 
@@ -1592,7 +1636,8 @@ public class Bob_Controller : MonoBehaviour
         int maxTargets,
         float knockbackSign = 0f,
         string hitNote = null,
-        bool launchUpward = false)
+        bool launchUpward = false,
+        bool registerRushCarry = false)
     {
         if (meleeAttack == null || meleeHitbox == null)
             return;
@@ -1676,6 +1721,8 @@ public class Bob_Controller : MonoBehaviour
                 RegisterWhipKnockback(target, knockbackSign);
             if (damaged && launchUpward)
                 RegisterRushLaunch(target);
+            if (registerRushCarry)
+                BeginRushCarry(target);
 
             hitSet.Add(target);
             slots--;
@@ -1858,12 +1905,51 @@ public class Bob_Controller : MonoBehaviour
         if (col.transform == transform || col.transform.IsChildOf(transform))
             return;
 
+        if (CanCancelEnemyProjectiles())
+        {
+            var cancelable = col.GetComponentInParent<IEnemyProjectileCancelable>();
+            if (cancelable != null)
+            {
+                cancelable.TryCancelByMelee(meleeAttack);
+                return;
+            }
+        }
+
         var hitCountable = col.GetComponentInParent<IHitCountable>();
         if (hitCountable == null || swingHitCountables.Contains(hitCountable))
             return;
 
+        // 敌人飞行道具在空手时也不走 IHitCountable 抵销
+        if (hitCountable is IEnemyProjectileCancelable)
+            return;
+
         if (hitCountable.RegisterHit(meleeAttack))
             swingHitCountables.Add(hitCountable);
+    }
+
+    void CancelEnemyProjectilesInCurrentHitbox()
+    {
+        if (meleeHitboxCollider == null || !CanCancelEnemyProjectiles())
+            return;
+
+        Transform space = meleeHitbox != null ? meleeHitbox.transform : transform;
+        Vector2 center = space.TransformPoint(meleeHitboxCollider.offset);
+        Vector3 lossy = space.lossyScale;
+        Vector2 worldSize = new Vector2(
+            Mathf.Abs(meleeHitboxCollider.size.x * lossy.x),
+            Mathf.Abs(meleeHitboxCollider.size.y * lossy.y));
+        float angle = space.eulerAngles.z;
+
+        var filter = new ContactFilter2D
+        {
+            useTriggers = true,
+            useLayerMask = false,
+            useDepth = false,
+        };
+
+        int count = Physics2D.OverlapBox(center, worldSize, angle, filter, overlapBuffer);
+        for (int i = 0; i < count; i++)
+            TryRegisterHitCountable(overlapBuffer[i]);
     }
 
     static string CombineHitNotes(string a, string b)
@@ -2117,10 +2203,13 @@ public class Bob_Controller : MonoBehaviour
         meleeAttack.damage = Mathf.Max(1, jumpDownImpactDamage);
         meleeAttack.enabled = false;
         SyncBuzzsawShieldMultiplier();
+        SyncCancelEnemyProjectiles();
 
         swingHitTargets.Clear();
         for (int i = 0; i < count; i++)
         {
+            TryRegisterHitCountable(overlapBuffer[i]);
+
             if (!TryResolveAttackTarget(overlapBuffer[i], swingHitTargets, out Character target))
                 continue;
 
@@ -2214,9 +2303,21 @@ public class Bob_Controller : MonoBehaviour
 
     void PushEnemiesAlongRushPath(float dir)
     {
-        if (meleeHitbox == null)
+        if (meleeHitbox == null || !hasSpecialProfile || activeSpecialProfile.weaponId != 1)
             return;
 
+        // 大招后段击飞窗不再水平携带
+        if (IsCurrentSwingUltimate()
+            && HasRushUltimateLaunchWindow()
+            && playerAnim != null
+            && playerAnim.TryGetMeleeAnimProgress(out float t)
+            && t >= rushUltimateLaunchStart)
+        {
+            ClearRushCarryState();
+            return;
+        }
+
+        ForceDisableAttackKnockback();
         SyncHitboxAnchor();
         ApplyHitboxShape(upward: false, special: true);
 
@@ -2230,16 +2331,8 @@ public class Bob_Controller : MonoBehaviour
             Mathf.Abs(localSize.y * lossy.y));
         float angle = space.eulerAngles.z;
 
-        int count = Physics2D.OverlapBoxNonAlloc(center, worldSize, angle, overlapBuffer);
-        if (count <= 0)
-            return;
-
-        float pushSpeed = activeSpecialProfile.rushPushSpeed > 0.01f
-            ? activeSpecialProfile.rushPushSpeed
-            : activeSpecialProfile.rushSpeed;
-        float step = pushSpeed * Time.fixedDeltaTime;
-        Vector2 delta = new Vector2(dir * step, 0f);
-
+        Vector2 querySize = worldSize + new Vector2(0.8f, 0.5f);
+        int count = Physics2D.OverlapBoxNonAlloc(center, querySize, angle, overlapBuffer);
         for (int i = 0; i < count; i++)
         {
             var col = overlapBuffer[i];
@@ -2256,23 +2349,195 @@ public class Bob_Controller : MonoBehaviour
                 && target.CompareTag(meleeAttack.ignoreTag))
                 continue;
 
-            var targetRb = target.GetComponent<Rigidbody2D>();
-            if (targetRb == null || !targetRb.simulated)
+            BeginRushCarry(target);
+        }
+
+        MaintainRushCarriedTargets(dir, center, worldSize);
+    }
+
+    void MaintainRushCarriedTargets()
+    {
+        if (rushCarriedTargets.Count == 0)
+            return;
+        if (!IsCurrentSwingSpecial()
+            || !hasSpecialProfile
+            || activeSpecialProfile.weaponId != 1)
+            return;
+        if (IsCurrentSwingUltimate()
+            && HasRushUltimateLaunchWindow()
+            && playerAnim != null
+            && playerAnim.TryGetMeleeAnimProgress(out float t)
+            && t >= rushUltimateLaunchStart)
+            return;
+
+        float dir = playerMovement != null
+            ? playerMovement.FaceDirection
+            : Mathf.Sign(transform.localScale.x);
+        if (Mathf.Approximately(dir, 0f))
+            dir = 1f;
+
+        if (meleeHitbox == null)
+            return;
+
+        Transform space = meleeHitbox.transform;
+        Vector2 center = space.TransformPoint(activeSpecialProfile.hitboxOffset);
+        Vector3 lossy = space.lossyScale;
+        Vector2 worldSize = new Vector2(
+            Mathf.Abs(activeSpecialProfile.hitboxSize.x * lossy.x),
+            Mathf.Abs(activeSpecialProfile.hitboxSize.y * lossy.y));
+        MaintainRushCarriedTargets(dir, center, worldSize);
+    }
+
+    void MaintainRushCarriedTargets(float dir, Vector2 center, Vector2 worldSize)
+    {
+        if (rushCarriedTargets.Count == 0)
+            return;
+
+        float halfWidth = worldSize.x * 0.5f;
+        float frontInset = Mathf.Clamp(halfWidth * 0.35f, 0.25f, 0.85f);
+        float pinX = center.x + dir * (halfWidth - frontInset);
+        float carrySpeed = activeSpecialProfile.rushSpeed > 0.01f
+            ? activeSpecialProfile.rushSpeed
+            : 0f;
+
+        // 拷贝后遍历，便于移除失效目标
+        overlapCharacters.Clear();
+        foreach (var target in rushCarriedTargets)
+            overlapCharacters.Add(target);
+
+        for (int i = 0; i < overlapCharacters.Count; i++)
+        {
+            var target = overlapCharacters[i];
+            if (target == null || !target.CanReceiveHits)
             {
-                target.transform.position += (Vector3)delta;
+                EndRushCarry(target);
                 continue;
             }
 
-            if (targetRb.bodyType == RigidbodyType2D.Kinematic)
+            PinTargetToRushFront(target, pinX, dir, carrySpeed);
+        }
+    }
+
+    void BeginRushCarry(Character target)
+    {
+        if (target == null || rushCarriedTargets.Contains(target))
+            return;
+
+        rushCarriedTargets.Add(target);
+        IgnorePlayerCollisionWith(target, ignore: true);
+    }
+
+    void EndRushCarry(Character target)
+    {
+        if (target == null)
+        {
+            rushCarriedTargets.Remove(null);
+            return;
+        }
+
+        if (!rushCarriedTargets.Remove(target))
+            return;
+
+        IgnorePlayerCollisionWith(target, ignore: false);
+    }
+
+    void ClearRushCarryState()
+    {
+        if (rushCarriedTargets.Count > 0)
+        {
+            overlapCharacters.Clear();
+            foreach (var target in rushCarriedTargets)
+                overlapCharacters.Add(target);
+
+            for (int i = 0; i < overlapCharacters.Count; i++)
+                IgnorePlayerCollisionWith(overlapCharacters[i], ignore: false);
+        }
+
+        rushCarriedTargets.Clear();
+
+        if (playerBodyCollider != null)
+        {
+            for (int i = 0; i < rushIgnoredEnemyColliders.Count; i++)
             {
-                targetRb.MovePosition(targetRb.position + delta);
+                var enemyCol = rushIgnoredEnemyColliders[i];
+                if (enemyCol != null)
+                    Physics2D.IgnoreCollision(playerBodyCollider, enemyCol, false);
+            }
+        }
+
+        rushIgnoredEnemyColliders.Clear();
+    }
+
+    void IgnorePlayerCollisionWith(Character target, bool ignore)
+    {
+        if (playerBodyCollider == null || target == null)
+            return;
+
+        var cols = target.GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < cols.Length; i++)
+        {
+            var enemyCol = cols[i];
+            if (enemyCol == null || !enemyCol.enabled || enemyCol.isTrigger)
+                continue;
+
+            Physics2D.IgnoreCollision(playerBodyCollider, enemyCol, ignore);
+            if (ignore)
+            {
+                if (!rushIgnoredEnemyColliders.Contains(enemyCol))
+                    rushIgnoredEnemyColliders.Add(enemyCol);
             }
             else
             {
-                // 覆盖敌人本帧 AI 速度，使其随冲刺被推走
-                targetRb.linearVelocity = new Vector2(dir * pushSpeed, targetRb.linearVelocity.y);
+                rushIgnoredEnemyColliders.Remove(enemyCol);
             }
         }
+    }
+
+    void PinTargetToRushFront(Character target, float pinX, float dir, float carrySpeed)
+    {
+        if (target == null)
+            return;
+
+        var targetRb = target.GetComponent<Rigidbody2D>();
+        if (targetRb == null || !targetRb.simulated)
+        {
+            Vector3 p = target.transform.position;
+            p.x = pinX;
+            target.transform.position = p;
+            return;
+        }
+
+        // 压掉向上弹射（身体碰撞 / 击退冲量常见副作用）
+        float vy = targetRb.linearVelocity.y;
+        if (vy > 0f)
+            vy = 0f;
+
+        Vector2 pinned = new Vector2(pinX, targetRb.position.y);
+        if (targetRb.bodyType == RigidbodyType2D.Kinematic)
+        {
+            targetRb.MovePosition(pinned);
+            return;
+        }
+
+        targetRb.linearVelocity = new Vector2(dir * Mathf.Max(0f, carrySpeed), vy);
+        targetRb.MovePosition(pinned);
+    }
+
+    void ForceDisableAttackKnockback()
+    {
+        if (meleeAttack == null)
+            return;
+
+        if (!hasSavedAttackKnockback)
+        {
+            savedAttackKnockbackEnable = meleeAttack.enableKnockback;
+            savedAttackKnockbackForce = meleeAttack.knockbackForce;
+            savedAttackKnockbackDuration = meleeAttack.knockbackDuration;
+            hasSavedAttackKnockback = true;
+        }
+
+        meleeAttack.enableKnockback = false;
+        meleeAttack.knockbackForce = 0f;
     }
 
     void ApplyRushAttackKnockback(bool enable)
@@ -2290,7 +2555,8 @@ public class Bob_Controller : MonoBehaviour
 
         if (!enable)
         {
-            RestoreRushAttackKnockback();
+            meleeAttack.enableKnockback = false;
+            meleeAttack.knockbackForce = 0f;
             return;
         }
 
@@ -2313,6 +2579,7 @@ public class Bob_Controller : MonoBehaviour
     void EndRushSpecialState()
     {
         rushDashActive = false;
+        ClearRushCarryState();
         RestoreRushAttackKnockback();
         ClearWhipKnockbacks();
     }
@@ -2470,6 +2737,122 @@ public class Bob_Controller : MonoBehaviour
         if (!showAttackRangesInScene)
             return;
 
+        // 编辑器 / Prefab：叠画全部武器判定；Play 中正在挥击时只画当前实际盒
+        if (showAllAttackHitboxes && !IsCurrentSwingActiveForGizmo())
+        {
+            DrawAllAttackHitboxGizmos();
+            return;
+        }
+
+        DrawRuntimeAttackHitboxGizmos();
+    }
+
+    bool IsCurrentSwingActiveForGizmo()
+        => Application.isPlaying && playerAnim != null && playerAnim.IsMelee;
+
+    void DrawAllAttackHitboxGizmos()
+    {
+        Matrix4x4 standMatrix = GetAnchorDrawMatrix(meleePoint1);
+        Matrix4x4 crouchMatrix = GetAnchorDrawMatrix(meleePoint2 != null ? meleePoint2 : meleePoint1);
+
+        // 索敌（以当前/默认武器 0）
+        var detectProfile = FindProfile(0);
+        DrawLocalBoxGizmo(
+            GetDetectDrawMatrix(),
+            detectProfile.detectOffset,
+            detectProfile.detectSize,
+            detectZoneGizmoColor,
+            filled: true);
+        DrawHitboxLabel(GetDetectDrawMatrix(), detectProfile.detectOffset, "Detect");
+
+        // 下砸冲击（四武器共用）
+        {
+            Vector3 center = transform.position + (Vector3)jumpDownImpactOffset;
+            DrawWireCircleGizmo(center, jumpDownImpactRadius, new Color(1f, 0.55f, 0.2f, 0.35f));
+            DrawWorldLabel(center + Vector3.up * (jumpDownImpactRadius + 0.15f), "JumpDown");
+        }
+
+        int[] weaponIds = { 0, 1, 2, 3 };
+        for (int i = 0; i < weaponIds.Length; i++)
+        {
+            int weaponId = weaponIds[i];
+            var profile = FindProfile(weaponId);
+            Color meleeColor = ResolveWeaponGizmoColor(weaponId, 0.28f);
+            Color upColor = ResolveWeaponGizmoColor(weaponId, 0.22f);
+            Color crouchColor = new Color(meleeColor.r, meleeColor.g * 0.75f, meleeColor.b, 0.22f);
+
+            string weaponName = weaponId switch
+            {
+                1 => "Rush",
+                2 => "Whip",
+                3 => "Buzzsaw",
+                _ => "Unarmed",
+            };
+
+            // 站立/空中普攻盒
+            DrawLocalBoxGizmo(standMatrix, profile.hitboxOffset, profile.hitboxSize, meleeColor, filled: false);
+            DrawHitboxLabel(standMatrix, profile.hitboxOffset, $"{weaponName} Melee");
+
+            // 上攻（空手无独立上攻）
+            if (weaponId != 0)
+            {
+                Vector2 upSize = profile.upHitboxSize.x > 0.01f ? profile.upHitboxSize : defaultUpHitboxSize;
+                Vector2 upOffset = profile.upHitboxSize.x > 0.01f ? profile.upHitboxOffset : defaultUpHitboxOffset;
+                DrawLocalBoxGizmo(standMatrix, upOffset, upSize, upColor, filled: false);
+                DrawHitboxLabel(standMatrix, upOffset, $"{weaponName} Up");
+            }
+
+            // 蹲攻：共用动画，盒相对站立略下移（与运行时 ApplyHitboxShape 一致）
+            Vector2 crouchOffset = profile.hitboxOffset + new Vector2(0f, -0.45f);
+            DrawLocalBoxGizmo(crouchMatrix, crouchOffset, profile.hitboxSize, crouchColor, filled: false);
+            DrawHitboxLabel(crouchMatrix, crouchOffset, $"{weaponName} Crouch");
+
+            if (!TryFindSpecialProfile(weaponId, out var special))
+                continue;
+
+            Color specialColor = ResolveWeaponGizmoColor(weaponId, 0.32f);
+            specialColor.a = 0.35f;
+
+            if (weaponId == 3 && special.outerRadius > 0.01f)
+            {
+                Vector3 center = meleePoint1 != null ? meleePoint1.position : transform.position;
+                DrawWireCircleGizmo(center, special.outerRadius, specialColor);
+                DrawWireCircleGizmo(center, special.innerRadius, new Color(1f, 0.75f, 0.2f, 0.28f));
+                DrawWorldLabel(center + Vector3.up * (special.outerRadius + 0.2f), $"{weaponName} Special");
+            }
+            else
+            {
+                DrawLocalBoxGizmo(standMatrix, special.hitboxOffset, special.hitboxSize, specialColor, filled: false);
+                DrawHitboxLabel(standMatrix, special.hitboxOffset, $"{weaponName} Special");
+            }
+
+            if (weaponId == 2)
+            {
+                Vector2 rearOffset = ResolveWhipRearLocalOffsetForGizmo(special.hitboxOffset, standMatrix);
+                DrawLocalBoxGizmo(
+                    standMatrix,
+                    rearOffset,
+                    special.hitboxSize,
+                    new Color(1f, 0.35f, 0.85f, 0.3f),
+                    filled: false);
+                DrawHitboxLabel(standMatrix, rearOffset, "Whip Rear");
+            }
+
+            if (weaponId == 1 && HasRushUltimateLaunchWindow())
+            {
+                DrawLocalBoxGizmo(
+                    standMatrix,
+                    rushUltimateLaunchHitboxOffset,
+                    rushUltimateLaunchHitboxSize,
+                    new Color(1f, 0.85f, 0.2f, 0.32f),
+                    filled: false);
+                DrawHitboxLabel(standMatrix, rushUltimateLaunchHitboxOffset, "Rush Ult Launch");
+            }
+        }
+    }
+
+    void DrawRuntimeAttackHitboxGizmos()
+    {
         WeaponMeleeProfile drawProfile;
         int drawWeaponId = 0;
         if (Application.isPlaying)
@@ -2491,7 +2874,6 @@ public class Bob_Controller : MonoBehaviour
             detectZoneGizmoColor,
             filled: true);
 
-        // JumpDownAttack 落地冲击预览
         {
             Vector3 center = transform.position + (Vector3)jumpDownImpactOffset;
             Color c = Application.isPlaying && jumpDownAttackActive
@@ -2519,7 +2901,6 @@ public class Bob_Controller : MonoBehaviour
             hasSpecialDraw = true;
         }
 
-        // Buzzsaw：双层圆预览；特技播放中只画圆、不画旧盒
         if (hasSpecialDraw && specialDraw.weaponId == 3 && specialDraw.outerRadius > 0.01f)
         {
             Vector3 center = Application.isPlaying
@@ -2545,6 +2926,11 @@ public class Bob_Controller : MonoBehaviour
             hitSize = activeSpecialProfile.hitboxSize;
             hitOffset = activeSpecialProfile.hitboxOffset;
         }
+        else if (Application.isPlaying && IsCurrentSwingCrouchMelee())
+        {
+            hitSize = drawProfile.hitboxSize;
+            hitOffset = drawProfile.hitboxOffset + new Vector2(0f, -0.45f);
+        }
         else
         {
             hitSize = drawUp
@@ -2563,7 +2949,6 @@ public class Bob_Controller : MonoBehaviour
             new Color(hitColor.r, hitColor.g, hitColor.b, Mathf.Clamp01(hitColor.a + 0.35f)),
             filled: false);
 
-        // Whip 特技：额外画出绕角色 pivot 镜像的后方盒
         if (hasSpecialDraw && specialDraw.weaponId == 2)
         {
             Vector2 rearOffset = ResolveWhipRearLocalOffset(specialDraw.hitboxOffset);
@@ -2573,8 +2958,7 @@ public class Bob_Controller : MonoBehaviour
             DrawLocalBoxGizmo(hitMatrix, rearOffset, specialDraw.hitboxSize, rearColor, filled: false);
         }
 
-        // 非向上挥击时额外用半透明线框标出上方判定（空手无上攻，不画）
-        if (!drawUp && !drawSpecial && drawWeaponId != 0)
+        if (!drawUp && !drawSpecial && drawWeaponId != 0 && !(Application.isPlaying && IsCurrentSwingCrouchMelee()))
         {
             Vector2 upSize = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxSize : defaultUpHitboxSize;
             Vector2 upOffset = drawProfile.upHitboxSize.x > 0.01f ? drawProfile.upHitboxOffset : defaultUpHitboxOffset;
@@ -2586,7 +2970,6 @@ public class Bob_Controller : MonoBehaviour
                 filled: false);
         }
 
-        // Rush / 其他：非播放中时粉线框预览特技盒
         if (hasSpecialDraw && !drawSpecial && specialDraw.weaponId == 1)
         {
             DrawLocalBoxGizmo(
@@ -2612,6 +2995,47 @@ public class Bob_Controller : MonoBehaviour
                 launchColor,
                 filled: false);
         }
+    }
+
+    static Color ResolveWeaponGizmoColor(int weaponId, float alpha) => weaponId switch
+    {
+        1 => new Color(1f, 0.35f, 0.2f, alpha),
+        2 => new Color(0.95f, 0.35f, 1f, alpha),
+        3 => new Color(0.35f, 1f, 0.45f, alpha),
+        _ => new Color(0.25f, 0.85f, 1f, alpha),
+    };
+
+    Matrix4x4 GetAnchorDrawMatrix(Transform anchor)
+    {
+        if (anchor == null)
+            anchor = transform;
+        return anchor.localToWorldMatrix;
+    }
+
+    /// <summary>编辑器预览用：不依赖 meleeHitbox 激活状态。</summary>
+    Vector2 ResolveWhipRearLocalOffsetForGizmo(Vector2 frontLocal, Matrix4x4 hitMatrix)
+    {
+        Vector3 frontWorld = hitMatrix.MultiplyPoint3x4(frontLocal);
+        Vector3 rearWorld = new Vector3(2f * transform.position.x - frontWorld.x, frontWorld.y, frontWorld.z);
+        return hitMatrix.inverse.MultiplyPoint3x4(rearWorld);
+    }
+
+    void DrawHitboxLabel(Matrix4x4 localToWorld, Vector2 offset, string label)
+    {
+        if (!showHitboxLabels)
+            return;
+        Vector3 world = localToWorld.MultiplyPoint3x4(offset);
+        DrawWorldLabel(world, label);
+    }
+
+    void DrawWorldLabel(Vector3 world, string label)
+    {
+#if UNITY_EDITOR
+        if (!showHitboxLabels || string.IsNullOrEmpty(label))
+            return;
+        UnityEditor.Handles.color = Color.white;
+        UnityEditor.Handles.Label(world + Vector3.up * 0.08f, label);
+#endif
     }
 
     Matrix4x4 GetDetectDrawMatrix()

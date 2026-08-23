@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Attack))]
-public class EnemyProjectile : MonoBehaviour
+public class EnemyProjectile : MonoBehaviour, IEnemyProjectileCancelable
 {
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;
@@ -77,5 +77,15 @@ public class EnemyProjectile : MonoBehaviour
 
         destroyed = true;
         Destroy(gameObject);
+    }
+
+    public bool TryCancelByMelee(Attack attacker)
+    {
+        if (destroyed || attacker == null)
+            return false;
+
+        destroyed = true;
+        Destroy(gameObject);
+        return true;
     }
 }

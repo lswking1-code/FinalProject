@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
-public class EnemyMissile : MonoBehaviour
+public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
 {
     [SerializeField] float speed = 8f;
     [SerializeField] float lifetime = 5f;
@@ -155,5 +155,17 @@ public class EnemyMissile : MonoBehaviour
 
         hasExploded = true;
         Destroy(gameObject);
+    }
+
+    public bool TryCancelByMelee(Attack attacker)
+    {
+        if (hasExploded || attacker == null)
+            return false;
+
+        // 抵销：直接销毁，不引爆
+        CancelInvoke(nameof(Despawn));
+        hasExploded = true;
+        Destroy(gameObject);
+        return true;
     }
 }
