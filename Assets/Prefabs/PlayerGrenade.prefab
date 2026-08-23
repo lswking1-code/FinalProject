@@ -103,10 +103,10 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 0.28
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 2.8
+  m_GravityScale: 1.6
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -190,11 +190,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   horizontalSpeed: 6.5
   verticalSpeed: 6.5
-  gravityScale: 2.8
+  gravityScale: 1.6
   forwardImpulse: 0
-  rollFriction: 0.3
-  landHorizontalRetain: 0.7
-  landBounceRetain: 0.15
+  rollFriction: 0.04
+  rollBounciness: 0.18
+  landHorizontalRetain: 0.92
+  landBounceRetain: 0.25
   fuseTime: 1.5
   explosionPrefab: {fileID: 1000000000000000006, guid: c7d9e1f2a3b4456789abcdef01234567, type: 3}
   playerHorizontalInherit: 0.5

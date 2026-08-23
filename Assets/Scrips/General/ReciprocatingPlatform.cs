@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 往复升降平台：开关 ON 时按固定单程时间与高度升降；OFF 时冻结在当前位置。
+/// 升降平台：开关控制。可往复循环，或单次开合（ON 到终点、OFF 回初始位置）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class ReciprocatingPlatform : MonoBehaviour
@@ -16,16 +16,20 @@ public class ReciprocatingPlatform : MonoBehaviour
     [SerializeField] float travelDuration = 2f;
     [SerializeField] Vector2 moveDirection = Vector2.up;
     [SerializeField] bool startAtBottom = true;
+    [Tooltip("勾选后：激活仅移动一次到终点并停下；关闭时移回初始位置。取消勾选则为往复循环，关闭时冻结当前位置。")]
+    [SerializeField] bool oneShot;
 
     Rigidbody2D rb;
     Vector2 bottomPos;
     Vector2 topPos;
+    Vector2 homePos;
+    Vector2 awayPos;
     Vector2 normalizedDirection;
     bool movingUp;
-    bool isRunning;
+    bool isActivated;
     Vector2 platformVelocity;
 
-    public Vector2 PlatformVelocity => isRunning ? platformVelocity : Vector2.zero;
+    public Vector2 PlatformVelocity => platformVelocity;
 
     void Awake()
     {
@@ -41,10 +45,12 @@ public class ReciprocatingPlatform : MonoBehaviour
         bottomPos = rb.position;
         topPos = bottomPos + normalizedDirection * travelHeight;
 
+        homePos = startAtBottom ? bottomPos : topPos;
+        awayPos = startAtBottom ? topPos : bottomPos;
+        rb.position = homePos;
+
+        // 往复模式：从初始端朝另一端出发
         movingUp = startAtBottom;
-        rb.position = startAtBottom ? bottomPos : topPos;
-        if (!startAtBottom)
-            movingUp = false;
     }
 
     void OnEnable()
@@ -79,36 +85,61 @@ public class ReciprocatingPlatform : MonoBehaviour
 
     public void SetRunning(bool on)
     {
-        isRunning = on;
-        if (!isRunning)
+        isActivated = on;
+        if (!oneShot && !isActivated)
             platformVelocity = Vector2.zero;
     }
 
     void FixedUpdate()
     {
-        if (!isRunning || travelDuration <= 0f || travelHeight <= 0f)
+        if (travelDuration <= 0f || travelHeight <= 0f)
         {
             platformVelocity = Vector2.zero;
             return;
         }
 
+        if (oneShot)
+            UpdateOneShot();
+        else
+            UpdateContinuous();
+    }
+
+    void UpdateOneShot()
+    {
+        Vector2 target = isActivated ? awayPos : homePos;
+        MoveToward(target, reverseOnArrive: false);
+    }
+
+    void UpdateContinuous()
+    {
+        if (!isActivated)
+        {
+            platformVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 target = movingUp ? topPos : bottomPos;
+        MoveToward(target, reverseOnArrive: true);
+    }
+
+    void MoveToward(Vector2 target, bool reverseOnArrive)
+    {
         Vector2 previousPos = rb.position;
         float speed = travelHeight / travelDuration;
         float step = speed * Time.fixedDeltaTime;
-        Vector2 target = movingUp ? topPos : bottomPos;
         Vector2 toTarget = target - previousPos;
         float distance = toTarget.magnitude;
 
         if (distance <= step)
         {
             rb.MovePosition(target);
-            movingUp = !movingUp;
-        }
-        else
-        {
-            rb.MovePosition(previousPos + toTarget / distance * step);
+            if (reverseOnArrive)
+                movingUp = !movingUp;
+            platformVelocity = Vector2.zero;
+            return;
         }
 
+        rb.MovePosition(previousPos + toTarget / distance * step);
         platformVelocity = (rb.position - previousPos) / Time.fixedDeltaTime;
     }
 

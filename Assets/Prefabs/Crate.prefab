@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 1001000001001000006}
   m_Layer: 19
   m_Name: Crate
-  m_TagString: Untagged
+  m_TagString: Box
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -178,6 +178,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   knockbackResistance: 0.1
+  blastSlideSpeed: 10
+  blastSlideDistance: 8
 --- !u!1 &4772168586347018248
 GameObject:
   m_ObjectHideFlags: 0

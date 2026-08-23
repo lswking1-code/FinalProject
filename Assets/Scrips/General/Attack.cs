@@ -223,6 +223,13 @@ public class Attack : MonoBehaviour
         if (attackType == AttackType.Projectile
             && LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
         {
+            // Ground 上的可破坏物（如 BreakableDoor）需先计次/闪红，再销毁子弹
+            var groundHitCountable = collision.GetComponentInParent<IHitCountable>();
+            if (groundHitCountable != null && CanHitCountable(groundHitCountable))
+            {
+                if (groundHitCountable.RegisterHit(this))
+                    MarkHitCountable(groundHitCountable);
+            }
             Destroy(gameObject);
             return;
         }

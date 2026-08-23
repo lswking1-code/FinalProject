@@ -18,7 +18,7 @@ public class Enemy : MonoBehaviour
     public float normalSpeed;
     public float chaseSpeed;
     [Tooltip("仅进场走到 targetPoint 时生效；巡逻/追击不受影响")]
-    public float spawnApproachSpeedScale = 2f;
+    public float spawnApproachSpeedScale = 1.5f;
     [HideInInspector] public float currentSpeed;
     [Tooltip("为 true 时镭射光束在此敌人处截断")]
     public bool blocksLaser;

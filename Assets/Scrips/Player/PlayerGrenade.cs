@@ -10,15 +10,17 @@ public class PlayerGrenade : MonoBehaviour
     [SerializeField] float horizontalSpeed = 6.5f;
     [SerializeField] float verticalSpeed = 6.5f;
     [Tooltip("投掷后的重力倍率，越大下落越干脆")]
-    [SerializeField] float gravityScale = 2.8f;
+    [SerializeField] float gravityScale = 1.6f;
     [Tooltip("生成时沿面向施加的冲量；0 表示不加力")]
     [SerializeField] float forwardImpulse = 0f;
-    [Tooltip(">=0 时覆盖碰撞体摩擦，便于贴地滚动；-1 表示不改")]
-    [SerializeField] float rollFriction = 0.3f;
+    [Tooltip(">=0 时覆盖碰撞体摩擦；旋转锁定时摩擦过大会几乎不滚，宜偏低")]
+    [SerializeField] float rollFriction = 0.04f;
+    [Tooltip("落地材质弹力，略大于 0 更像弹跳滚动")]
+    [SerializeField, Range(0f, 1f)] float rollBounciness = 0.18f;
     [Tooltip("首次落地时保留的水平速度比例")]
-    [SerializeField, Range(0f, 1f)] float landHorizontalRetain = 0.7f;
+    [SerializeField, Range(0f, 1f)] float landHorizontalRetain = 0.92f;
     [Tooltip("首次落地时保留的向上反弹比例（抑制轻飘回弹）")]
-    [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.15f;
+    [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.25f;
     [SerializeField] float fuseTime = 2.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
     [SerializeField, Range(0f, 1f)] float playerHorizontalInherit = 0.5f;
@@ -51,8 +53,11 @@ public class PlayerGrenade : MonoBehaviour
 
         var mat = new PhysicsMaterial2D("GrenadeRollFriction")
         {
-            friction = rollFriction,
-            bounciness = 0f
+            friction = Mathf.Max(0f, rollFriction),
+            bounciness = Mathf.Clamp01(rollBounciness),
+            // 取较小摩擦，避免地面材质把滚动直接刹死
+            frictionCombine = PhysicsMaterialCombine2D.Minimum,
+            bounceCombine = PhysicsMaterialCombine2D.Maximum
         };
         rb.sharedMaterial = mat;
         if (grenadeCollider != null)

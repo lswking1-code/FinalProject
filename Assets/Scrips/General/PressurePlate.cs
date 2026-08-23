@@ -3,11 +3,13 @@ using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
-/// 压力地板：玩家或可推箱压在上面时开启，全部离开后关闭；驱动通电平台与 UnityEvent。
+/// 压力地板：Tag 为 Player / Robot / Box 的物体压在上面时开启，全部离开后关闭。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class PressurePlate : MonoBehaviour
 {
+    static readonly string[] OccupantTags = { "Player", "Robot", "Box" };
+
     [Header("状态")]
     [SerializeField] bool isOn;
 
@@ -182,14 +184,19 @@ public class PressurePlate : MonoBehaviour
         if (col == null)
             return false;
 
-        if (col.CompareTag("Player"))
-            return true;
+        Transform t = col.transform;
+        while (t != null)
+        {
+            for (int i = 0; i < OccupantTags.Length; i++)
+            {
+                if (t.CompareTag(OccupantTags[i]))
+                    return true;
+            }
 
-        var character = col.GetComponentInParent<Character>();
-        if (character != null && character.CompareTag("Player"))
-            return true;
+            t = t.parent;
+        }
 
-        return col.GetComponentInParent<PushableProp>() != null;
+        return false;
     }
 
 #if UNITY_EDITOR
