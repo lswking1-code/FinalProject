@@ -791,11 +791,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (platformDropThrough != null && !platformDropThrough.ShouldCollideWith(hit.collider))
             return null;
 
-        IPlatformVelocityProvider platform = hit.collider.GetComponent<ReciprocatingPlatformSurface>();
-        if (platform != null)
-            return platform;
-
-        return hit.collider.GetComponent<RobotTopPlatform>();
+        return hit.collider.GetComponent<IPlatformVelocityProvider>()
+            ?? hit.collider.GetComponentInParent<IPlatformVelocityProvider>();
     }
 
     void ApplyHorizontalMovement()

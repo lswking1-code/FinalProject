@@ -640,7 +640,7 @@ MonoBehaviour:
   checkRaduis: 0.2
   groundLayer:
     serializedVersion: 2
-    m_Bits: 233536
+    m_Bits: 36928
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0
@@ -786,6 +786,10 @@ MonoBehaviour:
   longPressThreshold: 0.5
   previewMoveSpeed: 3
   maxPreviewDistance: 5
+  spawnBlockMask:
+    serializedVersion: 2
+    m_Bits: 0
+  spawnBlockProbeRadius: 0.2
   robotDrainRate: 3
   minAbilityPowerToSpawn: 3
   reloadAmmoCosts: 0000000028000000140000000a000000

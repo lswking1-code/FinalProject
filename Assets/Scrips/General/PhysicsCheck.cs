@@ -80,6 +80,7 @@ public class PhysicsCheck : MonoBehaviour
     const float LedgeProbeContinue = 0.05f;
     const int LedgeProbeMaxSteps = 8;
     readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
+    readonly Collider2D[] sideOverlapHits = new Collider2D[8];
     Collider2D[] ledgeColliders;
 
     public bool WasOnSlopeRecently =>
@@ -358,6 +359,10 @@ public class PhysicsCheck : MonoBehaviour
             if (IsSlopeSurfaceHit(collision.collider))
                 continue;
 
+            // 可推物顶面在 Ground 层供站立，侧面接触不能当墙，否则站立推箱会被清速度
+            if (IsPushablePropSurface(collision.collider))
+                continue;
+
             if (!CountsAsSolidObstacle(collision.collider))
                 continue;
 
@@ -429,6 +434,11 @@ public class PhysicsCheck : MonoBehaviour
         return effector != null && effector.enabled && effector.useOneWay;
     }
 
+    static bool IsPushablePropSurface(Collider2D col)
+    {
+        return col != null && col.GetComponentInParent<PushableProp>() != null;
+    }
+
     void UpdateOnPlatform(bool rawGround, bool rayGround, RaycastHit2D groundHit)
     {
         if (rawGround)
@@ -482,20 +492,30 @@ public class PhysicsCheck : MonoBehaviour
 
         Vector2 center = new Vector2(centerX, bounds.center.y);
         Vector2 size = new Vector2(probeWidth, probeHeight);
-        Collider2D hit = Physics2D.OverlapBox(center, size, 0f, groundLayer);
-        if (hit == null)
-            return false;
+        int count = Physics2D.OverlapBoxNonAlloc(center, size, 0f, sideOverlapHits, groundLayer);
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = sideOverlapHits[i];
+            if (hit == null)
+                continue;
 
-        if (IsSlopeSurfaceHit(hit))
-            return false;
+            if (IsSlopeSurfaceHit(hit))
+                continue;
 
-        // 单向板（含爆炸/掉落平台）侧面不是墙；Overlap 扫到邻块体积时不能当成侧挡
-        if (IsOneWayPlatformCollider(hit))
-            return false;
+            // 单向板（含爆炸/掉落平台）侧面不是墙；Overlap 扫到邻块体积时不能当成侧挡
+            if (IsOneWayPlatformCollider(hit))
+                continue;
 
-        if (!CountsAsSolidObstacle(hit))
-            return false;
-        return true;
+            if (IsPushablePropSurface(hit))
+                continue;
+
+            if (!CountsAsSolidObstacle(hit))
+                continue;
+
+            return true;
+        }
+
+        return false;
     }
 
     bool CountsAsSolidObstacle(Collider2D obstacle)

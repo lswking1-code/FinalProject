@@ -103,6 +103,8 @@ public class PlayerShotgunBlast : MonoBehaviour, IPlayerAmmo
     {
         if (hitCollider != null)
             hitCollider.enabled = true;
+        if (attack != null)
+            attack.NotifyHitboxEnabled();
     }
 
     /// <summary>Animation Event：可选关闭判定。</summary>

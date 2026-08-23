@@ -48,6 +48,9 @@ public class Attack : MonoBehaviour
     readonly HashSet<IKnockbackable> knockbackTargets = new();
     readonly List<Collider2D> overlapBuffer = new();
 
+    const string BlastTag = "Blast";
+    const float DefaultBlastPropKnockback = 8f;
+
     /// <summary>成功对 Character 造成伤害时广播（含 Trigger 与外部 TakeDamage 无关）。</summary>
     public event System.Action<Character, int> CharacterDamaged;
 
@@ -94,6 +97,38 @@ public class Attack : MonoBehaviour
         return attacker.knockbackForce / res;
     }
 
+    public static bool HasBlastTag(Transform root)
+    {
+        for (Transform t = root; t != null; t = t.parent)
+        {
+            if (t.CompareTag(BlastTag))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static bool ShouldKnockbackProp(Attack attacker)
+    {
+        if (attacker == null)
+            return false;
+        if (HasBlastTag(attacker.transform))
+            return true;
+        return attacker.enableKnockback && attacker.knockbackForce > 0f;
+    }
+
+    /// <summary>场景物击退：Blast 即使未勾 enableKnockback 也能推；力为 0 时用默认冲量。</summary>
+    public static float EffectivePropKnockbackForce(Attack attacker, float resistance)
+    {
+        if (!ShouldKnockbackProp(attacker))
+            return 0f;
+
+        float force = attacker.knockbackForce;
+        if (force <= 0f)
+            force = DefaultBlastPropKnockback;
+        return force / Mathf.Max(1f, resistance);
+    }
+
     /// <summary>
     /// Hitbox 启用时唤醒自身所属刚体，以及当前已重叠碰撞体上的刚体，
     /// 避免双方休眠时 Trigger 不产生 Enter/Stay。
@@ -124,6 +159,19 @@ public class Attack : MonoBehaviour
             var otherRb = other.attachedRigidbody;
             if (otherRb != null)
                 otherRb.WakeUp();
+        }
+    }
+
+    /// <summary>
+    /// 动画关键帧才打开判定时调用：唤醒已重叠刚体并对当前重叠立即结算。
+    /// </summary>
+    public void NotifyHitboxEnabled()
+    {
+        WakeRelatedRigidbodies();
+        for (int i = 0; i < overlapBuffer.Count; i++)
+        {
+            if (overlapBuffer[i] != null)
+                TryDamage(overlapBuffer[i]);
         }
     }
 
@@ -165,6 +213,13 @@ public class Attack : MonoBehaviour
 
     void TryDamage(Collider2D collision)
     {
+        if (TryApplyPropKnockback(collision))
+        {
+            if (attackType == AttackType.Projectile)
+                Destroy(gameObject);
+            return;
+        }
+
         if (attackType == AttackType.Projectile
             && LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
         {
@@ -233,20 +288,28 @@ public class Attack : MonoBehaviour
                 }
             }
 
-            if (enableKnockback && knockbackForce > 0f)
-            {
-                var knockable = collision.GetComponentInParent<IKnockbackable>();
-                if (knockable != null && !knockbackTargets.Contains(knockable))
-                {
-                    knockable.ApplyKnockback(this);
-                    knockbackTargets.Add(knockable);
-                    hitSomething = true;
-                }
-            }
+            if (TryApplyPropKnockback(collision))
+                hitSomething = true;
         }
 
         if (hitSomething && attackType == AttackType.Projectile)
             Destroy(gameObject);
+    }
+
+    bool TryApplyPropKnockback(Collider2D collision)
+    {
+        if (collision == null || !ShouldKnockbackProp(this))
+            return false;
+        if (collision.GetComponentInParent<Character>() != null)
+            return false;
+
+        var knockable = collision.GetComponentInParent<IKnockbackable>();
+        if (knockable == null || knockbackTargets.Contains(knockable))
+            return false;
+
+        knockable.ApplyKnockback(this);
+        knockbackTargets.Add(knockable);
+        return true;
     }
 
     bool CanHitCountable(IHitCountable target)
