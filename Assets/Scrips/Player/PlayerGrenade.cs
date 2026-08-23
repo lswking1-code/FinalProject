@@ -7,12 +7,18 @@ public class PlayerGrenade : MonoBehaviour
 {
     const string RollingStateName = "GrenadeRolling";
 
-    [SerializeField] float horizontalSpeed = 7f;
-    [SerializeField] float verticalSpeed = 5f;
+    [SerializeField] float horizontalSpeed = 6.5f;
+    [SerializeField] float verticalSpeed = 6.5f;
+    [Tooltip("投掷后的重力倍率，越大下落越干脆")]
+    [SerializeField] float gravityScale = 2.8f;
     [Tooltip("生成时沿面向施加的冲量；0 表示不加力")]
     [SerializeField] float forwardImpulse = 0f;
     [Tooltip(">=0 时覆盖碰撞体摩擦，便于贴地滚动；-1 表示不改")]
-    [SerializeField] float rollFriction = -1f;
+    [SerializeField] float rollFriction = 0.3f;
+    [Tooltip("首次落地时保留的水平速度比例")]
+    [SerializeField, Range(0f, 1f)] float landHorizontalRetain = 0.7f;
+    [Tooltip("首次落地时保留的向上反弹比例（抑制轻飘回弹）")]
+    [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.15f;
     [SerializeField] float fuseTime = 2.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
     [SerializeField, Range(0f, 1f)] float playerHorizontalInherit = 0.5f;
@@ -27,6 +33,7 @@ public class PlayerGrenade : MonoBehaviour
     CircleCollider2D grenadeCollider;
     Animator animator;
     bool hasExploded;
+    bool hasLanded;
 
     void Awake()
     {
@@ -58,7 +65,7 @@ public class PlayerGrenade : MonoBehaviour
         if (dir == 0f)
             dir = 1f;
 
-        rb.gravityScale = 1f;
+        rb.gravityScale = Mathf.Max(0.01f, gravityScale);
         var inherited = new Vector2(
             playerVelocity.x * playerHorizontalInherit,
             playerVelocity.y * playerVerticalInherit);
@@ -98,10 +105,43 @@ public class PlayerGrenade : MonoBehaviour
         if (hasExploded)
             return;
 
-        if (!IsEnemyCollider(collision.collider))
+        if (IsEnemyCollider(collision.collider))
+        {
+            Explode();
+            return;
+        }
+
+        TryApplyLandingFeel(collision);
+    }
+
+    void TryApplyLandingFeel(Collision2D collision)
+    {
+        if (hasLanded || groundLayer.value == 0)
             return;
 
-        Explode();
+        int layerBit = 1 << collision.collider.gameObject.layer;
+        if ((groundLayer.value & layerBit) == 0)
+            return;
+
+        bool landedOnTop = false;
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            if (collision.GetContact(i).normal.y > 0.5f)
+            {
+                landedOnTop = true;
+                break;
+            }
+        }
+
+        if (!landedOnTop)
+            return;
+
+        hasLanded = true;
+        var velocity = rb.linearVelocity;
+        velocity.x *= landHorizontalRetain;
+        if (velocity.y > 0f)
+            velocity.y *= landBounceRetain;
+        rb.linearVelocity = velocity;
     }
 
     static bool IsEnemyCollider(Collider2D collider)

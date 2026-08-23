@@ -435,7 +435,7 @@ public class ArmoredVehicleEnemy : Enemy
         if (dir == 0f)
             return;
 
-        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        currentSpeed = GetSpawnApproachSpeed();
         if (IsWallInDirection(dir) || IsLedgeBlocking(dir))
         {
             StopHorizontalMotion();

@@ -8,9 +8,7 @@ public class EnemyApproachTargetState : BaseState
     public override void OnEnter(Enemy enemy)
     {
         currentEnemy = enemy;
-        currentEnemy.currentSpeed = currentEnemy.normalSpeed > 0f
-            ? currentEnemy.normalSpeed
-            : currentEnemy.chaseSpeed;
+        currentEnemy.currentSpeed = currentEnemy.GetSpawnApproachSpeed();
 
         if (currentEnemy.anim != null)
             currentEnemy.SetAnimBool("walk", true);

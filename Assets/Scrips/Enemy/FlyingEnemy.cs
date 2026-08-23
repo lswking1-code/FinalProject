@@ -703,7 +703,7 @@ public class FlyingEnemy : Enemy
         if (isHurt || isDead || Rb == null)
             return;
 
-        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        currentSpeed = GetSpawnApproachSpeed();
         Vector2 target = spawnTargetPosition;
         target.y = RaiseYAboveOneWayPlatforms(target.x, target.y);
         Vector2 toTarget = target - (Vector2)transform.position;

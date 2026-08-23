@@ -8,6 +8,7 @@ public class ReciprocatingPlatform : MonoBehaviour
 {
     [Header("开关")]
     [SerializeField] ToggleSwitch activationSwitch;
+    [SerializeField] PressurePlate activationPlate;
     [SerializeField] bool listenToSwitch = true;
 
     [Header("运动")]
@@ -48,13 +49,23 @@ public class ReciprocatingPlatform : MonoBehaviour
 
     void OnEnable()
     {
-        if (listenToSwitch && activationSwitch != null)
+        if (!listenToSwitch)
+            return;
+
+        if (activationSwitch != null)
             activationSwitch.onToggled.AddListener(SetRunning);
+        if (activationPlate != null)
+            activationPlate.onToggled.AddListener(SetRunning);
     }
 
     void Start()
     {
-        if (listenToSwitch && activationSwitch != null && activationSwitch.IsOn)
+        if (!listenToSwitch)
+            return;
+
+        if (activationSwitch != null && activationSwitch.IsOn)
+            SetRunning(true);
+        else if (activationPlate != null && activationPlate.IsOn)
             SetRunning(true);
     }
 
@@ -62,6 +73,8 @@ public class ReciprocatingPlatform : MonoBehaviour
     {
         if (activationSwitch != null)
             activationSwitch.onToggled.RemoveListener(SetRunning);
+        if (activationPlate != null)
+            activationPlate.onToggled.RemoveListener(SetRunning);
     }
 
     public void SetRunning(bool on)

@@ -190,8 +190,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   horizontalSpeed: 2.5
   verticalSpeed: 0.5
+  gravityScale: 2
   forwardImpulse: 2
   rollFriction: 0.08
+  landHorizontalRetain: 0.85
+  landBounceRetain: 0.1
   fuseTime: 2.5
   explosionPrefab: {fileID: 1000000000000000006, guid: c7d9e1f2a3b4456789abcdef01234567, type: 3}
   playerHorizontalInherit: 0.2

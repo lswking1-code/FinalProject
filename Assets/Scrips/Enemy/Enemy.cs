@@ -17,6 +17,8 @@ public class Enemy : MonoBehaviour
     [Header("基本参数")]
     public float normalSpeed;
     public float chaseSpeed;
+    [Tooltip("仅进场走到 targetPoint 时生效；巡逻/追击不受影响")]
+    public float spawnApproachSpeedScale = 2f;
     [HideInInspector] public float currentSpeed;
     [Tooltip("为 true 时镭射光束在此敌人处截断")]
     public bool blocksLaser;
@@ -481,6 +483,14 @@ public class Enemy : MonoBehaviour
         return Mathf.Abs(spawnTargetPosition.x - transform.position.x) <= returnArriveDistance;
     }
 
+    /// <summary>进场走到 targetPoint 时的移速（normal/chase × spawnApproachSpeedScale）。</summary>
+    public float GetSpawnApproachSpeed()
+    {
+        float baseSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        float scale = spawnApproachSpeedScale > 0f ? spawnApproachSpeedScale : 1f;
+        return baseSpeed * scale;
+    }
+
     public virtual void MoveTowardSpawnTarget()
     {
         float dx = spawnTargetPosition.x - transform.position.x;
@@ -491,7 +501,7 @@ public class Enemy : MonoBehaviour
         if (dir == 0f)
             return;
 
-        currentSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        currentSpeed = GetSpawnApproachSpeed();
         MoveHorizontal(dir);
         TryFlipOnObstacle(dir);
         FaceDirection(dir);

@@ -144,6 +144,8 @@ public class ShieldEnemy : MeleeEnemy
 
     public override float GetMoveSpeedScale()
     {
+        if (isApproachingSpawnTarget)
+            return 1f;
         return HasShield ? ShieldedMoveSpeedScale : 1f;
     }
 
