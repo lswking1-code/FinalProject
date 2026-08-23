@@ -423,6 +423,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: ammoDropPrefab
       value: 
       objectReference: {fileID: 8601159937776506679, guid: 041a0928ce54bf045a1b09bc8e2894bf, type: 3}
@@ -2919,6 +2923,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 9e6a13c4d0f561801c3e7f2a4b5069d8, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 9e6a13c4d0f561801c3e7f2a4b5069d8, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -2987,6 +2995,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: enableFocusMode
@@ -4797,6 +4809,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -5059,6 +5075,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
@@ -5387,6 +5407,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: ammoDropPrefab
@@ -6318,6 +6342,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -6552,6 +6580,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: enableFocusMode
@@ -7582,6 +7614,10 @@ PrefabInstance:
     - target: {fileID: 8190837749373279148, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
       propertyPath: m_Name
       value: EnemyAir
+      objectReference: {fileID: 0}
+    - target: {fileID: 8822001100220033001, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8960,6 +8996,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -9560,6 +9600,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -10053,6 +10097,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_Name
       value: EnemyMelee (2)
@@ -10237,6 +10285,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: 9e6a13c4d0f561801c3e7f2a4b5069d8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 9e6a13c4d0f561801c3e7f2a4b5069d8, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 9e6a13c4d0f561801c3e7f2a4b5069d8, type: 3}
       propertyPath: enableFocusMode
@@ -10451,6 +10503,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: enableFocusMode
@@ -10811,6 +10867,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -10875,6 +10935,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_Name
@@ -13281,6 +13345,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -13345,6 +13413,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
@@ -13819,6 +13891,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -13949,6 +14025,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
@@ -14329,6 +14409,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: dropAmmoOnDeath
       value: 0
       objectReference: {fileID: 0}
@@ -14535,6 +14619,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -14599,6 +14687,10 @@ PrefabInstance:
     - target: {fileID: 7677709745587300971, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: isPatrol
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
@@ -15779,6 +15871,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: m_Name
       value: EnemyMelee (3)
@@ -16330,6 +16426,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 29e08d6948a0ff549af4728097d9f2d9, type: 3}
       propertyPath: enableFocusMode
       value: 1
       objectReference: {fileID: 0}
@@ -16674,7 +16774,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: waves.Array.data[0].enemies.Array.data[0].unlockEncounterOnCleared
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[1].unlockEncounterOnCleared
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[2].unlockEncounterOnCleared
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
+      propertyPath: waves.Array.data[0].enemies.Array.data[3].unlockEncounterOnCleared
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2685383304798720423, guid: 455c70d6a59ec83468ba4a2335324108, type: 3}
       propertyPath: 'waves.Array.data[0].enemies.Array.data[1].spawnPoints.Array.data[0]'
@@ -17433,6 +17545,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: EnemyAir (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 8822001100220033001, guid: c228387c06a4aa947a8129c7405ba3cd, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17942,6 +18058,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 2bd5e3e689c6197409cc174c354970a3, type: 3}
       propertyPath: healthDropPrefab
       value: 
       objectReference: {fileID: 8601159937776506679, guid: b8d4f02c9e65c015b2c1ad9d3f3905ae, type: 3}
@@ -18111,7 +18231,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1001000001001000002, guid: d4527a5621e64cda82c9b4a9af2b7f17, type: 3}
       propertyPath: m_LocalScale.x
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1001000001001000002, guid: d4527a5621e64cda82c9b4a9af2b7f17, type: 3}
       propertyPath: m_LocalScale.y
@@ -18119,7 +18239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1001000001001000002, guid: d4527a5621e64cda82c9b4a9af2b7f17, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 49.33
+      value: 49.87
       objectReference: {fileID: 0}
     - target: {fileID: 1001000001001000002, guid: d4527a5621e64cda82c9b4a9af2b7f17, type: 3}
       propertyPath: m_LocalPosition.y
