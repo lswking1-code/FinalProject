@@ -47,8 +47,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float normalGravityScale;
     /// <summary>斜坡起跳/下穿后短时间内脱离坡面贴合，避免速度被改写。</summary>
     float slopeDetachTimer;
-    /// <summary>从机器人顶板起跳后的短暂脱离，避免接触求解/携带把竖直速度清掉。</summary>
-    float robotPlatformDetachTimer;
+    /// <summary>从移动平台起跳后的短暂脱离，避免接触求解/携带把竖直速度清掉。</summary>
+    float platformDetachTimer;
     Collider2D ignoredRobotTopCollider;
     float airHangTimer;
     /// <summary>当前连续滞空已持续时长，用于衰减浮空强度。</summary>
@@ -208,14 +208,14 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (TryJump()) // 起跳覆盖本帧速度，跳过后不再水平移动
         {
             HandleLook(); // 蹲跳等：离开地面后同帧补判空中向下看
-            ApplyRobotTopPlatformCarry(applyVertical: false);
+            ApplyPlatformCarry(applyVertical: false);
             return;
         }
 
         TryTurn(); // 与 Update 双调用无害；保证 FixedUpdate 先于 Update 时也能先转身
         if (!IsKnockbackActive)
             ApplyHorizontalMovement();
-        ApplyRobotTopPlatformCarry(applyVertical: true);
+        ApplyPlatformCarry(applyVertical: true);
         CancelVelocityIntoObstacle();
         CancelVelocityIntoSlope();
     }
@@ -660,9 +660,9 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         rb.linearVelocity = new Vector2(horizontalVelocity, jumpVelocity);
 
-        RobotTopPlatform robotTop = FindRobotTopUnderFeet();
-        if (robotTop != null)
-            BeginRobotPlatformDetach(robotTop);
+        IPlatformVelocityProvider platform = FindPlatformUnderFeet();
+        if (platform != null)
+            BeginPlatformDetach(platform);
 
         playerAnim.PlayJumpAnim(hasHorizontalInput);
         ApplyFacing();
@@ -678,15 +678,15 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     }
 
     /// <summary>
-    /// 站在机器人顶部单向平台时叠加平台速度。
+    /// 站在移动平台表面时叠加平台速度。
     /// 玩家无摩擦材质，无法靠物理摩擦跟随，必须在速度层携带。
     /// </summary>
-    void ApplyRobotTopPlatformCarry(bool applyVertical)
+    void ApplyPlatformCarry(bool applyVertical)
     {
         if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
             return;
 
-        RobotTopPlatform platform = FindRobotTopUnderFeet();
+        IPlatformVelocityProvider platform = FindPlatformUnderFeet();
         if (platform == null)
             return;
 
@@ -694,7 +694,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         // 起跳脱离、未实站、或相对平台仍在上升：不要携带，避免盖掉起跳速度 / 空中连加水平速度
         if (applyVertical
-            && (robotPlatformDetachTimer > 0f
+            && (platformDetachTimer > 0f
                 || !physicsCheck.isSolidGround
                 || rb.linearVelocity.y > platformVelocity.y + 0.05f))
             return;
@@ -706,7 +706,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.linearVelocity = velocity;
     }
 
-    void BeginRobotPlatformDetach(RobotTopPlatform platform)
+    void BeginPlatformDetach(IPlatformVelocityProvider platform)
+    {
+        platformDetachTimer = 0.2f;
+        rb.position += Vector2.up * 0.06f;
+
+        if (platform is RobotTopPlatform robotTop)
+            BeginRobotTopIgnoreCollision(robotTop);
+    }
+
+    void BeginRobotTopIgnoreCollision(RobotTopPlatform platform)
     {
         Collider2D platformCollider = platform != null ? platform.GetComponent<Collider2D>() : null;
         if (capsuleCollider != null && platformCollider != null)
@@ -717,15 +726,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             Physics2D.IgnoreCollision(capsuleCollider, platformCollider, true);
             ignoredRobotTopCollider = platformCollider;
         }
-
-        robotPlatformDetachTimer = 0.2f;
-        rb.position += Vector2.up * 0.06f;
     }
 
     void UpdateRobotPlatformDetach()
     {
-        if (robotPlatformDetachTimer > 0f)
-            robotPlatformDetachTimer -= Time.fixedDeltaTime;
+        if (platformDetachTimer > 0f)
+            platformDetachTimer -= Time.fixedDeltaTime;
 
         if (ignoredRobotTopCollider == null)
             return;
@@ -733,7 +739,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!ignoredRobotTopCollider)
         {
             ignoredRobotTopCollider = null;
-            robotPlatformDetachTimer = 0f;
+            platformDetachTimer = 0f;
             return;
         }
 
@@ -744,7 +750,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         }
 
         // 仍重叠但保护结束且已下落：恢复碰撞以便再次落地
-        if (robotPlatformDetachTimer <= 0f && rb.linearVelocity.y <= 0.05f)
+        if (platformDetachTimer <= 0f && rb.linearVelocity.y <= 0.05f)
             RestoreRobotTopCollision();
     }
 
@@ -763,10 +769,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             Physics2D.IgnoreCollision(capsuleCollider, ignoredRobotTopCollider, false);
 
         ignoredRobotTopCollider = null;
-        robotPlatformDetachTimer = 0f;
+        platformDetachTimer = 0f;
     }
 
-    RobotTopPlatform FindRobotTopUnderFeet()
+    IPlatformVelocityProvider FindPlatformUnderFeet()
     {
         float facing = Mathf.Sign(transform.localScale.x);
         if (Mathf.Approximately(facing, 0f))
@@ -784,6 +790,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (platformDropThrough != null && !platformDropThrough.ShouldCollideWith(hit.collider))
             return null;
+
+        IPlatformVelocityProvider platform = hit.collider.GetComponent<ReciprocatingPlatformSurface>();
+        if (platform != null)
+            return platform;
 
         return hit.collider.GetComponent<RobotTopPlatform>();
     }

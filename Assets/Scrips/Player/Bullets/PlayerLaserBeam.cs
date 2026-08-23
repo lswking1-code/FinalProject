@@ -47,7 +47,7 @@ public class PlayerLaserBeam : MonoBehaviour
     void Awake()
     {
         if (hitMask.value == 0)
-            hitMask = LayerMask.GetMask("Ground", "Platform", "Enemy", "Item");
+            hitMask = LayerMask.GetMask("Ground", "Platform", "Enemy", "Item", "Device");
 
         EnsureAttackSource();
     }

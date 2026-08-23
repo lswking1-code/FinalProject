@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(PlatformEffector2D))]
-public class RobotTopPlatform : MonoBehaviour
+public class RobotTopPlatform : MonoBehaviour, IPlatformVelocityProvider
 {
     Rigidbody2D parentRb;
 
