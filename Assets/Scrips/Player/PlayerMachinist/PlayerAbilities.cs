@@ -1,6 +1,7 @@
 using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 
 [RequireComponent(typeof(PlayerMovement))]
 [RequireComponent(typeof(Character))]
@@ -22,6 +23,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     [SerializeField] float longPressThreshold = 0.5f;
     [SerializeField] float previewMoveSpeed = 3f;
     [SerializeField] float maxPreviewDistance = 5f;
+    [Tooltip("生成点落在该层碰撞体或 Ground Tilemap 格子内则取消本次生成。留空则使用 Ground")]
+    [SerializeField] LayerMask spawnBlockMask;
+    [Tooltip("描边 CompositeCollider 测不到内部，额外用该半径做边缘重叠检测")]
+    [SerializeField] float spawnBlockProbeRadius = 0.2f;
 
     [Header("AbilityPower")]
     [SerializeField] float robotDrainRate = 5f;
@@ -170,11 +175,17 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
                     {
                         if (!HasActiveRobot() && CanSpawnRobot())
                         {
-                            SpawnRobot(robotGeneratePoint.position, RobotDeployMode.Follow);
-                            // 短按：intro 播完（或已定格）后结束召唤动画
-                            if (dispatchStartedThisPress)
-                                playerAnim.SetDispatchAutoEnd(true);
-                            dispatchStartedThisPress = false;
+                            if (TrySpawnRobot(robotGeneratePoint.position, RobotDeployMode.Follow))
+                            {
+                                // 短按：intro 播完（或已定格）后结束召唤动画
+                                if (dispatchStartedThisPress)
+                                    playerAnim.SetDispatchAutoEnd(true);
+                                dispatchStartedThisPress = false;
+                            }
+                            else
+                            {
+                                EndPlayerDispatch();
+                            }
                         }
                         else if (HasActiveRobot())
                         {
@@ -201,7 +212,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
                 if (actions.Player.Ability2.WasReleasedThisFrame())
                 {
                     if (CanSpawnRobot())
-                        SpawnRobot(robotGeneratePoint.position, RobotDeployMode.Stationed);
+                        TrySpawnRobot(robotGeneratePoint.position, RobotDeployMode.Stationed);
 
                     ExitAimingMode();
                 }
@@ -425,21 +436,67 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         dispatchStartedThisPress = false;
     }
 
-    void SpawnRobot(Vector3 worldPos, RobotDeployMode mode)
+    bool TrySpawnRobot(Vector3 worldPos, RobotDeployMode mode)
     {
         if (robotPrefab == null)
         {
             Debug.LogWarning("PlayerAbilities: robotPrefab 未配置。", this);
-            return;
+            return false;
         }
 
         if (!CanSpawnRobot())
-            return;
+            return false;
+
+        if (IsSpawnPositionInsideGround(worldPos))
+            return false;
 
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
         robot.GetComponent<AllyRobot>()?.Initialize(transform, mode, robotFollowPoint);
         OnRobotSpawned(robot);
         SpawnOpenCore(worldPos);
+        return true;
+    }
+
+    LayerMask ResolveSpawnBlockMask()
+    {
+        return spawnBlockMask.value != 0
+            ? spawnBlockMask
+            : (LayerMask)LayerMask.GetMask("Ground");
+    }
+
+    bool IsSpawnPositionInsideGround(Vector3 worldPos)
+    {
+        LayerMask mask = ResolveSpawnBlockMask();
+        Vector2 pos = worldPos;
+
+        // BoxCollider 等实心碰撞体。
+        if (Physics2D.OverlapPoint(pos, mask) != null)
+            return true;
+
+        // Tilemap + CompositeCollider 常用 Outlines：内部没有填充，OverlapPoint 会漏。
+        if (spawnBlockProbeRadius > 0f && Physics2D.OverlapCircle(pos, spawnBlockProbeRadius, mask) != null)
+            return true;
+
+        return IsInsideGroundTile(pos, mask);
+    }
+
+    bool IsInsideGroundTile(Vector2 worldPos, LayerMask mask)
+    {
+        var tilemaps = FindObjectsByType<Tilemap>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        for (int i = 0; i < tilemaps.Length; i++)
+        {
+            var tilemap = tilemaps[i];
+            if (tilemap == null)
+                continue;
+            if (((1 << tilemap.gameObject.layer) & mask) == 0)
+                continue;
+            if (tilemap.GetComponent<TilemapCollider2D>() == null)
+                continue;
+            if (tilemap.HasTile(tilemap.WorldToCell(worldPos)))
+                return true;
+        }
+
+        return false;
     }
 
     void SpawnOpenCore(Vector3 worldPos)

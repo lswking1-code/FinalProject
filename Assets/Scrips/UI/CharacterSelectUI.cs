@@ -112,6 +112,10 @@ public class CharacterSelectUI : MonoBehaviour
         }
 
         confirmed = true;
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+            InputPromptDeviceTracker.Remember(Mouse.current);
+        else
+            RememberLastMenuDevice();
 
         var loader = FindFirstObjectByType<SceneLoader>();
         loader?.SelectCharacter(slot.character);
@@ -130,6 +134,7 @@ public class CharacterSelectUI : MonoBehaviour
                 return;
 
             navigateLocked = true;
+            RememberLastMenuDevice();
             HighlightIndex(currentIndex + (x > 0f ? 1 : -1));
             return;
         }
@@ -142,13 +147,17 @@ public class CharacterSelectUI : MonoBehaviour
         if (Mouse.current == null || Mouse.current.delta.ReadValue().sqrMagnitude < 0.01f)
             return;
 
+        InputPromptDeviceTracker.Remember(Mouse.current);
         TryHighlightUnderPointer();
     }
 
     void HandleConfirm()
     {
         if (actions.Player.Jump.WasPressedThisFrame())
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.Player.Jump);
             ConfirmSelection();
+        }
     }
 
     void HandleCancel()
@@ -162,6 +171,30 @@ public class CharacterSelectUI : MonoBehaviour
             return;
 
         menuActions?.BackToStartMenu();
+    }
+
+    void RememberLastMenuDevice()
+    {
+        if (actions.Player.Jump.activeControl != null)
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.Player.Jump);
+            return;
+        }
+
+        if (actions.Player.Move.activeControl != null)
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.Player.Move);
+            return;
+        }
+
+        if (actions.UI.Navigate.activeControl != null)
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.UI.Navigate);
+            return;
+        }
+
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed)
+            InputPromptDeviceTracker.Remember(Mouse.current);
     }
 
     void HighlightIndex(int index)

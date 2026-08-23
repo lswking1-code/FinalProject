@@ -17,6 +17,14 @@ public class SceneLoader : MonoBehaviour, ISaveable
         public Transform instanceTransform;
     }
 
+    [Serializable]
+    public class CharacterTutorialBinding
+    {
+        public PlayerCharacterSO character;
+        public GameSceneSO tutorialScene;
+        public Vector3 tutorialStartPosition;
+    }
+
     public Transform playerTrans;
     public Vector3 firstPosition;
     public Vector3 menuPosition;
@@ -45,8 +53,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public float spawnInvulnerableDuration = 2f;
 
     [Header("场景")]
+    [Tooltip("正式首关（Stage1）。所选角色未配置教学关时，新游戏直接进入此场景。")]
     public GameSceneSO firstLoadScene;
     public GameSceneSO menuScene;
+    [Tooltip("按角色绑定教学关。tutorialScene 为空则该角色新游戏直进正式首关。")]
+    public CharacterTutorialBinding[] characterTutorials = Array.Empty<CharacterTutorialBinding>();
 
     [Header("开发模式")]
     public bool developMode;
@@ -176,8 +187,10 @@ public class SceneLoader : MonoBehaviour, ISaveable
     private void NewGame()
     {
         ApplyPlayerSelection();
-        sceneToLoad = firstLoadScene;
-        loadEventSO.RaiseLoadRequestEvent(sceneToLoad, firstPosition, true);
+        if (TryGetTutorialFor(selectedCharacter, out var tutorial, out var tutorialPos))
+            loadEventSO.RaiseLoadRequestEvent(tutorial, tutorialPos, true);
+        else
+            loadEventSO.RaiseLoadRequestEvent(firstLoadScene, firstPosition, true);
     }
 
     /// <summary>
@@ -215,6 +228,51 @@ public class SceneLoader : MonoBehaviour, ISaveable
         playerTrans.GetComponent<PlayerAbilities>()?.ResetForNewGame();
         playerTrans.GetComponent<PlayerWeaponController>()?.ResetToInitialWeapon();
         playerTrans.GetComponent<SpecialMagazine>()?.Clear();
+    }
+
+    bool TryGetTutorialFor(PlayerCharacterSO character, out GameSceneSO tutorial, out Vector3 startPosition)
+    {
+        tutorial = null;
+        startPosition = default;
+        if (character == null || characterTutorials == null)
+            return false;
+
+        foreach (var binding in characterTutorials)
+        {
+            if (binding == null || binding.tutorialScene == null)
+                continue;
+            if (!IsSameCharacter(binding.character, character))
+                continue;
+
+            tutorial = binding.tutorialScene;
+            startPosition = binding.tutorialStartPosition;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool IsTutorialScene(GameSceneSO scene)
+    {
+        if (scene == null || characterTutorials == null)
+            return false;
+
+        foreach (var binding in characterTutorials)
+        {
+            if (binding != null && binding.tutorialScene == scene)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool ShouldResetAfterLeavingTutorial(GameSceneSO locationToLoad)
+    {
+        if (locationToLoad == null || locationToLoad.sceneType != SceneType.Loaction)
+            return false;
+        if (!IsTutorialScene(currentLoadedScene))
+            return false;
+        return !IsTutorialScene(locationToLoad);
     }
 
     void EnsureSelectedCharacter()
@@ -387,6 +445,13 @@ public class SceneLoader : MonoBehaviour, ISaveable
         pendingRecordEntry = locationToLoad != null
             && locationToLoad.sceneType == SceneType.Loaction
             && currentLoadedScene != locationToLoad;
+
+        if (ShouldResetAfterLeavingTutorial(locationToLoad))
+        {
+            DataManager.instance?.ClearForNewGame();
+            ResetPlayerForLevelRestart();
+            pendingSaveAfterRestart = true;
+        }
 
         sceneToLoad = locationToLoad;
         positionToGo = posToGo;

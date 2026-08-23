@@ -166,6 +166,10 @@ public class StartMenuUI : MonoBehaviour
             return;
 
         navigateLocked = true;
+        if (actions.Player.Move.activeControl != null)
+            InputPromptDeviceTracker.RememberFromAction(actions.Player.Move);
+        else
+            InputPromptDeviceTracker.RememberFromAction(actions.UI.Navigate);
 
         Vector2 dir = Mathf.Abs(v.x) >= Mathf.Abs(v.y)
             ? new Vector2(Mathf.Sign(v.x), 0f)
@@ -179,13 +183,17 @@ public class StartMenuUI : MonoBehaviour
         if (Mouse.current == null || Mouse.current.delta.ReadValue().sqrMagnitude < 0.01f)
             return;
 
+        InputPromptDeviceTracker.Remember(Mouse.current);
         TryHighlightUnderPointer();
     }
 
     void HandleConfirm()
     {
         if (actions.Player.Jump.WasPressedThisFrame())
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.Player.Jump);
             ConfirmSelection();
+        }
     }
 
     int FindNextIndex(int current, Vector2 dir)

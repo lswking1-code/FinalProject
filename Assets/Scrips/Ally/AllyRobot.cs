@@ -2229,6 +2229,7 @@ public class AllyRobot : MonoBehaviour
 
     /// <summary>
     /// 贴地 AI 移动时前方是否为悬崖；空中与单向平台上不拦截，平台上可走下去。
+    /// 可越过的矮障不算悬崖，否则会先停步，自动跳永远得不到 movingHorizontally。
     /// </summary>
     bool IsLedgeBlocking(float dir)
     {
@@ -2236,8 +2237,10 @@ public class AllyRobot : MonoBehaviour
             return false;
         if (Mathf.Approximately(dir, 0f) || !physicsCheck.ShouldRespectLedge)
             return false;
+        if (physicsCheck.HasGroundAhead(dir))
+            return false;
 
-        return !physicsCheck.HasGroundAhead(dir);
+        return !CanJumpOverObstacle(dir);
     }
 
     /// <returns>true 表示已施加水平速度；遇边缘停步时返回 false。</returns>
@@ -2753,11 +2756,10 @@ public class AllyRobot : MonoBehaviour
             || (IsBusyWithCombo && currentState != AllyState.ComboDashing))
             return;
 
-        // 自动跳只用真实接地，避免土狼跳窗口内贴墙连跳。斜面上不当台阶跳。
+        // 只用真实接地，避免土狼窗口内贴墙连跳。
+        // 不看 isOnSlope：上台阶时脚底/棱角法线常被误判成斜面，反而把该跳的矮障拦掉。
+        // 真斜坡立面由 CanJumpOverObstacle 的法线与斜坡组件过滤。
         if (!IsSolidGrounded() || Mathf.Approximately(moveDir, 0f))
-            return;
-
-        if (physicsCheck != null && (physicsCheck.isOnSlope || physicsCheck.WasOnSlopeRecently))
             return;
 
         bool obstacleAhead = CanJumpOverObstacle(moveDir);
@@ -2816,7 +2818,16 @@ public class AllyRobot : MonoBehaviour
             footY + probeHeight);
 
         if (!TryFindWallHit(probeOrigin, face, jumpProbeDistance, mask, out RaycastHit2D wallHit))
-            return false;
+        {
+            // 主探针偏高时，0.25~0.45 的矮障会从下方漏掉
+            float lowHeight = Mathf.Max(0.15f, minObstacleHeight + 0.02f);
+            if (lowHeight >= probeHeight - 0.01f)
+                return false;
+
+            Vector2 lowOrigin = new Vector2(probeOrigin.x, footY + lowHeight);
+            if (!TryFindWallHit(lowOrigin, face, jumpProbeDistance, mask, out wallHit))
+                return false;
+        }
 
         float topProbeX = wallHit.point.x + face * 0.08f;
         float topStartY = footY + Mathf.Max(maxAutoJumpHeight, probeHeight) + 0.5f;
@@ -2869,7 +2880,7 @@ public class AllyRobot : MonoBehaviour
         for (int i = 0; i < hits.Length; i++)
         {
             RaycastHit2D hit = hits[i];
-            if (!IsExternalObstacle(hit.collider))
+            if (!IsExternalObstacle(hit.collider) || IsDedicatedSlopeSurface(hit.collider))
                 continue;
 
             // 地面/斜坡法线偏上，不应当作需要跳过的墙。
@@ -2889,6 +2900,16 @@ public class AllyRobot : MonoBehaviour
             return false;
         Transform hitTf = col.transform;
         return hitTf != transform && !hitTf.IsChildOf(transform);
+    }
+
+    bool IsDedicatedSlopeSurface(Collider2D col)
+    {
+        if (col == null)
+            return false;
+
+        return col.GetComponent<SlopePathSegment>() != null
+            || col.GetComponentInParent<SlopePathSegment>() != null
+            || col.GetComponent<SlopeOneWayPlatform>() != null;
     }
 
     float GetFootY()
