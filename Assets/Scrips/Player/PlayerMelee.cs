@@ -30,6 +30,7 @@ public class PlayerMelee : MonoBehaviour
                 attack.damage = damage;
                 attack.attackType = AttackType.Melee;
                 attack.ignoreTag = "Player";
+                attack.cancelEnemyProjectiles = true;
             }
 
             meleeHitbox.SetActive(false);

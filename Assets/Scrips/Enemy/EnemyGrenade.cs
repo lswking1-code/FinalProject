@@ -156,6 +156,9 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
 
     static bool IsPlayerCollider(Collider2D collider)
     {
+        if (collider == null || MeleeDetectZone.IsSensorCollider(collider))
+            return false;
+
         if (collider.CompareTag("Player"))
             return true;
 

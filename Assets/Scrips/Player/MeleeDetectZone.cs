@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 近战索敌传感器：只查询敌人，不参与物理接触，因此不会引爆导弹、也不会替玩家挨打。
+/// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
 public class MeleeDetectZone : MonoBehaviour
 {
@@ -18,25 +21,31 @@ public class MeleeDetectZone : MonoBehaviour
         }
     }
 
+    public static bool IsSensorCollider(Collider2D collider)
+        => collider != null && collider.GetComponent<MeleeDetectZone>() != null;
+
     void Awake()
     {
         boxCollider = GetComponent<BoxCollider2D>();
         boxCollider.isTrigger = true;
+        // 传感器：不产生物理接触 / 回调，避免被导弹和敌方攻击当成玩家身体
+        boxCollider.includeLayers = 0;
+        boxCollider.excludeLayers = ~0;
+        boxCollider.callbackLayers = 0;
+        boxCollider.contactCaptureLayers = 0;
     }
 
     void LateUpdate() => PruneInvalidTargets();
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        bool accepted = TryGetTargetRoot(other, out Transform root);
-        if (accepted)
+        if (TryGetTargetRoot(other, out Transform root))
             targets.Add(root);
     }
 
     void OnTriggerExit2D(Collider2D other)
     {
-        bool accepted = TryGetTargetRoot(other, out Transform root);
-        if (accepted)
+        if (TryGetTargetRoot(other, out Transform root))
             targets.Remove(root);
     }
 
@@ -95,7 +104,7 @@ public class MeleeDetectZone : MonoBehaviour
         if (targets.Count == 0)
             return;
 
-        targets.RemoveWhere(target => target == null || !IsAliveTarget(target));
+        targets.RemoveWhere(target => target == null || !IsAliveEnemy(target));
     }
 
     bool TryGetTargetRoot(Collider2D other, out Transform root)
@@ -107,42 +116,21 @@ public class MeleeDetectZone : MonoBehaviour
         if (boxCollider != null && other == boxCollider)
             return false;
 
-        var selfBody = boxCollider != null ? boxCollider.attachedRigidbody : null;
-        if (selfBody != null && other.attachedRigidbody == selfBody)
-            return false;
-
-        if (other.CompareTag("Player"))
-            return false;
-
-        if (!other.CompareTag("Enemy"))
-        {
-            var character = other.GetComponentInParent<Character>();
-            if (character == null)
-                return false;
-
-            root = character.transform;
-            return IsAliveTarget(root);
-        }
-
         var enemy = other.GetComponentInParent<Enemy>();
-        root = enemy != null ? enemy.transform : other.transform;
-        return IsAliveTarget(root);
+        if (enemy == null || !enemy.IsHittable)
+            return false;
+
+        root = enemy.transform;
+        return true;
     }
 
-    static bool IsAliveTarget(Transform target)
+    static bool IsAliveEnemy(Transform target)
     {
         if (target == null)
             return false;
 
         var enemy = target.GetComponent<Enemy>();
-        if (enemy != null)
-            return enemy.IsHittable;
-
-        var character = target.GetComponent<Character>();
-        if (character != null && !character.CanReceiveHits)
-            return false;
-
-        return true;
+        return enemy != null && enemy.IsHittable;
     }
 
     void OnDrawGizmosSelected()

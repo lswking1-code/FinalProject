@@ -54,6 +54,46 @@ public class Attack : MonoBehaviour
     /// <summary>成功对 Character 造成伤害时广播（含 Trigger 与外部 TakeDamage 无关）。</summary>
     public event System.Action<Character, int> CharacterDamaged;
 
+    /// <summary>
+    /// 玩家近战判定盒（挂在 Player 角色下）。不含霰弹/激光/持续弹等弹药型 Melee。
+    /// </summary>
+    public static bool IsPlayerMeleeHitbox(Collider2D collider, out Attack meleeAttack)
+    {
+        meleeAttack = null;
+        if (collider == null)
+            return false;
+
+        meleeAttack = collider.GetComponentInParent<Attack>();
+        if (meleeAttack == null || meleeAttack.attackType != AttackType.Melee)
+        {
+            meleeAttack = null;
+            return false;
+        }
+
+        if (MeleeDetectZone.IsSensorCollider(collider))
+        {
+            meleeAttack = null;
+            return false;
+        }
+
+        if (collider.GetComponentInParent<IPlayerAmmo>() != null
+            || collider.GetComponentInParent<PlayerLaserBeam>() != null
+            || collider.GetComponentInParent<GrenadeExplosion>() != null)
+        {
+            meleeAttack = null;
+            return false;
+        }
+
+        var character = collider.GetComponentInParent<Character>();
+        if (character == null || !character.CompareTag("Player"))
+        {
+            meleeAttack = null;
+            return false;
+        }
+
+        return true;
+    }
+
     void OnEnable()
     {
         hitTargets.Clear();
@@ -213,6 +253,9 @@ public class Attack : MonoBehaviour
 
     void TryDamage(Collider2D collision)
     {
+        if (collision == null || MeleeDetectZone.IsSensorCollider(collision))
+            return;
+
         if (TryApplyPropKnockback(collision))
         {
             if (attackType == AttackType.Projectile)

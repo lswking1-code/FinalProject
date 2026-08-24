@@ -167,6 +167,9 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         if (hasExploded || other == null)
             return;
 
+        if (MeleeDetectZone.IsSensorCollider(other))
+            return;
+
         if (IsRobotTopCollider(other))
         {
             if (missileCollider != null)
@@ -177,6 +180,13 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         if (EncounterZone.IsAirWallCollider(other))
         {
             Despawn();
+            return;
+        }
+
+        if (Attack.IsPlayerMeleeHitbox(other, out Attack meleeAttack))
+        {
+            if (meleeAttack.cancelEnemyProjectiles)
+                TryCancelByMelee(meleeAttack);
             return;
         }
 
@@ -239,6 +249,9 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
 
     static bool IsPlayerCollider(Collider2D collider)
     {
+        if (collider == null || MeleeDetectZone.IsSensorCollider(collider))
+            return false;
+
         if (collider.CompareTag("Player"))
             return true;
 
