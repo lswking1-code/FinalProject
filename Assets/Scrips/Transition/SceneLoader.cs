@@ -104,9 +104,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
     {
         if (developMode)
         {
-            // 进测试关前清档，避免遭遇区/敌人/道具套用上一局进度
+            // 进测试关前清档；此时玩家通常仍未激活，不能走 ResetPlayerForLevelRestart
             DataManager.instance?.ClearForNewGame();
-            ResetPlayerForLevelRestart();
 
             // 首次加载无旧场景可卸载，补发一次供 UIManage 打开 HUD
             unloadedSceneEvent.RaiseLoadRequestEvent(testScene, testPosition, true);

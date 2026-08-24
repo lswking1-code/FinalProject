@@ -113,15 +113,15 @@ public class PlayerDeath : MonoBehaviour
     {
         deathHandled = false;
         gameOverRaised = false;
-        character.Revive();
-        playerAnim.ResetFromDeath();
-        playerMovement.EndExternalControl();
+        character?.Revive();
+        playerAnim?.ResetFromDeath();
+        playerMovement?.EndExternalControl();
     }
 
     /// <summary>新游戏 / 回菜单：清死亡态并回满基础属性。</summary>
     public void ResetForNewGame()
     {
         Revive();
-        character.ResetForNewGame();
+        character?.ResetForNewGame();
     }
 }
