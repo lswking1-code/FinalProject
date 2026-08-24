@@ -66,6 +66,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public bool enableDevelopCharacterSwitch = true;
     [Tooltip("开启后按 M 键将当前玩家弹药填满（仅测试用）")]
     public bool enableFillAmmoCheat;
+    [Tooltip("开启后按 N 键将当前玩家生命回满（仅测试用）")]
+    public bool enableFullHealthCheat;
 
     private GameSceneSO currentLoadedScene;
     public bool IsLoading => isLoading;
@@ -118,6 +120,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (enableFillAmmoCheat && keyboard.mKey.wasPressedThisFrame)
             TryFillPlayerAmmo();
 
+        if (enableFullHealthCheat && keyboard.nKey.wasPressedThisFrame)
+            TryRestorePlayerHealth();
+
         if (!developMode || !enableDevelopCharacterSwitch || playerRegistry == null)
             return;
 
@@ -139,6 +144,18 @@ public class SceneLoader : MonoBehaviour, ISaveable
             return;
 
         character.FillAllAmmo();
+    }
+
+    void TryRestorePlayerHealth()
+    {
+        if (playerTrans == null || !playerTrans.gameObject.activeInHierarchy)
+            return;
+
+        var character = playerTrans.GetComponent<Character>();
+        if (character == null)
+            return;
+
+        character.RestoreFullHealth();
     }
 
     private void OnEnable()

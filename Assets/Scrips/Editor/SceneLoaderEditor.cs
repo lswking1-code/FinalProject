@@ -45,6 +45,13 @@ public class SceneLoaderEditor : Editor
                 "弹药测试：运行时可按 M 键将当前玩家 S/M/L 弹药全部填满。",
                 MessageType.Info);
         }
+
+        if (loader.enableFullHealthCheat)
+        {
+            EditorGUILayout.HelpBox(
+                "生命测试：运行时可按 N 键将当前玩家生命回满。",
+                MessageType.Info);
+        }
     }
 }
 #endif
