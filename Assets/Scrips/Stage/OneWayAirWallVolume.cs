@@ -85,13 +85,13 @@ public class OneWayAirWallVolume : MonoBehaviour
         DeactivateAirWalls();
     }
 
-    internal bool IsEnemyFullyInsideCombatArea(Vector2 worldPoint, Collider2D bodyCollider)
+    internal bool IsEnemyFullyInsideCombatArea(IReadOnlyList<Collider2D> bodyColliders, Vector2 fallbackPoint)
     {
-        if (!IsPointInsideCage(worldPoint))
-            return false;
-        if (bodyCollider != null && IsColliderOverlappingAirWalls(bodyCollider))
-            return false;
-        return true;
+        return AirWallRegistry.IsBodyFullyInsideCage(
+            bodyColliders,
+            airWallColliders,
+            cageBounds,
+            fallbackPoint);
     }
 
     internal bool IsPointInsideCage(Vector2 worldPoint)
@@ -369,18 +369,13 @@ public class OneWayAirWallVolume : MonoBehaviour
             if (bodyColliders.Count == 0)
                 CacheBodyColliders();
 
-            bool fullyInside = volume.IsPointInsideCage(transform.position);
-            if (fullyInside)
+            if (bodyColliders.Count == 0)
             {
-                for (int i = 0; i < bodyColliders.Count; i++)
-                {
-                    if (volume.IsColliderOverlappingAirWalls(bodyColliders[i]))
-                    {
-                        fullyInside = false;
-                        break;
-                    }
-                }
+                SetIgnoringWalls(true);
+                return;
             }
+
+            bool fullyInside = volume.IsEnemyFullyInsideCombatArea(bodyColliders, transform.position);
 
             if (fullyInside)
             {

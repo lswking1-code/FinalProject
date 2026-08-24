@@ -29422,6 +29422,7 @@ GameObject:
   - component: {fileID: 1998333994}
   - component: {fileID: 1998333996}
   - component: {fileID: 1998333995}
+  - component: {fileID: 1998333997}
   m_Layer: 0
   m_Name: BG
   m_TagString: Untagged
@@ -108150,6 +108151,21 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!114 &1998333997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1998333993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3e9c2a1b4d4e8f9a0c5d6e7f8a9b0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  parallaxFactorX: 0.1
+  parallaxFactorY: 0
+  cameraOverride: {fileID: 0}
 --- !u!1001 &2002077891
 PrefabInstance:
   m_ObjectHideFlags: 0

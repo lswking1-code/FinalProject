@@ -560,15 +560,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     internal IReadOnlyList<Collider2D> GetAirWallColliders() => airWallColliders;
 
-    internal bool IsEnemyFullyInsideCombatArea(Vector2 worldPoint, Collider2D bodyCollider)
+    internal bool IsEnemyFullyInsideCombatArea(IReadOnlyList<Collider2D> bodyColliders, Vector2 fallbackPoint)
     {
-        if (!IsPointInsideEncounterBounds(worldPoint))
-            return false;
-
-        if (bodyCollider != null && IsColliderOverlappingAirWalls(bodyCollider))
-            return false;
-
-        return true;
+        return AirWallRegistry.IsBodyFullyInsideCage(
+            bodyColliders,
+            airWallColliders,
+            encounterBounds,
+            fallbackPoint);
     }
 
     /// <summary>世界坐标是否落在本遭遇区的 EncounterBounds 内。</summary>
@@ -906,7 +904,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 敌人单向空气墙：区外/穿墙过程中 IgnoreCollision，完全进入 EncounterBounds 后恢复碰撞锁区。
+    /// 敌人单向空气墙：区外/穿墙过程中 IgnoreCollision，整圈身体越过空气墙内沿后恢复碰撞锁区。
     /// </summary>
     class EnemyOneWayAirWallGate : MonoBehaviour
     {
@@ -958,19 +956,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
             if (bodyColliders.Count == 0)
                 CacheBodyColliders();
 
-            Vector2 pos = transform.position;
-            bool fullyInside = zone.IsPointInsideEncounterBounds(pos);
-            if (fullyInside)
+            if (bodyColliders.Count == 0)
             {
-                for (int i = 0; i < bodyColliders.Count; i++)
-                {
-                    if (zone.IsColliderOverlappingAirWalls(bodyColliders[i]))
-                    {
-                        fullyInside = false;
-                        break;
-                    }
-                }
+                SetIgnoringWalls(true);
+                return;
             }
+
+            bool fullyInside = zone.IsEnemyFullyInsideCombatArea(bodyColliders, transform.position);
 
             if (fullyInside)
             {

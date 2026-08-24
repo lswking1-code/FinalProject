@@ -1779,6 +1779,93 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
+    /// 冲锋到位：正常攻击距离，或头顶被天花板挡住且水平已进入 attackDistance。
+    /// </summary>
+    bool IsComboDashArrived(Transform target)
+    {
+        if (IsInAttackRange(target))
+            return true;
+
+        return IsCeilingBlockedDashArrived(target);
+    }
+
+    bool IsCeilingBlockedDashArrived(Transform target)
+    {
+        if (target == null)
+            return false;
+        if (GetDistXTo(target) > attackDistance)
+            return false;
+
+        Vector2 aim = GetCombatAimPoint(target);
+        if (aim.y <= transform.position.y + airAttackDistanceY)
+            return false;
+
+        return IsHeadBlockedByCeiling();
+    }
+
+    bool IsHeadBlockedByCeiling()
+    {
+        LayerMask mask = GetDashCeilingMask();
+        if (mask.value == 0)
+            return false;
+
+        float headY = bodyCollider != null
+            ? bodyCollider.bounds.max.y
+            : transform.position.y + 1f;
+        float width = bodyCollider != null
+            ? Mathf.Max(0.2f, bodyCollider.bounds.size.x * 0.5f)
+            : 0.4f;
+        Vector2 origin = new Vector2(
+            bodyCollider != null ? bodyCollider.bounds.center.x : transform.position.x,
+            headY - 0.04f);
+
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(
+            origin,
+            new Vector2(width, 0.08f),
+            0f,
+            Vector2.up,
+            0.18f,
+            mask);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit2D hit = hits[i];
+            if (hit.collider == null || hit.collider.isTrigger)
+                continue;
+            if (!IsExternalObstacle(hit.collider))
+                continue;
+            if (IsOneWayCeiling(hit.collider))
+                continue;
+            if (bodyCollider != null && Physics2D.GetIgnoreCollision(bodyCollider, hit.collider))
+                continue;
+            if (hit.distance > 0.02f && hit.normal.y > -0.35f)
+                continue;
+            return true;
+        }
+
+        return false;
+    }
+
+    LayerMask GetDashCeilingMask()
+    {
+        LayerMask mask = jumpObstacleMask.value != 0
+            ? jumpObstacleMask
+            : (physicsCheck != null ? physicsCheck.groundLayer : (LayerMask)0);
+        int defaultLayer = LayerMask.NameToLayer("Default");
+        if (defaultLayer >= 0)
+            mask |= 1 << defaultLayer;
+        return mask;
+    }
+
+    static bool IsOneWayCeiling(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        var effector = col.GetComponent<PlatformEffector2D>();
+        return effector != null && effector.useOneWay;
+    }
+
+    /// <summary>
     /// 地面敌与 AirEnemy 均需：X 进入 dashDecideDistance，且 Y 进入 airAttackDistanceY。
     /// </summary>
     bool IsWithinDashDecideRange(Transform target)
@@ -2156,7 +2243,7 @@ public class AllyRobot : MonoBehaviour
             }
         }
 
-        if (IsInAttackRange(currentTarget))
+        if (IsComboDashArrived(currentTarget))
         {
             BeginDashAttack();
             return;
@@ -2193,7 +2280,7 @@ public class AllyRobot : MonoBehaviour
 
         FaceTarget(currentTarget.position);
 
-        if (IsInAttackRange(currentTarget))
+        if (IsComboDashArrived(currentTarget))
         {
             StopMoving();
             BeginDashAttack();
@@ -2279,7 +2366,7 @@ public class AllyRobot : MonoBehaviour
         if (!NeedsVerticalComboDash(currentTarget) || !IsValidCombatTarget(currentTarget))
             return false;
 
-        if (IsInAttackRange(currentTarget))
+        if (IsComboDashArrived(currentTarget))
         {
             rb.linearVelocity = Vector2.zero;
             return true;
