@@ -136,6 +136,11 @@ public class MeleeEnemy : Enemy
     /// <summary>靠近状态停下的水平距离（盾兵有盾时用 holdRange）。</summary>
     public virtual float GetApproachStopRange() => GetIdealRange();
 
+    public override bool IsPlayerInCombatRange()
+    {
+        return GetHorizontalDistanceToPlayer() <= GetSlottedRange(GetApproachStopRange());
+    }
+
     /// <summary>Move / GetClose 使用的理想站位距离，至少不小于 meleeRange。</summary>
     public float GetIdealRange() => Mathf.Max(meleeRange, idealRange);
 

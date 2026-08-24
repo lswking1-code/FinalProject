@@ -448,15 +448,6 @@ public class ArmoredVehicleEnemy : Enemy
     public bool HasAnimatorController =>
         anim != null && anim.runtimeAnimatorController != null;
 
-    public bool IsNamedAnimFinished(string stateName)
-    {
-        if (!HasAnimatorController || string.IsNullOrEmpty(stateName))
-            return false;
-
-        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
-        return info.IsName(stateName) && info.normalizedTime >= 1f;
-    }
-
     public void BeginGunAim()
     {
         if (gunBase != null)

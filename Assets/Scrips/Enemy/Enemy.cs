@@ -139,7 +139,7 @@ public class Enemy : MonoBehaviour
     const string DieStateName = "Die";
     static readonly string[] CombatAnimBools =
     {
-        "walk", "shoot", "shootDown", "crouch", "reload",
+        "walk", "shoot", "shootDown", "shotPrep", "crouch", "reload",
         "melee", "meleeWindup", "throw", "jump", "fall", "land", "run",
         "missile", "ramWindup", "ram",
     };
@@ -312,6 +312,15 @@ public class Enemy : MonoBehaviour
         anim.SetBool(name, value);
     }
 
+    public bool IsNamedAnimFinished(string stateName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null || string.IsNullOrEmpty(stateName))
+            return false;
+
+        AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
+        return info.IsName(stateName) && info.normalizedTime >= 1f;
+    }
+
     /// <summary>
     /// 缓存玩家引用。玩家在 Persistent 场景中可能晚于敌人 Awake 才激活。
     /// </summary>
@@ -375,6 +384,22 @@ public class Enemy : MonoBehaviour
             return false;
 
         return Vector2.Distance(transform.position, player.position) <= patrolDetectRange;
+    }
+
+    /// <summary>
+    /// 玩家是否在该类战斗射程内。默认无射程；远程/近战/飞行子类覆盖。
+    /// </summary>
+    public virtual bool IsPlayerInCombatRange()
+    {
+        return false;
+    }
+
+    /// <summary>
+    /// 受击是否足以拉入战斗：玩家须在索敌范围或该类射程内。
+    /// </summary>
+    public bool CanAggroFromDamage()
+    {
+        return IsPlayerInPatrolRange() || IsPlayerInCombatRange();
     }
 
     /// <summary>
@@ -995,14 +1020,19 @@ public class Enemy : MonoBehaviour
     {
         attacker = attackTrans;
 
-        ApplyFacing(attackTrans.position.x - transform.position.x);
+        bool outOfAggroRange = isPatrol && !isAggro && !CanAggroFromDamage();
 
-        if (UseHurtStun && (isDead || TryConsumeHurtAnim()))
+        if (!outOfAggroRange)
+            ApplyFacing(attackTrans.position.x - transform.position.x);
+
+        if (outOfAggroRange)
+            PlayHitFeedbackNoStun();
+        else if (UseHurtStun && (isDead || TryConsumeHurtAnim()))
             PlayFullHurtReaction();
         else
             PlayCombatFlashNoStun();
 
-        if (isPatrol && !isAggro && !isDead && !isApproachingSpawnTarget)
+        if (isPatrol && !isAggro && !isDead && !isApproachingSpawnTarget && CanAggroFromDamage())
             OnPatrolAggroFromDamage();
     }
 

@@ -68,6 +68,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public bool enableFillAmmoCheat;
 
     private GameSceneSO currentLoadedScene;
+    public bool IsLoading => isLoading;
+    public bool IsGameplayScene =>
+        currentLoadedScene != null && currentLoadedScene.sceneType == SceneType.Loaction;
     private GameSceneSO sceneToLoad;
     private Vector3 positionToGo;
     private bool fadeScreen;
@@ -441,6 +444,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (isLoading)
             return;
 
+        GameplayPause.Resume();
         isLoading = true;
         pendingRecordEntry = locationToLoad != null
             && locationToLoad.sceneType == SceneType.Loaction

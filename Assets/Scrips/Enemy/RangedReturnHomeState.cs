@@ -22,6 +22,7 @@ public class RangedReturnHomeState : BaseState
         if (currentEnemy.anim != null)
         {
             currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("shotPrep", false);
             currentEnemy.SetAnimBool("crouch", false);
             currentEnemy.SetAnimBool("reload", false);
             currentEnemy.SetAnimBool("walk", true);

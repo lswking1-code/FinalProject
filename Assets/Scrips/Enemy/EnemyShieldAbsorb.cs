@@ -109,7 +109,7 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         if (shieldEnemy == null)
             return;
 
-        if (shieldEnemy.isPatrol && !shieldEnemy.isAggro)
+        if (shieldEnemy.isPatrol && !shieldEnemy.isAggro && shieldEnemy.CanAggroFromDamage())
         {
             shieldEnemy.EnterPatrolCombat();
             shieldEnemy.EvaluateCycle();

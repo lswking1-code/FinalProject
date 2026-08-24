@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 通电平台：开启时对接触的 Player/Enemy 按间隔造成无硬直陷阱伤害；
-/// 站在绝缘箱等实体物上不接触本碰撞体时不会受伤。
+/// 通电平台：开启时对重叠的 Player/Enemy 按间隔造成无硬直陷阱伤害。
+/// 碰撞体应为 Trigger 且不放在 Ground 层，避免被踩踏；绝缘箱等实体若把角色隔开则不会受伤。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class ElectrifiedPlatform : MonoBehaviour
@@ -24,17 +24,11 @@ public class ElectrifiedPlatform : MonoBehaviour
     [SerializeField] string[] damageTags = { "Player", "Enemy", "AirEnemy" };
 
     [Header("视觉")]
-    [SerializeField] SpriteRenderer baseRenderer;
-    [SerializeField] Color offBaseColor = new Color(0.22f, 0.24f, 0.28f, 1f);
-    [SerializeField] Color onBaseColor = new Color(0.35f, 0.4f, 0.5f, 1f);
-    [SerializeField] GameObject electricFx;
-    [SerializeField] SpriteRenderer electricFxRenderer;
     [SerializeField] Animator electricAnimator;
-    [SerializeField] string electricOnStateName = "On";
-    [SerializeField] string electricOffStateName = "Off";
-    [SerializeField] Color electricFlashA = new Color(0.55f, 0.85f, 1f, 0.95f);
-    [SerializeField] Color electricFlashB = new Color(1f, 1f, 1f, 0.75f);
-    [SerializeField, Min(0.1f)] float electricFlashFrequency = 8f;
+    [SerializeField] string idleStateName = "Idle";
+    [SerializeField] string activateStateName = "Activate";
+    [SerializeField] string inactivateStateName = "Inactivate";
+    [SerializeField] string inactivateIdleStateName = "Inactivate_Idle";
 
     [Header("受击反馈（玩家）")]
     [SerializeField] Color playerShockFlashColor = new Color(0.55f, 0.85f, 1f, 1f);
@@ -47,17 +41,23 @@ public class ElectrifiedPlatform : MonoBehaviour
 
     public bool IsOn => isOn;
 
+    /// <summary>仅在通电且未进入关闭过渡时造成伤害。</summary>
+    bool CanDealDamage => isOn && !shuttingDown;
+
     readonly Dictionary<int, float> nextHitTime = new();
+    readonly Dictionary<int, Character> overlapTargets = new();
     readonly Dictionary<int, float> lingerUntil = new();
     readonly Dictionary<int, Character> lingerTargets = new();
     readonly List<int> lingerIdBuffer = new();
     readonly Dictionary<int, Coroutine> flashRoutines = new();
     Attack runtimeAttack;
-    float electricPulseTimer;
+    Coroutine visualRoutine;
+    bool transitionSeen;
+    bool shuttingDown;
 
     void Awake()
     {
-        EnsureAttackSource();
+        DisableStrayAttackOnSelf();
         if (buzzSource == null)
             buzzSource = GetComponent<AudioSource>();
         if (buzzSource != null)
@@ -67,25 +67,16 @@ public class ElectrifiedPlatform : MonoBehaviour
             buzzSource.spatialBlend = 0f;
         }
 
-        if (electricFxRenderer == null && electricFx != null)
-            electricFxRenderer = electricFx.GetComponentInChildren<SpriteRenderer>(true);
-
-        ApplyVisualAndAudio(isOn);
-    }
-
-    void Update()
-    {
-        if (!isOn || electricFxRenderer == null || electricAnimator != null)
-            return;
-
-        electricPulseTimer += Time.deltaTime * electricFlashFrequency;
-        float t = (Mathf.Sin(electricPulseTimer * Mathf.PI * 2f) + 1f) * 0.5f;
-        electricFxRenderer.color = Color.Lerp(electricFlashA, electricFlashB, t);
+        shuttingDown = !isOn;
+        ApplyAudio(isOn);
+        PlaySteadyState(isOn);
     }
 
     void OnDisable()
     {
+        StopVisualRoutine();
         StopBuzz();
+        overlapTargets.Clear();
         ClearLinger();
         foreach (var kv in flashRoutines)
         {
@@ -98,18 +89,23 @@ public class ElectrifiedPlatform : MonoBehaviour
     public void SetPowered(bool powered)
     {
         if (isOn == powered)
-        {
-            ApplyVisualAndAudio(isOn);
             return;
+
+        if (powered)
+        {
+            shuttingDown = false;
+            isOn = true;
+        }
+        else
+        {
+            // 一进入关闭过渡就停伤，不等 Inactivate 播完。
+            shuttingDown = true;
+            isOn = false;
+            StopHazard();
         }
 
-        isOn = powered;
-        if (!isOn)
-        {
-            nextHitTime.Clear();
-            ClearLinger();
-        }
-        ApplyVisualAndAudio(isOn);
+        ApplyAudio(isOn);
+        PlayPoweredVisual(isOn, instant: false);
     }
 
     /// <summary>由拉杆调用：开关状态映射到平台通电。</summary>
@@ -125,7 +121,103 @@ public class ElectrifiedPlatform : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!isOn || lingerTargets.Count == 0)
+        if (!CanDealDamage)
+            return;
+
+        ShockOverlaps();
+        ShockLinger();
+    }
+
+    void OnCollisionEnter2D(Collision2D collision) => HandleContact(collision);
+
+    void OnCollisionStay2D(Collision2D collision) => HandleContact(collision);
+
+    void OnTriggerEnter2D(Collider2D other) => HandleTrigger(other);
+
+    void OnTriggerStay2D(Collider2D other) => HandleTrigger(other);
+
+    void HandleContact(Collision2D collision)
+    {
+        if (!CanDealDamage || collision == null || collision.collider == null)
+            return;
+
+        if (collision.rigidbody != null)
+            collision.rigidbody.WakeUp();
+
+        BeginOverlap(ResolveDamageTarget(collision.collider));
+    }
+
+    void HandleTrigger(Collider2D other)
+    {
+        if (!CanDealDamage || other == null)
+            return;
+
+        if (other.attachedRigidbody != null)
+            other.attachedRigidbody.WakeUp();
+
+        BeginOverlap(ResolveDamageTarget(other));
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        EndOverlap(collision?.collider);
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        EndOverlap(other);
+    }
+
+    void BeginOverlap(Character character)
+    {
+        if (character == null)
+            return;
+
+        int id = character.GetInstanceID();
+        overlapTargets[id] = character;
+        lingerUntil.Remove(id);
+        lingerTargets.Remove(id);
+        TryShock(character);
+    }
+
+    void EndOverlap(Collider2D col)
+    {
+        if (!CanDealDamage || col == null)
+            return;
+
+        Character character = ResolveDamageTarget(col);
+        if (character == null)
+            return;
+
+        int id = character.GetInstanceID();
+        overlapTargets.Remove(id);
+        lingerUntil[id] = Time.time + contactLinger;
+        lingerTargets[id] = character;
+    }
+
+    void ShockOverlaps()
+    {
+        if (overlapTargets.Count == 0)
+            return;
+
+        lingerIdBuffer.Clear();
+        lingerIdBuffer.AddRange(overlapTargets.Keys);
+        for (int i = 0; i < lingerIdBuffer.Count; i++)
+        {
+            int id = lingerIdBuffer[i];
+            if (!overlapTargets.TryGetValue(id, out Character character) || character == null)
+            {
+                overlapTargets.Remove(id);
+                continue;
+            }
+
+            TryShock(character);
+        }
+    }
+
+    void ShockLinger()
+    {
+        if (lingerTargets.Count == 0)
             return;
 
         lingerIdBuffer.Clear();
@@ -152,42 +244,6 @@ public class ElectrifiedPlatform : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision) => HandleContact(collision);
-
-    void OnCollisionStay2D(Collision2D collision) => HandleContact(collision);
-
-    void HandleContact(Collision2D collision)
-    {
-        if (!isOn || collision == null || collision.collider == null)
-            return;
-
-        if (collision.rigidbody != null)
-            collision.rigidbody.WakeUp();
-
-        Character character = ResolveDamageTarget(collision.collider);
-        if (character == null)
-            return;
-
-        int id = character.GetInstanceID();
-        lingerUntil.Remove(id);
-        lingerTargets.Remove(id);
-        TryShock(character);
-    }
-
-    void OnCollisionExit2D(Collision2D collision)
-    {
-        if (!isOn || collision?.collider == null)
-            return;
-
-        Character character = ResolveDamageTarget(collision.collider);
-        if (character == null)
-            return;
-
-        int id = character.GetInstanceID();
-        lingerUntil[id] = Time.time + contactLinger;
-        lingerTargets[id] = character;
-    }
-
     Character ResolveDamageTarget(Collider2D col)
     {
         if (!IsDamageTag(col))
@@ -198,7 +254,7 @@ public class ElectrifiedPlatform : MonoBehaviour
 
     void TryShock(Character character)
     {
-        if (!isOn || character == null)
+        if (!CanDealDamage || character == null)
             return;
 
         int id = character.GetInstanceID();
@@ -216,6 +272,13 @@ public class ElectrifiedPlatform : MonoBehaviour
         nextHitTime[id] = Time.time + damageInterval;
         if (!killed)
             PlayHitFeedback(character);
+    }
+
+    void StopHazard()
+    {
+        nextHitTime.Clear();
+        overlapTargets.Clear();
+        ClearLinger();
     }
 
     void ClearLinger()
@@ -305,35 +368,138 @@ public class ElectrifiedPlatform : MonoBehaviour
     void EnsureAttackSource()
     {
         if (attackSource != null)
+        {
+            attackSource.enabled = false;
             return;
+        }
 
-        runtimeAttack = gameObject.GetComponent<Attack>();
+        DisableStrayAttackOnSelf();
+
+        const string childName = "HazardAttackSource";
+        Transform existing = transform.Find(childName);
+        GameObject host = existing != null ? existing.gameObject : new GameObject(childName);
+        host.transform.SetParent(transform, false);
+        // 先藏起来再 AddComponent，避免 Attack.OnEnable 立刻 ProcessOverlapHits。
+        host.SetActive(false);
+
+        runtimeAttack = host.GetComponent<Attack>();
         if (runtimeAttack == null)
-            runtimeAttack = gameObject.AddComponent<Attack>();
+            runtimeAttack = host.AddComponent<Attack>();
 
         runtimeAttack.damage = damage;
         runtimeAttack.attackRate = 0f;
         runtimeAttack.attackType = AttackType.Melee;
         runtimeAttack.enableKnockback = false;
         runtimeAttack.enabled = false;
+        host.SetActive(true);
         attackSource = runtimeAttack;
     }
 
-    void ApplyVisualAndAudio(bool on)
+    /// <summary>
+    /// 旧逻辑把 Attack 挂在平台本体上；本体有 BoxCollider2D，OnEnable 会扫重叠并无视通电状态扣血。
+    /// </summary>
+    void DisableStrayAttackOnSelf()
     {
-        if (baseRenderer != null)
-            baseRenderer.color = on ? onBaseColor : offBaseColor;
+        Attack stray = gameObject.GetComponent<Attack>();
+        if (stray != null)
+            stray.enabled = false;
+    }
 
-        if (electricFx != null)
-            electricFx.SetActive(on);
-
-        if (electricAnimator != null)
+    void PlayPoweredVisual(bool on, bool instant)
+    {
+        StopVisualRoutine();
+        if (instant || !Application.isPlaying)
         {
-            string state = on ? electricOnStateName : electricOffStateName;
-            if (!string.IsNullOrEmpty(state))
-                electricAnimator.Play(state, 0, 0f);
+            PlaySteadyState(on);
+            return;
         }
 
+        visualRoutine = StartCoroutine(PlayTransitionThenIdle(on));
+    }
+
+    void PlaySteadyState(bool on)
+    {
+        shuttingDown = !on;
+        PlayState(on ? idleStateName : inactivateIdleStateName);
+    }
+
+    IEnumerator PlayTransitionThenIdle(bool on)
+    {
+        if (!on)
+            shuttingDown = true;
+
+        string transition = on ? activateStateName : inactivateStateName;
+        string idle = on ? idleStateName : inactivateIdleStateName;
+        transitionSeen = false;
+        PlayState(transition);
+
+        float waited = 0f;
+        const float enterTimeout = 0.25f;
+        while (!IsInState(transition) && waited < enterTimeout)
+        {
+            waited += Time.deltaTime;
+            yield return null;
+        }
+
+        while (!HasFinishedState(transition))
+            yield return null;
+
+        PlayState(idle);
+        visualRoutine = null;
+    }
+
+    void PlayState(string stateName)
+    {
+        EnsureAnimator();
+        if (electricAnimator == null || string.IsNullOrEmpty(stateName))
+            return;
+
+        electricAnimator.Play(stateName, 0, 0f);
+        electricAnimator.Update(0f);
+    }
+
+    bool IsInState(string stateName)
+    {
+        if (electricAnimator == null)
+            return false;
+
+        var info = electricAnimator.GetCurrentAnimatorStateInfo(0);
+        return info.IsName(stateName) || info.IsName("Base Layer." + stateName);
+    }
+
+    bool HasFinishedState(string stateName)
+    {
+        if (electricAnimator == null || !electricAnimator.isActiveAndEnabled)
+            return true;
+
+        if (!IsInState(stateName))
+            return transitionSeen;
+
+        transitionSeen = true;
+        var info = electricAnimator.GetCurrentAnimatorStateInfo(0);
+        if (info.length <= 0f)
+            return true;
+
+        return info.normalizedTime >= 1f && !electricAnimator.IsInTransition(0);
+    }
+
+    void EnsureAnimator()
+    {
+        if (electricAnimator == null)
+            electricAnimator = GetComponent<Animator>();
+    }
+
+    void StopVisualRoutine()
+    {
+        if (visualRoutine == null)
+            return;
+
+        StopCoroutine(visualRoutine);
+        visualRoutine = null;
+    }
+
+    void ApplyAudio(bool on)
+    {
         if (on)
             StartBuzz();
         else
@@ -368,6 +534,16 @@ public class ElectrifiedPlatform : MonoBehaviour
         damageInterval = Mathf.Max(0.05f, damageInterval);
         contactLinger = Mathf.Max(0f, contactLinger);
         damage = Mathf.Max(1, damage);
+    }
+
+    /// <summary>笔刷绘制时写入默认通电状态并刷新外观；编辑模式不播放循环电流音。</summary>
+    public void ApplyEditorPaintDefaults(bool powered)
+    {
+        isOn = powered;
+        shuttingDown = !powered;
+        PlayPoweredVisual(isOn, instant: true);
+        StopBuzz();
+        UnityEditor.EditorUtility.SetDirty(this);
     }
 #endif
 }

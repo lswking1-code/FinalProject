@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 敌人直线导弹：沿指定方向飞行，命中玩家或地面后生成爆炸。
-/// 超时销毁不爆炸；遭遇战空气墙直接销毁。
+/// 可被玩家子弹击毁（引爆）；近战抵销则直接销毁。超时/空气墙不爆炸。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -103,8 +103,38 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
+        if (IsPlayerAmmo(other))
+        {
+            Explode();
+            TryDestroyPlayerProjectile(other);
+            return;
+        }
+
         if (IsPlayerCollider(other) || IsGround(other))
             Explode();
+    }
+
+    static bool IsPlayerAmmo(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        if (collider.GetComponentInParent<IPlayerAmmo>() != null)
+            return true;
+
+        var attack = collider.GetComponentInParent<Attack>();
+        return attack != null
+            && attack.ignoreTag == "Player"
+            && (attack.attackType == AttackType.Projectile || collider.GetComponentInParent<PlayerLaserBeam>() != null);
+    }
+
+    static void TryDestroyPlayerProjectile(Collider2D collider)
+    {
+        var attack = collider.GetComponentInParent<Attack>();
+        if (attack == null || attack.attackType != AttackType.Projectile)
+            return;
+
+        Destroy(attack.gameObject);
     }
 
     static bool IsPlayerCollider(Collider2D collider)

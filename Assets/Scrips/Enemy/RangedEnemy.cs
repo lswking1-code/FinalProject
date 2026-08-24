@@ -44,6 +44,11 @@ public class RangedEnemy : Enemy
     [Tooltip("开启后，Jump 才会进入权重掷骰（手雷精英等）")]
     public bool enableJumpAction;
 
+    [Header("射击预备")]
+    [Tooltip("预备动作最长等待；Animator 的 ShotPrep 播完会提前开火")]
+    public float shotPrepDuration = 0.9f;
+    public string shotPrepStateName = "ShotPrep";
+
     [Header("专注模式")]
     [Tooltip("开启后不再靠近玩家：MOVE 原地停留，超出射程也不进入 GetClose")]
     public bool enableFocusMode;
@@ -217,6 +222,11 @@ public class RangedEnemy : Enemy
     public virtual float GetCombatDistanceToPlayer()
     {
         return GetHorizontalDistanceToPlayer();
+    }
+
+    public override bool IsPlayerInCombatRange()
+    {
+        return GetCombatDistanceToPlayer() <= GetSlottedRange(shootRange);
     }
 
     void RollAndEnterAction()

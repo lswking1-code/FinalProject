@@ -24,6 +24,10 @@ public class PhysicsCheck : MonoBehaviour
     public float checkRaduis;
     public LayerMask groundLayer;
 
+    [Header("边缘检测")]
+    [Tooltip("前方有落点时允许走下的最大落差；超过此深度仍视为悬崖")]
+    [SerializeField] float safeLandingDrop = 4.5f;
+
     [Header("状态")]
     public bool isGround;
     [Tooltip("当前帧脚下真实接触地面（不含土狼跳缓冲）")]
@@ -74,11 +78,10 @@ public class PhysicsCheck : MonoBehaviour
     const int SlopeCoyoteFrames = 10;
     const float SlopeTransitionCastExtra = 0.45f;
     const float AirLedgeHold = 0.35f;
-    const float FlatWalkableDrop = 1.25f;
-    const float SlopeWalkableDrop = 1.35f;
     const float LedgeProbeLift = 0.35f;
     const float LedgeProbeContinue = 0.05f;
-    const int LedgeProbeMaxSteps = 8;
+    const int LedgeProbeMaxSteps = 12;
+    float SafeLandingDrop => Mathf.Max(0.5f, safeLandingDrop);
     readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
     readonly Collider2D[] sideOverlapHits = new Collider2D[8];
     Collider2D[] ledgeColliders;
@@ -185,7 +188,7 @@ public class PhysicsCheck : MonoBehaviour
     /// <summary>
     /// 指定水平方向前方脚底是否仍有可走地面。
     /// 只用身体碰撞体探测，忽略攻击/索敌 Trigger，避免把台阶前方误判成悬崖。
-    /// 一格高的向下台阶视为可走，两格以上的落差仍拦截。
+    /// 前方能探到落点即可走下，探测深度内完全没有朝上表面才拦截。
     /// </summary>
     public bool HasGroundAhead(float direction, float lookAheadPadding = -1f)
     {
@@ -200,10 +203,10 @@ public class PhysicsCheck : MonoBehaviour
         Bounds body = coll.bounds;
         float footY = body.min.y;
         float frontX = dir > 0f ? body.max.x : body.min.x;
-        float maxDrop = (isOnSlope || WasOnSlopeRecently) ? SlopeWalkableDrop : FlatWalkableDrop;
+        float maxDrop = SafeLandingDrop;
         float pad = lookAheadPadding >= 0f ? lookAheadPadding : 0.12f;
 
-        // 在身体前缘附近采几点：近点仍在当前地面则继续走，跨上台阶则检查落差
+        // 在身体前缘附近采几点：近点仍在当前地面则继续走，跨上台阶则检查是否有落点
         if (TryGetWalkableGroundY(frontX + dir * pad, footY, maxDrop, out _))
             return true;
         if (TryGetWalkableGroundY(frontX + dir * (pad + 0.14f), footY, maxDrop, out _))
@@ -212,7 +215,8 @@ public class PhysicsCheck : MonoBehaviour
     }
 
     /// <summary>
-    /// 在指定 X 向下寻找朝上的可走表面。跳过台阶立面 / 自身碰撞体，避免把小落差判成悬崖。
+    /// 在指定 X 向下寻找朝上的可走表面。跳过台阶立面 / 自身碰撞体。
+    /// 探测深度内找到落点即视为可走，不再因落差超过一格而拦截。
     /// </summary>
     bool TryGetWalkableGroundY(float x, float footY, float maxDrop, out float groundY)
     {
@@ -234,8 +238,6 @@ public class PhysicsCheck : MonoBehaviour
 
             if (CountsAsGroundHit(hit))
             {
-                if (footY - hit.point.y > maxDrop)
-                    return false;
                 groundY = hit.point.y;
                 return true;
             }
@@ -304,8 +306,9 @@ public class PhysicsCheck : MonoBehaviour
     /// <summary>
     /// 沿水平方向从 fromX 扫到 toX，检测是否存在无法贴地走过的悬崖/缺口。
     /// 会跟随已探测到的地面高度，避免把连续斜坡误判为悬崖。
+    /// 有落点的大台阶不视为缺口，与 HasGroundAhead 共用 safeLandingDrop。
     /// </summary>
-    public bool HasCliffGapAlongX(float fromX, float toX, float footY, float maxWalkableDrop = 0.85f)
+    public bool HasCliffGapAlongX(float fromX, float toX, float footY, float maxWalkableDrop = -1f)
     {
         if (groundLayer.value == 0)
             return false;
@@ -318,7 +321,9 @@ public class PhysicsCheck : MonoBehaviour
         float dir = Mathf.Sign(dx);
         float dist = Mathf.Abs(dx);
         float groundY = footY;
-        float drop = Mathf.Max(maxWalkableDrop, FlatWalkableDrop);
+        float drop = maxWalkableDrop >= 0f
+            ? Mathf.Max(maxWalkableDrop, SafeLandingDrop)
+            : SafeLandingDrop;
 
         int steps = Mathf.Max(1, Mathf.CeilToInt(dist / step));
         for (int i = 1; i <= steps; i++)

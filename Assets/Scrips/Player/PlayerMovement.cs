@@ -55,7 +55,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float airHangSustainElapsed;
     float knockbackUntil;
 
-    public bool IsActionLocked { get; private set; }
+    bool actionLocked;
+    public bool IsActionLocked => actionLocked || GameplayPause.IsPaused;
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
     /// <summary>已贴在斜坡上且未处于起跳脱离：上坡切向 Y&gt;0 也应算落地。</summary>
@@ -135,7 +136,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void OnDisable()
     {
-        if (IsActionLocked)
+        if (actionLocked)
             EndExternalControl();
 
         RestoreRobotTopCollision();
@@ -1019,7 +1020,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     public void ResetMovementState()
     {
-        if (IsActionLocked)
+        if (actionLocked)
             EndExternalControl();
 
         moveInput = Vector2.zero;
@@ -1051,7 +1052,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     public void BeginExternalControl(bool disableCollider = true)
     {
-        if (IsActionLocked)
+        if (actionLocked)
             return;
 
         ClearAirHang(restoreGravity: false);
@@ -1064,7 +1065,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (disableCollider && capsuleCollider != null)
             capsuleCollider.enabled = false;
 
-        IsActionLocked = true;
+        actionLocked = true;
     }
 
     public void SetForceOneWayPass(bool forcePass)
@@ -1079,7 +1080,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     public void EndExternalControl()
     {
-        if (!IsActionLocked)
+        if (!actionLocked)
             return;
 
         rb.gravityScale = savedGravityScale;
@@ -1087,12 +1088,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             capsuleCollider.enabled = savedColliderEnabled;
 
         platformDropThrough?.SetForcePassOneWay(false);
-        IsActionLocked = false;
+        actionLocked = false;
     }
 
     public void StepExternalMove(Vector2 target, float speed)
     {
-        if (!IsActionLocked)
+        if (!actionLocked)
             return;
 
         Vector2 next = Vector2.MoveTowards(rb.position, target, speed * Time.fixedDeltaTime);

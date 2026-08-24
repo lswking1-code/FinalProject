@@ -82,7 +82,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -96,7 +96,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -119,7 +119,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -154,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -161,12 +174,12 @@ TextureImporter:
       name: enemy_rocket_walk_0
       rect:
         serializedVersion: 2
-        x: 15
-        y: 204
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -183,12 +196,12 @@ TextureImporter:
       name: enemy_rocket_walk_1
       rect:
         serializedVersion: 2
-        x: 79
-        y: 204
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -205,12 +218,12 @@ TextureImporter:
       name: enemy_rocket_walk_2
       rect:
         serializedVersion: 2
-        x: 143
-        y: 204
-        width: 34
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -227,12 +240,12 @@ TextureImporter:
       name: enemy_rocket_walk_3
       rect:
         serializedVersion: 2
-        x: 207
-        y: 204
-        width: 34
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -249,12 +262,12 @@ TextureImporter:
       name: enemy_rocket_walk_4
       rect:
         serializedVersion: 2
-        x: 15
-        y: 140
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -271,12 +284,12 @@ TextureImporter:
       name: enemy_rocket_walk_5
       rect:
         serializedVersion: 2
-        x: 79
-        y: 140
-        width: 33
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -293,12 +306,12 @@ TextureImporter:
       name: enemy_rocket_walk_6
       rect:
         serializedVersion: 2
-        x: 143
-        y: 140
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -315,12 +328,12 @@ TextureImporter:
       name: enemy_rocket_walk_7
       rect:
         serializedVersion: 2
-        x: 207
-        y: 140
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -337,12 +350,12 @@ TextureImporter:
       name: enemy_rocket_walk_8
       rect:
         serializedVersion: 2
-        x: 15
-        y: 76
-        width: 33
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -359,12 +372,12 @@ TextureImporter:
       name: enemy_rocket_walk_9
       rect:
         serializedVersion: 2
-        x: 79
-        y: 76
-        width: 34
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -381,12 +394,12 @@ TextureImporter:
       name: enemy_rocket_walk_10
       rect:
         serializedVersion: 2
-        x: 143
-        y: 76
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -403,12 +416,12 @@ TextureImporter:
       name: enemy_rocket_walk_11
       rect:
         serializedVersion: 2
-        x: 207
-        y: 76
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -425,12 +438,12 @@ TextureImporter:
       name: enemy_rocket_walk_12
       rect:
         serializedVersion: 2
-        x: 15
-        y: 12
-        width: 33
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -447,12 +460,12 @@ TextureImporter:
       name: enemy_rocket_walk_13
       rect:
         serializedVersion: 2
-        x: 79
-        y: 12
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -469,12 +482,12 @@ TextureImporter:
       name: enemy_rocket_walk_14
       rect:
         serializedVersion: 2
-        x: 143
-        y: 12
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -491,12 +504,12 @@ TextureImporter:
       name: enemy_rocket_walk_15
       rect:
         serializedVersion: 2
-        x: 208
-        y: 12
-        width: 33
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -538,8 +551,7 @@ TextureImporter:
       enemy_rocket_walk_6: -3661713855537024239
       enemy_rocket_walk_7: -6479266762404367166
       enemy_rocket_walk_8: -1885697720014452482
-      enemy_rocket_walk_9: 3973952588095159505
-  mipmapLimitGroupName: 
+      enemy_rocket_walk_9: 3973952588095159505  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 

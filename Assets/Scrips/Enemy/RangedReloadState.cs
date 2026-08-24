@@ -20,6 +20,7 @@ public class RangedReloadState : BaseState
         reloadTimer = rangedEnemy.reloadDuration;
 
         currentEnemy.SetAnimBool("shoot", false);
+        currentEnemy.SetAnimBool("shotPrep", false);
         currentEnemy.SetAnimBool("crouch", false);
         currentEnemy.SetAnimBool("walk", false);
         currentEnemy.SetAnimBool("reload", true);

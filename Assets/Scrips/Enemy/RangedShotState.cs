@@ -1,11 +1,19 @@
 using UnityEngine;
 
 /// <summary>
-/// 远程敌人射击状态：进入时开一枪，随后立刻进入 Reload。
+/// 远程敌人射击：先播预备动作，结束后开火，再进入 Reload。
 /// </summary>
 public class RangedShotState : BaseState
 {
+    enum Phase
+    {
+        Prep,
+        Fire
+    }
+
     RangedEnemy rangedEnemy;
+    Phase phase;
+    float timer;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -17,15 +25,21 @@ public class RangedShotState : BaseState
 
         rangedEnemy.OnActionEntered(EnemyAction.Shot);
         rangedEnemy.FacePlayer();
-
-        currentEnemy.SetAnimBool("shoot", true);
-        rangedEnemy.FireProjectile();
+        EnterPrep();
     }
 
     public override void LogicUpdate()
     {
         if (rangedEnemy == null || currentEnemy.isDead)
             return;
+
+        if (phase == Phase.Prep)
+        {
+            timer -= Time.deltaTime;
+            if (timer <= 0f || currentEnemy.IsNamedAnimFinished(rangedEnemy.shotPrepStateName))
+                EnterFire();
+            return;
+        }
 
         rangedEnemy.SwitchState(NPCState.Reload);
     }
@@ -42,6 +56,25 @@ public class RangedShotState : BaseState
 
     public override void OnExit()
     {
+        currentEnemy.SetAnimBool("shotPrep", false);
         currentEnemy.SetAnimBool("shoot", false);
+    }
+
+    void EnterPrep()
+    {
+        phase = Phase.Prep;
+        currentEnemy.SetAnimBool("walk", false);
+        currentEnemy.SetAnimBool("shoot", false);
+        currentEnemy.SetAnimBool("shotPrep", true);
+        timer = Mathf.Max(0.01f, rangedEnemy.shotPrepDuration);
+    }
+
+    void EnterFire()
+    {
+        phase = Phase.Fire;
+        rangedEnemy.FacePlayer();
+        currentEnemy.SetAnimBool("shotPrep", false);
+        currentEnemy.SetAnimBool("shoot", true);
+        rangedEnemy.FireProjectile();
     }
 }

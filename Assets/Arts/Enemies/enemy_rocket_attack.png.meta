@@ -50,15 +50,6 @@ TextureImporter:
   - first:
       213: -168283024919184171
     second: enemy_rocket_attack_15
-  - first:
-      213: 3059263169760660063
-    second: enemy_rocket_attack_16
-  - first:
-      213: -4818920996217684033
-    second: enemy_rocket_attack_17
-  - first:
-      213: 8935970512267282241
-    second: enemy_rocket_attack_18
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -163,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -170,12 +174,12 @@ TextureImporter:
       name: enemy_rocket_attack_0
       rect:
         serializedVersion: 2
-        x: 15
-        y: 204
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -192,12 +196,12 @@ TextureImporter:
       name: enemy_rocket_attack_1
       rect:
         serializedVersion: 2
-        x: 79
-        y: 204
-        width: 33
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -214,12 +218,12 @@ TextureImporter:
       name: enemy_rocket_attack_2
       rect:
         serializedVersion: 2
-        x: 142
-        y: 204
-        width: 39
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.4375, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -236,12 +240,12 @@ TextureImporter:
       name: enemy_rocket_attack_3
       rect:
         serializedVersion: 2
-        x: 204
-        y: 204
-        width: 52
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -258,12 +262,12 @@ TextureImporter:
       name: enemy_rocket_attack_4
       rect:
         serializedVersion: 2
-        x: 10
-        y: 140
-        width: 55
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -280,12 +284,12 @@ TextureImporter:
       name: enemy_rocket_attack_5
       rect:
         serializedVersion: 2
-        x: 74
-        y: 140
-        width: 55
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -302,12 +306,12 @@ TextureImporter:
       name: enemy_rocket_attack_6
       rect:
         serializedVersion: 2
-        x: 138
-        y: 140
-        width: 38
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.46875, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -324,12 +328,12 @@ TextureImporter:
       name: enemy_rocket_attack_7
       rect:
         serializedVersion: 2
-        x: 178
-        y: 148
-        width: 15
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.390625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -346,12 +350,12 @@ TextureImporter:
       name: enemy_rocket_attack_8
       rect:
         serializedVersion: 2
-        x: 202
-        y: 140
-        width: 53
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.515625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -368,12 +372,12 @@ TextureImporter:
       name: enemy_rocket_attack_9
       rect:
         serializedVersion: 2
-        x: 10
-        y: 76
-        width: 38
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.515625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -390,12 +394,12 @@ TextureImporter:
       name: enemy_rocket_attack_10
       rect:
         serializedVersion: 2
-        x: 74
-        y: 76
-        width: 38
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.40625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -412,12 +416,12 @@ TextureImporter:
       name: enemy_rocket_attack_11
       rect:
         serializedVersion: 2
-        x: 138
-        y: 76
-        width: 51
-        height: 37
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.375, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -434,12 +438,12 @@ TextureImporter:
       name: enemy_rocket_attack_12
       rect:
         serializedVersion: 2
-        x: 202
-        y: 76
-        width: 54
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.375, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -456,12 +460,12 @@ TextureImporter:
       name: enemy_rocket_attack_13
       rect:
         serializedVersion: 2
-        x: 10
-        y: 12
-        width: 55
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.375, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -478,12 +482,12 @@ TextureImporter:
       name: enemy_rocket_attack_14
       rect:
         serializedVersion: 2
-        x: 74
-        y: 12
-        width: 42
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.390625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -500,12 +504,12 @@ TextureImporter:
       name: enemy_rocket_attack_15
       rect:
         serializedVersion: 2
-        x: 121
-        y: 44
-        width: 6
-        height: 9
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.515625, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -518,77 +522,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_attack_16
-      rect:
-        serializedVersion: 2
-        x: 138
-        y: 12
-        width: 53
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f5a050ce4afa47a20800000000000000
-      internalID: 3059263169760660063
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_attack_17
-      rect:
-        serializedVersion: 2
-        x: 202
-        y: 12
-        width: 38
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: fbff5cbb2e0cf1db0800000000000000
-      internalID: -4818920996217684033
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_attack_18
-      rect:
-        serializedVersion: 2
-        x: 113
-        y: 21
-        width: 16
-        height: 21
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1478e0b06d1f20c70800000000000000
-      internalID: 8935970512267282241
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 4804d5c3542923342ace1031fd3fd159
     internalID: 0
     vertices: []
     indices: 
@@ -606,9 +544,6 @@ TextureImporter:
       enemy_rocket_attack_13: 6264412035499247120
       enemy_rocket_attack_14: 5634193426397021592
       enemy_rocket_attack_15: -168283024919184171
-      enemy_rocket_attack_16: 3059263169760660063
-      enemy_rocket_attack_17: -4818920996217684033
-      enemy_rocket_attack_18: 8935970512267282241
       enemy_rocket_attack_2: 3646749581284784232
       enemy_rocket_attack_3: 3341437773620008115
       enemy_rocket_attack_4: 9121185330533194923
@@ -616,7 +551,7 @@ TextureImporter:
       enemy_rocket_attack_6: 8975952680409012384
       enemy_rocket_attack_7: -4490169518628024114
       enemy_rocket_attack_8: -4885224501664498388
-      enemy_rocket_attack_9: 7800855319121033516
+      enemy_rocket_attack_9: 1105394140
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

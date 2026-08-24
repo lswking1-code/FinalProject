@@ -20,6 +20,7 @@ public class DataManager : MonoBehaviour
     string jsonFolder;
 
     public Data CurrentData => saveData;
+    public bool HasSaveFile => !string.IsNullOrEmpty(jsonFolder) && File.Exists(SaveFilePath);
 
     string SaveFilePath => jsonFolder + "data.sav";
 

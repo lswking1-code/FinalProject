@@ -21,6 +21,7 @@ public class RangedIdleGuardState : BaseState
         {
             currentEnemy.SetAnimBool("walk", false);
             currentEnemy.SetAnimBool("shoot", false);
+            currentEnemy.SetAnimBool("shotPrep", false);
             currentEnemy.SetAnimBool("crouch", false);
             currentEnemy.SetAnimBool("reload", false);
         }

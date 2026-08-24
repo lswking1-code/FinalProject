@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6100000000000000005}
   - component: {fileID: 6100000000000000006}
   - component: {fileID: 6100000000000000007}
-  m_Layer: 7
+  m_Layer: 21
   m_Name: EnemyMissile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78,9 +78,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: 6577748995022502892, guid: bb72312c8d08da84ba8cf3c7089083a6, type: 3}
+  m_Sprite: {fileID: -6239150027220268550, guid: 7705a7e94312eb947b2602022e44b01e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -179,7 +179,7 @@ Animator:
   m_GameObject: {fileID: 6100000000000000001}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: f348ec1a33a696d488ef877902631c13, type: 2}
+  m_Controller: {fileID: 9100000, guid: c1c92c4af7b923042833458e6edc714e, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

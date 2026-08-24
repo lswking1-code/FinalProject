@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class UIManage : MonoBehaviour
@@ -22,18 +23,24 @@ public class UIManage : MonoBehaviour
     [Header("组件")]
     public GameObject gameOverPannel;
     public GameObject gameClearPannel;
+    public GameObject gamePausePanel;
     public GameObject restartBtn;
     public GameObject replayBtn;
+    public GameObject pauseRestartBtn;
     public GameObject abilities;
     public GameObject collection;
 
     GameOverActions endGameActions;
+    InputSystem_Actions actions;
+    SceneLoader sceneLoader;
 
     void Awake()
     {
+        sceneLoader = FindFirstObjectByType<SceneLoader>();
         EnsureGameOverUI();
         EnsureGameClearUI();
         WireEndGameButtons();
+        WirePauseButtons();
     }
 
     void EnsureGameOverUI()
@@ -166,6 +173,26 @@ public class UIManage : MonoBehaviour
         }
     }
 
+    void WirePauseButtons()
+    {
+        if (endGameActions == null)
+            return;
+
+        if (gamePausePanel == null)
+            return;
+
+        var restart = FindChildButton(gamePausePanel.transform, "Restart", "RestartButton");
+        if (restart != null)
+        {
+            pauseRestartBtn = restart.gameObject;
+            BindButton(restart, endGameActions.OnRestartFromSave);
+        }
+
+        var backToMenu = FindChildButton(gamePausePanel.transform, "Backtomenu", "BackToMenu", "Back");
+        if (backToMenu != null)
+            BindButton(backToMenu, endGameActions.OnBackToMenu);
+    }
+
     static Button FindChildButton(Transform root, params string[] names)
     {
         if (root == null)
@@ -218,6 +245,10 @@ public class UIManage : MonoBehaviour
         GameClearEvent.OnEventRaised += OnGameClearEvent;
         if (newGameEvent != null)
             newGameEvent.OnEventRaised += OnCloseEndGamePanels;
+
+        actions ??= new InputSystem_Actions();
+        actions.Player.Enable();
+        actions.Player.Menu.performed += OnMenuPerformed;
     }
 
     private void OnDisable()
@@ -230,10 +261,79 @@ public class UIManage : MonoBehaviour
         GameClearEvent.OnEventRaised -= OnGameClearEvent;
         if (newGameEvent != null)
             newGameEvent.OnEventRaised -= OnCloseEndGamePanels;
+
+        if (actions != null)
+            actions.Player.Menu.performed -= OnMenuPerformed;
+    }
+
+    void OnDestroy()
+    {
+        if (actions == null)
+            return;
+
+        actions.Dispose();
+        actions = null;
+    }
+
+    void OnMenuPerformed(InputAction.CallbackContext context)
+    {
+        if (!CanTogglePause())
+            return;
+
+        if (GameplayPause.IsPaused || IsPausePanelOpen())
+            ClosePause();
+        else
+            OpenPause();
+    }
+
+    bool CanTogglePause()
+    {
+        if (IsEndGamePanelOpen() || GameplayHold.IsHeld)
+            return false;
+
+        if (sceneLoader == null)
+            sceneLoader = FindFirstObjectByType<SceneLoader>();
+
+        if (sceneLoader == null || sceneLoader.IsLoading)
+            return false;
+
+        if (GameplayPause.IsPaused || IsPausePanelOpen())
+            return true;
+
+        return sceneLoader.IsGameplayScene;
+    }
+
+    bool IsEndGamePanelOpen()
+    {
+        return (gameOverPannel != null && gameOverPannel.activeSelf)
+            || (gameClearPannel != null && gameClearPannel.activeSelf);
+    }
+
+    bool IsPausePanelOpen()
+    {
+        return gamePausePanel != null && gamePausePanel.activeSelf;
+    }
+
+    void OpenPause()
+    {
+        GameplayPause.Pause();
+        if (gamePausePanel != null)
+            gamePausePanel.SetActive(true);
+
+        if (pauseRestartBtn != null && EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(pauseRestartBtn);
+    }
+
+    void ClosePause()
+    {
+        GameplayPause.Resume();
+        if (gamePausePanel != null)
+            gamePausePanel.SetActive(false);
     }
 
     private void OnGameClearEvent()
     {
+        ClosePause();
         if (gameClearPannel != null)
             gameClearPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(replayBtn);
@@ -241,12 +341,14 @@ public class UIManage : MonoBehaviour
 
     private void OnGameOverEvent()
     {
+        ClosePause();
         gameOverPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(restartBtn);
     }
 
     public void CloseEndGamePanels()
     {
+        ClosePause();
         if (gameOverPannel != null)
             gameOverPannel.SetActive(false);
         if (gameClearPannel != null)
@@ -258,6 +360,7 @@ public class UIManage : MonoBehaviour
 
     private void OnUnLoadedSceneEvent(GameSceneSO sceneToLoad, Vector3 arg1, bool arg2)
     {
+        ClosePause();
         var isMenu = sceneToLoad.sceneType == SceneType.Menu;// 判断是否为菜单场景，用于控制 HUD 显示
         playerStatBar.gameObject.SetActive(!isMenu);
         abilities.SetActive(!isMenu);

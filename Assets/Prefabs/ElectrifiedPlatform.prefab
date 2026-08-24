@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 1800000000000000004}
   - component: {fileID: 1800000000000000005}
   - component: {fileID: 1800000000000000006}
-  m_Layer: 6
+  - component: {fileID: 2397338345600626507}
+  m_Layer: 20
   m_Name: ElectrifiedPlatform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -80,8 +81,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.22, g: 0.24, b: 0.28, a: 1}
+  m_Sprite: {fileID: -1463465513, guid: e572832929bb2af4a9eba13b4cbb5c40, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -121,7 +122,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -256,22 +257,38 @@ MonoBehaviour:
   - Player
   - Enemy
   - AirEnemy
-  baseRenderer: {fileID: 1800000000000000003}
-  offBaseColor: {r: 0.22, g: 0.24, b: 0.28, a: 1}
-  onBaseColor: {r: 0.35, g: 0.4, b: 0.5, a: 1}
-  electricFx: {fileID: 1800000000000000011}
-  electricFxRenderer: {fileID: 1800000000000000013}
-  electricAnimator: {fileID: 0}
-  electricOnStateName: On
-  electricOffStateName: Off
-  electricFlashA: {r: 0.55, g: 0.85, b: 1, a: 0.95}
-  electricFlashB: {r: 1, g: 1, b: 1, a: 0.75}
-  electricFlashFrequency: 8
+  electricAnimator: {fileID: 2397338345600626507}
+  idleStateName: Idle
+  activateStateName: Activate
+  inactivateStateName: Inactivate
+  inactivateIdleStateName: Inactivate_Idle
   playerShockFlashColor: {r: 0.55, g: 0.85, b: 1, a: 1}
   playerShockFlashDuration: 0.12
   buzzSource: {fileID: 1800000000000000005}
   buzzClip: {fileID: 0}
   buzzVolume: 0.6
+--- !u!95 &2397338345600626507
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1800000000000000001}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 42fcd921c77d4d140b3539999232855e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1800000000000000011
 GameObject:
   m_ObjectHideFlags: 0
@@ -282,7 +299,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1800000000000000012}
   - component: {fileID: 1800000000000000013}
-  m_Layer: 6
+  m_Layer: 20
   m_Name: ElectricFX
   m_TagString: Untagged
   m_Icon: {fileID: 0}

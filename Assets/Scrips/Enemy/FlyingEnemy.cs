@@ -379,6 +379,8 @@ public class FlyingEnemy : Enemy
             SwitchState(NPCState.Move);
     }
 
+    public override bool IsPlayerInCombatRange() => IsInOverheadFan();
+
     /// <summary>
     /// 是否在玩家头顶扇区内。
     /// </summary>
