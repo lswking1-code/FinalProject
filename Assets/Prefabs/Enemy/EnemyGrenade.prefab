@@ -229,7 +229,9 @@ MonoBehaviour:
   minRollAnimSpeed: 0.6
   maxRollAnimSpeed: 1.8
   spinDegreesPerSecond: 720
+  fuseTime: 0.5
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
   groundSnapRayDistance: 1.5
+  passThroughScanPadding: 1

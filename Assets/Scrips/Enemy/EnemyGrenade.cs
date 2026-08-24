@@ -21,6 +21,8 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     [SerializeField] float maxRollAnimSpeed = 1.8f;
     [Tooltip("空中视觉旋转角速度（度/秒），符号随水平飞行方向翻转")]
     [SerializeField] float spinDegreesPerSecond = 720f;
+    [Tooltip("投出后的引信时间。期间碰到玩家不爆炸并穿过；到期后碰到玩家会爆炸。落地引爆不受影响。")]
+    [SerializeField] float fuseTime = 0.5f;
     [Tooltip("命中该层时引爆（地面）")]
     [SerializeField] LayerMask groundLayer;
     [SerializeField] float groundSnapRayDistance = 1.5f;
@@ -33,11 +35,14 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     Transform visual;
     float spinDir = 1f;
     bool hasExploded;
+    bool fuseExpired;
+    float fuseElapsed;
     Vector2 cachedVelocity;
     ContactFilter2D passThroughFilter;
     readonly Collider2D[] overlapBuffer = new Collider2D[PassThroughBufferSize];
     readonly RaycastHit2D[] castBuffer = new RaycastHit2D[PassThroughBufferSize];
     readonly HashSet<Collider2D> ignoredPassThroughs = new HashSet<Collider2D>();
+    readonly HashSet<Collider2D> ignoredPlayers = new HashSet<Collider2D>();
 
     void Awake()
     {
@@ -82,6 +87,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             Physics2D.IgnoreCollision(grenadeCollider, throwerCollider);
 
         cachedVelocity = rb.linearVelocity;
+        BeginPlayerPassThrough();
         IgnoreNearbyPassThroughs();
 
         if (animator != null)
@@ -95,10 +101,30 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         if (hasExploded)
             return;
 
+        TickFuse();
         IgnoreNearbyPassThroughs();
         cachedVelocity = rb.linearVelocity;
         SyncRollAnimSpeed();
         SpinVisual();
+    }
+
+    bool IsFuseActive => !fuseExpired && fuseTime > 0f;
+
+    void TickFuse()
+    {
+        if (fuseExpired)
+            return;
+
+        if (fuseTime <= 0f)
+        {
+            EndPlayerPassThrough();
+            return;
+        }
+
+        IgnoreNearbyPlayers();
+        fuseElapsed += Time.fixedDeltaTime;
+        if (fuseElapsed >= fuseTime)
+            EndPlayerPassThrough();
     }
 
     void SyncRollAnimSpeed()
@@ -129,7 +155,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return;
 
         // 单向平台 / 机器人顶部仅给角色站立，手雷应穿过、不引爆、不吸附
-        if (TryPassThrough(collision.collider))
+        if (TryPassThrough(collision.collider) || TryPassThroughPlayer(collision.collider))
         {
             RestoreFlightVelocity();
             return;
@@ -150,7 +176,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         if (hasExploded)
             return;
 
-        if (TryPassThrough(collision.collider))
+        if (TryPassThrough(collision.collider) || TryPassThroughPlayer(collision.collider))
             RestoreFlightVelocity();
     }
 
@@ -187,6 +213,141 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             grenadeCollider.excludeLayers |= excluded;
         if (rb != null)
             rb.excludeLayers |= excluded;
+    }
+
+    void BeginPlayerPassThrough()
+    {
+        fuseElapsed = 0f;
+        fuseExpired = fuseTime <= 0f;
+        if (fuseExpired)
+            return;
+
+        SetPlayerLayerExcluded(true);
+        IgnoreNearbyPlayers();
+    }
+
+    void EndPlayerPassThrough()
+    {
+        if (fuseExpired)
+            return;
+
+        fuseExpired = true;
+        SetPlayerLayerExcluded(false);
+        RestoreIgnoredPlayers();
+
+        if (!hasExploded)
+            ExplodeIfOverlappingPlayer();
+    }
+
+    void SetPlayerLayerExcluded(bool excluded)
+    {
+        LayerMask playerMask = GetPlayerLayerMask();
+        if (playerMask.value == 0)
+            return;
+
+        if (grenadeCollider != null)
+        {
+            if (excluded)
+                grenadeCollider.excludeLayers |= playerMask;
+            else
+                grenadeCollider.excludeLayers &= ~playerMask;
+        }
+
+        if (rb != null)
+        {
+            if (excluded)
+                rb.excludeLayers |= playerMask;
+            else
+                rb.excludeLayers &= ~playerMask;
+        }
+    }
+
+    static LayerMask GetPlayerLayerMask()
+    {
+        int playerLayer = LayerMask.NameToLayer("Player");
+        return playerLayer >= 0 ? (LayerMask)(1 << playerLayer) : 0;
+    }
+
+    void IgnoreNearbyPlayers()
+    {
+        if (hasExploded || fuseExpired || grenadeCollider == null)
+            return;
+
+        float scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+        float radius = grenadeCollider.radius * Mathf.Max(0.01f, scale);
+        float travel = rb != null ? rb.linearVelocity.magnitude * Time.fixedDeltaTime : 0f;
+        float probeRadius = radius + travel + Mathf.Max(0f, passThroughScanPadding);
+
+        LayerMask playerMask = GetPlayerLayerMask();
+        var filter = new ContactFilter2D
+        {
+            useTriggers = false,
+            useLayerMask = playerMask.value != 0,
+            layerMask = playerMask
+        };
+        int overlapCount = Physics2D.OverlapCircle(
+            grenadeCollider.bounds.center,
+            probeRadius,
+            filter,
+            overlapBuffer);
+        for (int i = 0; i < overlapCount; i++)
+            TryPassThroughPlayer(overlapBuffer[i]);
+    }
+
+    bool TryPassThroughPlayer(Collider2D collider)
+    {
+        if (!IsFuseActive || !IsPlayerCollider(collider) || grenadeCollider == null)
+            return false;
+
+        if (ignoredPlayers.Add(collider))
+            Physics2D.IgnoreCollision(grenadeCollider, collider, true);
+
+        if (rb != null)
+            rb.WakeUp();
+        return true;
+    }
+
+    void RestoreIgnoredPlayers()
+    {
+        if (grenadeCollider != null)
+        {
+            foreach (Collider2D collider in ignoredPlayers)
+            {
+                if (collider != null)
+                    Physics2D.IgnoreCollision(grenadeCollider, collider, false);
+            }
+        }
+
+        ignoredPlayers.Clear();
+    }
+
+    void ExplodeIfOverlappingPlayer()
+    {
+        if (hasExploded || grenadeCollider == null)
+            return;
+
+        float scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+        float radius = grenadeCollider.radius * Mathf.Max(0.01f, scale);
+        LayerMask playerMask = GetPlayerLayerMask();
+        var filter = new ContactFilter2D
+        {
+            useTriggers = false,
+            useLayerMask = playerMask.value != 0,
+            layerMask = playerMask
+        };
+        int overlapCount = Physics2D.OverlapCircle(
+            grenadeCollider.bounds.center,
+            radius + 0.02f,
+            filter,
+            overlapBuffer);
+        for (int i = 0; i < overlapCount; i++)
+        {
+            if (IsPlayerCollider(overlapBuffer[i]))
+            {
+                Explode();
+                return;
+            }
+        }
     }
 
     void IgnoreNearbyPassThroughs()
