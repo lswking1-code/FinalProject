@@ -3337,7 +3337,7 @@ MonoBehaviour:
   - character: {fileID: 11400000, guid: 7c3d4e5f67890123456789abcdef0123, type: 2}
     tutorialScene: {fileID: 11400000, guid: fa121d14202f8a14baed194144de73b2, type: 2}
     tutorialStartPosition: {x: -10, y: 0, z: 0}
-  developMode: 1
+  developMode: 0
   testScene: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
   testPosition: {x: -40, y: 1, z: 0}
   enableDevelopCharacterSwitch: 1
@@ -3389,6 +3389,38 @@ MonoBehaviour:
         Data3: -1594804604
         Data4: 276432055
       Path: event:/Music/Stage1
+  - scene: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
+    bgmEvent:
+      Guid:
+        Data1: 613366667
+        Data2: 1107792349
+        Data3: 842638267
+        Data4: -1624777065
+      Path: event:/Music/Stage2
+  - scene: {fileID: 11400000, guid: 90dce544196d66f439da475da3844e30, type: 2}
+    bgmEvent:
+      Guid:
+        Data1: -1487995431
+        Data2: 1088435797
+        Data3: -1817752129
+        Data4: -1007286674
+      Path: event:/Music/Tutorial
+  - scene: {fileID: 11400000, guid: e7b66eb99f8fac04b86b7cf9424aa824, type: 2}
+    bgmEvent:
+      Guid:
+        Data1: -1487995431
+        Data2: 1088435797
+        Data3: -1817752129
+        Data4: -1007286674
+      Path: event:/Music/Tutorial
+  - scene: {fileID: 11400000, guid: fa121d14202f8a14baed194144de73b2, type: 2}
+    bgmEvent:
+      Guid:
+        Data1: -1487995431
+        Data2: 1088435797
+        Data3: -1817752129
+        Data4: -1007286674
+      Path: event:/Music/Tutorial
 --- !u!1 &1371111940
 GameObject:
   m_ObjectHideFlags: 0
