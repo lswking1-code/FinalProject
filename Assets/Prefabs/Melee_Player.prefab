@@ -290,6 +290,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 36928
+  safeLandingDrop: 4.5
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0
@@ -446,14 +447,14 @@ MonoBehaviour:
   detectZone: {fileID: 7012345678901234513}
   weaponProfiles:
   - weaponId: 0
-    damage: 10
+    damage: 15
     hitboxSize: {x: 1.45, y: 1.05}
     hitboxOffset: {x: 0.25, y: 0}
     upHitboxSize: {x: 1.3, y: 1.8}
     upHitboxOffset: {x: 0, y: 1.2}
     detectSize: {x: 2, y: 2}
     detectOffset: {x: 0.5, y: 0}
-    maxTargets: 3
+    maxTargets: 6
     hitStart: 0.62
     hitEnd: 0.88
     airHitStart: 0.35
@@ -465,7 +466,7 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 1
-    damage: 20
+    damage: 35
     hitboxSize: {x: 2.6, y: 1.8}
     hitboxOffset: {x: 1.2, y: 0.15}
     upHitboxSize: {x: 1.5, y: 2.6}
@@ -484,7 +485,7 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 2
-    damage: 10
+    damage: 20
     hitboxSize: {x: 7.28, y: 1.27}
     hitboxOffset: {x: 2, y: 0.05}
     upHitboxSize: {x: 1.74, y: 6.12}
@@ -503,7 +504,7 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 3
-    damage: 50
+    damage: 120
     hitboxSize: {x: 1.55, y: 1.35}
     hitboxOffset: {x: 0.7, y: -0.1}
     upHitboxSize: {x: 1.3, y: 1.6}
@@ -523,17 +524,17 @@ MonoBehaviour:
     crouchHitEnd: 0.9
   weaponAmmoCosts:
   - weaponId: 1
-    meleeCost: 1
+    meleeCost: 2
     specialCost: 10
   - weaponId: 2
     meleeCost: 1
-    specialCost: 10
+    specialCost: 5
   - weaponId: 3
     meleeCost: 1
-    specialCost: 10
+    specialCost: 3
   specialProfiles:
   - weaponId: 1
-    damage: 30
+    damage: 35
     hitboxSize: {x: 3.2, y: 1.4}
     hitboxOffset: {x: 1.6, y: 0}
     maxTargets: 6
@@ -569,7 +570,7 @@ MonoBehaviour:
     knockbackForce: 12
     knockbackDuration: 0.2
   - weaponId: 3
-    damage: 20
+    damage: 60
     hitboxSize: {x: 2, y: 1.6}
     hitboxOffset: {x: -1.01, y: -0.18}
     maxTargets: 6
@@ -579,7 +580,7 @@ MonoBehaviour:
     rearHitEnd: 0
     outerRadius: 3.4
     innerRadius: 2.11
-    innerDamage: 55
+    innerDamage: 120
     rushSpeed: 0
     rushStart: 0
     rushEnd: 0
@@ -603,7 +604,7 @@ MonoBehaviour:
   shortMeleeDashStart: 0.08
   shortMeleeDashEnd: 0.38
   jumpDownSlamSpeed: 25
-  jumpDownImpactDamage: 10
+  jumpDownImpactDamage: 15
   jumpDownImpactRadius: 1.98
   jumpDownImpactOffset: {x: -0.72, y: 0}
   attackEvent:
