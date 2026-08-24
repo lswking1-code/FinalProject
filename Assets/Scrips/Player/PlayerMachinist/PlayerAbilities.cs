@@ -241,6 +241,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (!TryConvertAmmoToSpecial())
             return;
 
+        PlaySessionRecorder.Instance?.RecordAbility1();
         if (playerAnim.TryPlayLoadBulletAnim())
             FmodAudio.Play(loadEvent);
     }
@@ -296,6 +297,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (!HasActiveRobot())
             return;
 
+        PlaySessionRecorder.Instance?.AddRobotAliveTime(Time.deltaTime);
         character.DrainAbilityPower(robotDrainRate * Time.deltaTime);
 
         if (character.AbilityPower <= 0f
@@ -454,6 +456,8 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         robot.GetComponent<AllyRobot>()?.Initialize(transform, mode, robotFollowPoint);
         OnRobotSpawned(robot);
         SpawnOpenCore(worldPos);
+        PlaySessionRecorder.Instance?.RecordRobotSummon();
+        PlaySessionRecorder.Instance?.RecordAbility2();
         return true;
     }
 
@@ -511,7 +515,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             return;
 
         if (playPlayerAnim)
+        {
             playerAnim.TryPlayRecallAnim();
+            PlaySessionRecorder.Instance?.RecordAbility2();
+        }
 
         Vector3 corePos = activeRobot.transform.position;
         SpawnReturningCore(corePos);

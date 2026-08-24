@@ -285,6 +285,7 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         if (explosionPrefab != null)
         {
             var explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            explosion.gameObject.name = "EnemyHomingMissileExplosion";
             EnemySceneCleanup.PlaceInSourceScene(explosion.gameObject, this);
         }
 

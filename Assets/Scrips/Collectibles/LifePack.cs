@@ -39,6 +39,7 @@ public class LifePack : MonoBehaviour, ISaveable
         if (!PlayerLifePoints.Instance.TryAdd(amount))
             return;
 
+        PlaySessionRecorder.Instance?.RecordLifePoint(amount);
         consumed = true;
         PersistConsumed();
         DisablePickup();

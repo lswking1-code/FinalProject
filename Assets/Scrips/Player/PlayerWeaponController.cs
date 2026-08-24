@@ -157,6 +157,7 @@ public class PlayerWeaponController : MonoBehaviour, ISaveable
             return false;
 
         currentWeaponId = weaponId;
+        PlaySessionRecorder.Instance?.RecordWeaponSwitch();
         return true;
     }
 

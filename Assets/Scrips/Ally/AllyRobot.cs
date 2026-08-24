@@ -859,6 +859,8 @@ public class AllyRobot : MonoBehaviour
             SwitchState(AllyState.Pulling);
 
         pullCooldownTimer = PullCooldown;
+        PlaySessionRecorder.Instance?.RecordHook();
+        PlaySessionRecorder.Instance?.RecordAbility2();
         return true;
     }
 
@@ -1378,6 +1380,8 @@ public class AllyRobot : MonoBehaviour
             return false;
 
         ReleasePulledPlayer();
+        PlaySessionRecorder.Instance?.RecordHook();
+        PlaySessionRecorder.Instance?.RecordAbility2();
         return true;
     }
 

@@ -14,6 +14,10 @@ public class DataManager : MonoBehaviour
     public VoidEventSO loadDataEvent;
     public VoidEventSO newGameEvent;
 
+    [Header("开发")]
+    [Tooltip("开启后按 L 键立刻读档（仅测试用）。菜单读档不受影响。")]
+    [SerializeField] bool enableLKeyLoad;
+
     readonly List<ISaveable> saveableList = new List<ISaveable>();
 
     Data saveData;
@@ -70,6 +74,9 @@ public class DataManager : MonoBehaviour
 
     void Update()
     {
+        if (!enableLKeyLoad)
+            return;
+
         if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
             Load();
     }

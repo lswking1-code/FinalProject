@@ -112,6 +112,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
             // 进测试关前清档；此时玩家通常仍未激活，不能走 ResetPlayerForLevelRestart
             DataManager.instance?.ClearForNewGame();
             runTimer?.ResetTimer();
+            PlaySessionRecorder.Instance?.BeginNewSession("NewGame");
 
             // 首次加载无旧场景可卸载，补发一次供 UIManage 打开 HUD
             unloadedSceneEvent.RaiseLoadRequestEvent(testScene, testPosition, true);
@@ -237,6 +238,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         var ui = FindFirstObjectByType<UIManage>();
         ui?.CloseEndGamePanels();
 
+        PlaySessionRecorder.Instance?.BeginNewSession("Restart");
         DataManager.instance?.ClearForNewGame();
         ResetPlayerForLevelRestart();
         runTimer?.ResetTimer();
@@ -286,7 +288,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         return false;
     }
 
-    bool IsTutorialScene(GameSceneSO scene)
+    public bool IsTutorialScene(GameSceneSO scene)
     {
         if (scene == null || characterTutorials == null)
             return false;
@@ -582,6 +584,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
             afterSceneLoadedEvent.RaiseEvent();
             GrantPlayerSpawnInvulnerability();
             NotifyRunTimerSceneLoaded();
+            PlaySessionRecorder.Instance?.NotifySceneLoaded(
+                currentLoadedScene, IsTutorialScene(currentLoadedScene));
 
             if (pendingSaveAfterRestart)
             {

@@ -229,6 +229,8 @@ public class Character : MonoBehaviour,ISaveable
             OnTakeDamage?.Invoke(attacker.transform);
             ApplyKnockback(attacker);
             NotifyStatsChanged();
+            if (CompareTag("Player"))
+                PlaySessionRecorder.Instance?.RecordDamageTaken(attacker);
             return true;
         }
 
@@ -237,6 +239,8 @@ public class Character : MonoBehaviour,ISaveable
         OnTakeDamage?.Invoke(attacker.transform);
         ApplyKnockback(attacker);
         NotifyStatsChanged();
+        if (CompareTag("Player"))
+            PlaySessionRecorder.Instance?.RecordDamageTaken(attacker);
         Die();
         return true;
     }
@@ -264,10 +268,14 @@ public class Character : MonoBehaviour,ISaveable
             currentHealth -= attacker.damage;
             triggerInvulnerable();
             NotifyStatsChanged();
+            if (CompareTag("Player"))
+                PlaySessionRecorder.Instance?.RecordDamageTaken(attacker);
             return true;
         }
 
         skipDeathDelay = true;
+        if (CompareTag("Player"))
+            PlaySessionRecorder.Instance?.RecordDamageTaken(attacker);
         Die();
         killed = true;
         return true;
@@ -501,6 +509,8 @@ public class Character : MonoBehaviour,ISaveable
         }
 
         NotifyAmmoChanged(type, before, GetAmmo(type));
+        if (CompareTag("Player"))
+            PlaySessionRecorder.Instance?.RecordAmmo(type, amount);
         return true;
     }
 

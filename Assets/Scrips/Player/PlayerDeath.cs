@@ -78,6 +78,7 @@ public class PlayerDeath : MonoBehaviour
 
         deathHandled = true;
         gameOverRaised = false;
+        PlaySessionRecorder.Instance?.RecordDeath();
         character.SetForcedInvulnerable(true);
         playerMovement.BeginExternalControl();
         playerAnim.PlayDieAnim();

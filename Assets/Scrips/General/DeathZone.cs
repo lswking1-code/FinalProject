@@ -62,6 +62,7 @@ public class DeathZone : MonoBehaviour
             return;
 
         playerCharacter.Kill();
+        PlaySessionRecorder.Instance?.RecordSceneHazardDeath("DeathZone");
     }
 
     bool MarkHandled(GameObject go)

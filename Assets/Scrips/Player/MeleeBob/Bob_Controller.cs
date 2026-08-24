@@ -447,9 +447,12 @@ public class Bob_Controller : MonoBehaviour
         UpdateDashAttacks();
         ApplyWhipKnockbackVelocities();
 
-        // 一段跳由 PlayerMovement 执行；此处只补音效
+        // 一段跳由 PlayerMovement 执行；此处只补音效与记录
         if (playerMovement != null && playerMovement.DidGroundJumpThisFixedUpdate)
+        {
             PlaySfx(jumpEvent);
+            PlaySessionRecorder.Instance?.RecordMeleeJump();
+        }
 
         if (physicsCheck.isGround)
         {
@@ -1033,6 +1036,8 @@ public class Bob_Controller : MonoBehaviour
         }
         else
         {
+            if (fullBodyAnim != null && fullBodyAnim.IsCrouchMelee)
+                PlaySessionRecorder.Instance?.RecordMeleeSlide();
             PlayMeleeActionSfx();
             BeginAttackInputLock();
         }
@@ -1234,6 +1239,11 @@ public class Bob_Controller : MonoBehaviour
             : playerAnim.TryPlaySpecialAnim();
         if (!played)
             return;
+
+        if (ultimate)
+            PlaySessionRecorder.Instance?.RecordAbility2();
+        else
+            PlaySessionRecorder.Instance?.RecordAbility1();
 
         if (ultimate
             && ultimateAbilityPowerCost > 0f
@@ -2804,6 +2814,7 @@ public class Bob_Controller : MonoBehaviour
         rb.linearVelocity = new Vector2(velocityX, jumpVelocity);
         hasUsedDoubleJump = true;
         PlaySfx(doubleJumpEvent);
+        PlaySessionRecorder.Instance?.RecordMeleeDoubleJump();
 
         if (fullBodyAnim != null)
             fullBodyAnim.PlayDoubleJumpAnim(hasHorizontal);

@@ -53,36 +53,51 @@ namespace FMODUnity
 
         public void OnBeforeSerialize()
         {
-            if (SerializableEventsDict.Count == 0)
-            {
-                SerializableEventsDict = EditorEventsDict.Select(item => new DictionaryEntry { key = item.Key, index = item.Value}).ToList();
-            }
+            BuildDictionary();
+            SerializableEventsDict = EditorEventsDict.Select(item => new DictionaryEntry { key = item.Key, index = item.Value}).ToList();
         }
 
         public void OnAfterDeserialize()
         {
-            if (SerializableEventsDict.Count > 0)
+            // Always rebuild from EditorEvents. The serialized index map can
+            // go stale when events are added/removed, which previously caused
+            // Event Not Found warnings and ArgumentOutOfRangeException in the Inspector.
+            BuildDictionary();
+            if (SerializableEventsDict != null)
             {
-                SerializableEventsDict.ForEach((item) =>
-                {
-                    EditorEventsDict.Add(item.key, item.index);
-                });
                 SerializableEventsDict.Clear();
             }
         }
 
         public void BuildDictionary()
         {
-            EditorEventsDict.Clear();
-            int index = 0;
+            if (EditorEventsDict == null)
+            {
+                EditorEventsDict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            }
+            else
+            {
+                EditorEventsDict.Clear();
+            }
 
-            EditorEvents.ForEach((eventRef) => {
+            if (EditorEvents == null)
+            {
+                return;
+            }
+
+            for (int index = 0; index < EditorEvents.Count; index++)
+            {
+                EditorEventRef eventRef = EditorEvents[index];
+                if (eventRef == null || string.IsNullOrEmpty(eventRef.Path))
+                {
+                    continue;
+                }
+
                 if (!EditorEventsDict.ContainsKey(eventRef.Path))
                 {
                     EditorEventsDict.Add(eventRef.Path, index);
                 }
-                index++;
-            });
+            }
         }
     }
 }

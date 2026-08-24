@@ -1232,12 +1232,43 @@ namespace FMODUnity
         {
             AffirmEventCache();
 
-            if (eventCache.EditorEventsDict.TryGetValue(path, out int index))
+            if (TryGetEventFromDict(path, out EditorEventRef eventRef))
             {
-                return eventCache.EditorEvents[index];
+                return eventRef;
             }
 
-            return null;
+            eventCache.BuildDictionary();
+
+            if (TryGetEventFromDict(path, out eventRef))
+            {
+                return eventRef;
+            }
+
+            return eventCache.EditorEvents.Find(x => x != null &&
+                string.Equals(x.Path, path, StringComparison.OrdinalIgnoreCase));
+        }
+
+        static bool TryGetEventFromDict(string path, out EditorEventRef eventRef)
+        {
+            eventRef = null;
+
+            if (eventCache.EditorEventsDict == null || eventCache.EditorEvents == null)
+            {
+                return false;
+            }
+
+            if (!eventCache.EditorEventsDict.TryGetValue(path, out int index))
+            {
+                return false;
+            }
+
+            if (index < 0 || index >= eventCache.EditorEvents.Count)
+            {
+                return false;
+            }
+
+            eventRef = eventCache.EditorEvents[index];
+            return eventRef != null;
         }
 
         public static EditorEventRef EventFromGUID(FMOD.GUID guid)

@@ -118,6 +118,8 @@ public class PlayerRoll : MonoBehaviour
         if (Mathf.Approximately(rollFaceDir, 0f))
             rollFaceDir = 1f;
 
+        PlaySessionRecorder.Instance?.RecordAbility2();
+
         character.SetForcedInvulnerable(true);
         ApplyRollRotation(0f);
     }

@@ -140,6 +140,8 @@ public class PlayerRollGrenade : MonoBehaviour
 
         if (throwAbilityPowerCost > 0f)
             character.DrainAbilityPower(throwAbilityPowerCost);
+
+        PlaySessionRecorder.Instance?.RecordAbility1();
     }
 
     void TrySpawnRollGrenade()
@@ -159,6 +161,7 @@ public class PlayerRollGrenade : MonoBehaviour
             character.DrainAbilityPower(abilityPowerCost);
 
         playerAnim.TryPlayThrowAnim();
+        PlaySessionRecorder.Instance?.RecordAbility1();
     }
 
     void TrySpawnBullet()
@@ -176,6 +179,8 @@ public class PlayerRollGrenade : MonoBehaviour
 
         if (bulletAbilityPowerCost > 0f)
             character.DrainAbilityPower(bulletAbilityPowerCost);
+
+        PlaySessionRecorder.Instance?.RecordAbility1();
     }
 
     void TrySpawnHomingMissile()
@@ -198,6 +203,7 @@ public class PlayerRollGrenade : MonoBehaviour
             character.DrainAbilityPower(missileAbilityPowerCost);
 
         playerAnim.TryPlayThrowAnim();
+        PlaySessionRecorder.Instance?.RecordAbility1();
     }
 
     bool IsHoldingUp() =>

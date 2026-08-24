@@ -270,6 +270,8 @@ public class ElectrifiedPlatform : MonoBehaviour
             return;
 
         nextHitTime[id] = Time.time + damageInterval;
+        if (killed && character.CompareTag("Player"))
+            PlaySessionRecorder.Instance?.RecordSceneHazardDeath("ElectrifiedPlatform");
         if (!killed)
             PlayHitFeedback(character);
     }

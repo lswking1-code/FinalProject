@@ -185,6 +185,7 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
         if (explosionPrefab != null)
         {
             var explosion = Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            explosion.gameObject.name = "EnemyMissileExplosion";
             EnemySceneCleanup.PlaceInSourceScene(explosion.gameObject, this);
         }
 
