@@ -344,6 +344,7 @@ MonoBehaviour:
   enableFocusMode: 0
   missilePrefab: {fileID: 6100000000000000006, guid: a07b24d5e10672912d4f8a3b5c6170e9, type: 3}
   firePointRadius: 1.4
+  fireOriginOffset: {x: 0, y: 0.8}
   heightDeadlockSlack: 0.5
 --- !u!114 &7759382780292668202
 MonoBehaviour:
@@ -433,6 +434,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 4160
+  safeLandingDrop: 4.5
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0

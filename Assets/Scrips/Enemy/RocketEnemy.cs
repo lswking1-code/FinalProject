@@ -28,6 +28,8 @@ public class RocketEnemy : RangedEnemy
     public EnemyMissile missilePrefab;
     [Tooltip("开火点绕敌人中心的半径；<=0 时用 FirePoint 初始局部位移长度")]
     [SerializeField] float firePointRadius;
+    [Tooltip("发射圆心相对敌人 transform 的偏移，用来把八向发射环整体上移")]
+    [SerializeField] Vector2 fireOriginOffset = new Vector2(0f, 0.4f);
     [Tooltip("水平已贴齐但仍因高度差超出射程时，视为可射击，避免 GetClose 卡死")]
     [SerializeField] float heightDeadlockSlack = 0.5f;
 
@@ -66,7 +68,7 @@ public class RocketEnemy : RangedEnemy
 
         FacePlayer();
 
-        Vector2 origin = transform.position;
+        Vector2 origin = GetFireOrigin();
         Vector2 toPlayer = (Vector2)player.position - origin;
         Vector2 dir = SnapToNearest8Dir(toPlayer);
         if (dir == Vector2.zero)
@@ -81,6 +83,11 @@ public class RocketEnemy : RangedEnemy
         var missile = Instantiate(missilePrefab, spawnPos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
         missile.Init(dir, throwerCollider);
+    }
+
+    Vector2 GetFireOrigin()
+    {
+        return (Vector2)transform.position + fireOriginOffset;
     }
 
     float GetFirePointRadius()
@@ -135,8 +142,11 @@ public class RocketEnemy : RangedEnemy
         float radius = firePointRadius > 0f
             ? firePointRadius
             : (firePoint != null ? ((Vector2)firePoint.localPosition).magnitude : 1.5f);
+        Vector3 origin = GetFireOrigin();
+        origin.z = transform.position.z;
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(origin, 0.1f);
         Gizmos.color = Color.cyan;
-        Vector3 origin = transform.position;
         for (int i = 0; i < Dirs8.Length; i++)
             Gizmos.DrawWireSphere(origin + (Vector3)(Dirs8[i] * radius), 0.08f);
     }

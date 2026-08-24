@@ -154,6 +154,19 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -166,11 +179,7 @@ TextureImporter:
         width: 64
         height: 64
       alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -183,401 +192,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_1
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 192
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7216fa8b8217739d0800000000000000
-      internalID: -2794640624048971481
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_2
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 192
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4d55229531204cd70800000000000000
-      internalID: 9062370632299337172
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_3
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 192
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: ec4d02cb6ef2631a0800000000000000
-      internalID: -6830219116815526706
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_4
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 128
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 814c404017d9873b0800000000000000
-      internalID: -5514484634990885864
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_5
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 128
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 620dc421b86d503c0800000000000000
-      internalID: -4393869968634228698
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_6
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 128
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f20594cd1ec44bda0800000000000000
-      internalID: -5930030276392955857
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_7
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 128
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7e73f90a87c4bbc20800000000000000
-      internalID: 3223254039288297447
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_8
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 64
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2e6c87df0f6017050800000000000000
-      internalID: 5796421827517007586
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_9
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4afdc11fcda089a80800000000000000
-      internalID: -8459999955961192540
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_10
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 64
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2d4f2e1912389af70800000000000000
-      internalID: 9199027894085678290
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_11
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 64
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0300bd4428f27e170800000000000000
-      internalID: 8207581082453475376
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_12
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6791e41019b4031b0800000000000000
-      internalID: -5678956043949958794
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_13
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6c717861665a0a970800000000000000
-      internalID: 8764186732746184646
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_14
-      rect:
-        serializedVersion: 2
-        x: 128
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3f99badbbacf7bce0800000000000000
-      internalID: -1389364145468761613
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_rocket_default_15
-      rect:
-        serializedVersion: 2
-        x: 192
-        y: 0
-        width: 64
-        height: 64
-      alignment: 9
-<<<<<<< Updated upstream
-      pivot: {x: 0.46875, y: 0.203125}
-=======
-      pivot: {x: 0.484375, y: 0.203125}
->>>>>>> Stashed changes
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a6713325ce26acc50800000000000000
-      internalID: 6686265363915806570
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 254f629fed375524f94059a239b75b21
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -588,21 +207,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       enemy_rocket_default_0: 5521360060268278224
-      enemy_rocket_default_1: -2794640624048971481
-      enemy_rocket_default_10: 9199027894085678290
-      enemy_rocket_default_11: 8207581082453475376
-      enemy_rocket_default_12: -5678956043949958794
-      enemy_rocket_default_13: 8764186732746184646
-      enemy_rocket_default_14: -1389364145468761613
-      enemy_rocket_default_15: 6686265363915806570
-      enemy_rocket_default_2: 9062370632299337172
-      enemy_rocket_default_3: -6830219116815526706
-      enemy_rocket_default_4: -5514484634990885864
-      enemy_rocket_default_5: -4393869968634228698
-      enemy_rocket_default_6: -5930030276392955857
-      enemy_rocket_default_7: 3223254039288297447
-      enemy_rocket_default_8: 5796421827517007586
-      enemy_rocket_default_9: -8459999955961192540  mipmapLimitGroupName: 
+  mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
   assetBundleName: 
