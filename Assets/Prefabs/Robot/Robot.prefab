@@ -1259,7 +1259,7 @@ MonoBehaviour:
   comboAirHangDuration: 0.55
   boostVisual: {fileID: 6508870273959205457}
   laserDamage: 40
-  laserRange: 40
+  laserRange: 35
   laserVisualDuration: 0.5
   laserWidth: 2.5
   laserColor: {r: 0.3, g: 1, b: 1, a: 1}
@@ -1361,6 +1361,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 528448
+  safeLandingDrop: 4.5
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0
