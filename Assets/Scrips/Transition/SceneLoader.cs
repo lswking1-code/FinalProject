@@ -60,6 +60,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
     public CharacterTutorialBinding[] characterTutorials = Array.Empty<CharacterTutorialBinding>();
 
     [Header("开发模式")]
+    [Tooltip("开启后直接进入测试场景，并在进入时清空存档（内存进度 + 存档文件）。")]
     public bool developMode;
     public GameSceneSO testScene;
     public Vector3 testPosition;
@@ -103,6 +104,10 @@ public class SceneLoader : MonoBehaviour, ISaveable
     {
         if (developMode)
         {
+            // 进测试关前清档，避免遭遇区/敌人/道具套用上一局进度
+            DataManager.instance?.ClearForNewGame();
+            ResetPlayerForLevelRestart();
+
             // 首次加载无旧场景可卸载，补发一次供 UIManage 打开 HUD
             unloadedSceneEvent.RaiseLoadRequestEvent(testScene, testPosition, true);
             loadEventSO.RaiseLoadRequestEvent(testScene, testPosition, true);

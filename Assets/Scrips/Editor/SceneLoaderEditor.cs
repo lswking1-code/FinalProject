@@ -35,7 +35,7 @@ public class SceneLoaderEditor : Editor
         if (loader.developMode)
         {
             EditorGUILayout.HelpBox(
-                "开发模式：运行时可按数字键 1/2/3 切换角色（不触发场景重载）。",
+                "开发模式：进入测试场景时会清空存档。运行时可按数字键 1/2/3 切换角色（不触发场景重载）。",
                 MessageType.Info);
         }
 
