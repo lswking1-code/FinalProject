@@ -518,7 +518,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f757670695cfb4e4791a48064efc4d42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runSpeed: 5.5
+  runSpeed: 6
   crouchMoveSpeed: 3
   jumpHeight: 3
   inputThreshold: 0.5
@@ -641,6 +641,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 36928
+  safeLandingDrop: 4.5
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0
