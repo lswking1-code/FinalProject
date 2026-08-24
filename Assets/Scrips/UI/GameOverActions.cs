@@ -13,7 +13,7 @@ public class GameOverActions : MonoBehaviour
         newGameEvent = newGame;
     }
 
-    /// <summary>GAME OVER 后 Restart：重开本关并刷新数值。</summary>
+    /// <summary>GAME OVER / 暂停 Restart：从 Stage1 起点重开并刷新数值。</summary>
     public void OnRestartFromSave()
     {
         var loader = FindFirstObjectByType<SceneLoader>();

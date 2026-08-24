@@ -83,6 +83,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
     [Header("音频")]
     public BgmManager bgmManager;
 
+    RunTimer runTimer;
+
     Vector3 currentSceneEntryPosition;
     bool hasSceneEntry;
     bool pendingRecordEntry;
@@ -95,6 +97,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (bgmManager == null)
             Debug.LogWarning("SceneLoader: 未找到 BgmManager，关卡 BGM 不会播放。");
 
+        if (runTimer == null)
+            runTimer = GetComponent<RunTimer>();
+
         EnsureSelectedCharacter();
         ApplyPlayerSelection();
     }
@@ -106,6 +111,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             // 进测试关前清档；此时玩家通常仍未激活，不能走 ResetPlayerForLevelRestart
             DataManager.instance?.ClearForNewGame();
+            runTimer?.ResetTimer();
 
             // 首次加载无旧场景可卸载，补发一次供 UIManage 打开 HUD
             unloadedSceneEvent.RaiseLoadRequestEvent(testScene, testPosition, true);
@@ -204,6 +210,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     private void OnBackToMenuEvent()
     {
+        runTimer?.Stop();
         sceneToLoad = menuScene;
         loadEventSO.RaiseLoadRequestEvent(sceneToLoad, menuPosition, true);
     }
@@ -211,6 +218,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
     private void NewGame()
     {
         ApplyPlayerSelection();
+        runTimer?.ResetTimer();
+        hasSceneEntry = false;
         if (TryGetTutorialFor(selectedCharacter, out var tutorial, out var tutorialPos))
             loadEventSO.RaiseLoadRequestEvent(tutorial, tutorialPos, true);
         else
@@ -218,7 +227,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// GAME OVER Restart：清空进度、重置数值，从本关入口重开。
+    /// GAME OVER / 暂停 Restart：清空进度、重置数值，从 Stage1 起点重开。
     /// </summary>
     public void RestartCurrentLevel()
     {
@@ -228,18 +237,19 @@ public class SceneLoader : MonoBehaviour, ISaveable
         var ui = FindFirstObjectByType<UIManage>();
         ui?.CloseEndGamePanels();
 
-        if (currentLoadedScene == null || currentLoadedScene.sceneType != SceneType.Loaction)
+        DataManager.instance?.ClearForNewGame();
+        ResetPlayerForLevelRestart();
+        runTimer?.ResetTimer();
+        hasSceneEntry = false;
+
+        if (firstLoadScene == null)
         {
             NewGame();
             return;
         }
 
-        DataManager.instance?.ClearForNewGame();
-        ResetPlayerForLevelRestart();
-
-        Vector3 entry = hasSceneEntry ? currentSceneEntryPosition : firstPosition;
         pendingSaveAfterRestart = true;
-        loadEventSO.RaiseLoadRequestEvent(currentLoadedScene, entry, true);
+        loadEventSO.RaiseLoadRequestEvent(firstLoadScene, firstPosition, true);
     }
 
     void ResetPlayerForLevelRestart()
@@ -283,7 +293,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
         foreach (var binding in characterTutorials)
         {
-            if (binding != null && binding.tutorialScene == scene)
+            if (binding != null && IsSameGameScene(binding.tutorialScene, scene))
                 return true;
         }
 
@@ -475,6 +485,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             DataManager.instance?.ClearForNewGame();
             ResetPlayerForLevelRestart();
+            runTimer?.ResetTimer();
             pendingSaveAfterRestart = true;
         }
 
@@ -570,6 +581,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
             afterSceneLoadedEvent.RaiseEvent();
             GrantPlayerSpawnInvulnerability();
+            NotifyRunTimerSceneLoaded();
 
             if (pendingSaveAfterRestart)
             {
@@ -581,7 +593,32 @@ public class SceneLoader : MonoBehaviour, ISaveable
         {
             pendingRecordEntry = false;
             pendingSaveAfterRestart = false;
+            runTimer?.Stop();
         }
+    }
+
+    void NotifyRunTimerSceneLoaded()
+    {
+        if (runTimer == null || currentLoadedScene == null)
+            return;
+        if (IsTutorialScene(currentLoadedScene))
+            return;
+
+        runTimer.StartOrResume();
+    }
+
+    static bool IsSameGameScene(GameSceneSO a, GameSceneSO b)
+    {
+        if (a == null || b == null)
+            return false;
+        if (ReferenceEquals(a, b))
+            return true;
+        if (!string.IsNullOrEmpty(a.name) && a.name == b.name)
+            return true;
+
+        string guidA = a.sceneReference != null ? a.sceneReference.AssetGUID : null;
+        string guidB = b.sceneReference != null ? b.sceneReference.AssetGUID : null;
+        return !string.IsNullOrEmpty(guidA) && guidA == guidB;
     }
 
     void GrantPlayerSpawnInvulnerability()
@@ -604,10 +641,13 @@ public class SceneLoader : MonoBehaviour, ISaveable
         data.selectedCharacterIndex = playerRegistry != null
             ? playerRegistry.IndexOf(selectedCharacter)
             : -1;
+        runTimer?.WriteTo(data);
     }
 
     public void LoadSaveData(Data data)
     {
+        runTimer?.ReadFrom(data);
+
         if (playerRegistry != null && data.selectedCharacterIndex >= 0)
             selectedCharacter = playerRegistry.GetByIndex(data.selectedCharacterIndex);
 

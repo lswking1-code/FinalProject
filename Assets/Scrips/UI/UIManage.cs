@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -33,12 +34,18 @@ public class UIManage : MonoBehaviour
     GameOverActions endGameActions;
     InputSystem_Actions actions;
     SceneLoader sceneLoader;
+    RunTimer runTimer;
+    TMP_Text clearTimeText;
 
     void Awake()
     {
         sceneLoader = FindFirstObjectByType<SceneLoader>();
+        runTimer = sceneLoader != null
+            ? sceneLoader.GetComponent<RunTimer>()
+            : FindFirstObjectByType<RunTimer>();
         EnsureGameOverUI();
         EnsureGameClearUI();
+        CacheClearTimeText();
         WireEndGameButtons();
         WirePauseButtons();
     }
@@ -334,6 +341,8 @@ public class UIManage : MonoBehaviour
     private void OnGameClearEvent()
     {
         ClosePause();
+        runTimer?.Stop();
+        ApplyClearTimeDisplay();
         if (gameClearPannel != null)
             gameClearPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(replayBtn);
@@ -342,8 +351,36 @@ public class UIManage : MonoBehaviour
     private void OnGameOverEvent()
     {
         ClosePause();
+        runTimer?.Stop();
         gameOverPannel.SetActive(true);
         EventSystem.current.SetSelectedGameObject(restartBtn);
+    }
+
+    void CacheClearTimeText()
+    {
+        if (gameClearPannel == null)
+            return;
+
+        var timeTransform = gameClearPannel.transform.Find("Time");
+        if (timeTransform == null)
+            return;
+
+        clearTimeText = timeTransform.GetComponent<TMP_Text>();
+    }
+
+    void ApplyClearTimeDisplay()
+    {
+        if (clearTimeText == null)
+            CacheClearTimeText();
+        if (clearTimeText == null)
+            return;
+
+        var timer = runTimer != null ? runTimer : RunTimer.Instance;
+        if (timer == null)
+            return;
+
+        clearTimeText.text = timer.FormatElapsed();
+        clearTimeText.color = timer.GetRankColor();
     }
 
     public void CloseEndGamePanels()
