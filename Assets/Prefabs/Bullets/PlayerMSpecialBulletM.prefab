@@ -178,6 +178,7 @@ MonoBehaviour:
   knockbackForce: 0
   knockbackDuration: 0.15
   shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 0
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
@@ -194,7 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 5
-  damage: 10
+  damage: 15
   lifetime: 3.5
   damageInterval: 0.2
   abilityPowerRestore: 5

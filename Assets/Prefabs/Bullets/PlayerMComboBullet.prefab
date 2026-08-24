@@ -79,7 +79,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: -5018052089748527436, guid: a0cf49dd3b9354d428816b5a9e3f0290, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -170,7 +170,7 @@ MonoBehaviour:
   speed: 15
   damage: 20
   lifetime: 2
-  abilityPowerRestore: 3
+  abilityPowerRestore: 4
 --- !u!114 &785616209480741553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,6 +194,7 @@ MonoBehaviour:
   knockbackForce: 0
   knockbackDuration: 0.15
   shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 0
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12

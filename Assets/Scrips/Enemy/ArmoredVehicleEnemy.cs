@@ -78,8 +78,6 @@ public class ArmoredVehicleEnemy : Enemy
     Attack bumperLeftAttack;
     Attack bumperRightAttack;
     Quaternion aimStartRotation;
-    Collider2D bodyCollider;
-    bool ignoredPlayerCollision;
 
     protected override void Awake()
     {
@@ -102,7 +100,6 @@ public class ArmoredVehicleEnemy : Enemy
         else
             forwardSign = Mathf.Sign(forwardSign);
 
-        bodyCollider = GetComponent<Collider2D>();
         CacheBumpers();
         ConfigureBumperAttacks();
         SetBumpersActive(false);
@@ -113,7 +110,6 @@ public class ArmoredVehicleEnemy : Enemy
     void Start()
     {
         ConfigurePhysicsCheck();
-        TryIgnorePlayerBodyCollision();
     }
 
     void CacheBumpers()
@@ -155,8 +151,8 @@ public class ArmoredVehicleEnemy : Enemy
         if (coll == null)
             return;
 
-        float halfHeight = coll.size.y * 0.5f + coll.offset.y;
-        physicsCheck.bottomOffset = new Vector2(0f, -halfHeight + 0.1f);
+        float bottom = coll.offset.y - coll.size.y * 0.5f;
+        physicsCheck.bottomOffset = new Vector2(0f, bottom + 0.1f);
         if (physicsCheck.checkRaduis <= 0f)
             physicsCheck.checkRaduis = 0.2f;
     }
@@ -168,7 +164,6 @@ public class ArmoredVehicleEnemy : Enemy
         lastAction = null;
         CacheHome();
         isReturning = false;
-        ignoredPlayerCollision = false;
         SetBumpersActive(false);
 
         if (isPatrol)
@@ -188,7 +183,6 @@ public class ArmoredVehicleEnemy : Enemy
         if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
             BeginReturnHome();
 
-        TryIgnorePlayerBodyCollision();
         base.Update();
     }
 
@@ -207,25 +201,6 @@ public class ArmoredVehicleEnemy : Enemy
     protected override bool ShouldRunTimeCounter() => false;
 
     protected override bool ShouldAutoMove() => false;
-
-    void TryIgnorePlayerBodyCollision()
-    {
-        if (ignoredPlayerCollision || bodyCollider == null)
-            return;
-
-        EnsurePlayerReference();
-        if (player == null)
-            return;
-
-        var playerCols = player.GetComponentsInChildren<Collider2D>();
-        for (int i = 0; i < playerCols.Length; i++)
-        {
-            if (playerCols[i] != null)
-                Physics2D.IgnoreCollision(bodyCollider, playerCols[i], true);
-        }
-
-        ignoredPlayerCollision = true;
-    }
 
     void ResetActionProbabilities()
     {

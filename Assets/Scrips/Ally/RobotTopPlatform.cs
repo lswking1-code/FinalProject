@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 机器人顶部单向平台标记。玩家侧由 PlayerMovement 叠加本平台速度实现移动跟随。
+/// 机器人 / 装甲车顶部单向平台标记。玩家侧由 PlayerMovement 叠加本平台速度实现移动跟随。
 /// 碰撞过滤依赖 RobotTop 层矩阵（仅与 Player 碰撞）。
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
