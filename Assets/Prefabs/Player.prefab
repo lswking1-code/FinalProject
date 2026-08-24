@@ -194,6 +194,10 @@ MonoBehaviour:
   jumpBufferTime: 0.2
   coyoteTime: 0.12
   crouchColliderSize: {x: 1.08, y: 1.2}
+  standUpObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  standUpCheckSkin: 0.05
   airHangDuration: 0.12
   airHangGravityScale: 0.25
   airHangVelocityY: 0
@@ -292,6 +296,13 @@ MonoBehaviour:
   meleePoint2: {fileID: 7012345678901234504}
   meleeHitbox: {fileID: 7012345678901234505}
   detectZone: {fileID: 7012345678901234513}
+  meleeEvent:
+    Guid:
+      Data1: -773927887
+      Data2: 1225906218
+      Data3: 1389413000
+      Data4: -1165894431
+    Path: event:/Player/Gunner/Melee
 --- !u!114 &1694693321125183778
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,6 +410,39 @@ MonoBehaviour:
     crouchPoint: {fileID: 3480843724505779087}
     upPoint: {fileID: 8590570490092612770}
     downPoint: {fileID: 2800417885547717695}
+  fireEvents:
+  - weaponId: 0
+    fireEvent:
+      Guid:
+        Data1: 1073716362
+        Data2: 1312583347
+        Data3: 407252608
+        Data4: -1270906694
+      Path: event:/Player/Gunner/Handgun
+  - weaponId: 1
+    fireEvent:
+      Guid:
+        Data1: 1481519114
+        Data2: 1211311665
+        Data3: -629081212
+        Data4: -1880477327
+      Path: event:/Player/Gunner/Rocket
+  - weaponId: 2
+    fireEvent:
+      Guid:
+        Data1: -1094099931
+        Data2: 1077845049
+        Data3: 505913535
+        Data4: -131227638
+      Path: event:/Player/Gunner/Lasergun
+  - weaponId: 3
+    fireEvent:
+      Guid:
+        Data1: 1569185411
+        Data2: 1270780951
+        Data3: 671214211
+        Data4: -1819484656
+      Path: event:/Player/Gunner/Shotgun
 --- !u!114 &8745291038472619053
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,6 +458,13 @@ MonoBehaviour:
   grenadePrefab: {fileID: 2000000000000000006, guid: c3d4e5f6a7b8490123cdef3456789012, type: 3}
   standingThrowPoint: {fileID: 110083845953367507}
   crouchThrowPoint: {fileID: 4872282871612612448}
+  grenadeEvent:
+    Guid:
+      Data1: 1591001451
+      Data2: 1218121441
+      Data3: 2097374865
+      Data4: 442677654
+    Path: event:/Player/Gunner/Grenade
 --- !u!114 &7361849205738192641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -553,6 +604,20 @@ MonoBehaviour:
   loadDataEvent: {fileID: 11400000, guid: d053ac14c824369478dc3b9df1c43169, type: 2}
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   backToMenuEvent: {fileID: 11400000, guid: 695edc83aa3d60242b1e080b41e3e5c2, type: 2}
+  hitEvent:
+    Guid:
+      Data1: -485491071
+      Data2: 1137086554
+      Data3: -995992153
+      Data4: -975825180
+    Path: event:/Player/Gunner/Hit
+  dieEvent:
+    Guid:
+      Data1: 627106036
+      Data2: 1210976345
+      Data3: 814131593
+      Data4: -1503273112
+    Path: event:/Player/Gunner/Die
 --- !u!114 &8012345678901234520
 MonoBehaviour:
   m_ObjectHideFlags: 0

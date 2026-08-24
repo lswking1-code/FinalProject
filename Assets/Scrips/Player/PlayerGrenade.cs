@@ -5,6 +5,8 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class PlayerGrenade : MonoBehaviour
 {
+    const string AirEnemyTag = "AirEnemy";
+    const string EnemyTag = "Enemy";
     const string RollingStateName = "GrenadeRolling";
 
     [SerializeField] float horizontalSpeed = 6.5f;
@@ -151,11 +153,12 @@ public class PlayerGrenade : MonoBehaviour
 
     static bool IsEnemyCollider(Collider2D collider)
     {
-        if (collider.CompareTag("Enemy"))
+        if (collider.CompareTag(EnemyTag) || collider.CompareTag(AirEnemyTag))
             return true;
 
         var character = collider.GetComponentInParent<Character>();
-        return character != null && character.CompareTag("Enemy");
+        return character != null
+            && (character.CompareTag(EnemyTag) || character.CompareTag(AirEnemyTag));
     }
 
     void Explode()

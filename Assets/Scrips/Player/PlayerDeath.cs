@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 [RequireComponent(typeof(Character))]
@@ -9,6 +10,10 @@ public class PlayerDeath : MonoBehaviour
     [SerializeField] VoidEventSO loadDataEvent;
     [SerializeField] VoidEventSO newGameEvent;
     [SerializeField] VoidEventSO backToMenuEvent;
+
+    [Header("音效")]
+    [SerializeField] EventReference hitEvent;
+    [SerializeField] EventReference dieEvent;
 
     Character character;
     PlayerAnimBase playerAnim;
@@ -25,6 +30,9 @@ public class PlayerDeath : MonoBehaviour
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
 
+        if (character != null)
+            character.OnTakeDamage.AddListener(OnTakeDamage);
+
         // 回菜单会 SetActive(false)，必须用 Awake/OnDestroy 订阅，否则会错过 newGame
         if (loadDataEvent != null)
             loadDataEvent.OnEventRaised += Revive;
@@ -36,6 +44,9 @@ public class PlayerDeath : MonoBehaviour
 
     void OnDestroy()
     {
+        if (character != null)
+            character.OnTakeDamage.RemoveListener(OnTakeDamage);
+
         if (loadDataEvent != null)
             loadDataEvent.OnEventRaised -= Revive;
         if (newGameEvent != null)
@@ -70,6 +81,16 @@ public class PlayerDeath : MonoBehaviour
         character.SetForcedInvulnerable(true);
         playerMovement.BeginExternalControl();
         playerAnim.PlayDieAnim();
+        if (!dieEvent.IsNull)
+            FmodAudio.Play(dieEvent);
+    }
+
+    void OnTakeDamage(Transform _)
+    {
+        if (hitEvent.IsNull || character == null || character.currentHealth <= 0)
+            return;
+
+        FmodAudio.Play(hitEvent);
     }
 
     public void OnDeathAnimationFinished()

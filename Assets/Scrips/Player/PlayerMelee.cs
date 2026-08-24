@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 [DefaultExecutionOrder(99)]
@@ -12,6 +13,9 @@ public class PlayerMelee : MonoBehaviour
     [SerializeField] Transform meleePoint2;
     [SerializeField] GameObject meleeHitbox;
     [SerializeField] MeleeDetectZone detectZone;
+
+    [Header("音效")]
+    [SerializeField] EventReference meleeEvent;
 
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
@@ -77,7 +81,12 @@ public class PlayerMelee : MonoBehaviour
             return false;
 
         playerMovement.FaceTowardWorldX(target.position.x);
-        return playerAnim.TryPlayMeleeAnim();
+        if (!playerAnim.TryPlayMeleeAnim())
+            return false;
+
+        if (!meleeEvent.IsNull)
+            FmodAudio.Play(meleeEvent);
+        return true;
     }
 
     void SyncDetectZoneAnchor()

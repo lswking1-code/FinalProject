@@ -1,7 +1,15 @@
 using System;
 using System.Collections;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
+
+[Serializable]
+public class WeaponFireSfx
+{
+    public int weaponId;
+    public EventReference fireEvent;
+}
 
 [Serializable]
 public class WeaponFirePointSet
@@ -66,6 +74,9 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] Transform upPoint;
     [SerializeField] Transform downPoint;
     [SerializeField] WeaponFirePointSet[] firePointSets;
+
+    [Header("音效")]
+    [SerializeField] WeaponFireSfx[] fireEvents;
 
     InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
@@ -330,6 +341,7 @@ public class PlayerShooting : MonoBehaviour
 
         FireDir dir = ResolveFireDir();
         Fire(dir, 0f, config, config != null ? config.chargedProjectilePrefab : null);
+        PlayFireSfx(config);
         return true;
     }
 
@@ -629,6 +641,7 @@ public class PlayerShooting : MonoBehaviour
         activeLaser.Begin(point, dir, faceY, character);
         float holdInterval = config != null ? Mathf.Max(0f, config.holdAmmoInterval) : 0f;
         laserNextAmmoTime = holdInterval > 0f ? Time.time + holdInterval : float.PositiveInfinity;
+        PlayFireSfx(config);
         return true;
     }
 
@@ -723,7 +736,34 @@ public class PlayerShooting : MonoBehaviour
         FireDir dir = ResolveFireDir();
         float offset = NextSpreadOffset(spreadOffset);
         Fire(dir, offset, config);
+        PlayFireSfx(config);
         return true;
+    }
+
+    void PlayFireSfx(WeaponFireConfig config)
+    {
+        int weaponId = config != null
+            ? config.weaponId
+            : weaponController != null ? weaponController.CurrentWeaponId : 0;
+
+        EventReference evt = ResolveFireEvent(weaponId);
+        if (!evt.IsNull)
+            FmodAudio.Play(evt);
+    }
+
+    EventReference ResolveFireEvent(int weaponId)
+    {
+        if (fireEvents == null)
+            return default;
+
+        for (int i = 0; i < fireEvents.Length; i++)
+        {
+            var entry = fireEvents[i];
+            if (entry != null && entry.weaponId == weaponId)
+                return entry.fireEvent;
+        }
+
+        return default;
     }
 
     float NextSpreadOffset(float spreadOffset)

@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 [DefaultExecutionOrder(100)]
@@ -8,6 +9,9 @@ public class PlayerThrow : MonoBehaviour
     [SerializeField] PlayerGrenade grenadePrefab;
     [SerializeField] Transform standingThrowPoint;
     [SerializeField] Transform crouchThrowPoint;
+
+    [Header("音效")]
+    [SerializeField] EventReference grenadeEvent;
 
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
@@ -39,6 +43,8 @@ public class PlayerThrow : MonoBehaviour
 
         var grenade = Instantiate(grenadePrefab, point.position, Quaternion.identity);
         grenade.Init(playerMovement.FaceDirection, playerRb.linearVelocity, playerCollider);
+        if (!grenadeEvent.IsNull)
+            FmodAudio.Play(grenadeEvent);
         return true;
     }
 }

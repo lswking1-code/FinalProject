@@ -18,7 +18,7 @@ public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
     [SerializeField] float speed = 8f;
     [SerializeField] int damage = 10;
     [SerializeField] float lifetime = 5f;
-    [SerializeField] float abilityPowerRestore = 5f;
+    [SerializeField] float abilityPowerRestore = 2f;
 
     Rigidbody2D rb;
     Attack attack;

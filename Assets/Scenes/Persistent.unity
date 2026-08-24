@@ -3086,6 +3086,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1022828831124262964, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: runSpeed
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 3670684932593068974, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_Name
       value: Player
@@ -3093,6 +3097,22 @@ PrefabInstance:
     - target: {fileID: 3670684932593068974, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7361849205738192641, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: abilityPowerCost
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 7361849205738192641, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: bulletAbilityPowerCost
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 7361849205738192641, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: missileAbilityPowerCost
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 8134567890123456789, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: rollSpeed
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

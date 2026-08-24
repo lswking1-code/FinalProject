@@ -19,6 +19,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     [Header("蹲伏碰撞")]
     [SerializeField] Vector2 crouchColliderSize = new Vector2(1.08f, 1.2f);
+    [Tooltip("站起检测层；留空则使用 Ground + Default")]
+    [SerializeField] LayerMask standUpObstacleMask;
+    [Tooltip("站起头部空间检测的边界容差，防止贴边抖动")]
+    [SerializeField] float standUpCheckSkin = 0.05f;
 
     [Header("空中下射滞空")]
     [Tooltip("每次向下射击刷新的滞空时长（秒）")]
@@ -490,7 +494,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             jumpBufferCounter = 0f; // 进入蹲姿时清跳跃缓冲，避免蹲跳后立刻再次蹲下
             playerAnim.PlayCrouchAnim();
         }
-        else if (!wantCrouch && playerAnim.IsCrouching)
+        else if (!wantCrouch && playerAnim.IsCrouching && CanStandUp())
             playerAnim.PlayStandAnim();
     }
 
@@ -1039,7 +1043,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.position = transform.position;
         rb.gravityScale = normalGravityScale;
 
-        if (playerAnim.IsCrouching)
+        if (playerAnim.IsCrouching && CanStandUp())
             playerAnim.PlayStandAnim();
         playerAnim.SetLookUp(false);
         playerAnim.SetLookDown(false);
@@ -1098,6 +1102,71 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         Vector2 next = Vector2.MoveTowards(rb.position, target, speed * Time.fixedDeltaTime);
         rb.MovePosition(next);
+    }
+
+    bool CanStandUp()
+    {
+        if (capsuleCollider == null)
+            return true;
+
+        LayerMask mask = GetStandUpObstacleMask();
+        if (mask.value == 0)
+            return true;
+
+        float bottom = capsuleCollider.offset.y - capsuleCollider.size.y * 0.5f;
+        float extraHeight = standingColliderSize.y - crouchColliderSize.y;
+        if (extraHeight <= 0.01f)
+            return true;
+
+        float crouchTop = transform.position.y + bottom + crouchColliderSize.y;
+        float width = Mathf.Max(0.2f, standingColliderSize.x * 0.9f);
+        Vector2 origin = new Vector2(
+            transform.position.x + standingColliderOffset.x,
+            crouchTop - 0.04f);
+
+        RaycastHit2D[] hits = Physics2D.BoxCastAll(
+            origin,
+            new Vector2(width, 0.08f),
+            0f,
+            Vector2.up,
+            extraHeight + standUpCheckSkin,
+            mask);
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit2D hit = hits[i];
+            if (hit.collider == null || hit.collider.isTrigger)
+                continue;
+            if (hit.collider == capsuleCollider)
+                continue;
+            if (IsOneWayCeiling(hit.collider))
+                continue;
+            if (Physics2D.GetIgnoreCollision(capsuleCollider, hit.collider))
+                continue;
+            return false;
+        }
+
+        return true;
+    }
+
+    LayerMask GetStandUpObstacleMask()
+    {
+        if (standUpObstacleMask.value != 0)
+            return standUpObstacleMask;
+
+        LayerMask mask = physicsCheck != null ? physicsCheck.groundLayer : (LayerMask)0;
+        int defaultLayer = LayerMask.NameToLayer("Default");
+        if (defaultLayer >= 0)
+            mask |= 1 << defaultLayer;
+        return mask;
+    }
+
+    static bool IsOneWayCeiling(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        var effector = col.GetComponent<PlatformEffector2D>();
+        return effector != null && effector.useOneWay;
     }
 
     void ApplyCrouchCollider(bool crouching)

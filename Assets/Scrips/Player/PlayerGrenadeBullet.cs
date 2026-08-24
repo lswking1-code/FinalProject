@@ -7,6 +7,9 @@ using UnityEngine;
 [RequireComponent(typeof(CircleCollider2D))]
 public class PlayerGrenadeBullet : MonoBehaviour
 {
+    const string AirEnemyTag = "AirEnemy";
+    const string EnemyTag = "Enemy";
+
     [SerializeField] float speed = 10f;
     [SerializeField] float fuseTime = 1.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
@@ -75,11 +78,12 @@ public class PlayerGrenadeBullet : MonoBehaviour
 
     static bool IsEnemyCollider(Collider2D collider)
     {
-        if (collider.CompareTag("Enemy"))
+        if (collider.CompareTag(EnemyTag) || collider.CompareTag(AirEnemyTag))
             return true;
 
         var character = collider.GetComponentInParent<Character>();
-        return character != null && character.CompareTag("Enemy");
+        return character != null
+            && (character.CompareTag(EnemyTag) || character.CompareTag(AirEnemyTag));
     }
 
     void Explode()
