@@ -438,7 +438,7 @@ MonoBehaviour:
   doubleJumpHeight: 3.5
   usePlayerJumpHeight: 1
   inputThreshold: 0.5
-  meleeDamage: 10
+  meleeDamage: 18
   hitStart: 0.62
   hitEnd: 0.88
   meleePoint1: {fileID: 7012345678901234502}
@@ -447,7 +447,7 @@ MonoBehaviour:
   detectZone: {fileID: 7012345678901234513}
   weaponProfiles:
   - weaponId: 0
-    damage: 15
+    damage: 18
     hitboxSize: {x: 1.45, y: 1.05}
     hitboxOffset: {x: 0.25, y: 0}
     upHitboxSize: {x: 1.3, y: 1.8}
@@ -485,7 +485,7 @@ MonoBehaviour:
     crouchHitStart: 0.66
     crouchHitEnd: 0.9
   - weaponId: 2
-    damage: 20
+    damage: 24
     hitboxSize: {x: 7.28, y: 1.27}
     hitboxOffset: {x: 2, y: 0.05}
     upHitboxSize: {x: 1.74, y: 6.12}
@@ -525,7 +525,7 @@ MonoBehaviour:
   weaponAmmoCosts:
   - weaponId: 1
     meleeCost: 2
-    specialCost: 10
+    specialCost: 8
   - weaponId: 2
     meleeCost: 1
     specialCost: 5
