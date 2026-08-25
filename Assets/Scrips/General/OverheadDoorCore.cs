@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 
 /// <summary>
@@ -5,6 +6,22 @@ using UnityEngine;
 /// </summary>
 public class OverheadDoorCore : MonoBehaviour, IHitCountable
 {
+    // #region agent log
+    const string DebugLogPath = "D:/Github/FinalProject/debug-a85fa1.log";
+    void AgentLog(string hypothesisId, string location, string message, string dataJson)
+    {
+        try
+        {
+            long ts = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            File.AppendAllText(DebugLogPath,
+                "{\"sessionId\":\"a85fa1\",\"hypothesisId\":\"" + hypothesisId +
+                "\",\"location\":\"" + location + "\",\"message\":\"" + message +
+                "\",\"data\":" + dataJson + ",\"timestamp\":" + ts + "}\n");
+        }
+        catch { }
+    }
+    // #endregion
+
     [Header("目标")]
     [Tooltip("留空则在父级查找 OverheadDoor")]
     [SerializeField] OverheadDoor door;
@@ -38,6 +55,17 @@ public class OverheadDoorCore : MonoBehaviour, IHitCountable
             if (spriteRenderers[i] != null)
                 originalColors[i] = spriteRenderers[i].color;
         }
+
+        var selfCol2d = GetComponents<Collider2D>();
+        var childCol2d = GetComponentsInChildren<Collider2D>(true);
+        // #region agent log
+        AgentLog("C", "OverheadDoorCore.Awake", "core_collider_snapshot",
+            "{\"name\":\"" + name +
+            "\",\"layer\":" + gameObject.layer +
+            ",\"doorNull\":" + (door == null ? "true" : "false") +
+            ",\"selfCol2d\":" + selfCol2d.Length +
+            ",\"childCol2d\":" + childCol2d.Length + "}");
+        // #endregion
     }
 
     void Update()

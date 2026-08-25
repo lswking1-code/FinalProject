@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -6,6 +7,22 @@ using UnityEngine.Events;
 /// </summary>
 public class OverheadDoor : MonoBehaviour
 {
+    // #region agent log
+    const string DebugLogPath = "D:/Github/FinalProject/debug-a85fa1.log";
+    void AgentLog(string hypothesisId, string location, string message, string dataJson)
+    {
+        try
+        {
+            long ts = System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            File.AppendAllText(DebugLogPath,
+                "{\"sessionId\":\"a85fa1\",\"hypothesisId\":\"" + hypothesisId +
+                "\",\"location\":\"" + location + "\",\"message\":\"" + message +
+                "\",\"data\":" + dataJson + ",\"timestamp\":" + ts + "}\n");
+        }
+        catch { }
+    }
+    // #endregion
+
     [Header("位移")]
     [Tooltip("全开时相对关闭位置的世界坐标偏移。竖门向上开可填 (0, 10)")]
     [SerializeField] Vector2 openWorldOffset = new Vector2(0f, 10f);
@@ -46,10 +63,89 @@ public class OverheadDoor : MonoBehaviour
         closedWorldPos = transform.position;
         openWorldPos = closedWorldPos + (Vector3)openWorldOffset;
 
-        if (doorColliders == null || doorColliders.Length == 0)
-            doorColliders = GetComponents<Collider2D>();
+        int assignedLen = doorColliders == null ? -1 : doorColliders.Length;
+        int assignedNulls = 0;
+        int assignedValid = 0;
+        if (doorColliders != null)
+        {
+            for (int i = 0; i < doorColliders.Length; i++)
+            {
+                if (doorColliders[i] == null)
+                    assignedNulls++;
+                else
+                    assignedValid++;
+            }
+        }
+
+        bool usedFallback = false;
+        if (doorColliders == null || doorColliders.Length == 0 || assignedValid == 0)
+        {
+            doorColliders = GetComponentsInChildren<Collider2D>(true);
+            // 排除 Core 上的碰撞，避免通行时关掉受击区
+            var filtered = new System.Collections.Generic.List<Collider2D>(doorColliders.Length);
+            for (int i = 0; i < doorColliders.Length; i++)
+            {
+                if (doorColliders[i] == null)
+                    continue;
+                if (doorColliders[i].GetComponentInParent<OverheadDoorCore>() != null)
+                    continue;
+                filtered.Add(doorColliders[i]);
+            }
+            doorColliders = filtered.ToArray();
+            usedFallback = true;
+        }
+
+        var col2dRoot = GetComponents<Collider2D>();
+        var col2dAll = GetComponentsInChildren<Collider2D>(true);
+        var col3dAll = GetComponentsInChildren<Collider>(true);
+        int enabled2d = 0;
+        for (int i = 0; i < col2dAll.Length; i++)
+        {
+            if (col2dAll[i] != null && col2dAll[i].enabled)
+                enabled2d++;
+        }
+        int enabled3d = 0;
+        for (int i = 0; i < col3dAll.Length; i++)
+        {
+            // Collider is 3D; exclude Collider2D which also inherits? No - Collider2D does NOT inherit Collider.
+            if (col3dAll[i] != null && col3dAll[i].enabled)
+                enabled3d++;
+        }
+
+        // #region agent log
+        AgentLog("A,B,C", "OverheadDoor.Awake", "collider_snapshot",
+            "{\"name\":\"" + name +
+            "\",\"runId\":\"post-fix\"" +
+            ",\"assignedLen\":" + assignedLen +
+            ",\"assignedNulls\":" + assignedNulls +
+            ",\"usedFallback\":" + (usedFallback ? "true" : "false") +
+            ",\"doorCollidersLen\":" + (doorColliders == null ? -1 : doorColliders.Length) +
+            ",\"rootCol2d\":" + col2dRoot.Length +
+            ",\"allCol2d\":" + col2dAll.Length +
+            ",\"enabledCol2d\":" + enabled2d +
+            ",\"allCol3d\":" + col3dAll.Length +
+            ",\"enabledCol3d\":" + enabled3d +
+            ",\"progress\":" + progress.ToString("F3") +
+            ",\"passThroughProgress\":" + passThroughProgress.ToString("F3") + "}");
+        // #endregion
 
         ApplyPositionAndColliders();
+
+        // #region agent log
+        int afterEnabled = 0;
+        if (doorColliders != null)
+        {
+            for (int i = 0; i < doorColliders.Length; i++)
+            {
+                if (doorColliders[i] != null && doorColliders[i].enabled)
+                    afterEnabled++;
+            }
+        }
+        AgentLog("D,E", "OverheadDoor.Awake", "after_apply",
+            "{\"collidersPassThrough\":" + (collidersPassThrough ? "true" : "false") +
+            ",\"doorCollidersEnabled\":" + afterEnabled +
+            ",\"pos\":\"" + transform.position.x.ToString("F2") + "," + transform.position.y.ToString("F2") + "\"}");
+        // #endregion
     }
 
     void OnValidate()
