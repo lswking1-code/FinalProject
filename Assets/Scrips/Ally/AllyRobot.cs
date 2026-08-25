@@ -1332,6 +1332,7 @@ public class AllyRobot : MonoBehaviour
         {
             ownerMovement.BeginExternalControl(false);
             ownerMovement.SetForceOneWayPass(true);
+            ownerMovement.SetForceEnemyPass(true);
         }
     }
 
@@ -1347,10 +1348,12 @@ public class AllyRobot : MonoBehaviour
         {
             ownerMovement.BeginExternalControl(false);
             ownerMovement.SetForceOneWayPass(true);
+            ownerMovement.SetForceEnemyPass(true);
         }
         else if (ownerMovement != null)
         {
             ownerMovement.SetForceOneWayPass(true);
+            ownerMovement.SetForceEnemyPass(true);
         }
     }
 
@@ -1364,6 +1367,7 @@ public class AllyRobot : MonoBehaviour
             return;
 
         ownerMovement?.RefreshForceOneWayPass();
+        ownerMovement?.RefreshForceEnemyPass();
         ownerRb.MovePosition(hookPos);
     }
 
@@ -1484,6 +1488,7 @@ public class AllyRobot : MonoBehaviour
 
         Vector2 landing = ComputeLandingPoint();
         ownerMovement.RefreshForceOneWayPass();
+        ownerMovement.RefreshForceEnemyPass();
         ownerMovement.StepExternalMove(landing, pullSpeed);
         UpdatePullStuck(Vector2.Distance(ownerRb.position, landing));
 
@@ -1508,6 +1513,9 @@ public class AllyRobot : MonoBehaviour
             if (pullInvulnerableLinger > 0f)
                 ownerCharacter.TriggerInvulnerable(pullInvulnerableLinger);
         }
+
+        if (ownerMovement != null)
+            ownerMovement.SetForceEnemyPass(false);
 
         if (ownerMovement != null && ownerMovement.IsActionLocked)
             ownerMovement.EndExternalControl();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,6 +24,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     [SerializeField] LayerMask standUpObstacleMask;
     [Tooltip("站起头部空间检测的边界容差，防止贴边抖动")]
     [SerializeField] float standUpCheckSkin = 0.05f;
+
+    [Header("钩锁敌人穿透")]
+    [SerializeField] LayerMask enemyPassLayer;
+    [Tooltip("钩锁等强制穿透时，相对身体扩大的预扫描，避免 MovePosition 撞上敌人才 Ignore")]
+    [SerializeField] float enemyPassScanPadding = 0.75f;
 
     [Header("空中下射滞空")]
     [Tooltip("每次向下射击刷新的滞空时长（秒）")]
@@ -54,6 +60,16 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// <summary>从移动平台起跳后的短暂脱离，避免接触求解/携带把竖直速度清掉。</summary>
     float platformDetachTimer;
     Collider2D ignoredRobotTopCollider;
+    const int EnemyPassOverlapBufferSize = 32;
+    readonly Collider2D[] enemyPassOverlapBuffer = new Collider2D[EnemyPassOverlapBufferSize];
+    readonly List<Collider2D> enemyChildColliderBuffer = new List<Collider2D>(16);
+    readonly List<Collider2D> enemyPassToRemove = new List<Collider2D>(16);
+    readonly HashSet<Collider2D> trackedEnemyPassColliders = new HashSet<Collider2D>();
+    readonly HashSet<Collider2D> enemyPassLinger = new HashSet<Collider2D>();
+    readonly HashSet<Collider2D> enemyPassActive = new HashSet<Collider2D>();
+    readonly HashSet<Enemy> enemyPassProcessed = new HashSet<Enemy>();
+    ContactFilter2D enemyPassFilter;
+    bool forceEnemyPass;
     float airHangTimer;
     /// <summary>当前连续滞空已持续时长，用于衰减浮空强度。</summary>
     float airHangSustainElapsed;
@@ -125,6 +141,15 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         actions = new InputSystem_Actions();
         normalGravityScale = rb.gravityScale;
 
+        if (enemyPassLayer.value == 0)
+            enemyPassLayer = LayerMask.GetMask("Enemy", "EliteEnemy", "AirEnemy");
+        enemyPassFilter = new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = enemyPassLayer,
+            useTriggers = true
+        };
+
         // 禁用期间也要能收到新游戏 / 场景加载事件
         if (newGameEvent != null)
             newGameEvent.OnEventRaised += OnNewGame;
@@ -144,6 +169,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             EndExternalControl();
 
         RestoreRobotTopCollision();
+        RestoreAllEnemyPassCollisions();
         ((ISaveable)this).UnregisterSaveData();
         actions.Player.Disable();
     }
@@ -194,6 +220,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         if (platformDropThrough != null)
             platformDropThrough.UpdateCollisions();
+        UpdateEnemyPass();
 
         physicsCheck.Check();
         UpdateCoyoteTime();
@@ -1082,6 +1109,37 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         platformDropThrough?.UpdateCollisions();
     }
 
+    public void SetForceEnemyPass(bool forcePass)
+    {
+        if (forceEnemyPass == forcePass)
+        {
+            if (forcePass)
+                UpdateEnemyPass();
+            return;
+        }
+
+        if (!forcePass)
+        {
+            foreach (Collider2D tracked in trackedEnemyPassColliders)
+            {
+                if (tracked != null)
+                    enemyPassLinger.Add(tracked);
+            }
+        }
+        else
+        {
+            enemyPassLinger.Clear();
+        }
+
+        forceEnemyPass = forcePass;
+        UpdateEnemyPass();
+    }
+
+    public void RefreshForceEnemyPass()
+    {
+        UpdateEnemyPass();
+    }
+
     public void EndExternalControl()
     {
         if (!actionLocked)
@@ -1092,6 +1150,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             capsuleCollider.enabled = savedColliderEnabled;
 
         platformDropThrough?.SetForcePassOneWay(false);
+        SetForceEnemyPass(false);
         actionLocked = false;
     }
 
@@ -1102,6 +1161,136 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         Vector2 next = Vector2.MoveTowards(rb.position, target, speed * Time.fixedDeltaTime);
         rb.MovePosition(next);
+    }
+
+    void UpdateEnemyPass()
+    {
+        if (capsuleCollider == null)
+            return;
+        if (!forceEnemyPass && trackedEnemyPassColliders.Count == 0)
+            return;
+
+        enemyPassActive.Clear();
+        if (forceEnemyPass)
+            CollectAndIgnoreNearbyEnemies();
+
+        enemyPassToRemove.Clear();
+        foreach (Collider2D tracked in trackedEnemyPassColliders)
+        {
+            if (tracked == null)
+            {
+                enemyPassToRemove.Add(tracked);
+                enemyPassLinger.Remove(tracked);
+                continue;
+            }
+
+            if (enemyPassActive.Contains(tracked))
+                continue;
+
+            if (!forceEnemyPass
+                && enemyPassLinger.Contains(tracked)
+                && IsEmbeddedInEnemyCollider(tracked))
+                continue;
+
+            SetEnemyPassIgnored(tracked, false);
+            enemyPassLinger.Remove(tracked);
+            enemyPassToRemove.Add(tracked);
+        }
+
+        for (int i = 0; i < enemyPassToRemove.Count; i++)
+            trackedEnemyPassColliders.Remove(enemyPassToRemove[i]);
+    }
+
+    void CollectAndIgnoreNearbyEnemies()
+    {
+        enemyPassProcessed.Clear();
+        int count = CollectNearbyEnemyColliders();
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D col = enemyPassOverlapBuffer[i];
+            if (col == null || col == capsuleCollider)
+                continue;
+
+            Enemy enemy = col.GetComponentInParent<Enemy>();
+            if (enemy != null)
+            {
+                if (!enemyPassProcessed.Add(enemy))
+                    continue;
+                IgnoreEnemySolidColliders(enemy);
+                continue;
+            }
+
+            if (!col.enabled || col.isTrigger)
+                continue;
+
+            IgnoreEnemyPassCollider(col);
+        }
+    }
+
+    int CollectNearbyEnemyColliders()
+    {
+        enemyPassFilter.layerMask = enemyPassLayer;
+        if (enemyPassScanPadding <= 0.001f)
+            return capsuleCollider.Overlap(enemyPassFilter, enemyPassOverlapBuffer);
+
+        Bounds bounds = capsuleCollider.bounds;
+        Vector2 size = (Vector2)bounds.size + Vector2.one * (enemyPassScanPadding * 2f);
+        return Physics2D.OverlapBox(bounds.center, size, 0f, enemyPassFilter, enemyPassOverlapBuffer);
+    }
+
+    void IgnoreEnemySolidColliders(Enemy enemy)
+    {
+        if (enemy == null)
+            return;
+
+        enemyChildColliderBuffer.Clear();
+        enemy.GetComponentsInChildren(enemyChildColliderBuffer);
+        for (int i = 0; i < enemyChildColliderBuffer.Count; i++)
+        {
+            Collider2D col = enemyChildColliderBuffer[i];
+            if (col == null || !col.enabled || col.isTrigger || col == capsuleCollider)
+                continue;
+            IgnoreEnemyPassCollider(col);
+        }
+    }
+
+    void IgnoreEnemyPassCollider(Collider2D col)
+    {
+        SetEnemyPassIgnored(col, true);
+        trackedEnemyPassColliders.Add(col);
+        enemyPassActive.Add(col);
+    }
+
+    void SetEnemyPassIgnored(Collider2D col, bool ignore)
+    {
+        if (capsuleCollider == null || col == null)
+            return;
+        Physics2D.IgnoreCollision(capsuleCollider, col, ignore);
+    }
+
+    bool IsEmbeddedInEnemyCollider(Collider2D col)
+    {
+        if (capsuleCollider == null || col == null)
+            return false;
+
+        // 仅在真正穿插时 linger；贴面站立（如装甲车顶）应恢复碰撞，避免掉下去。
+        ColliderDistance2D distance = Physics2D.Distance(capsuleCollider, col);
+        return distance.isOverlapped && distance.distance < -0.02f;
+    }
+
+    void RestoreAllEnemyPassCollisions()
+    {
+        forceEnemyPass = false;
+        foreach (Collider2D col in trackedEnemyPassColliders)
+        {
+            if (col != null)
+                SetEnemyPassIgnored(col, false);
+        }
+
+        trackedEnemyPassColliders.Clear();
+        enemyPassLinger.Clear();
+        enemyPassActive.Clear();
+        enemyPassProcessed.Clear();
     }
 
     bool CanStandUp()
