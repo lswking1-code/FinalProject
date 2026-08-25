@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -9,18 +10,29 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
 {
     public PlayerCharacterSO character;
 
+    [Header("Description")]
+    [TextArea]
+    [Tooltip("未勾选 Use English 时显示的中文描述")]
+    public string descriptionChinese;
+
+    [TextArea]
+    [Tooltip("勾选 CharacterSelect 的 Use English 后显示的英文描述")]
+    public string descriptionEnglish;
+
     static readonly Color DimColor = new Color(0.4f, 0.4f, 0.4f, 1f);
 
     CharacterSelectUI owner;
     Image[] images = System.Array.Empty<Image>();
     Animator[] animators = System.Array.Empty<Animator>();
     GameObject description;
+    TextMeshProUGUI descriptionText;
     bool cached;
     bool highlighted;
 
     public void BindOwner(CharacterSelectUI selectUI)
     {
         owner = selectUI;
+        ApplyDescriptionLanguage();
     }
 
     public void SetHighlighted(bool value)
@@ -28,6 +40,19 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
         EnsureCached();
         highlighted = value;
         ApplyVisuals();
+        ApplyDescriptionLanguage();
+    }
+
+    public void ApplyDescriptionLanguage()
+    {
+        CacheDescription();
+        if (descriptionText == null)
+            return;
+
+        string text = UseEnglish() ? descriptionEnglish : descriptionChinese;
+        if (string.IsNullOrEmpty(text))
+            text = UseEnglish() ? descriptionChinese : descriptionEnglish;
+        descriptionText.text = text ?? string.Empty;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -47,6 +72,21 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
     void Awake()
     {
         EnsureCached();
+        ApplyDescriptionLanguage();
+    }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        ApplyDescriptionLanguage();
+    }
+#endif
+
+    bool UseEnglish()
+    {
+        if (owner == null)
+            owner = GetComponentInParent<CharacterSelectUI>(true);
+        return owner != null && owner.useEnglish;
     }
 
     void EnsureCached()
@@ -56,17 +96,24 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
 
         images = GetComponentsInChildren<Image>(true);
         animators = GetComponentsInChildren<Animator>(true);
-        description = FindDescription();
-        if (description != null)
+        CacheDescription();
+        if (description != null && Application.isPlaying)
             description.SetActive(false);
-        InstallPointerRelays();
+        if (Application.isPlaying)
+            InstallPointerRelays();
         cached = true;
     }
 
-    GameObject FindDescription()
+    void CacheDescription()
     {
-        var child = transform.Find("Description");
-        return child != null ? child.gameObject : null;
+        if (description == null)
+        {
+            var child = transform.Find("Description");
+            description = child != null ? child.gameObject : null;
+        }
+
+        if (descriptionText == null && description != null)
+            descriptionText = description.GetComponent<TextMeshProUGUI>();
     }
 
     void InstallPointerRelays()

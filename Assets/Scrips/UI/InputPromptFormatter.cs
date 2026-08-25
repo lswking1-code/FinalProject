@@ -72,12 +72,25 @@ public static class InputPromptFormatter
         }
     }
 
+    static readonly Regex SplitSpriteTag = new(
+        @"<sprite\s*=\s*""([^""]+)""[\s\r\n]+name\s*=\s*""([^""]+)"">",
+        RegexOptions.Compiled);
+
     public static string Format(string source)
     {
         if (string.IsNullOrEmpty(source))
             return source;
 
-        return Placeholder.Replace(source, match => ResolveToken(match.Groups[1].Value));
+        string rendered = Placeholder.Replace(source, match => ResolveToken(match.Groups[1].Value));
+        return CollapseSpriteTagWhitespace(rendered);
+    }
+
+    public static string CollapseSpriteTagWhitespace(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        return SplitSpriteTag.Replace(text, m => $"<sprite=\"{m.Groups[1].Value}\" name=\"{m.Groups[2].Value}\">");
     }
 
     static string ResolveToken(string token)

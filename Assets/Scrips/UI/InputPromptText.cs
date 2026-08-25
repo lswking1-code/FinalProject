@@ -51,6 +51,7 @@ public class InputPromptText : MonoBehaviour
 
         AssignSpriteAssets();
         string rendered = InputPromptFormatter.Format(sourceText);
+        rendered = InputPromptFormatter.CollapseSpriteTagWhitespace(rendered);
         if (rendered == lastRendered && label.text == rendered)
             return;
 
