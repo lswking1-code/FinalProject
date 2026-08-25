@@ -13,8 +13,7 @@ public class CharacterSelectUI : MonoBehaviour
     public CharacterSelectSlot[] slots;
     public MenuActions menuActions;
     public GameLanguageSO language;
-    [Tooltip("勾选后，选人描述与教学关引导显示英文")]
-    public bool useEnglish;
+    [HideInInspector] public bool useEnglish;
 
     InputSystem_Actions actions;
     int currentIndex;
@@ -62,6 +61,13 @@ public class CharacterSelectUI : MonoBehaviour
         currentIndex = -1;
         HighlightIndex(0);
         TryHighlightUnderPointer();
+        BindLanguage();
+        SyncLanguageFromAsset();
+        RefreshDescriptionLanguage();
+    }
+
+    void OnLanguageChanged()
+    {
         SyncLanguageFromAsset();
         RefreshDescriptionLanguage();
     }
@@ -69,7 +75,7 @@ public class CharacterSelectUI : MonoBehaviour
 #if UNITY_EDITOR
     void OnValidate()
     {
-        SyncLanguageToAsset();
+        SyncLanguageFromAsset();
         RefreshDescriptionLanguage();
     }
 #endif
@@ -92,14 +98,27 @@ public class CharacterSelectUI : MonoBehaviour
             useEnglish = language.useEnglish;
     }
 
-    void SyncLanguageToAsset()
+    void BindLanguage()
     {
-        if (language != null)
-            language.useEnglish = useEnglish;
+        if (language == null)
+            return;
+
+        language.Changed -= OnLanguageChanged;
+        language.Changed += OnLanguageChanged;
+    }
+
+    void UnbindLanguage()
+    {
+        if (language == null)
+            return;
+
+        language.Changed -= OnLanguageChanged;
     }
 
     void OnDisable()
     {
+        UnbindLanguage();
+
         if (actions == null)
             return;
 

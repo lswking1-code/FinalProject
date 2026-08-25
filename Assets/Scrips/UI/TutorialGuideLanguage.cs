@@ -1,14 +1,13 @@
 using UnityEngine;
 
 /// <summary>
-/// 教学关中英文引导切换：勾选 Use English 后只显示 GuideEN。
+/// 教学关中英文引导切换：跟随 Persistent / GameLanguageSO 的 Use English。
 /// </summary>
 [ExecuteAlways]
 public class TutorialGuideLanguage : MonoBehaviour
 {
     public GameLanguageSO language;
-    [Tooltip("勾选后显示英文引导 GuideEN")]
-    public bool useEnglish;
+    [HideInInspector] public bool useEnglish;
     public GameObject guideCN;
     public GameObject guideEN;
 
@@ -20,16 +19,20 @@ public class TutorialGuideLanguage : MonoBehaviour
 
     void OnEnable()
     {
+        BindLanguage();
         SyncFromAsset();
         Apply();
+    }
+
+    void OnDisable()
+    {
+        UnbindLanguage();
     }
 
 #if UNITY_EDITOR
     void OnValidate()
     {
-        if (language != null)
-            language.useEnglish = useEnglish;
-
+        SyncFromAsset();
         UnityEditor.EditorApplication.delayCall += ApplyIfAlive;
     }
 
@@ -41,10 +44,33 @@ public class TutorialGuideLanguage : MonoBehaviour
     }
 #endif
 
+    void OnLanguageChanged()
+    {
+        SyncFromAsset();
+        Apply();
+    }
+
     void SyncFromAsset()
     {
         if (language != null)
             useEnglish = language.useEnglish;
+    }
+
+    void BindLanguage()
+    {
+        if (language == null)
+            return;
+
+        language.Changed -= OnLanguageChanged;
+        language.Changed += OnLanguageChanged;
+    }
+
+    void UnbindLanguage()
+    {
+        if (language == null)
+            return;
+
+        language.Changed -= OnLanguageChanged;
     }
 
     public void Apply()

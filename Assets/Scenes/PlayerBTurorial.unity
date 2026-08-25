@@ -466,7 +466,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &240246929
 Transform:
   m_ObjectHideFlags: 0
@@ -13299,7 +13299,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Use <sprite=\"KeyIcons\" name=\"w\"> <sprite=\"KeyIcons\" name=\"a\"> <sprite=\"KeyIcons\" name=\"s\"> <sprite=\"KeyIcons\" name=\"d\"> to move, press <sprite=\"KeyIcons\" name=\"k\"> to jump\n"
+  m_text: 'Use <sprite="KeyIcons" name="w"> <sprite="KeyIcons" name="a"> <sprite="KeyIcons"
+    name="s"> <sprite="KeyIcons" name="d"> to move, press <sprite="KeyIcons" name="k">
+    to jump
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -13434,7 +13438,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1880000044
 Transform:
   m_ObjectHideFlags: 0
@@ -13529,7 +13533,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Press <sprite=\"KeyIcons\" name=\"q\"> <sprite=\"KeyIcons\" name=\"e\">  to switch weapons"
+  m_text: Press <sprite="KeyIcons" name="q"> <sprite="KeyIcons" name="e"> to switch
+    weapons
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -13722,7 +13727,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Press <sprite=\"KeyIcons\" name=\"u\"> to use a special attack\n\n"
+  m_text: 'Press <sprite="KeyIcons" name="u"> to use a special attack
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -13913,7 +13920,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "On the ground, press <sprite=\"KeyIcons\" name=\"s\"> + <sprite=\"KeyIcons\" name=\"j\"> to slide-attack"
+  m_text: On the ground, press <sprite="KeyIcons" name="s"> + <sprite="KeyIcons"
+    name="j"> to slide-attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -14104,7 +14112,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "In the air, press <sprite=\"KeyIcons\" name=\"s\"> + <sprite=\"KeyIcons\" name=\"k\"> to slam-attack"
+  m_text: In the air, press <sprite="KeyIcons" name="s"> + <sprite="KeyIcons" name="k">
+    to slam-attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -14489,7 +14498,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Press <sprite=\"KeyIcons\" name=\"k\"> for a double jump\n\n Jump to a higher place"
+  m_text: 'Press <sprite="KeyIcons" name="k"> again for a double jump
+
+
+    Jump
+    to a higher place'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -14682,7 +14695,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Press <sprite=\"KeyIcons\" name=\"j\"> to attack.\n\n"
+  m_text: 'Press <sprite="KeyIcons" name="j"> to attack.
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -14802,6 +14817,54 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1880000086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1880000087}
+  - component: {fileID: 1880000088}
+  m_Layer: 0
+  m_Name: GuideLanguage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1880000087
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1880000086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1880000088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1880000086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f5b2d0c3e9a41f4b7c6d5e4f3a2b1c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  language: {fileID: 11400000, guid: 9a6c3e1d4f0b42a5c8d7e6f5a4b3c2d1, type: 2}
+  useEnglish: 0
+  guideCN: {fileID: 240246928}
+  guideEN: {fileID: 1880000043}
 --- !u!1001 &1954596171
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -23811,54 +23874,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!1 &1880000086
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1880000087}
-  - component: {fileID: 1880000088}
-  m_Layer: 0
-  m_Name: GuideLanguage
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1880000087
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880000086}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1880000088
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1880000086}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f5b2d0c3e9a41f4b7c6d5e4f3a2b1c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  language: {fileID: 11400000, guid: 9a6c3e1d4f0b42a5c8d7e6f5a4b3c2d1, type: 2}
-  useEnglish: 1
-  guideCN: {fileID: 240246928}
-  guideEN: {fileID: 1880000043}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

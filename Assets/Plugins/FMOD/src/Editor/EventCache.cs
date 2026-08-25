@@ -11,6 +11,7 @@ namespace FMODUnity
         public List<EditorBankRef> EditorBanks;
         [SerializeField]
         public List<EditorEventRef> EditorEvents;
+        [NonSerialized]
         public Dictionary<string, int> EditorEventsDict;
         [SerializeField]
         public List<EditorParamRef> EditorParameters;
@@ -53,51 +54,36 @@ namespace FMODUnity
 
         public void OnBeforeSerialize()
         {
-            BuildDictionary();
-            SerializableEventsDict = EditorEventsDict.Select(item => new DictionaryEntry { key = item.Key, index = item.Value}).ToList();
+            if (SerializableEventsDict.Count == 0)
+            {
+                SerializableEventsDict = EditorEventsDict.Select(item => new DictionaryEntry { key = item.Key, index = item.Value}).ToList();
+            }
         }
 
         public void OnAfterDeserialize()
         {
-            // Always rebuild from EditorEvents. The serialized index map can
-            // go stale when events are added/removed, which previously caused
-            // Event Not Found warnings and ArgumentOutOfRangeException in the Inspector.
-            BuildDictionary();
-            if (SerializableEventsDict != null)
+            if (SerializableEventsDict.Count > 0)
             {
+                SerializableEventsDict.ForEach((item) =>
+                {
+                    EditorEventsDict.Add(item.key, item.index);
+                });
                 SerializableEventsDict.Clear();
             }
         }
 
         public void BuildDictionary()
         {
-            if (EditorEventsDict == null)
-            {
-                EditorEventsDict = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            }
-            else
-            {
-                EditorEventsDict.Clear();
-            }
+            EditorEventsDict.Clear();
+            int index = 0;
 
-            if (EditorEvents == null)
-            {
-                return;
-            }
-
-            for (int index = 0; index < EditorEvents.Count; index++)
-            {
-                EditorEventRef eventRef = EditorEvents[index];
-                if (eventRef == null || string.IsNullOrEmpty(eventRef.Path))
-                {
-                    continue;
-                }
-
+            EditorEvents.ForEach((eventRef) => {
                 if (!EditorEventsDict.ContainsKey(eventRef.Path))
                 {
                     EditorEventsDict.Add(eventRef.Path, index);
                 }
-            }
+                index++;
+            });
         }
     }
 }

@@ -154,6 +154,7 @@ namespace FMOD.Studio
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    [Serializable]
     public struct PARAMETER_ID
     {
         public uint data1;
