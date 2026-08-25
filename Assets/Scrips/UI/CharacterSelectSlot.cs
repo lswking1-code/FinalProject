@@ -14,6 +14,7 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
     CharacterSelectUI owner;
     Image[] images = System.Array.Empty<Image>();
     Animator[] animators = System.Array.Empty<Animator>();
+    GameObject description;
     bool cached;
     bool highlighted;
 
@@ -55,8 +56,17 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
 
         images = GetComponentsInChildren<Image>(true);
         animators = GetComponentsInChildren<Animator>(true);
+        description = FindDescription();
+        if (description != null)
+            description.SetActive(false);
         InstallPointerRelays();
         cached = true;
+    }
+
+    GameObject FindDescription()
+    {
+        var child = transform.Find("Description");
+        return child != null ? child.gameObject : null;
     }
 
     void InstallPointerRelays()
@@ -108,6 +118,9 @@ public class CharacterSelectSlot : MonoBehaviour, IPointerEnterHandler, IPointer
                 animator.enabled = false;
             }
         }
+
+        if (description != null && description.activeSelf != highlighted)
+            description.SetActive(highlighted);
     }
 }
 
