@@ -18,6 +18,7 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
     Rigidbody2D rb;
     CircleCollider2D missileCollider;
     Transform target;
+    Collider2D targetBody;
     Vector2 lastTargetPos;
     Vector2 flyDirection = Vector2.up;
     float spawnTime;
@@ -43,8 +44,8 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         IgnoreThrower(throwerCollider);
 
         spawnTime = Time.time;
-        target = playerTarget;
-        lastTargetPos = playerTarget != null ? (Vector2)playerTarget.position : (Vector2)transform.position + Vector2.up;
+        SetTarget(playerTarget);
+        lastTargetPos = GetTargetAimPoint();
 
         float spread = Random.Range(-ascentSpreadAngle, ascentSpreadAngle);
         flyDirection = Quaternion.Euler(0f, 0f, spread) * Vector2.up;
@@ -98,16 +99,16 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         if (IsTargetValid())
         {
             lockedOn = true;
-            lastTargetPos = target.position;
+            lastTargetPos = GetTargetAimPoint();
             flyDirection = DirectionTo(lastTargetPos);
             return;
         }
 
-        target = FindPlayer();
+        SetTarget(FindPlayer());
         if (IsTargetValid())
         {
             lockedOn = true;
-            lastTargetPos = target.position;
+            lastTargetPos = GetTargetAimPoint();
             flyDirection = DirectionTo(lastTargetPos);
         }
     }
@@ -120,7 +121,7 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
             return;
         }
 
-        lastTargetPos = target.position;
+        lastTargetPos = GetTargetAimPoint();
         flyDirection = DirectionTo(lastTargetPos);
     }
 
@@ -141,6 +142,29 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
             return flyDirection.sqrMagnitude > 0.0001f ? flyDirection : Vector2.up;
 
         return delta.normalized;
+    }
+
+    void SetTarget(Transform playerTarget)
+    {
+        target = playerTarget;
+        targetBody = null;
+        if (target == null)
+            return;
+
+        targetBody = target.GetComponent<CapsuleCollider2D>();
+        if (targetBody == null)
+            targetBody = target.GetComponent<Collider2D>();
+    }
+
+    Vector2 GetTargetAimPoint()
+    {
+        if (target == null)
+            return (Vector2)transform.position + Vector2.up;
+
+        if (targetBody != null)
+            return targetBody.bounds.center;
+
+        return target.position;
     }
 
     Transform FindPlayer()

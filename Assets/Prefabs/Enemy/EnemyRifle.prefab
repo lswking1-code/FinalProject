@@ -301,6 +301,10 @@ MonoBehaviour:
   blockSeparation: 0
   isPatrol: 0
   patrolDetectRange: 10
+  patrolLeashRange: 20
+  returnHomeSpeedScale: 1.5
+  returnStuckTimeout: 2
+  returnStuckMoveThreshold: 0.08
   returnArriveDistance: 0.15
   waitTime: 0
   waitTimeCounter: 0
@@ -338,6 +342,8 @@ MonoBehaviour:
   jumpWeight: 0.25
   enableCrouchActions: 0
   enableJumpAction: 0
+  shotPrepDuration: 0.9
+  shotPrepStateName: ShotPrep
   enableFocusMode: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:
@@ -427,6 +433,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 4160
+  safeLandingDrop: 4.5
   isGround: 0
   isSolidGround: 0
   isOnPlatform: 0

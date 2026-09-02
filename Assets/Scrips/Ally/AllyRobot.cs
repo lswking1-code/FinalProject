@@ -15,10 +15,10 @@ public enum RobotDeployMode
 
 /// <summary>
 /// 友军机器人 AI 控制器。
-/// 行为：记录回归锚点（跟随点或生成点）→ 索敌（以自身为中心）→ 接近目标 → 进入攻击范围后原地攻击（CD）
+/// 行为：记录回归锚点（玩家或生成点）→ 索敌（以自身为中心）→ 接近目标 → 进入攻击范围后原地攻击（CD）
 ///        → 仅当敌人离开攻击范围才重新追击
 ///        → 无目标/超出最大追踪范围时返回锚点。
-/// 跟随模式：无敌人时弱跟随身后锚点；遇矮障可自动跳跃。
+/// 跟随模式：无敌人时以玩家为圆心弱跟随，进入跟随半径后停止；遇矮障可自动跳跃。
 /// 伤害输出依赖武器子物体上挂载的 Attack.cs（OnTriggerStay2D）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
@@ -56,10 +56,14 @@ public class AllyRobot : MonoBehaviour
     public float dashTimeout = 1.5f;
     [Tooltip("到达目标点时判定为'已到达'的距离阈值")]
     public float arriveThreshold = 0.15f;
-    [Tooltip("跟随模式：距锚点超过此距离才开始回跟")]
-    public float followArriveDistance = 0.35f;
-    [Tooltip("跟随点为空时，相对玩家身后的水平偏移")]
-    public float followOffsetX = 1.2f;
+
+    [Header("跟随与收回")]
+    [Tooltip("跟随模式：以玩家为圆心，超出此半径才朝玩家移动，进入后停止")]
+    public float followRadius = 4f;
+    [Tooltip("跟随/收回圆心相对玩家 Transform 的偏移。玩家枢轴在脚底时，把 Y 调到身体中心")]
+    public Vector3 followCenterOffset = new Vector3(0f, 1f, 0f);
+    [Tooltip("机器人与玩家距离超过此半径时自动收回（遥控/钩爪/生成/收回中不触发）")]
+    public float autoRecallRange = 20f;
 
     [Header("索敌")]
     [Tooltip("以自身为中心的 X 轴单侧索敌半径")]
@@ -134,7 +138,7 @@ public class AllyRobot : MonoBehaviour
     };
 
     [Header("最大追踪范围")]
-    [Tooltip("以回归锚点为圆心，超过此距离强制返回")]
+    [Tooltip("以回归锚点为圆心，超过此距离强制返回。跟随模式下锚点为玩家")]
     public float maxChaseRange = 10f;
 
     [Header("自动跳跃")]
@@ -269,11 +273,14 @@ public class AllyRobot : MonoBehaviour
     {
         get
         {
-            if (deployMode == RobotDeployMode.Follow)
-                return ResolveFollowAnchor();
+            if (deployMode == RobotDeployMode.Follow && owner != null)
+                return OwnerRangeCenter;
             return spawnPoint;
         }
     }
+
+    Vector3 OwnerRangeCenter =>
+        owner != null ? owner.position + followCenterOffset : spawnPoint;
 
     Rigidbody2D rb;
     CapsuleCollider2D bodyCollider;
@@ -314,7 +321,7 @@ public class AllyRobot : MonoBehaviour
     EventInstance dashInstance;
 
     RobotDeployMode deployMode = RobotDeployMode.Stationed;
-    Transform followPoint;
+    RobotDeployMode deployModeBeforeManual = RobotDeployMode.Stationed;
     bool idleFollowing;
     float idleFollowDir;
 
@@ -588,17 +595,33 @@ public class AllyRobot : MonoBehaviour
 
     public void Initialize(Transform player)
     {
-        Initialize(player, RobotDeployMode.Stationed, null);
+        Initialize(player, RobotDeployMode.Stationed);
     }
 
-    public void Initialize(Transform player, RobotDeployMode mode, Transform follow)
+    public void Initialize(Transform player, RobotDeployMode mode)
     {
         owner = player;
         ownerMovement = player != null ? player.GetComponent<PlayerMovement>() : null;
         ownerCharacter = player != null ? player.GetComponent<Character>() : null;
         ownerRb = player != null ? player.GetComponent<Rigidbody2D>() : null;
         deployMode = mode;
-        followPoint = follow;
+    }
+
+    /// <summary>
+    /// 超出收回半径且不在遥控/钩爪/生成/收回中时为 true，供玩家侧触发自动收回。
+    /// </summary>
+    public bool IsOutsideAutoRecallRange()
+    {
+        if (owner == null || autoRecallRange <= 0f)
+            return false;
+        if (currentState == AllyState.Recalling
+            || currentState == AllyState.Spawning
+            || currentState == AllyState.ManualMove
+            || pendingStationOnLand
+            || IsPulling)
+            return false;
+
+        return Vector2.Distance(transform.position, OwnerRangeCenter) > autoRecallRange;
     }
 
     /// <summary>
@@ -679,12 +702,12 @@ public class AllyRobot : MonoBehaviour
         currentTarget = null;
         pendingRetarget = false;
         pendingStationOnLand = false;
+        deployModeBeforeManual = deployMode;
         SwitchState(AllyState.ManualMove);
     }
 
     void EndManualMove()
     {
-        deployMode = RobotDeployMode.Stationed;
         StopMoving();
         if (anim != null)
             anim.SetBool(walkBoolName, false);
@@ -695,14 +718,15 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        CommitStationedAtCurrentPosition();
+        FinishManualMove();
     }
 
-    void CommitStationedAtCurrentPosition()
+    void FinishManualMove()
     {
         pendingStationOnLand = false;
-        spawnPoint = transform.position;
-        deployMode = RobotDeployMode.Stationed;
+        deployMode = deployModeBeforeManual;
+        if (deployMode == RobotDeployMode.Stationed)
+            spawnPoint = transform.position;
         manualMoveInput = Vector2.zero;
         manualJumpHeldPrev = false;
         SwitchState(AllyState.Idle);
@@ -726,7 +750,7 @@ public class AllyRobot : MonoBehaviour
         {
             if (!IsAirborneBusy && IsSolidGrounded())
             {
-                CommitStationedAtCurrentPosition();
+                FinishManualMove();
                 return;
             }
 
@@ -766,19 +790,9 @@ public class AllyRobot : MonoBehaviour
         manualJumpHeldPrev = jumpHeld;
     }
 
-    Vector3 ResolveFollowAnchor()
+    bool IsOutsideFollowRange()
     {
-        if (followPoint != null)
-            return followPoint.position;
-
-        if (owner == null)
-            return spawnPoint;
-
-        float face = ownerMovement != null ? ownerMovement.FaceDirection : 1f;
-        if (Mathf.Approximately(face, 0f))
-            face = 1f;
-
-        return owner.position + Vector3.left * face * followOffsetX;
+        return owner != null && Vector2.Distance(transform.position, OwnerRangeCenter) > followRadius;
     }
 
     public void RequestRetarget()
@@ -2064,24 +2078,21 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        if (deployMode != RobotDeployMode.Follow)
+        if (deployMode != RobotDeployMode.Follow || owner == null)
             return;
 
-        Vector3 home = HomeAnchor;
-        float distX = Mathf.Abs(transform.position.x - home.x);
-        if (distX > followArriveDistance)
+        if (IsOutsideFollowRange())
         {
-            FaceTarget(home);
+            FaceTarget(owner.position);
             idleFollowing = true;
-            idleFollowDir = Mathf.Sign(home.x - transform.position.x);
+            idleFollowDir = Mathf.Sign(owner.position.x - transform.position.x);
             if (anim != null && airPhase == RobotAirPhase.Ground)
                 anim.SetBool(walkBoolName, true);
         }
         else if (anim != null && airPhase == RobotAirPhase.Ground)
         {
             anim.SetBool(walkBoolName, false);
-            if (owner != null)
-                FaceTarget(owner.position);
+            FaceTarget(owner.position);
         }
     }
 
@@ -2160,6 +2171,15 @@ public class AllyRobot : MonoBehaviour
         if (TryAcquireTarget(out Transform target))
         {
             BeginCombat(target);
+            return;
+        }
+
+        if (deployMode == RobotDeployMode.Follow)
+        {
+            if (owner != null)
+                FaceTarget(owner.position);
+            if (owner == null || !IsOutsideFollowRange())
+                SwitchState(AllyState.Idle);
             return;
         }
 
@@ -2317,6 +2337,15 @@ public class AllyRobot : MonoBehaviour
     bool TryGetHomeMoveDir(float threshold, out float dir)
     {
         dir = 0f;
+
+        if (deployMode == RobotDeployMode.Follow)
+        {
+            if (owner == null || !IsOutsideFollowRange())
+                return false;
+            dir = Mathf.Sign(owner.position.x - transform.position.x);
+            return !Mathf.Approximately(dir, 0f);
+        }
+
         Vector3 home = HomeAnchor;
         float distX = Mathf.Abs(transform.position.x - home.x);
         if (distX <= threshold)
@@ -2794,7 +2823,7 @@ public class AllyRobot : MonoBehaviour
 
         if (pendingStationOnLand)
         {
-            CommitStationedAtCurrentPosition();
+            FinishManualMove();
             return;
         }
 
@@ -3207,6 +3236,14 @@ public class AllyRobot : MonoBehaviour
 
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(origin, maxChaseRange);
+
+        Vector3 playerOrigin = Application.isPlaying && owner != null
+            ? OwnerRangeCenter
+            : transform.position + followCenterOffset;
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(playerOrigin, followRadius);
+        Gizmos.color = new Color(1f, 0.55f, 0f, 1f);
+        Gizmos.DrawWireSphere(playerOrigin, autoRecallRange);
 
         Gizmos.color = Color.green;
         Gizmos.DrawLine(origin + Vector3.left * 0.3f, origin + Vector3.right * 0.3f);

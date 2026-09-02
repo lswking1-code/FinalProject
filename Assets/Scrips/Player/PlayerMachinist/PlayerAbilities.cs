@@ -14,8 +14,6 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
     [Header("Robot 生成")]
     [SerializeField] Transform robotGeneratePoint;
-    [Tooltip("短按跟随模式的回归锚点；留空则由机器人按玩家面向后方偏移计算")]
-    [SerializeField] Transform robotFollowPoint;
     [SerializeField] GameObject robotPrefab;
     [SerializeField] GameObject positionPreview;
 
@@ -300,8 +298,11 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         PlaySessionRecorder.Instance?.AddRobotAliveTime(Time.deltaTime);
         character.DrainAbilityPower(robotDrainRate * Time.deltaTime);
 
+        if (IsRecallInProgress())
+            return;
+
         if (character.AbilityPower <= 0f
-            && (activeRobotController == null || !activeRobotController.IsRecalling))
+            || (activeRobotController != null && activeRobotController.IsOutsideAutoRecallRange()))
             BeginRecall(playPlayerAnim: false);
     }
 
@@ -453,7 +454,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             return false;
 
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
-        robot.GetComponent<AllyRobot>()?.Initialize(transform, mode, robotFollowPoint);
+        robot.GetComponent<AllyRobot>()?.Initialize(transform, mode);
         OnRobotSpawned(robot);
         SpawnOpenCore(worldPos);
         PlaySessionRecorder.Instance?.RecordRobotSummon();

@@ -12,9 +12,7 @@ public class RangedReturnHomeState : BaseState
         currentEnemy = enemy;
         rangedEnemy = enemy as RangedEnemy;
         currentEnemy.isAggro = false;
-        currentEnemy.currentSpeed = currentEnemy.normalSpeed > 0f
-            ? currentEnemy.normalSpeed
-            : currentEnemy.chaseSpeed;
+        currentEnemy.currentSpeed = currentEnemy.GetReturnHomeSpeed();
 
         if (rangedEnemy != null)
             rangedEnemy.lastAction = null;

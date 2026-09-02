@@ -585,6 +585,10 @@ MonoBehaviour:
   blockSeparation: 0
   isPatrol: 0
   patrolDetectRange: 10
+  patrolLeashRange: 25
+  returnHomeSpeedScale: 1.5
+  returnStuckTimeout: 2
+  returnStuckMoveThreshold: 0.08
   returnArriveDistance: 0.15
   waitTime: 0
   waitTimeCounter: 0

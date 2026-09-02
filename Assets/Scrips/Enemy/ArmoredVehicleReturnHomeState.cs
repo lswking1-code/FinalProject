@@ -12,9 +12,7 @@ public class ArmoredVehicleReturnHomeState : BaseState
         currentEnemy = enemy;
         vehicle = enemy as ArmoredVehicleEnemy;
         currentEnemy.isAggro = false;
-        currentEnemy.currentSpeed = currentEnemy.normalSpeed > 0f
-            ? currentEnemy.normalSpeed
-            : currentEnemy.chaseSpeed;
+        currentEnemy.currentSpeed = currentEnemy.GetReturnHomeSpeed();
 
         if (vehicle != null)
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// 飞行敌人：追入玩家头顶扇区后，先随机水平走位，再按相对位置选择向下或斜向单发射击，
 /// 射击时静止，随后原地后摇，再重新进入循环。
-/// 可选 isPatrol：原地站岗，索敌开战，离开所属 Bounds 后脱战回位。
+/// 可选 isPatrol：原地站岗，索敌开战，超出驻守点脱战半径后回位。
 /// </summary>
 public class FlyingEnemy : Enemy
 {
@@ -189,9 +189,6 @@ public class FlyingEnemy : Enemy
 
     protected override void Update()
     {
-        if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
-            BeginReturnHome();
-
         base.Update();
 
         // #region agent log
@@ -293,11 +290,8 @@ public class FlyingEnemy : Enemy
 
     protected override void OnPatrolAggroFromDamage()
     {
-        if (isApproachingSpawnTarget)
+        if (isReturning || isApproachingSpawnTarget)
             return;
-
-        if (isReturning)
-            isReturning = false;
 
         EnterPatrolCombat();
         EvaluateCycle();
@@ -308,15 +302,7 @@ public class FlyingEnemy : Enemy
         if (isDead || isReturning || isApproachingSpawnTarget)
             return;
 
-        isAggro = false;
-        isReturning = true;
-        wait = false;
-
-        if (character != null)
-            character.RestoreFullHealth();
-
-        if (Rb != null)
-            Rb.linearVelocity = Vector2.zero;
+        ApplyReturnHomeStart(clearVerticalVelocity: true);
 
         if (returnState != null)
             SwitchState(NPCState.Return);
@@ -326,8 +312,7 @@ public class FlyingEnemy : Enemy
 
     public override void FinishPatrolReset()
     {
-        isAggro = false;
-        isReturning = false;
+        ApplyReturnHomeEnd();
         transform.position = homePosition;
         hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
         var raisedPos = transform.position;
@@ -366,7 +351,7 @@ public class FlyingEnemy : Enemy
                 return;
             }
 
-            if (!IsPlayerInsideHomeBounds())
+            if (ShouldBeginPatrolReturn())
             {
                 BeginReturnHome();
                 return;
@@ -883,11 +868,7 @@ public class FlyingEnemy : Enemy
             Gizmos.DrawLine(player.position, hover);
         }
 
-        if (isPatrol && patrolDetectRange > 0f)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(origin, patrolDetectRange);
-        }
+        DrawPatrolGizmos();
     }
 
     static Vector3 Rotate2D(Vector3 v, float radians)

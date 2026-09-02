@@ -132,7 +132,7 @@ public class HelicopterEnemy : FlyingEnemy
                     return;
                 }
 
-                if (!IsPlayerInsideHomeBounds())
+                if (ShouldBeginPatrolReturn())
                 {
                     BeginReturnHome();
                     return;

@@ -1242,8 +1242,9 @@ MonoBehaviour:
   dashSpeed: 20
   dashTimeout: 1.5
   arriveThreshold: 0.15
-  followArriveDistance: 0.35
-  followOffsetX: 1.2
+  followRadius: 4.5
+  followCenterOffset: {x: 0, y: 1, z: 0}
+  autoRecallRange: 35
   detectRangeX: 14.5
   detectRangeY: 11
   attackDistance: 2.2

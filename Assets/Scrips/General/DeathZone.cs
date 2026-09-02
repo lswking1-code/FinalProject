@@ -43,6 +43,11 @@ public class DeathZone : MonoBehaviour
                 : other.GetComponentInParent<Character>();
             if (enemyCharacter == null)
                 return;
+            if (enemy != null && enemy.isReturning)
+            {
+                enemy.FinishPatrolReset();
+                return;
+            }
             if (enemyCharacter.IsDead)
             {
                 enemyCharacter.Kill();

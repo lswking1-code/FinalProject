@@ -5,7 +5,7 @@ using UnityEngine;
 /// 远程敌人：距离判断优先，GetClose / Shot / Move / Crouch / CrouchShoot / Jump 循环，带动态 Action 概率。
 /// 射击类（Shot / CrouchShoot）进入后只开一枪，随后进入 Reload 冷却，再重新选择行为；Jump 为可开关精英能力。
 /// 可选专注模式：MOVE 时原地停留，时长与 actionDuration 一致。
-/// 可选 isPatrol：原地站岗，索敌开战，离开所属 Bounds 后脱战回位。
+/// 可选 isPatrol：原地站岗，索敌开战，超出驻守点脱战半径后回位。
 /// </summary>
 public class RangedEnemy : Enemy
 {
@@ -114,21 +114,10 @@ public class RangedEnemy : Enemy
         }
     }
 
-    protected override void Update()
-    {
-        if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
-            BeginReturnHome();
-
-        base.Update();
-    }
-
     protected override void OnPatrolAggroFromDamage()
     {
-        if (isApproachingSpawnTarget)
+        if (isReturning || isApproachingSpawnTarget)
             return;
-
-        if (isReturning)
-            isReturning = false;
 
         EnterPatrolCombat();
         EvaluateCycle();
@@ -200,7 +189,7 @@ public class RangedEnemy : Enemy
                 return;
             }
 
-            if (!IsPlayerInsideHomeBounds())
+            if (ShouldBeginPatrolReturn())
             {
                 BeginReturnHome();
                 return;
@@ -317,11 +306,7 @@ public class RangedEnemy : Enemy
     {
         DrawShootRangeGizmo();
 
-        if (isPatrol && patrolDetectRange > 0f)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
-        }
+        DrawPatrolGizmos();
     }
 
     protected virtual void DrawShootRangeGizmo()

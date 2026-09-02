@@ -37,6 +37,8 @@ public class ArmoredVehicleEnemy : Enemy
     public int mgCycleMin = 1;
     [Tooltip("一次机枪行动内瞄准→射击循环次数上限")]
     public int mgCycleMax = 3;
+    [Tooltip("瞄准点相对玩家碰撞体中心的额外高度；0 对准身体中心，正值再上移")]
+    public float mgAimHeightOffset = 0f;
 
     [Header("导弹")]
     public EnemyHomingMissile missilePrefab;
@@ -178,21 +180,10 @@ public class ArmoredVehicleEnemy : Enemy
         }
     }
 
-    protected override void Update()
-    {
-        if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
-            BeginReturnHome();
-
-        base.Update();
-    }
-
     protected override void OnPatrolAggroFromDamage()
     {
-        if (isApproachingSpawnTarget)
+        if (isReturning || isApproachingSpawnTarget)
             return;
-
-        if (isReturning)
-            isReturning = false;
 
         EnterPatrolCombat();
         EvaluateCycle();
@@ -249,7 +240,7 @@ public class ArmoredVehicleEnemy : Enemy
                 return;
             }
 
-            if (!IsPlayerInsideHomeBounds())
+            if (ShouldBeginPatrolReturn())
             {
                 BeginReturnHome();
                 return;
@@ -454,7 +445,7 @@ public class ArmoredVehicleEnemy : Enemy
         {
             EnsurePlayerReference();
             if (player != null && firePoint != null)
-                dir = (Vector2)player.position - (Vector2)firePoint.position;
+                dir = GetPlayerAimPoint() - (Vector2)firePoint.position;
             else
                 dir = new Vector2(GetForwardSign(), 0f);
         }
@@ -485,9 +476,10 @@ public class ArmoredVehicleEnemy : Enemy
         if (gunBase == null)
             return Quaternion.identity;
 
-        EnsurePlayerReference();
         Vector2 origin = gunBase.position;
-        Vector2 targetPos = player != null ? (Vector2)player.position : origin + Vector2.left;
+        Vector2 targetPos = GetPlayerAimPoint();
+        if (player == null)
+            targetPos = origin + Vector2.left;
         Vector2 toTarget = targetPos - origin;
         if (toTarget.sqrMagnitude < 0.0001f)
             return gunBase.rotation;
@@ -496,6 +488,26 @@ public class ArmoredVehicleEnemy : Enemy
         float barrelAngle = Mathf.Atan2(localBarrel.y, localBarrel.x) * Mathf.Rad2Deg;
         float targetAngle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
         return Quaternion.Euler(0f, 0f, targetAngle - barrelAngle);
+    }
+
+    /// <summary>
+    /// 机枪瞄准点：玩家身体碰撞体中心，避免对准根节点脚下。
+    /// </summary>
+    Vector2 GetPlayerAimPoint()
+    {
+        EnsurePlayerReference();
+        if (player == null)
+            return (Vector2)transform.position + Vector2.left;
+
+        Vector2 aim = player.position;
+        Collider2D body = player.GetComponent<CapsuleCollider2D>();
+        if (body == null)
+            body = player.GetComponent<Collider2D>();
+        if (body != null)
+            aim = body.bounds.center;
+
+        aim.y += mgAimHeightOffset;
+        return aim;
     }
 
     Vector2 GetLocalBarrelOffset()

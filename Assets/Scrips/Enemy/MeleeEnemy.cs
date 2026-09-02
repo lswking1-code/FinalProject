@@ -109,21 +109,10 @@ public class MeleeEnemy : Enemy
         }
     }
 
-    protected override void Update()
-    {
-        if (isPatrol && isAggro && !isDead && !isReturning && !IsPlayerInsideHomeBounds())
-            BeginReturnHome();
-
-        base.Update();
-    }
-
     protected override void OnPatrolAggroFromDamage()
     {
-        if (isApproachingSpawnTarget)
+        if (isReturning || isApproachingSpawnTarget)
             return;
-
-        if (isReturning)
-            isReturning = false;
 
         EnterPatrolCombat();
         EvaluateCycle();
@@ -192,7 +181,7 @@ public class MeleeEnemy : Enemy
                 return;
             }
 
-            if (!IsPlayerInsideHomeBounds())
+            if (ShouldBeginPatrolReturn())
             {
                 BeginReturnHome();
                 return;
@@ -324,10 +313,6 @@ public class MeleeEnemy : Enemy
                 transform.position + Vector3.right * pounceMaxRange);
         }
 
-        if (isPatrol && patrolDetectRange > 0f)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
-        }
+        DrawPatrolGizmos();
     }
 }

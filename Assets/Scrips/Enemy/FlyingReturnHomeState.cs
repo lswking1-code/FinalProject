@@ -12,9 +12,7 @@ public class FlyingReturnHomeState : BaseState
         currentEnemy = enemy;
         flyingEnemy = enemy as FlyingEnemy;
         currentEnemy.isAggro = false;
-        currentEnemy.currentSpeed = currentEnemy.normalSpeed > 0f
-            ? currentEnemy.normalSpeed
-            : currentEnemy.chaseSpeed;
+        currentEnemy.currentSpeed = currentEnemy.GetReturnHomeSpeed();
 
         if (currentEnemy.anim != null)
         {

@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 盾兵：有盾时举盾对峙；非巡逻生成时立刻靠近 holdRange，之后玩家离开再延迟追击。
-/// 专注模式开启时有盾原地死守。isPatrol 只负责站岗索敌与 Bounds 脱战。
+/// 专注模式开启时有盾原地死守。isPatrol 只负责站岗索敌与脱战半径回位。
 /// 破盾后行为与近战敌人一致。
 /// </summary>
 public class ShieldEnemy : MeleeEnemy
@@ -18,7 +18,7 @@ public class ShieldEnemy : MeleeEnemy
     public float faceTurnDelay = 0.35f;
 
     [Header("专注模式")]
-    [Tooltip("开启后有盾时原地举盾，不因玩家离开理想距离而追击。与 isPatrol 独立：isPatrol 只负责站岗索敌与 Bounds 脱战。")]
+    [Tooltip("开启后有盾时原地举盾，不因玩家离开理想距离而追击。与 isPatrol 独立：isPatrol 只负责站岗索敌与脱战半径回位。")]
     public bool enableFocusMode;
 
     [Header("动画")]
@@ -144,7 +144,7 @@ public class ShieldEnemy : MeleeEnemy
 
     public override float GetMoveSpeedScale()
     {
-        if (isApproachingSpawnTarget)
+        if (isApproachingSpawnTarget || isReturning)
             return 1f;
         return HasShield ? ShieldedMoveSpeedScale : 1f;
     }
@@ -171,7 +171,7 @@ public class ShieldEnemy : MeleeEnemy
                 return;
             }
 
-            if (!IsPlayerInsideHomeBounds())
+            if (ShouldBeginPatrolReturn())
             {
                 BeginReturnHome();
                 return;
@@ -227,6 +227,8 @@ public class ShieldEnemy : MeleeEnemy
 
     void OnDrawGizmosSelected()
     {
+        DrawPatrolGizmos();
+
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(
             transform.position + Vector3.left * holdRange,

@@ -76,10 +76,18 @@ public class Enemy : MonoBehaviour
     float lastMoveIntentX;
 
     [Header("巡逻站岗")]
-    [Tooltip("开启后原地 Idle，索敌范围内发现玩家才开战；玩家离开所属 Bounds 后脱战回位")]
+    [Tooltip("开启后原地 Idle，索敌范围内发现玩家才开战；自身超出驻守点脱战半径后回位")]
     public bool isPatrol;
     [Tooltip("全向索敌半径")]
     public float patrolDetectRange = 6f;
+    [Tooltip("相对驻守点的脱战半径；敌人自身超出后停止追击并回位。<=0 关闭")]
+    public float patrolLeashRange = 8f;
+    [Tooltip("回位移速倍率（相对 normalSpeed，无则 chaseSpeed）")]
+    public float returnHomeSpeedScale = 1.5f;
+    [Tooltip("回位时位移不足判定卡住的时长（秒）；<=0 关闭")]
+    public float returnStuckTimeout = 2f;
+    [Tooltip("回位卡住判定的位移阈值")]
+    public float returnStuckMoveThreshold = 0.08f;
     [Tooltip("回位抵达判定距离")]
     public float returnArriveDistance = 0.15f;
 
@@ -126,6 +134,9 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public Transform player;
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
+
+    Vector3 returnStuckLastPos;
+    float returnStuckTimer;
 
     bool ammoDropped;
     bool healthDropped;
@@ -341,9 +352,6 @@ public class Enemy : MonoBehaviour
     {
         homePosition = transform.position;
         homeBounds = FindContainingBounds(homePosition);
-
-        if (isPatrol && homeBounds == null)
-            Debug.LogWarning($"[Enemy] {name}: isPatrol 开启但未找到包含出生点的 Bounds，Bounds 脱战将不会触发。", this);
     }
 
     static Collider2D FindContainingBounds(Vector3 worldPos)
@@ -403,7 +411,7 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 玩家是否仍在敌人所属 Bounds 内。未绑定 Bounds 时视为始终在内（不脱战）。
+    /// 玩家是否仍在敌人所属 Bounds 内。未绑定 Bounds 时视为始终在内。
     /// </summary>
     public bool IsPlayerInsideHomeBounds()
     {
@@ -422,22 +430,100 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
-    /// 脱战：回满血并进入回位状态。
+    /// 敌人自身是否超出驻守点脱战半径。半径 &lt;= 0 时不按此条件脱战。
+    /// </summary>
+    public bool IsOutsidePatrolLeash()
+    {
+        if (patrolLeashRange <= 0f)
+            return false;
+
+        return Vector2.Distance(transform.position, homePosition) > patrolLeashRange;
+    }
+
+    /// <summary>
+    /// 驻守开战中且自身已超出脱战半径，应停止追击并回位。
+    /// </summary>
+    public bool ShouldBeginPatrolReturn()
+    {
+        return isPatrol && isAggro && !isDead && !isReturning && !isApproachingSpawnTarget
+            && IsOutsidePatrolLeash();
+    }
+
+    /// <summary>回位移速（normal/chase × returnHomeSpeedScale）。</summary>
+    public float GetReturnHomeSpeed()
+    {
+        float baseSpeed = normalSpeed > 0f ? normalSpeed : chaseSpeed;
+        float scale = returnHomeSpeedScale > 0f ? returnHomeSpeedScale : 1f;
+        return baseSpeed * scale;
+    }
+
+    protected void ApplyReturnHomeStart(bool clearVerticalVelocity)
+    {
+        isAggro = false;
+        isReturning = true;
+        wait = false;
+        isHurt = false;
+        StopHurtVisualRoutines();
+        RestoreHurtVisuals();
+        ResetReturnStuckTracking();
+        SetReturnInvulnerable(true);
+        currentSpeed = GetReturnHomeSpeed();
+
+        if (character != null)
+            character.RestoreFullHealth();
+
+        if (rb != null)
+            rb.linearVelocity = clearVerticalVelocity
+                ? Vector2.zero
+                : new Vector2(0f, rb.linearVelocity.y);
+    }
+
+    protected void ApplyReturnHomeEnd()
+    {
+        isAggro = false;
+        isReturning = false;
+        ResetReturnStuckTracking();
+        SetReturnInvulnerable(false);
+    }
+
+    void SetReturnInvulnerable(bool value)
+    {
+        if (character != null)
+            character.SetForcedInvulnerable(value);
+    }
+
+    void ResetReturnStuckTracking()
+    {
+        returnStuckLastPos = transform.position;
+        returnStuckTimer = 0f;
+    }
+
+    bool TickReturnStuck()
+    {
+        if (returnStuckTimeout <= 0f)
+            return false;
+
+        float moved = Vector2.Distance(transform.position, returnStuckLastPos);
+        if (moved < Mathf.Max(0f, returnStuckMoveThreshold))
+        {
+            returnStuckTimer += Time.deltaTime;
+            return returnStuckTimer >= returnStuckTimeout;
+        }
+
+        returnStuckTimer = 0f;
+        returnStuckLastPos = transform.position;
+        return false;
+    }
+
+    /// <summary>
+    /// 脱战：回满血、无敌，并以加速进入回位状态。
     /// </summary>
     public virtual void BeginReturnHome()
     {
         if (isDead || isReturning || isApproachingSpawnTarget)
             return;
 
-        isAggro = false;
-        isReturning = true;
-        wait = false;
-
-        if (character != null)
-            character.RestoreFullHealth();
-
-        if (rb != null)
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        ApplyReturnHomeStart(clearVerticalVelocity: false);
 
         if (returnState != null)
             SwitchState(NPCState.Return);
@@ -450,8 +536,7 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void FinishPatrolReset()
     {
-        isAggro = false;
-        isReturning = false;
+        ApplyReturnHomeEnd();
         transform.position = homePosition;
 
         if (rb != null)
@@ -468,7 +553,7 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void EnterPatrolCombat()
     {
-        if (!isPatrol || isDead || isAggro)
+        if (!isPatrol || isDead || isAggro || isReturning)
             return;
 
         isAggro = true;
@@ -493,6 +578,7 @@ public class Enemy : MonoBehaviour
         isApproachingSpawnTarget = true;
         isReturning = false;
         isAggro = false;
+        SetReturnInvulnerable(false);
 
         if (HasReachedSpawnTarget())
         {
@@ -600,7 +686,13 @@ public class Enemy : MonoBehaviour
         EnsurePlayerReference();
         faceDir = new Vector3(GetFacingFromScale(), 0, 0);
 
+        if (ShouldBeginPatrolReturn())
+            BeginReturnHome();
+
         currentState.LogicUpdate();
+
+        if (isReturning && !isDead && TickReturnStuck())
+            FinishPatrolReset();
 
         UpdateDeathDelay();
 
@@ -623,6 +715,7 @@ public class Enemy : MonoBehaviour
 
     protected virtual void OnDisable()
     {
+        SetReturnInvulnerable(false);
         currentState?.OnExit();
         EnemySeparation.Unregister(this);
     }
@@ -1018,6 +1111,9 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void OnTakeDamage(Transform attackTrans)
     {
+        if (isReturning)
+            return;
+
         attacker = attackTrans;
 
         bool outOfAggroRange = isPatrol && !isAggro && !CanAggroFromDamage();
@@ -1032,7 +1128,7 @@ public class Enemy : MonoBehaviour
         else
             PlayCombatFlashNoStun();
 
-        if (isPatrol && !isAggro && !isDead && !isApproachingSpawnTarget && CanAggroFromDamage())
+        if (isPatrol && !isAggro && !isDead && !isReturning && !isApproachingSpawnTarget && CanAggroFromDamage())
             OnPatrolAggroFromDamage();
     }
 
@@ -1129,6 +1225,9 @@ public class Enemy : MonoBehaviour
     /// </summary>
     protected virtual void OnPatrolAggroFromDamage()
     {
+        if (isReturning || isApproachingSpawnTarget || isDead)
+            return;
+
         EnterPatrolCombat();
     }
 
@@ -1191,6 +1290,8 @@ public class Enemy : MonoBehaviour
     public void OnDie()
     {
         isDead = true;
+        isReturning = false;
+        SetReturnInvulnerable(false);
         if (ShouldPersistDeath)
             EnemyDeathProgress.MarkKilled(EnemyDeathPersist.BuildProgressKey(this));
         TryDropAmmo();
@@ -1413,18 +1514,7 @@ public class Enemy : MonoBehaviour
             + (Vector3)centerOffset + new Vector3(checkDistance * -transform.localScale.x, 0),
             0.2f);
 
-        if (isPatrol && patrolDetectRange > 0f)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
-        }
-
-        if (homeBounds != null)
-        {
-            Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.35f);
-            var b = homeBounds.bounds;
-            Gizmos.DrawWireCube(b.center, b.size);
-        }
+        DrawPatrolGizmos();
 
         if (dropAmmoOnDeath)
         {
@@ -1436,6 +1526,32 @@ public class Enemy : MonoBehaviour
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position + healthDropOffset, 0.15f);
+        }
+    }
+
+    protected void DrawPatrolGizmos()
+    {
+        if (!isPatrol)
+            return;
+
+        if (patrolDetectRange > 0f)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, patrolDetectRange);
+        }
+
+        if (patrolLeashRange > 0f)
+        {
+            Vector3 origin = Application.isPlaying ? homePosition : transform.position;
+            Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.9f);
+            Gizmos.DrawWireSphere(origin, patrolLeashRange);
+        }
+
+        if (homeBounds != null)
+        {
+            Gizmos.color = new Color(0.2f, 0.8f, 1f, 0.35f);
+            var b = homeBounds.bounds;
+            Gizmos.DrawWireCube(b.center, b.size);
         }
     }
 }
