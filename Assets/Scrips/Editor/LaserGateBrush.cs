@@ -501,7 +501,7 @@ public class LaserGateBrush : GridBrushBase
     {
         var result = new List<LaserGateGridSpan>();
         var all = Object.FindObjectsByType<LaserGateGridSpan>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        for (int i = 0; i < all.Count; i++)
+        for (int i = 0; i < all.Length; i++)
         {
             var span = all[i];
             if (span == null || EditorUtility.IsPersistent(span) || !span.gameObject.scene.IsValid())

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 手雷远程敌人：AI 循环与 RangedEnemy 一致，Shot 时以玩家当前位置为落点投雷。
+/// 手雷远程敌人：AI 循环与 RangedEnemy 一致，Shot 时以玩家水平位置对应地面为落点投雷。
 /// 精英可开启 Jump 替代蹲伏能力。
 /// </summary>
 public class GrenadeEnemy : RangedEnemy
@@ -18,10 +18,15 @@ public class GrenadeEnemy : RangedEnemy
     [SerializeField] float throwAngle = 35.5f;
     [Tooltip("弹道不可解时的兜底参考速度，不再直接决定落点")]
     [SerializeField] float throwSpeed = 8.6f;
+    [Tooltip("最小抛射水平距离；玩家更近时仍掷到该距离。不会大于 shootRange")]
+    [SerializeField] float minThrowDistance = 2f;
 
     const float MinBallisticTime = 0.05f;
     const float FallbackMinFlightTime = 0.35f;
     const float FallbackMaxFlightTime = 0.9f;
+    const float LandingRayStartOffsetY = 0.25f;
+    const float LandingRayDistance = 10f;
+    const float MinLandingDx = 0.2f;
 
     [Header("跃起")]
     [Tooltip("起跳目标高度，用于反算初速度")]
@@ -39,7 +44,8 @@ public class GrenadeEnemy : RangedEnemy
     }
 
     /// <summary>
-    /// 以玩家当前坐标为落点投出一枚手雷；超出 shootRange 则夹到攻击距离边缘。
+    /// 以玩家水平位置为落点投出一枚手雷；高度取该处地面。
+    /// 水平距离夹在 minThrowDistance 与 shootRange 之间。
     /// </summary>
     public void ThrowGrenade()
     {
@@ -71,13 +77,45 @@ public class GrenadeEnemy : RangedEnemy
 
     Vector2 GetGrenadeLandingPoint(Vector2 origin)
     {
-        Vector2 target = player.position;
-        Vector2 offset = target - origin;
-        float dist = offset.magnitude;
-        if (shootRange <= 0f || dist <= shootRange)
-            return target;
+        float dx = player.position.x - origin.x;
+        float minDx = Mathf.Max(MinLandingDx, minThrowDistance);
+        if (shootRange > 0f)
+            minDx = Mathf.Min(minDx, shootRange);
 
-        return origin + offset / dist * shootRange;
+        if (Mathf.Abs(dx) < minDx)
+        {
+            float side = Mathf.Sign(dx);
+            if (side == 0f)
+                side = faceDir.x != 0f ? Mathf.Sign(faceDir.x) : 1f;
+            dx = side * minDx;
+        }
+
+        if (shootRange > 0f)
+            dx = Mathf.Clamp(dx, -shootRange, shootRange);
+
+        float landingX = origin.x + dx;
+        float landingY = TryRaycastLandingGround(landingX, out float groundY)
+            ? groundY
+            : origin.y;
+        return new Vector2(landingX, landingY);
+    }
+
+    bool TryRaycastLandingGround(float landingX, out float groundY)
+    {
+        groundY = 0f;
+        LayerMask mask = physicsCheck != null && physicsCheck.groundLayer.value != 0
+            ? physicsCheck.groundLayer
+            : (LayerMask)LayerMask.GetMask("Ground");
+        if (mask.value == 0)
+            return false;
+
+        Vector2 origin = new Vector2(landingX, player.position.y + LandingRayStartOffsetY);
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, LandingRayDistance, mask);
+        if (hit.collider == null)
+            return false;
+
+        groundY = hit.point.y;
+        return true;
     }
 
     Vector2 ComputeThrowVelocity(Vector2 origin, Vector2 landing)

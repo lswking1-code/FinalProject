@@ -347,8 +347,9 @@ MonoBehaviour:
   enableFocusMode: 0
   grenadePrefab: {fileID: 2000000000000000006, guid: e5e6f7a8b9ca501234ef678901234567, type: 3}
   throwPoint: {fileID: 5507517411812069850}
-  throwAngle: 75
+  throwAngle: 70
   throwSpeed: 8
+  minThrowDistance: 4
   jumpHeight: 2.5
   jumpHorizontalSpeed: 4
   landDuration: 0.25

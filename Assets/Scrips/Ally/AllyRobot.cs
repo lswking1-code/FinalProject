@@ -68,13 +68,13 @@ public class AllyRobot : MonoBehaviour
     [Header("索敌")]
     [Tooltip("以自身为中心的 X 轴单侧索敌半径")]
     public float detectRangeX = 6f;
-    [Tooltip("以自身为中心的 Y 轴单侧索敌半径（与空中敌相同，过滤不同高度平台上的目标）")]
+    [Tooltip("以自身为中心的 Y 轴单侧发现半径。普通索敌用此值发现目标；过高的上方地面敌仍会被过滤")]
     public float detectRangeY = 6f;
 
     [Header("攻击")]
     [Tooltip("开始攻击的最大距离（X 轴）")]
     public float attackDistance = 1.2f;
-    [Tooltip("停刀/到位的最大 Y 距离；|ΔY| 超出则与空中敌相同：不追击/近战，仅连携与激光可响应；同时作为地面连携/Blast 是否改竖直冲锋的阈值。应明显小于 attackDistance，避免偏低打空")]
+    [Tooltip("停刀/近战到位的最大 Y 距离；同时作为地面连携/Blast 是否改竖直冲锋的阈值。应明显小于 attackDistance，避免偏低打空")]
     [SerializeField] float airAttackDistanceY = 0.65f;
     [Tooltip("Combo 时是否发起冲刺的判定距离（X 轴）。目标超出则冲刺，否则直接近战连击")]
     public float dashDecideDistance = 2.5f;
@@ -509,7 +509,10 @@ public class AllyRobot : MonoBehaviour
             {
                 case AllyState.Chase:
                     if (TryGetChaseMoveDir(out moveDir)
-                        && ApplyHorizontalMove(moveDir, moveSpeed))
+                        && ApplyHorizontalMove(
+                            moveDir,
+                            moveSpeed,
+                            respectLedge: !IsChaseTargetBelow(currentTarget)))
                         movingHorizontally = true;
                     else
                         StopMoving();
@@ -967,7 +970,7 @@ public class AllyRobot : MonoBehaviour
             aimTarget = currentTarget;
         else if (TryAcquireTarget(out Transform acquired, includeAirEnemy: true))
         {
-            // 空中敌 / Y 差距过大：不写入 currentTarget，避免激光后误入追击/近战
+            // 空中敌不写入 currentTarget，避免激光后误入追击/近战；下层地面敌可以转入普通追击
             if (CanPersistAsChaseTarget(acquired))
                 currentTarget = acquired;
             aimTarget = acquired;
@@ -1718,7 +1721,7 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 与空中敌相同：|ΔY| 超出到位阈值时不可普通追击/近战，仅连携（及显式 allow）可响应。
+    /// |ΔY| 超出到位阈值：不可近战停刀，连携/Blast 改竖直飞冲。普通索敌发现与追击不再用此否决。
     /// </summary>
     bool IsBeyondGroundChaseHeight(Transform target)
     {
@@ -1726,13 +1729,11 @@ public class AllyRobot : MonoBehaviour
     }
 
     /// <summary>
-    /// 可写入 currentTarget 并进入追击/近战的目标（排除空中敌与过高 Y 差）。
+    /// 可写入 currentTarget 并进入普通追击的目标（排除空中敌；Y 由发现矩形限制）。
     /// </summary>
     bool CanPersistAsChaseTarget(Transform target)
     {
-        return target != null
-            && !IsAirEnemyTarget(target)
-            && !IsBeyondGroundChaseHeight(target);
+        return target != null && !IsAirEnemyTarget(target);
     }
 
     /// <summary>
@@ -1907,9 +1908,8 @@ public class AllyRobot : MonoBehaviour
         if (target == null || !target.gameObject.activeInHierarchy)
             return false;
 
-        // 空中敌 / Y 差距过大：默认仅连携期间有效；激光等可显式允许
-        if ((IsAirEnemyTarget(target) || IsBeyondGroundChaseHeight(target))
-            && !allowAirEnemy && !IsBusyWithCombo)
+        // 空中敌：默认仅连携期间有效；激光等可显式允许。下层地面敌可普通追击。
+        if (IsAirEnemyTarget(target) && !allowAirEnemy && !IsBusyWithCombo)
             return false;
 
         if (!IsAllowedByActiveEncounter(GetCombatAimPoint(target)))
@@ -2330,8 +2330,91 @@ public class AllyRobot : MonoBehaviour
         if (IsInAttackRange(currentTarget))
             return false;
 
-        dir = Mathf.Sign(currentTarget.position.x - transform.position.x);
-        return !Mathf.Approximately(dir, 0f);
+        float dx = GetCombatAimPoint(currentTarget).x - transform.position.x;
+        if (Mathf.Abs(dx) > 0.15f)
+        {
+            dir = Mathf.Sign(dx);
+            return true;
+        }
+
+        // X 已对齐但仍在下方：朝较近板边走，避免卡在短平台中央
+        if (IsChaseTargetBelow(currentTarget))
+            return TryGetNearestDropOffDir(out dir);
+
+        return false;
+    }
+
+    bool IsChaseTargetBelow(Transform target)
+    {
+        if (target == null)
+            return false;
+        return GetCombatAimPoint(target).y < transform.position.y - airAttackDistanceY;
+    }
+
+    /// <summary>
+    /// 沿当前站立高度找较近的板边，供追击下层敌人时走出短平台。
+    /// </summary>
+    bool TryGetNearestDropOffDir(out float dir)
+    {
+        dir = 0f;
+        float leftDist = GetCurrentPlatformEdgeDist(-1f);
+        float rightDist = GetCurrentPlatformEdgeDist(1f);
+
+        if (float.IsPositiveInfinity(leftDist) && float.IsPositiveInfinity(rightDist))
+        {
+            dir = Mathf.Sign(transform.localScale.x);
+            if (Mathf.Approximately(dir, 0f))
+                dir = 1f;
+            return true;
+        }
+
+        dir = leftDist <= rightDist ? -1f : 1f;
+        return true;
+    }
+
+    float GetCurrentPlatformEdgeDist(float dir)
+    {
+        if (Mathf.Approximately(dir, 0f))
+            return float.PositiveInfinity;
+
+        float face = Mathf.Sign(dir);
+        Bounds bounds = bodyCollider != null
+            ? bodyCollider.bounds
+            : new Bounds(transform.position, Vector3.one * 0.5f);
+        float startX = face > 0f ? bounds.max.x : bounds.min.x;
+        const float step = 0.15f;
+        float maxScan = Mathf.Max(1.5f, detectRangeX);
+        for (float d = step; d <= maxScan; d += step)
+        {
+            if (!HasCurrentPlatformGroundAt(startX + face * d))
+                return d;
+        }
+
+        return float.PositiveInfinity;
+    }
+
+    bool HasCurrentPlatformGroundAt(float x)
+    {
+        LayerMask mask = physicsCheck != null ? physicsCheck.groundLayer : (LayerMask)0;
+        if (mask.value == 0)
+            return true;
+
+        float footY = GetFootY();
+        const float lift = 0.2f;
+        const float depth = 0.45f;
+        Vector2 origin = new Vector2(x, footY + lift);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(origin, Vector2.down, lift + depth, mask);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D col = hits[i].collider;
+            if (col == null || col.isTrigger)
+                continue;
+            if (!IsExternalObstacle(col))
+                continue;
+            return true;
+        }
+
+        return false;
     }
 
     bool TryGetHomeMoveDir(float threshold, out float dir)
@@ -3112,12 +3195,13 @@ public class AllyRobot : MonoBehaviour
 
         float maxX = rangeX > 0f ? rangeX : detectRangeX;
         float comboMaxY = rangeY > 0f ? rangeY : detectRangeY;
-        // 普通索敌：Y 不得超过到位阈值（过高只走连携）；连携/激光放宽到 detectRangeY
-        float groundMaxY = includeAirEnemy ? comboMaxY : airAttackDistanceY;
+        // 普通索敌：发现用 detectRangeY；过高的上方地面敌仍过滤。连携/激光放宽到完整 Y 并含空中敌。
+        float groundMaxY = includeAirEnemy ? comboMaxY : detectRangeY;
         ConsiderEnemiesWithTag(
             "Enemy",
             maxX,
             groundMaxY,
+            !includeAirEnemy,
             ref closestMarked, ref closestUnmarked,
             ref minMarkedDistY, ref minMarkedDistX,
             ref minUnmarkedDistY, ref minUnmarkedDistX);
@@ -3127,6 +3211,7 @@ public class AllyRobot : MonoBehaviour
                 AirEnemyTag,
                 maxX,
                 comboMaxY,
+                false,
                 ref closestMarked, ref closestUnmarked,
                 ref minMarkedDistY, ref minMarkedDistX,
                 ref minUnmarkedDistY, ref minUnmarkedDistX);
@@ -3151,6 +3236,7 @@ public class AllyRobot : MonoBehaviour
         string tag,
         float maxDistX,
         float maxDistY,
+        bool skipUnreachableAbove,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
         ref float minMarkedDistY,
@@ -3172,6 +3258,8 @@ public class AllyRobot : MonoBehaviour
             float distX = Mathf.Abs(transform.position.x - aim.x);
             float distY = Mathf.Abs(transform.position.y - aim.y);
             if (distX > maxDistX || distY > maxDistY)
+                continue;
+            if (skipUnreachableAbove && aim.y > transform.position.y + airAttackDistanceY)
                 continue;
 
             if (!IsAllowedByActiveEncounter(aim))
@@ -3224,6 +3312,9 @@ public class AllyRobot : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         DrawDetectRangeGizmo(transform.position);
+
+        Gizmos.color = Color.white;
+        DrawRangeRectGizmo(transform.position, attackDistance, airAttackDistanceY);
 
         Gizmos.color = new Color(0.6f, 0.2f, 1f, 1f);
         DrawRangeRectGizmo(transform.position, blastComboDetectRangeX, blastComboDetectRangeY);
