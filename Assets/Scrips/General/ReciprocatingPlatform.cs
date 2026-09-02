@@ -30,6 +30,7 @@ public class ReciprocatingPlatform : MonoBehaviour
     Vector2 platformVelocity;
 
     public Vector2 PlatformVelocity => platformVelocity;
+    public bool IsRunning => isActivated;
 
     void Awake()
     {

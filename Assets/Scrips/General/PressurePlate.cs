@@ -15,6 +15,7 @@ public class PressurePlate : MonoBehaviour
 
     [Header("驱动目标")]
     [SerializeField] ElectrifiedPlatform[] targets;
+    [SerializeField] LaserGate[] laserGateTargets;
     public UnityEvent<bool> onToggled;
 
     [Header("视觉")]
@@ -124,13 +125,22 @@ public class PressurePlate : MonoBehaviour
 
     void SyncTargets()
     {
-        if (targets == null)
+        if (targets != null)
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (targets[i] != null)
+                    targets[i].SetFromSwitch(isOn);
+            }
+        }
+
+        if (laserGateTargets == null)
             return;
 
-        for (int i = 0; i < targets.Length; i++)
+        for (int i = 0; i < laserGateTargets.Length; i++)
         {
-            if (targets[i] != null)
-                targets[i].SetFromSwitch(isOn);
+            if (laserGateTargets[i] != null)
+                laserGateTargets[i].SetFromSwitch(isOn);
         }
     }
 

@@ -1,40 +1,31 @@
 fileFormatVersion: 2
-guid: abe8f6e56b79fdb4daaf702a50d7fe5f
+guid: aa88f3d63a9c2a045a83b241814ec9a9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1068311161233878945
-    second: laser_deactivate_0
+      213: 8632437188340536653
+    second: laser_beam_1_0
   - first:
-      213: 5567414178258349773
-    second: laser_deactivate_1
+      213: 387354909808543524
+    second: laser_beam_1_1
   - first:
-      213: -3371236875712715048
-    second: laser_deactivate_2
+      213: 3853374058737222398
+    second: laser_beam_1_2
   - first:
-      213: -2728554723620187203
-    second: laser_deactivate_3
+      213: -92505585394297197
+    second: laser_beam_1_3
   - first:
-      213: 2659433252990696987
-    second: laser_deactivate_4
+      213: 1172585893802184385
+    second: laser_beam_1_4
   - first:
-      213: 8836764615420670267
-    second: laser_deactivate_5
+      213: 9200795935314375541
+    second: laser_beam_1_5
   - first:
-      213: -203409237028950966
-    second: laser_deactivate_6
+      213: 2501084529387183005
+    second: laser_beam_1_6
   - first:
-      213: 9114248292924185867
-    second: laser_deactivate_7
-  - first:
-      213: -1324464407134571331
-    second: laser_deactivate_8
-  - first:
-      213: -4326135445905939512
-    second: laser_deactivate_9
-  - first:
-      213: -719858164805331816
-    second: laser_deactivate_10
+      213: 609114429990802902
+    second: laser_beam_1_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -127,19 +118,6 @@ TextureImporter:
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
     buildTarget: WebGL
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -156,13 +134,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: laser_deactivate_0
+      name: laser_beam_1_0
       rect:
         serializedVersion: 2
-        x: 8
+        x: 7
         y: 0
-        width: 14
-        height: 32
+        width: 16
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -171,20 +149,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f50d115b8a89c21f0800000000000000
-      internalID: -1068311161233878945
+      spriteID: d45d8ecd2e39cc770800000000000000
+      internalID: 8632437188340536653
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_1
+      name: laser_beam_1_1
       rect:
         serializedVersion: 2
-        x: 40
+        x: 35
         y: 0
-        width: 14
-        height: 32
+        width: 24
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -193,20 +171,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dceef8c92bd634d40800000000000000
-      internalID: 5567414178258349773
+      spriteID: 4274429fc39206500800000000000000
+      internalID: 387354909808543524
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_2
+      name: laser_beam_1_2
       rect:
         serializedVersion: 2
-        x: 72
+        x: 75
         y: 0
-        width: 14
-        height: 32
+        width: 8
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -215,64 +193,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d622715ce5f631d0800000000000000
-      internalID: -3371236875712715048
+      spriteID: ef2ccb55a4fe97530800000000000000
+      internalID: 3853374058737222398
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_3
+      name: laser_beam_1_3
       rect:
         serializedVersion: 2
-        x: 104
-        y: 1
-        width: 14
-        height: 30
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: db397647fe9322ad0800000000000000
-      internalID: -2728554723620187203
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: laser_deactivate_4
-      rect:
-        serializedVersion: 2
-        x: 136
-        y: 1
-        width: 14
-        height: 30
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b1e3f5c047438e420800000000000000
-      internalID: 2659433252990696987
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: laser_deactivate_5
-      rect:
-        serializedVersion: 2
-        x: 168
+        x: 107
         y: 0
-        width: 14
-        height: 32
+        width: 8
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -281,20 +215,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b31f3e9399e72aa70800000000000000
-      internalID: 8836764615420670267
+      spriteID: 39655d209aa57bef0800000000000000
+      internalID: -92505585394297197
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_6
+      name: laser_beam_1_4
       rect:
         serializedVersion: 2
-        x: 200
+        x: 139
         y: 0
-        width: 14
-        height: 32
+        width: 8
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -303,20 +237,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a4c2bda60685d2df0800000000000000
-      internalID: -203409237028950966
+      spriteID: 1ce86b468acd54010800000000000000
+      internalID: 1172585893802184385
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_7
+      name: laser_beam_1_5
       rect:
         serializedVersion: 2
-        x: 232
-        y: 20
-        width: 14
-        height: 12
+        x: 171
+        y: 0
+        width: 8
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -325,20 +259,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b0dd47678805c7e70800000000000000
-      internalID: 9114248292924185867
+      spriteID: 573754fb72bcfaf70800000000000000
+      internalID: 9200795935314375541
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_8
+      name: laser_beam_1_6
       rect:
         serializedVersion: 2
-        x: 264
-        y: 20
-        width: 14
-        height: 12
+        x: 202
+        y: 0
+        width: 10
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -347,20 +281,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: db4781793ae8e9de0800000000000000
-      internalID: -1324464407134571331
+      spriteID: d9b195fc023a5b220800000000000000
+      internalID: 2501084529387183005
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: laser_deactivate_9
+      name: laser_beam_1_7
       rect:
         serializedVersion: 2
         x: 232
         y: 0
-        width: 14
-        height: 7
+        width: 15
+        height: 24
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -369,30 +303,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8c3ec889bba76f3c0800000000000000
-      internalID: -4326135445905939512
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: laser_deactivate_10
-      rect:
-        serializedVersion: 2
-        x: 264
-        y: 0
-        width: 14
-        height: 7
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8941d1620dc8206f0800000000000000
-      internalID: -719858164805331816
+      spriteID: 6d59a2bc852047800800000000000000
+      internalID: 609114429990802902
       vertices: []
       indices: 
       edges: []
@@ -411,17 +323,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      laser_deactivate_0: -1068311161233878945
-      laser_deactivate_1: 5567414178258349773
-      laser_deactivate_10: -719858164805331816
-      laser_deactivate_2: -3371236875712715048
-      laser_deactivate_3: -2728554723620187203
-      laser_deactivate_4: 2659433252990696987
-      laser_deactivate_5: 8836764615420670267
-      laser_deactivate_6: -203409237028950966
-      laser_deactivate_7: 9114248292924185867
-      laser_deactivate_8: -1324464407134571331
-      laser_deactivate_9: -4326135445905939512
+      laser_beam_1_0: 8632437188340536653
+      laser_beam_1_1: 387354909808543524
+      laser_beam_1_2: 3853374058737222398
+      laser_beam_1_3: -92505585394297197
+      laser_beam_1_4: 1172585893802184385
+      laser_beam_1_5: 9200795935314375541
+      laser_beam_1_6: 2501084529387183005
+      laser_beam_1_7: 609114429990802902
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
