@@ -90,6 +90,19 @@ public class SceneLoader : MonoBehaviour, ISaveable
     bool pendingRecordEntry;
     bool pendingSaveAfterRestart;
 
+    /// <summary>当前 Location 关卡的进入坐标。未记录过则返回 false。</summary>
+    public bool TryGetCurrentSceneEntry(out Vector3 position)
+    {
+        if (!hasSceneEntry)
+        {
+            position = default;
+            return false;
+        }
+
+        position = currentSceneEntryPosition;
+        return true;
+    }
+
     private void Awake()
     {
         if (bgmManager == null)

@@ -58,9 +58,9 @@ public class DeathZone : MonoBehaviour
         Character playerCharacter = other.GetComponentInParent<Character>();
         if (playerCharacter == null || !playerCharacter.CompareTag("Player") || playerCharacter.IsDead)
             return;
-        if (!MarkHandled(playerCharacter.gameObject))
-            return;
 
+        // 玩家不走 handledInstanceIds：复活或无敌期间再次落入仍应秒杀。
+        // IsDead 即可挡住同一帧 Stay 连杀。
         playerCharacter.Kill();
         PlaySessionRecorder.Instance?.RecordSceneHazardDeath("DeathZone");
     }
