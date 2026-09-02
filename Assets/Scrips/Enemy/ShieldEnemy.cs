@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -27,6 +28,9 @@ public class ShieldEnemy : MeleeEnemy
 
     EnemyShieldAbsorb shieldAbsorb;
     ShieldDropVisual shieldDropVisual;
+    SpriteRenderer shieldVisualRenderer;
+    Color shieldVisualOriginalColor = Color.white;
+    Coroutine shieldVisualFlashRoutine;
     float leaveIdealTimer;
     bool hasHeldAtIdealRange;
 
@@ -80,10 +84,34 @@ public class ShieldEnemy : MeleeEnemy
         base.OnEnable();
     }
 
+    protected override void OnDisable()
+    {
+        StopShieldVisualFlash(hideIfAttached: true);
+        base.OnDisable();
+    }
+
     void CacheShield()
     {
         shieldAbsorb = GetComponentInChildren<EnemyShieldAbsorb>(true);
         shieldDropVisual = GetComponentInChildren<ShieldDropVisual>(true);
+        shieldVisualRenderer = shieldDropVisual != null
+            ? shieldDropVisual.GetComponent<SpriteRenderer>()
+            : null;
+        if (shieldVisualRenderer != null)
+            shieldVisualOriginalColor = shieldVisualRenderer.color;
+
+        // 物体保持激活，Animator 才能绑定 enemy_shield_hurt 的 ShieldVisual 精灵轨。
+        PrepareShieldVisualIdle();
+    }
+
+    void PrepareShieldVisualIdle()
+    {
+        if (shieldDropVisual == null || shieldDropVisual.HasDropped)
+            return;
+
+        shieldDropVisual.gameObject.SetActive(true);
+        if (shieldVisualRenderer != null)
+            shieldVisualRenderer.enabled = false;
     }
 
     void DisableShieldOverlaySprite()
@@ -103,6 +131,7 @@ public class ShieldEnemy : MeleeEnemy
         leaveIdealTimer = 0f;
         if (physicsCheck != null)
             physicsCheck.RefreshLedgeColliders();
+        StopShieldVisualFlash(hideIfAttached: false);
         shieldDropVisual?.Drop();
         SwitchToMeleeAnimator();
         if (!isDead)
@@ -133,6 +162,116 @@ public class ShieldEnemy : MeleeEnemy
             return;
 
         anim.SetTrigger("shieldHurt");
+        BeginShieldVisualFeedback();
+    }
+
+    public override void OnTakeDamage(Transform attackTrans)
+    {
+        if (HasShield)
+            BeginShieldVisualFeedback();
+
+        base.OnTakeDamage(attackTrans);
+    }
+
+    void BeginShieldVisualFeedback()
+    {
+        if (isDead || !CanUseShieldVisual())
+            return;
+
+        ShowShieldVisualRenderer();
+
+        if (shieldVisualFlashRoutine != null)
+            StopCoroutine(shieldVisualFlashRoutine);
+
+        RestoreShieldVisualColor();
+        shieldVisualFlashRoutine = StartCoroutine(FlashShieldVisual());
+    }
+
+    IEnumerator FlashShieldVisual()
+    {
+        float duration = Mathf.Max(0.05f, hurtDuration);
+        float elapsed = 0f;
+        float flashTimer = 0f;
+        bool flashOn = true;
+
+        if (shieldVisualRenderer != null)
+            shieldVisualRenderer.color = hurtFlashColor;
+
+        while (elapsed < duration)
+        {
+            if (isDead || !CanUseShieldVisual())
+                break;
+
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            flashTimer += dt;
+
+            if (shieldVisualRenderer != null && flashTimer >= hurtFlashInterval)
+            {
+                flashTimer = 0f;
+                flashOn = !flashOn;
+                shieldVisualRenderer.color = flashOn ? hurtFlashColor : shieldVisualOriginalColor;
+            }
+
+            yield return null;
+        }
+
+        shieldVisualFlashRoutine = null;
+
+        if (isDead)
+        {
+            StopShieldVisualFlash(hideIfAttached: true);
+            yield break;
+        }
+
+        RestoreShieldVisualColor();
+        HideShieldVisualRenderer();
+    }
+
+    void StopShieldVisualFlash(bool hideIfAttached)
+    {
+        if (shieldVisualFlashRoutine != null)
+        {
+            StopCoroutine(shieldVisualFlashRoutine);
+            shieldVisualFlashRoutine = null;
+        }
+
+        RestoreShieldVisualColor();
+
+        if (hideIfAttached)
+            HideShieldVisualRenderer();
+        else
+            ShowShieldVisualRenderer();
+    }
+
+    void ShowShieldVisualRenderer()
+    {
+        if (!CanUseShieldVisual() || shieldVisualRenderer == null)
+            return;
+
+        shieldDropVisual.gameObject.SetActive(true);
+        shieldVisualRenderer.enabled = true;
+    }
+
+    void HideShieldVisualRenderer()
+    {
+        if (!CanUseShieldVisual() || shieldVisualRenderer == null)
+            return;
+
+        shieldVisualRenderer.enabled = false;
+    }
+
+    void RestoreShieldVisualColor()
+    {
+        if (shieldVisualRenderer != null)
+            shieldVisualRenderer.color = shieldVisualOriginalColor;
+    }
+
+    bool CanUseShieldVisual()
+    {
+        return shieldDropVisual != null
+            && !shieldDropVisual.HasDropped
+            && shieldDropVisual.transform.parent == transform;
     }
 
     const float ShieldedMoveSpeedScale = 0.5f;

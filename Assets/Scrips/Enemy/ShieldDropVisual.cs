@@ -16,6 +16,8 @@ public class ShieldDropVisual : MonoBehaviour
 
     bool dropped;
 
+    public bool HasDropped => dropped;
+
     public void Drop()
     {
         if (dropped)
@@ -25,6 +27,9 @@ public class ShieldDropVisual : MonoBehaviour
 
         Transform source = transform.parent;
         gameObject.SetActive(true);
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+            sr.enabled = true;
         transform.SetParent(null, true);
 
         if (source != null)
