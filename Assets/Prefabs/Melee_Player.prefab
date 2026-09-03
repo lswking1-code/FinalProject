@@ -183,13 +183,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f757670695cfb4e4791a48064efc4d42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runSpeed: 5.5
+  runSpeed: 6.2
   crouchMoveSpeed: 2.5
   jumpHeight: 3.5
   inputThreshold: 0.5
   jumpBufferTime: 0.2
   coyoteTime: 0.12
   crouchColliderSize: {x: 1.08, y: 1.2}
+  standUpObstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  standUpCheckSkin: 0.05
+  enemyPassLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  enemyPassScanPadding: 0.75
   airHangDuration: 0.12
   airHangGravityScale: 0.25
   airHangVelocityY: 0
@@ -384,6 +392,22 @@ MonoBehaviour:
   loadDataEvent: {fileID: 11400000, guid: d053ac14c824369478dc3b9df1c43169, type: 2}
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   backToMenuEvent: {fileID: 0}
+  reviveInvulnerableDuration: 2
+  reviveFlashInterval: 0.1
+  hitEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  dieEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
 --- !u!114 &9123456789012345678
 MonoBehaviour:
   m_ObjectHideFlags: 0
