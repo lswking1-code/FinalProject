@@ -622,15 +622,29 @@ MonoBehaviour:
   rushUltimateLaunchSpeedY: 13
   rushUltimateLaunchSpeedX: 2.5
   rushUltimateLaunchHoldDuration: 0.45
+  whipUltimateUpHitStart: 0.08
+  whipUltimateUpHitEnd: 0.24
+  whipUltimateUpHitboxSize: {x: 1.8, y: 6.2}
+  whipUltimateUpHitboxOffset: {x: -0.67, y: 3.02}
+  whipUltimateFrontHitStart: 0.28
+  whipUltimateFrontHitEnd: 0.46
+  whipUltimateDownHitStart: 0.5
+  whipUltimateDownHitEnd: 0.68
+  whipUltimateDownHitboxSize: {x: 2.8, y: 5.8}
+  whipUltimateDownHitboxOffset: {x: -0.9, y: -1.9}
+  whipUltimateRearHitStart: 0.72
+  whipUltimateRearHitEnd: 0.92
   rushAttackComboEnabled: 1
   rushComboBufferEarliest: 0.05
   shortMeleeDashSpeed: 15
   shortMeleeDashStart: 0.08
-  shortMeleeDashEnd: 0.38
+  shortMeleeDashEnd: 0.753
+  crouchMeleeHitboxSize: {x: 3, y: 1.5}
+  crouchMeleeHitboxOffset: {x: -1, y: -0.25}
   jumpDownSlamSpeed: 25
   jumpDownImpactDamage: 15
-  jumpDownImpactRadius: 1.98
-  jumpDownImpactOffset: {x: -0.72, y: 0}
+  jumpDownImpactRadius: 2.25
+  jumpDownImpactOffset: {x: 0.32, y: 0}
   attackEvent:
     Guid:
       Data1: 1818543693

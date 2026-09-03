@@ -240,6 +240,24 @@ public class Bob_Controller : MonoBehaviour
     [Tooltip("击飞后压住敌人水平速度的时长，避免 AI 立刻把人拉回地面走位")]
     [SerializeField] float rushUltimateLaunchHoldDuration = 0.45f;
 
+    [Header("Whip 大招 · 四向挥击（对齐 whip_ult：上 / 前 / 下 / 后）")]
+    [Tooltip("上方判定开始。whip_ult 的 whip_upattack_hit 约在 0.11")]
+    [Range(0f, 1f)] [SerializeField] float whipUltimateUpHitStart = 0.08f;
+    [Range(0f, 1f)] [SerializeField] float whipUltimateUpHitEnd = 0.24f;
+    [SerializeField] Vector2 whipUltimateUpHitboxSize = new Vector2(1.8f, 6.2f);
+    [SerializeField] Vector2 whipUltimateUpHitboxOffset = new Vector2(-0.67f, 3.02f);
+    [Tooltip("前方判定开始。whip_ult 的 whip_attack_hit 约在 0.33；盒复用特技前方盒")]
+    [Range(0f, 1f)] [SerializeField] float whipUltimateFrontHitStart = 0.28f;
+    [Range(0f, 1f)] [SerializeField] float whipUltimateFrontHitEnd = 0.46f;
+    [Tooltip("下方判定开始。whip_ult 的 whip_downattack_hit 约在 0.56")]
+    [Range(0f, 1f)] [SerializeField] float whipUltimateDownHitStart = 0.50f;
+    [Range(0f, 1f)] [SerializeField] float whipUltimateDownHitEnd = 0.68f;
+    [SerializeField] Vector2 whipUltimateDownHitboxSize = new Vector2(2.8f, 5.8f);
+    [SerializeField] Vector2 whipUltimateDownHitboxOffset = new Vector2(-0.9f, -1.9f);
+    [Tooltip("后方判定开始。whip_ult 的 whip_upattack_hit_b 约在 0.78；盒为特技前方盒镜像")]
+    [Range(0f, 1f)] [SerializeField] float whipUltimateRearHitStart = 0.72f;
+    [Range(0f, 1f)] [SerializeField] float whipUltimateRearHitEnd = 0.92f;
+
     [Header("近战连段（普攻 ↔ 上攻）")]
     [Tooltip("空手 / Rush：仅地面。普攻或上攻动画结束前再按攻击，衔接另一段")]
     [SerializeField] bool rushAttackComboEnabled = true;
@@ -251,6 +269,10 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] float shortMeleeDashSpeed = 10f;
     [Range(0f, 1f)] [SerializeField] float shortMeleeDashStart = 0.08f;
     [Range(0f, 1f)] [SerializeField] float shortMeleeDashEnd = 0.38f;
+    [Tooltip("蹲下滑铲周身判定尺寸（相对 MeleePoint2）。四武器共用动画，不跟站立前方盒")]
+    [SerializeField] Vector2 crouchMeleeHitboxSize = new Vector2(3f, 1.5f);
+    [Tooltip("蹲下滑铲周身判定偏移。MeleePoint2 已在身前，负 X 把盒拉回角色中心")]
+    [SerializeField] Vector2 crouchMeleeHitboxOffset = new Vector2(-1f, -0.25f);
 
     [Header("JumpDownAttack · 高速落地砸地")]
     [Tooltip("空中下砸下落速度")]
@@ -313,6 +335,8 @@ public class Bob_Controller : MonoBehaviour
     bool hasSpecialProfile;
     readonly HashSet<Character> swingHitTargets = new();
     readonly HashSet<Character> specialRearHitTargets = new();
+    readonly HashSet<Character> whipUltUpHitTargets = new();
+    readonly HashSet<Character> whipUltDownHitTargets = new();
     readonly HashSet<Character> rushCarriedTargets = new();
     readonly List<Collider2D> rushIgnoredEnemyColliders = new();
     readonly HashSet<IHitCountable> swingHitCountables = new();
@@ -816,8 +840,9 @@ public class Bob_Controller : MonoBehaviour
         }
         else if (IsCurrentSwingCrouchMelee())
         {
-            meleeHitboxCollider.size = activeProfile.hitboxSize;
-            meleeHitboxCollider.offset = activeProfile.hitboxOffset + new Vector2(0f, -0.45f);
+            ResolveCrouchMeleeHitbox(out Vector2 crouchSize, out Vector2 crouchOffset);
+            meleeHitboxCollider.size = crouchSize;
+            meleeHitboxCollider.offset = crouchOffset;
         }
         else
         {
@@ -834,6 +859,14 @@ public class Bob_Controller : MonoBehaviour
 
     bool IsCurrentSwingCrouchMelee()
         => fullBodyAnim != null && fullBodyAnim.IsCrouchMelee;
+
+    void ResolveCrouchMeleeHitbox(out Vector2 size, out Vector2 offset)
+    {
+        size = crouchMeleeHitboxSize.x > 0.01f && crouchMeleeHitboxSize.y > 0.01f
+            ? crouchMeleeHitboxSize
+            : new Vector2(3f, 1.5f);
+        offset = crouchMeleeHitboxOffset;
+    }
 
     void ResolveMeleeHitWindow(out float start, out float end)
     {
@@ -1019,6 +1052,8 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        whipUltUpHitTargets.Clear();
+        whipUltDownHitTargets.Clear();
         swingHitCountables.Clear();
         buzzsawActiveHitTick = -1;
         playerAnim.InterruptTurn();
@@ -1152,6 +1187,8 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        whipUltUpHitTargets.Clear();
+        whipUltDownHitTargets.Clear();
         swingHitCountables.Clear();
         buzzsawActiveHitTick = -1;
         playerAnim.InterruptTurn();
@@ -1229,6 +1266,8 @@ public class Bob_Controller : MonoBehaviour
 
         swingHitTargets.Clear();
         specialRearHitTargets.Clear();
+        whipUltUpHitTargets.Clear();
+        whipUltDownHitTargets.Clear();
         ClearRushCarryState();
         swingHitCountables.Clear();
         buzzsawActiveHitTick = -1;
@@ -1546,29 +1585,71 @@ public class Bob_Controller : MonoBehaviour
             return;
         }
 
-        bool frontWindow = t >= activeSpecialProfile.hitStart && t <= activeSpecialProfile.hitEnd;
-        bool rearWindow = t >= activeSpecialProfile.rearHitStart && t <= activeSpecialProfile.rearHitEnd;
-        Vector2 rearOffset = ResolveWhipRearLocalOffset(activeSpecialProfile.hitboxOffset);
+        bool ultimate = IsCurrentSwingUltimate();
+        ResolveWhipDirectionalWindows(
+            ultimate,
+            out float frontStart,
+            out float frontEnd,
+            out float rearStart,
+            out float rearEnd);
 
-        // 仅后段时把可见盒也切到镜像位置，避免 Scene 里看起来永远只有前方
+        bool frontWindow = t >= frontStart && t <= frontEnd;
+        bool rearWindow = t >= rearStart && t <= rearEnd;
+        bool upWindow = ultimate
+            && whipUltimateUpHitEnd > whipUltimateUpHitStart + 0.01f
+            && t >= whipUltimateUpHitStart
+            && t <= whipUltimateUpHitEnd;
+        bool downWindow = ultimate
+            && whipUltimateDownHitEnd > whipUltimateDownHitStart + 0.01f
+            && t >= whipUltimateDownHitStart
+            && t <= whipUltimateDownHitEnd;
+
+        Vector2 rearOffset = ResolveWhipRearLocalOffset(activeSpecialProfile.hitboxOffset);
+        ResolveWhipUltimateUpHitbox(out Vector2 upSize, out Vector2 upOffset);
+        ResolveWhipUltimateDownHitbox(out Vector2 downSize, out Vector2 downOffset);
+
+        // 可见盒跟随当前挥击方向，避免 Scene 里看起来永远只有前方
         if (meleeHitboxCollider != null)
         {
-            meleeHitboxCollider.size = activeSpecialProfile.hitboxSize;
-            meleeHitboxCollider.offset = rearWindow && !frontWindow
-                ? rearOffset
-                : activeSpecialProfile.hitboxOffset;
+            if (upWindow)
+            {
+                meleeHitboxCollider.size = upSize;
+                meleeHitboxCollider.offset = upOffset;
+            }
+            else if (downWindow)
+            {
+                meleeHitboxCollider.size = downSize;
+                meleeHitboxCollider.offset = downOffset;
+            }
+            else
+            {
+                meleeHitboxCollider.size = activeSpecialProfile.hitboxSize;
+                meleeHitboxCollider.offset = rearWindow && !frontWindow
+                    ? rearOffset
+                    : activeSpecialProfile.hitboxOffset;
+            }
         }
 
-        if (frontWindow || rearWindow)
+        if (frontWindow || rearWindow || upWindow || downWindow)
         {
             if (!meleeHitbox.activeSelf)
                 meleeHitbox.SetActive(true);
 
             Physics2D.SyncTransforms();
 
+            if (upWindow)
+            {
+                ProcessSpecialBoxHits(
+                    upOffset,
+                    upSize,
+                    ResolveSpecialSwingDamage(),
+                    whipUltUpHitTargets,
+                    activeSpecialProfile.maxTargets,
+                    hitNote: "上方");
+            }
+
             if (frontWindow)
             {
-                // 前方段：沿面朝方向击退（推离玩家）
                 ProcessSpecialBoxHits(
                     activeSpecialProfile.hitboxOffset,
                     activeSpecialProfile.hitboxSize,
@@ -1578,9 +1659,19 @@ public class Bob_Controller : MonoBehaviour
                     knockbackSign: 1f);
             }
 
+            if (downWindow)
+            {
+                ProcessSpecialBoxHits(
+                    downOffset,
+                    downSize,
+                    ResolveSpecialSwingDamage(),
+                    whipUltDownHitTargets,
+                    activeSpecialProfile.maxTargets,
+                    hitNote: "下方");
+            }
+
             if (rearWindow)
             {
-                // 后方段：相对角色 pivot 镜像前方盒，朝背后击退
                 ProcessSpecialBoxHits(
                     rearOffset,
                     activeSpecialProfile.hitboxSize,
@@ -1594,6 +1685,50 @@ public class Bob_Controller : MonoBehaviour
         {
             meleeHitbox.SetActive(false);
         }
+    }
+
+    void ResolveWhipDirectionalWindows(
+        bool ultimate,
+        out float frontStart,
+        out float frontEnd,
+        out float rearStart,
+        out float rearEnd)
+    {
+        frontStart = activeSpecialProfile.hitStart;
+        frontEnd = activeSpecialProfile.hitEnd;
+        rearStart = activeSpecialProfile.rearHitStart;
+        rearEnd = activeSpecialProfile.rearHitEnd;
+
+        if (!ultimate)
+            return;
+
+        if (whipUltimateFrontHitEnd > whipUltimateFrontHitStart + 0.01f)
+        {
+            frontStart = whipUltimateFrontHitStart;
+            frontEnd = whipUltimateFrontHitEnd;
+        }
+
+        if (whipUltimateRearHitEnd > whipUltimateRearHitStart + 0.01f)
+        {
+            rearStart = whipUltimateRearHitStart;
+            rearEnd = whipUltimateRearHitEnd;
+        }
+    }
+
+    void ResolveWhipUltimateUpHitbox(out Vector2 size, out Vector2 offset)
+    {
+        size = whipUltimateUpHitboxSize.x > 0.01f && whipUltimateUpHitboxSize.y > 0.01f
+            ? whipUltimateUpHitboxSize
+            : new Vector2(1.8f, 6.2f);
+        offset = whipUltimateUpHitboxOffset;
+    }
+
+    void ResolveWhipUltimateDownHitbox(out Vector2 size, out Vector2 offset)
+    {
+        size = whipUltimateDownHitboxSize.x > 0.01f && whipUltimateDownHitboxSize.y > 0.01f
+            ? whipUltimateDownHitboxSize
+            : new Vector2(2.8f, 5.8f);
+        offset = whipUltimateDownHitboxOffset;
     }
 
     /// <summary>
@@ -2929,6 +3064,14 @@ public class Bob_Controller : MonoBehaviour
             DrawWorldLabel(center + Vector3.up * (jumpDownImpactRadius + 0.15f), "JumpDown");
         }
 
+        // 蹲下滑铲：四武器共用周身盒（相对 MeleePoint2，不跟站立前方盒）
+        {
+            ResolveCrouchMeleeHitbox(out Vector2 crouchSize, out Vector2 crouchOffset);
+            Color crouchColor = new Color(0.95f, 0.55f, 0.2f, 0.28f);
+            DrawLocalBoxGizmo(crouchMatrix, crouchOffset, crouchSize, crouchColor, filled: false);
+            DrawHitboxLabel(crouchMatrix, crouchOffset, "Crouch Slide");
+        }
+
         int[] weaponIds = { 0, 1, 2, 3 };
         for (int i = 0; i < weaponIds.Length; i++)
         {
@@ -2936,7 +3079,6 @@ public class Bob_Controller : MonoBehaviour
             var profile = FindProfile(weaponId);
             Color meleeColor = ResolveWeaponGizmoColor(weaponId, 0.28f);
             Color upColor = ResolveWeaponGizmoColor(weaponId, 0.22f);
-            Color crouchColor = new Color(meleeColor.r, meleeColor.g * 0.75f, meleeColor.b, 0.22f);
 
             string weaponName = weaponId switch
             {
@@ -2957,11 +3099,6 @@ public class Bob_Controller : MonoBehaviour
                 DrawLocalBoxGizmo(standMatrix, upOffset, upSize, upColor, filled: false);
                 DrawHitboxLabel(standMatrix, upOffset, $"{weaponName} Up");
             }
-
-            // 蹲攻：共用动画，盒相对站立略下移（与运行时 ApplyHitboxShape 一致）
-            Vector2 crouchOffset = profile.hitboxOffset + new Vector2(0f, -0.45f);
-            DrawLocalBoxGizmo(crouchMatrix, crouchOffset, profile.hitboxSize, crouchColor, filled: false);
-            DrawHitboxLabel(crouchMatrix, crouchOffset, $"{weaponName} Crouch");
 
             if (!TryFindSpecialProfile(weaponId, out var special))
                 continue;
@@ -2992,6 +3129,23 @@ public class Bob_Controller : MonoBehaviour
                     new Color(1f, 0.35f, 0.85f, 0.3f),
                     filled: false);
                 DrawHitboxLabel(standMatrix, rearOffset, "Whip Rear");
+
+                ResolveWhipUltimateUpHitbox(out Vector2 ultUpSize, out Vector2 ultUpOffset);
+                ResolveWhipUltimateDownHitbox(out Vector2 ultDownSize, out Vector2 ultDownOffset);
+                DrawLocalBoxGizmo(
+                    standMatrix,
+                    ultUpOffset,
+                    ultUpSize,
+                    new Color(0.45f, 0.85f, 1f, 0.28f),
+                    filled: false);
+                DrawHitboxLabel(standMatrix, ultUpOffset, "Whip Ult Up");
+                DrawLocalBoxGizmo(
+                    standMatrix,
+                    ultDownOffset,
+                    ultDownSize,
+                    new Color(1f, 0.7f, 0.25f, 0.28f),
+                    filled: false);
+                DrawHitboxLabel(standMatrix, ultDownOffset, "Whip Ult Down");
             }
 
             if (weaponId == 1 && HasRushUltimateLaunchWindow())
@@ -3086,8 +3240,7 @@ public class Bob_Controller : MonoBehaviour
         }
         else if (Application.isPlaying && IsCurrentSwingCrouchMelee())
         {
-            hitSize = drawProfile.hitboxSize;
-            hitOffset = drawProfile.hitboxOffset + new Vector2(0f, -0.45f);
+            ResolveCrouchMeleeHitbox(out hitSize, out hitOffset);
         }
         else
         {
@@ -3114,6 +3267,21 @@ public class Bob_Controller : MonoBehaviour
                 ? new Color(1f, 0.35f, 0.85f, 0.35f)
                 : new Color(1f, 0.45f, 0.9f, 0.18f);
             DrawLocalBoxGizmo(hitMatrix, rearOffset, specialDraw.hitboxSize, rearColor, filled: false);
+
+            bool drawUltVertical = !Application.isPlaying || IsCurrentSwingUltimate();
+            if (drawUltVertical)
+            {
+                ResolveWhipUltimateUpHitbox(out Vector2 ultUpSize, out Vector2 ultUpOffset);
+                ResolveWhipUltimateDownHitbox(out Vector2 ultDownSize, out Vector2 ultDownOffset);
+                Color upColor = drawSpecial
+                    ? new Color(0.45f, 0.85f, 1f, 0.35f)
+                    : new Color(0.45f, 0.85f, 1f, 0.18f);
+                Color downColor = drawSpecial
+                    ? new Color(1f, 0.7f, 0.25f, 0.35f)
+                    : new Color(1f, 0.7f, 0.25f, 0.18f);
+                DrawLocalBoxGizmo(hitMatrix, ultUpOffset, ultUpSize, upColor, filled: false);
+                DrawLocalBoxGizmo(hitMatrix, ultDownOffset, ultDownSize, downColor, filled: false);
+            }
         }
 
         if (!drawUp && !drawSpecial && !(Application.isPlaying && IsCurrentSwingCrouchMelee()))
