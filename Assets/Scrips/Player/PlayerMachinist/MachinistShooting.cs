@@ -3,6 +3,17 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [System.Serializable]
+public class MachinistMeleeExtraHitbox
+{
+    [Tooltip("附加判定盒（如 BlastCombo2B）")]
+    public GameObject hitbox;
+    [Tooltip("判定开始（秒）；<0 则用该段主窗起点")]
+    public float hitStart = -1f;
+    [Tooltip("判定结束（秒）；<0 且 hitStart≥0 时为起点 + 主窗时长")]
+    public float hitEnd = -1f;
+}
+
+[System.Serializable]
 public class MachinistMeleeComboStep
 {
     [Tooltip("上半身 Animator 状态名，须与 upM 一致")]
@@ -11,6 +22,8 @@ public class MachinistMeleeComboStep
     public string lowerState;
     [Tooltip("该段启用的判定盒")]
     public GameObject hitbox;
+    [Tooltip("同一刀上的额外判定盒，可单独开窗")]
+    public MachinistMeleeExtraHitbox[] extraHitboxes;
     [Tooltip("判定开始（秒）；<0 则用全局 meleeHitStart")]
     public float hitStart = -1f;
     [Tooltip("判定结束（秒）；<0 则用全局 meleeHitEnd")]
@@ -129,8 +142,6 @@ public class MachinistShooting : MonoBehaviour
     float machineBurstNextFireAt;
     FireDir machineBurstDir;
 
-    Attack[] meleeAttacks;
-    GameObject activeMeleeHitbox;
     bool ignoreHeldAttack;
 
     void Awake()
@@ -326,15 +337,30 @@ public class MachinistShooting : MonoBehaviour
         return meleeComboSteps[step];
     }
 
-    void CacheMeleeHitboxes()
+    void GetStepWindow(MachinistMeleeComboStep cfg, out float start, out float end)
     {
-        int count = MeleeStepCount;
-        meleeAttacks = new Attack[count];
-        for (int i = 0; i < count; i++)
-            BindMeleeHitbox(i, meleeComboSteps[i] != null ? meleeComboSteps[i].hitbox : null);
+        start = cfg != null && cfg.hitStart >= 0f ? cfg.hitStart : meleeHitStart;
+        end = cfg != null && cfg.hitEnd >= 0f ? cfg.hitEnd : meleeHitEnd;
     }
 
-    void BindMeleeHitbox(int index, GameObject target)
+    static void GetExtraWindow(
+        MachinistMeleeExtraHitbox extra, float stepStart, float stepEnd, out float start, out float end)
+    {
+        start = extra.hitStart >= 0f ? extra.hitStart : stepStart;
+        if (extra.hitEnd >= 0f)
+            end = extra.hitEnd;
+        else if (extra.hitStart >= 0f)
+            end = extra.hitStart + (stepEnd - stepStart);
+        else
+            end = stepEnd;
+    }
+
+    void CacheMeleeHitboxes()
+    {
+        ForEachMeleeHitbox(BindMeleeHitbox);
+    }
+
+    void BindMeleeHitbox(GameObject target)
     {
         if (target == null)
             return;
@@ -345,7 +371,6 @@ public class MachinistShooting : MonoBehaviour
             attack.attackType = AttackType.Melee;
             if (string.IsNullOrEmpty(attack.ignoreTag))
                 attack.ignoreTag = "Player";
-            meleeAttacks[index] = attack;
         }
 
         target.SetActive(false);
@@ -361,52 +386,116 @@ public class MachinistShooting : MonoBehaviour
 
         int step = playerAnim.CurrentMachinistMeleeStep;
         var cfg = GetMeleeStep(step);
-        GameObject box = cfg != null ? cfg.hitbox : null;
+        if (cfg == null)
+        {
+            DisableMeleeHitboxes();
+            return;
+        }
+
+        bool hasTime = playerAnim.TryGetMeleeAnimProgress(out float normalized, out float length)
+            && length > 0.001f;
+        float elapsed = hasTime ? normalized * length : -1f;
+
+        GetStepWindow(cfg, out float stepStart, out float stepEnd);
+        SyncMeleeHitbox(cfg.hitbox, hasTime && elapsed >= stepStart && elapsed <= stepEnd);
+
+        if (cfg.extraHitboxes != null)
+        {
+            for (int i = 0; i < cfg.extraHitboxes.Length; i++)
+            {
+                var extra = cfg.extraHitboxes[i];
+                if (extra == null)
+                    continue;
+
+                GetExtraWindow(extra, stepStart, stepEnd, out float extraStart, out float extraEnd);
+                SyncMeleeHitbox(
+                    extra.hitbox, hasTime && elapsed >= extraStart && elapsed <= extraEnd);
+            }
+        }
+
+        DisableOtherStepHitboxes(step);
+    }
+
+    static void SyncMeleeHitbox(GameObject box, bool inWindow)
+    {
         if (box == null)
             return;
 
-        float start = cfg.hitStart >= 0f ? cfg.hitStart : meleeHitStart;
-        float end = cfg.hitEnd >= 0f ? cfg.hitEnd : meleeHitEnd;
-
-        bool inWindow = false;
-        if (playerAnim.TryGetMeleeAnimProgress(out float normalized, out float length) && length > 0.001f)
-        {
-            float elapsed = normalized * length;
-            inWindow = elapsed >= start && elapsed <= end;
-        }
-
         if (inWindow)
         {
-            if (activeMeleeHitbox != null && activeMeleeHitbox != box)
-                DisableMeleeHitboxes();
-
-            // 每帧强制打开：Write Defaults / 残留曲线可能把判定盒写回关闭
             if (!box.activeSelf)
                 box.SetActive(true);
-            activeMeleeHitbox = box;
-
-            if (meleeAttacks != null && step >= 0 && step < meleeAttacks.Length)
-                meleeAttacks[step]?.ProcessOverlapHits();
+            box.GetComponent<Attack>()?.ProcessOverlapHits();
         }
-        else
+        else if (box.activeSelf)
         {
-            DisableMeleeHitboxes();
+            box.SetActive(false);
+        }
+    }
+
+    void DisableOtherStepHitboxes(int activeStep)
+    {
+        if (meleeComboSteps == null)
+            return;
+
+        for (int i = 0; i < meleeComboSteps.Length; i++)
+        {
+            if (i == activeStep || meleeComboSteps[i] == null)
+                continue;
+
+            DisableStepHitboxes(meleeComboSteps[i]);
+        }
+    }
+
+    static void DisableStepHitboxes(MachinistMeleeComboStep cfg)
+    {
+        if (cfg.hitbox != null && cfg.hitbox.activeSelf)
+            cfg.hitbox.SetActive(false);
+
+        if (cfg.extraHitboxes == null)
+            return;
+
+        for (int i = 0; i < cfg.extraHitboxes.Length; i++)
+        {
+            var extra = cfg.extraHitboxes[i];
+            if (extra?.hitbox != null && extra.hitbox.activeSelf)
+                extra.hitbox.SetActive(false);
         }
     }
 
     void DisableMeleeHitboxes()
     {
-        if (meleeComboSteps != null)
+        if (meleeComboSteps == null)
+            return;
+
+        for (int i = 0; i < meleeComboSteps.Length; i++)
         {
-            for (int i = 0; i < meleeComboSteps.Length; i++)
+            if (meleeComboSteps[i] != null)
+                DisableStepHitboxes(meleeComboSteps[i]);
+        }
+    }
+
+    void ForEachMeleeHitbox(System.Action<GameObject> action)
+    {
+        if (meleeComboSteps == null || action == null)
+            return;
+
+        for (int i = 0; i < meleeComboSteps.Length; i++)
+        {
+            var cfg = meleeComboSteps[i];
+            if (cfg == null)
+                continue;
+
+            action(cfg.hitbox);
+            if (cfg.extraHitboxes == null)
+                continue;
+
+            for (int j = 0; j < cfg.extraHitboxes.Length; j++)
             {
-                var box = meleeComboSteps[i] != null ? meleeComboSteps[i].hitbox : null;
-                if (box != null && box.activeSelf)
-                    box.SetActive(false);
+                if (cfg.extraHitboxes[j] != null)
+                    action(cfg.extraHitboxes[j].hitbox);
             }
         }
-
-        activeMeleeHitbox = null;
     }
 
     void TryMeleeAttack()

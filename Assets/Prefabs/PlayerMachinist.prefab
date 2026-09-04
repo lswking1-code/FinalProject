@@ -561,6 +561,124 @@ MonoBehaviour:
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
+--- !u!1 &4438357956285871346
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2951987204902250863}
+  - component: {fileID: 427341951656056918}
+  - component: {fileID: 4535951641741951068}
+  m_Layer: 22
+  m_Name: BlastCombo2B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &2951987204902250863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4438357956285871346}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6626173450807781418}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!60 &427341951656056918
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4438357956285871346}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: 1.1418445, y: 3.2037148}
+      - {x: 0.25230992, y: 2.7429228}
+      - {x: 0.018510252, y: 1.8382579}
+      - {x: 0.040844142, y: 0.77779293}
+      - {x: 0.58662736, y: -0.016737342}
+      - {x: 1.8680823, y: -0.66703004}
+      - {x: 4.026735, y: -0.96696115}
+      - {x: 5.238494, y: 0.87477624}
+      - {x: 4.782704, y: 2.5240316}
+      - {x: 3.33606, y: 3.164485}
+      - {x: 1.6845583, y: 3.3735545}
+  m_UseDelaunayMesh: 0
+--- !u!114 &4535951641741951068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4438357956285871346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 50
+  attackRange: 0
+  attackRate: 0
+  attackType: 0
+  chargesEnergyNode: 0
+  requireTag: 
+  ignoreTag: 
+  enableKnockback: 1
+  knockbackForce: 0
+  knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 1
+  enableHitCameraShake: 1
+  hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
+  hitCameraShakeForce: 0.12
 --- !u!1 &4602526496284074832
 GameObject:
   m_ObjectHideFlags: 0
@@ -821,6 +939,7 @@ Transform:
   m_Children:
   - {fileID: 364018970200030011}
   - {fileID: 1895682473203831768}
+  - {fileID: 2951987204902250863}
   - {fileID: 4929291864541269345}
   m_Father: {fileID: 5187324970600484277}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1189,20 +1308,26 @@ MonoBehaviour:
   - upperState: M_Melee_Attack1_up
     lowerState: M_Melee_Attack1_down
     hitbox: {fileID: 4434529309152102361}
+    extraHitboxes: []
     hitStart: -1
     hitEnd: -1
     robotBlastStep: -1
   - upperState: M_Melee_Attack3_up
     lowerState: M_Melee_Attack3_down
     hitbox: {fileID: 4362468033723665306}
+    extraHitboxes: []
     hitStart: -1
     hitEnd: -1
     robotBlastStep: -1
   - upperState: M_Melee_Attack2_up
     lowerState: M_Melee_Attack2_down
     hitbox: {fileID: 4286947475068781260}
-    hitStart: -1
-    hitEnd: -1
+    extraHitboxes:
+    - hitbox: {fileID: 4438357956285871346}
+      hitStart: 0.6
+      hitEnd: -1
+    hitStart: 0.1
+    hitEnd: 0.3
     robotBlastStep: -1
   fireEvent:
     Guid:
@@ -1237,7 +1362,7 @@ MonoBehaviour:
   robotDrainRate: 3
   minAbilityPowerToSpawn: 3
   reloadAmmoCosts: 0000000028000000140000000a000000
-  reloadLoadCounts: 00000000030000000200000003000000
+  reloadLoadCounts: 00000000030000000300000003000000
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   loadEvent:
     Guid:
