@@ -86,7 +86,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     bool LocksLocomotionLikeCombo =>
         playerAnim.IsPlayingMachinistComboShoot
         || playerAnim.IsPlayingMachineShoot
-        || playerAnim.IsPlayingMachinistChargeShoot;
+        || playerAnim.IsPlayingMachinistChargeShoot
+        || playerAnim.IsMachinistMeleeAttacking;
     /// <summary>真实接地，或走下平台后仍在土狼窗口内（起跳后立刻为 false）。斜坡行走时 isOnSlope 也算可跳，避免上坡正 Y 速度把土狼清掉。</summary>
     public bool CanGroundJump =>
         !jumpedThisAirborne && (physicsCheck.isSolidGround || physicsCheck.isOnSlope || coyoteCounter > 0f);
@@ -556,8 +557,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (moveX == 0f || moveX == faceDir)
             return;
 
-        // 蓄力中：不播全身 Turn（会切层打断 Charge），翻面由 ApplyHorizontalMovement 完成
-        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring)
+        // 蓄力 / 装弹：不播全身 Turn（会切层打断上半身），翻面由 ApplyHorizontalMovement 完成
+        if (playerAnim.IsCharging || playerAnim.IsHeavySpinFiring || playerAnim.IsPlayingLoadBullet)
             return;
 
         if (LocksLocomotionLikeCombo)
@@ -627,11 +628,13 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
             jumpBufferCounter = 0f;
             dbgResult = playerAnim.IsHeavySpinFiring
                 ? "机枪蓄力中禁止跳跃"
-                : playerAnim.IsPlayingMachineShoot
-                    ? "MachineShoot 中禁止跳跃"
-                    : playerAnim.IsPlayingMachinistChargeShoot
-                        ? "蓄力射击中禁止跳跃"
-                        : "连击终结中禁止跳跃";
+                : playerAnim.IsMachinistMeleeAttacking
+                    ? "近战出刀中禁止跳跃"
+                    : playerAnim.IsPlayingMachineShoot
+                        ? "MachineShoot 中禁止跳跃"
+                        : playerAnim.IsPlayingMachinistChargeShoot
+                            ? "蓄力射击中禁止跳跃"
+                            : "连击终结中禁止跳跃";
             return false;
         }
 
@@ -897,8 +900,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
             if (moveX != 0f)
             {
-                // 蓄力中不播 Turn，在此直接翻面
-                if (playerAnim.IsCharging)
+                // 蓄力 / 装弹不播 Turn，在此直接翻面
+                if (playerAnim.IsCharging || playerAnim.IsPlayingLoadBullet)
                     faceDir = moveX;
                 ApplyFacing();
             }

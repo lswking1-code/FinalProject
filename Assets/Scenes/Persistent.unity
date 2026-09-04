@@ -3502,7 +3502,7 @@ MonoBehaviour:
   testScene: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
   testPosition: {x: -40, y: 1, z: 0}
   enableDevelopCharacterSwitch: 0
-  enableFillAmmoCheat: 0
+  enableFillAmmoCheat: 1
   enableFullHealthCheat: 0
   fadeDuration: 0.5
   bgmManager: {fileID: 1309352850}
@@ -6918,6 +6918,14 @@ PrefabInstance:
     - target: {fileID: 3566494782694489320, guid: f35faea56f8590b49b34b8bdbed8ecaf, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4286947475068781260, guid: f35faea56f8590b49b34b8bdbed8ecaf, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4434529309152102361, guid: f35faea56f8590b49b34b8bdbed8ecaf, type: 3}
+      propertyPath: m_Layer
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 6572320002224097586, guid: f35faea56f8590b49b34b8bdbed8ecaf, type: 3}
       propertyPath: m_Name

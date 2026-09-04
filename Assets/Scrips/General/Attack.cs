@@ -217,28 +217,16 @@ public class Attack : MonoBehaviour
 
     public void ProcessOverlapHits()
     {
-        var box = GetComponent<BoxCollider2D>();
-        if (box == null || !box.enabled)
+        var col = GetComponent<Collider2D>();
+        if (col == null || !col.enabled)
             return;
 
         Physics2D.SyncTransforms();
 
-        Transform space = transform;
-        Vector2 center = space.TransformPoint(box.offset);
-        Vector3 lossy = space.lossyScale;
-        Vector2 worldSize = new Vector2(
-            Mathf.Abs(box.size.x * lossy.x),
-            Mathf.Abs(box.size.y * lossy.y));
-        float angle = space.eulerAngles.z;
-
-        var filter = new ContactFilter2D
-        {
-            useTriggers = true,
-            useLayerMask = false,
-        };
-
         overlapBuffer.Clear();
-        Physics2D.OverlapBox(center, worldSize, angle, filter, overlapBuffer);
+        var filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+        col.Overlap(filter, overlapBuffer);
 
         for (int i = 0; i < overlapBuffer.Count; i++)
         {

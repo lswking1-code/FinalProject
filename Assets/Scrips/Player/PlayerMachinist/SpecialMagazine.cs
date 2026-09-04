@@ -41,11 +41,14 @@ public class SpecialMagazine : MonoBehaviour, ISaveable
     void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
     /// <summary>
-    /// 尝试装入 loadCount 发同种特殊弹。会超容时整次失败，不入队。
+    /// 尝试装入 loadCount 发同种特殊弹。弹夹非空或会超容时整次失败，不入队。
     /// </summary>
     public bool TryLoad(SpecialAmmoType type, int loadCount)
     {
         if (loadCount <= 0)
+            return false;
+
+        if (rounds.Count > 0)
             return false;
 
         if (rounds.Count + loadCount > capacity)

@@ -175,6 +175,14 @@ MonoBehaviour:
   downBody: {fileID: 3708017859273649367}
   crouchBody: {fileID: 6077945265886347755}
   descendVelocityThreshold: 0
+  machinistMeleeAttackUpStates:
+  - M_Melee_Attack1_up
+  - M_Melee_Attack2_up
+  - M_Melee_Attack2_up
+  machinistMeleeAttackDownStates:
+  - M_Melee_Attack1_down
+  - M_Melee_Attack2_down
+  - M_Melee_Attack2_down
 --- !u!114 &1022828831124262964
 MonoBehaviour:
   m_ObjectHideFlags: 0

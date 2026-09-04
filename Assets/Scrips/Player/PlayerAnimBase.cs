@@ -36,6 +36,10 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual bool IsPlayingLoadBullet => false;
     public virtual bool IsThrowing => false;
     public virtual bool IsMelee => false;
+    /// <summary>机械师特殊弹 L 近战姿态（上半身 Idle/Run 替换中）。</summary>
+    public virtual bool IsMachinistMeleeStance => false;
+    /// <summary>机械师特殊弹 L 出刀动画播放中（锁移动 / 空中滞空）。</summary>
+    public virtual bool IsMachinistMeleeAttacking => false;
     /// <summary>近战特技（Ability1）播放中；默认实现为 false。</summary>
     public virtual bool IsSpecial => false;
     public virtual bool IsSwitchingWeapon => false;
@@ -86,6 +90,14 @@ public class PlayerAnimBase : MonoBehaviour
     public virtual void CancelMachinistShootAnim() { }
 
     public virtual bool TryPlayLoadBulletAnim() => false;
+
+    /// <summary>机械师特殊弹 L 装填（M_Melee_Load）。</summary>
+    public virtual bool TryPlayMeleeLoadAnim() => false;
+
+    /// <summary>机械师特殊弹 L 近战出刀。step 0/1/2 对应三段攻击。</summary>
+    public virtual bool TryPlayMachinistMeleeAttackAnim(int step) => false;
+
+    public virtual void SetMachinistMeleeStance(bool active) { }
 
     public virtual bool BeginMachinistCharge() => false;
 

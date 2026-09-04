@@ -230,18 +230,28 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             || playerAnim.IsPlayingMachinistComboShoot
             || playerAnim.IsPlayingMachineShoot
             || playerAnim.IsPlayingMachinistChargeShoot
-            || playerAnim.IsDispatching)
+            || playerAnim.IsDispatching
+            || playerAnim.IsMelee)
             return;
 
         if (!actions.Player.Ability1.WasPressedThisFrame())
             return;
 
+        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
         if (!TryConvertAmmoToSpecial())
             return;
 
         PlaySessionRecorder.Instance?.RecordAbility1();
-        if (playerAnim.TryPlayLoadBulletAnim())
+        bool played = weaponId == 3
+            ? playerAnim.TryPlayMeleeLoadAnim()
+            : playerAnim.TryPlayLoadBulletAnim();
+        if (played)
             FmodAudio.Play(loadEvent);
+    }
+
+    public void TriggerRobotBlastStep(int step)
+    {
+        activeRobotController?.PlaySyncedBlastStep(step);
     }
 
     void UpdateRobotManualMove()
@@ -574,7 +584,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
     /// <summary>
     /// 短按 Ability1：消耗当前 WeaponID 对应普通弹，装入特殊弹。
-    /// 超容或弹药不足时整次取消。不依赖机器人是否存在。
+    /// 仅空夹可装填；超容或弹药不足时整次取消。不依赖机器人是否存在。
     /// </summary>
     bool TryConvertAmmoToSpecial()
     {
@@ -590,7 +600,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (loadCount <= 0)
             return false;
 
-        if (specialMagazine.Count + loadCount > specialMagazine.Capacity)
+        if (specialMagazine.Count > 0)
+            return false;
+
+        if (loadCount > specialMagazine.Capacity)
             return false;
 
         AmmoType ammoType = weaponId switch
@@ -614,7 +627,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
         if (!specialMagazine.TryLoad(specialType, loadCount))
         {
-            // 理论上容量已预检，不应失败；若失败则退回已扣弹药以保持原子性。
+            // 理论上空夹与容量已预检，不应失败；若失败则退回已扣弹药以保持原子性。
             character.AddAmmo(ammoType, cost);
             return false;
         }

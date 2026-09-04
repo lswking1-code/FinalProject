@@ -58,6 +58,11 @@ public class MachinistShooting : MonoBehaviour
     [SerializeField] VoidEventSO robotComboEvent;
     [SerializeField] VoidEventSO robotBlastComboEvent;
 
+    [Header("近战判定")]
+    [Tooltip("对齐 M_Melee_Attack*_up 里 BlastCombo 激活窗（约 0.14–0.28 / 0.57s）")]
+    [SerializeField] float meleeHitStart = 0.25f;
+    [SerializeField] float meleeHitEnd = 0.5f;
+
     [Header("音效")]
     [SerializeField] EventReference fireEvent;
     [Tooltip("FMOD Fire 事件上的标签参数名")]
@@ -69,10 +74,12 @@ public class MachinistShooting : MonoBehaviour
     PlayerWeaponController weaponController;
     Character character;
     SpecialMagazine specialMagazine;
+    PlayerAbilities playerAbilities;
 
     ShootPhase phase = ShootPhase.Idle;
     float pressTime;
     int comboCount;
+    int meleeComboIndex;
     float lastShotTime;
 
     bool hasPendingFire;
@@ -85,6 +92,10 @@ public class MachinistShooting : MonoBehaviour
     float machineBurstNextFireAt;
     FireDir machineBurstDir;
 
+    GameObject[] meleeHitboxes;
+    Attack[] meleeAttacks;
+    GameObject activeMeleeHitbox;
+
     void Awake()
     {
         actions = new InputSystem_Actions();
@@ -93,13 +104,37 @@ public class MachinistShooting : MonoBehaviour
         weaponController = GetComponent<PlayerWeaponController>();
         character = GetComponent<Character>();
         specialMagazine = GetComponent<SpecialMagazine>();
+        playerAbilities = GetComponent<PlayerAbilities>();
+        CacheMeleeHitboxes();
     }
 
-    void OnEnable() => actions.Player.Enable();
+    void OnEnable()
+    {
+        actions.Player.Enable();
+        if (specialMagazine != null)
+        {
+            specialMagazine.RoundLoaded += OnSpecialMagazineChanged;
+            specialMagazine.RoundConsumed += OnSpecialMagazineChanged;
+        }
 
-    void OnDisable() => actions.Player.Disable();
+        SyncMeleeStance();
+    }
+
+    void OnDisable()
+    {
+        if (specialMagazine != null)
+        {
+            specialMagazine.RoundLoaded -= OnSpecialMagazineChanged;
+            specialMagazine.RoundConsumed -= OnSpecialMagazineChanged;
+        }
+
+        actions.Player.Disable();
+        DisableMeleeHitboxes();
+    }
 
     void OnDestroy() => actions?.Dispose();
+
+    void LateUpdate() => UpdateMeleeHitboxes();
 
     void Update()
     {
@@ -108,6 +143,19 @@ public class MachinistShooting : MonoBehaviour
 
         if (playerMovement.IsActionLocked || playerAnim.IsDispatching || playerAnim.IsPlayingLoadBullet)
             return;
+
+        if (IsSpecialLReady())
+        {
+            if (phase == ShootPhase.Charging)
+                playerAnim.CancelCharge();
+            phase = ShootPhase.Idle;
+
+            if (!playerAnim.IsMelee && actions.Player.Attack.WasPressedThisFrame())
+                TryMeleeAttack();
+
+            TryResetComboOnTimeout();
+            return;
+        }
 
         switch (phase)
         {
@@ -182,32 +230,148 @@ public class MachinistShooting : MonoBehaviour
     bool IsComboExpired() =>
         comboCount > 0 && Time.time - lastShotTime > comboResetWindow;
 
+    bool IsSpecialLReady() =>
+        specialMagazine != null
+        && specialMagazine.TryPeek(out SpecialAmmoType peek)
+        && peek == SpecialAmmoType.L;
+
+    void OnSpecialMagazineChanged(SpecialAmmoType _) => SyncMeleeStance();
+
+    void SyncMeleeStance()
+    {
+        bool stance = IsSpecialLReady();
+        if (stance && (playerAnim == null || !playerAnim.IsMachinistMeleeStance))
+            meleeComboIndex = 0;
+        playerAnim?.SetMachinistMeleeStance(stance);
+    }
+
+    void CacheMeleeHitboxes()
+    {
+        meleeHitboxes = new GameObject[3];
+        meleeAttacks = new Attack[3];
+        if (playerAnim == null || playerAnim.upperAnimator == null)
+            return;
+
+        Transform attackers = playerAnim.upperAnimator.transform.Find("Attackers");
+        if (attackers == null)
+            return;
+
+        BindMeleeHitbox(0, attackers.Find("BlastCombo1"));
+        BindMeleeHitbox(1, attackers.Find("BlastCombo2"));
+        Transform combo3 = attackers.Find("BlastCombo3");
+        BindMeleeHitbox(2, combo3 != null ? combo3 : attackers.Find("BlastCombo2"));
+    }
+
+    void BindMeleeHitbox(int index, Transform target)
+    {
+        if (target == null)
+            return;
+
+        meleeHitboxes[index] = target.gameObject;
+        var attack = target.GetComponent<Attack>();
+        if (attack != null)
+        {
+            attack.attackType = AttackType.Melee;
+            if (string.IsNullOrEmpty(attack.ignoreTag))
+                attack.ignoreTag = "Player";
+            meleeAttacks[index] = attack;
+        }
+
+        target.gameObject.SetActive(false);
+    }
+
+    void UpdateMeleeHitboxes()
+    {
+        if (playerAnim == null || !playerAnim.IsMachinistMeleeAttacking)
+        {
+            DisableMeleeHitboxes();
+            return;
+        }
+
+        int step = Mathf.Clamp(playerAnim.CurrentMachinistMeleeStep, 0, 2);
+        GameObject box = meleeHitboxes != null && step < meleeHitboxes.Length
+            ? meleeHitboxes[step]
+            : null;
+        if (box == null)
+            return;
+
+        bool inWindow = playerAnim.TryGetMeleeAnimProgress(out float t)
+            && t >= meleeHitStart
+            && t <= meleeHitEnd;
+
+        if (inWindow)
+        {
+            if (activeMeleeHitbox != box)
+            {
+                DisableMeleeHitboxes();
+                box.SetActive(true);
+                activeMeleeHitbox = box;
+            }
+
+            meleeAttacks[step]?.ProcessOverlapHits();
+        }
+        else
+        {
+            DisableMeleeHitboxes();
+        }
+    }
+
+    void DisableMeleeHitboxes()
+    {
+        if (meleeHitboxes != null)
+        {
+            for (int i = 0; i < meleeHitboxes.Length; i++)
+            {
+                if (meleeHitboxes[i] != null && meleeHitboxes[i].activeSelf)
+                    meleeHitboxes[i].SetActive(false);
+            }
+        }
+
+        activeMeleeHitbox = null;
+    }
+
+    void TryMeleeAttack()
+    {
+        int step = Mathf.Clamp(meleeComboIndex, 0, 2);
+        if (!playerAnim.TryPlayMachinistMeleeAttackAnim(step))
+            return;
+
+        if (!TryConsumeSpecial(SpecialAmmoType.L))
+        {
+            Debug.LogWarning("MachinistShooting: 近战消耗特殊弹 L 失败，取消出刀。", this);
+            playerAnim.CancelMachinistMeleeAttack();
+            return;
+        }
+
+        CancelMachineBurst();
+        CancelPendingFire();
+        comboCount = 0;
+        lastShotTime = Time.time;
+        meleeComboIndex = step + 1;
+        playerAbilities?.TriggerRobotBlastStep(step);
+    }
+
     void FireTapShot()
     {
+        if (IsSpecialLReady())
+            return;
+
         if (IsComboExpired())
             comboCount = 0;
 
-        bool forceBlastFromSpecialL =
+        bool forceElectricFromSpecialM =
             specialMagazine != null
             && specialMagazine.TryPeek(out SpecialAmmoType peek)
-            && peek == SpecialAmmoType.L;
-
-        bool forceElectricFromSpecialM =
-            !forceBlastFromSpecialL
-            && specialMagazine != null
-            && specialMagazine.TryPeek(out peek)
             && peek == SpecialAmmoType.M;
 
         bool forceMachineFromSpecialS =
-            !forceBlastFromSpecialL
-            && !forceElectricFromSpecialM
+            !forceElectricFromSpecialM
             && specialMagazine != null
             && specialMagazine.TryPeek(out peek)
             && peek == SpecialAmmoType.S;
 
         bool isHorizontalForward = IsHorizontalForwardAim();
-        bool isFinisherNext = forceBlastFromSpecialL
-            || forceElectricFromSpecialM
+        bool isFinisherNext = forceElectricFromSpecialM
             || forceMachineFromSpecialS
             || comboCount + 1 >= comboFinisherCount;
 
@@ -222,14 +386,12 @@ public class MachinistShooting : MonoBehaviour
         }
 
         bool advancesComboCount =
-            !forceBlastFromSpecialL && !forceElectricFromSpecialM && !forceMachineFromSpecialS;
+            !forceElectricFromSpecialM && !forceMachineFromSpecialS;
         if (advancesComboCount)
             comboCount++;
 
         MachinistShootKind kind;
-        if (forceBlastFromSpecialL)
-            kind = MachinistShootKind.Blast;
-        else if (forceElectricFromSpecialM)
+        if (forceElectricFromSpecialM)
             kind = MachinistShootKind.Electric;
         else if (forceMachineFromSpecialS)
             kind = MachinistShootKind.Machine;
@@ -249,14 +411,13 @@ public class MachinistShooting : MonoBehaviour
 
         lastShotTime = Time.time;
         bool isCombo = kind == MachinistShootKind.Combo;
-        bool isBlast = kind == MachinistShootKind.Blast;
         bool isElectric = kind == MachinistShootKind.Electric;
         bool isMachine = kind == MachinistShootKind.Machine;
 
         FireDir fireDir = ResolveFireDir();
-        if ((isCombo || isBlast || isElectric || isMachine) && isHorizontalForward)
+        if ((isCombo || isElectric || isMachine) && isHorizontalForward)
         {
-            // 空中水平终结/Blast/Electric 用前方水平弹；地面/蹲姿/Machine 仍蹲射点
+            // 空中水平终结/Electric 用前方水平弹；地面/蹲姿/Machine 仍蹲射点
             fireDir = playerAnim.IsForcedAirCombo ? FireDir.Forward : FireDir.Crouch;
         }
 
@@ -278,27 +439,6 @@ public class MachinistShooting : MonoBehaviour
 
             PlayFireSfx(ResolveShotLabel(kind));
             StartMachineBurst(fireDir);
-            return;
-        }
-
-        if (isBlast)
-        {
-            if (!TryConsumeSpecial(SpecialAmmoType.L))
-            {
-                Debug.LogWarning("MachinistShooting: BlastShoot 消耗特殊弹 L 失败，取消出弹。", this);
-                playerAnim.CancelMachinistShootAnim();
-                return;
-            }
-
-            robotBlastComboEvent?.RaiseEvent();
-            comboCount = 0;
-
-            if (playerMovement.GetShootLookDown() || playerAnim.IsForcedAirCombo)
-                playerMovement.NotifyAirHangFromDownShot();
-
-            float delay = blastFireDelay >= 0f ? blastFireDelay : comboFireDelay;
-            PlayFireSfx(ResolveShotLabel(kind));
-            ScheduleFire(fireDir, specialProjectilePrefabL, delay);
             return;
         }
 

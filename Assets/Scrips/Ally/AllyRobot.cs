@@ -306,6 +306,7 @@ public class AllyRobot : MonoBehaviour
     bool comboDashWindupAnimSeen;
     float dashTimer;
     bool pendingBlastFinisher;
+    bool blastComboSynced;
     int blastComboStep = -1;
     const int BlastComboHitCount = 3;
     bool attackLungeActive;
@@ -930,6 +931,37 @@ public class AllyRobot : MonoBehaviour
         BeginComboDashWindup();
     }
 
+    /// <summary>
+    /// 跟随玩家近战：只播对应一段 Blast，不冲锋、不自动三连。无目标则按当前朝向释放。
+    /// </summary>
+    public void PlaySyncedBlastStep(int step)
+    {
+        if (IsPulling
+            || currentState == AllyState.Spawning
+            || currentState == AllyState.Recalling
+            || currentState == AllyState.ManualMove
+            || pendingStationOnLand)
+            return;
+
+        if (step < 0)
+            return;
+
+        InterruptAirForCombo();
+
+        if (currentState == AllyState.ComboDashWindup || currentState == AllyState.ComboDashing)
+        {
+            StopDashSfx();
+            SetDashActive(false);
+            EndAttackLunge();
+            StopMoving();
+        }
+
+        blastComboSynced = true;
+        pendingBlastFinisher = false;
+        blastComboStep = step;
+        PlayBlastAttackStep(step);
+    }
+
     public void PlayAttackSfx(string attackType)
     {
         if (string.IsNullOrEmpty(attackType))
@@ -1302,6 +1334,7 @@ public class AllyRobot : MonoBehaviour
         EndAttackLunge();
         blastComboStep = -1;
         pendingBlastFinisher = false;
+        blastComboSynced = false;
         ResumeStateAfterCombo();
     }
 
@@ -1575,6 +1608,7 @@ public class AllyRobot : MonoBehaviour
         if (IsComboState(prev) && !IsComboState(next))
         {
             pendingBlastFinisher = false;
+            blastComboSynced = false;
             blastComboStep = -1;
             EndAttackLunge();
             EndComboAirHang();
@@ -1971,6 +2005,7 @@ public class AllyRobot : MonoBehaviour
         StopMoving();
         SetDashActive(false);
         pendingBlastFinisher = false;
+        blastComboSynced = false;
         blastComboStep = -1;
         if (anim != null)
             anim.Play("Idle", 0, 0f);
@@ -2204,6 +2239,7 @@ public class AllyRobot : MonoBehaviour
             EndAttackLunge();
             blastComboStep = -1;
             pendingBlastFinisher = false;
+            blastComboSynced = false;
             ResumeStateAfterCombo();
             return;
         }
@@ -2223,6 +2259,12 @@ public class AllyRobot : MonoBehaviour
 
         if (blastComboStep >= 0)
         {
+            if (blastComboSynced)
+            {
+                FinishBlastCombo();
+                return;
+            }
+
             if (blastComboStep + 1 < BlastComboHitCount)
                 TryAdvanceBlastCombo();
             else
