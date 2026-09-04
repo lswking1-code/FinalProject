@@ -94,8 +94,12 @@ public class PlayerAnimBase : MonoBehaviour
     /// <summary>机械师特殊弹 L 装填（M_Melee_Load）。</summary>
     public virtual bool TryPlayMeleeLoadAnim() => false;
 
-    /// <summary>机械师特殊弹 L 近战出刀。step 0/1/2 对应三段攻击。</summary>
+    /// <summary>机械师特殊弹 L 近战出刀。step 为连段下标。</summary>
     public virtual bool TryPlayMachinistMeleeAttackAnim(int step) => false;
+
+    /// <summary>按指定上下半身状态名出刀；状态名为空时回退到 PlayerAnim 默认表。</summary>
+    public virtual bool TryPlayMachinistMeleeAttackAnim(int step, string upperState, string lowerState)
+        => TryPlayMachinistMeleeAttackAnim(step);
 
     public virtual void SetMachinistMeleeStance(bool active) { }
 
@@ -142,6 +146,12 @@ public class PlayerAnimBase : MonoBehaviour
     {
         normalizedTime = 0f;
         return false;
+    }
+
+    public virtual bool TryGetMeleeAnimProgress(out float normalizedTime, out float length)
+    {
+        length = 0f;
+        return TryGetMeleeAnimProgress(out normalizedTime);
     }
 
     public virtual void PlayDieAnim() { }

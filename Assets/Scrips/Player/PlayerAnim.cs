@@ -75,6 +75,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     const string MeleeLoadStateName = "M_Melee_Load";
     const string MeleeIdleUpStateName = "M_Melee_Idle_up";
     const string MeleeRunUpStateName = "M_Melee_Run_up";
+    const string MeleeJumpUpStateName = "M_Melee_AirUp_Up";
+    const string MeleeFallUpStateName = "M_Melee_AirDown_Up";
+    const string MeleeLandFullStateName = "M_Melee_Land_Full";
     const string ChargeStartStateName = "ChargeStart";
     const string ChargeLoopStateName = "ChargeLoop";
     const string ChargeShootStateName = "ChargeShoot";
@@ -124,17 +127,20 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public float descendVelocityThreshold = 0f;
 
     [Header("机械师近战（特殊弹 L）")]
+    [Tooltip("仅当未传入状态名时使用。出刀顺序请在 MachinistShooting 的近战连段里配。")]
+    [HideInInspector]
     [SerializeField] string[] machinistMeleeAttackUpStates =
     {
         "M_Melee_Attack1_up",
         "M_Melee_Attack2_up",
-        "M_Melee_Attack2_up",
+        "M_Melee_Attack3_up",
     };
+    [HideInInspector]
     [SerializeField] string[] machinistMeleeAttackDownStates =
     {
         "M_Melee_Attack1_down",
         "M_Melee_Attack2_down",
-        "M_Melee_Attack2_down",
+        "M_Melee_Attack3_down",
     };
 
     Rigidbody2D rb;
@@ -250,7 +256,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     public override bool IsInFullBody => displayMode == BodyDisplayMode.FullBody;
     public override string CurrentFullBodyState => activeFullBodyState;
     public override bool IsPlayingLand =>
-        displayMode == BodyDisplayMode.FullBody && activeFullBodyState == LandStateName;
+        displayMode == BodyDisplayMode.FullBody && IsLandFullBodyState;
+
+    bool IsLandFullBodyState =>
+        activeFullBodyState == LandStateName || activeFullBodyState == MeleeLandFullStateName;
+
     public override bool IsTurning =>
         activeFullBodyState == TurnStateName || activeFullBodyState == CrouchTurnStateName;
     public override bool IsRolling =>
@@ -528,7 +538,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isSwitchingWeapon || isRecalling || isRolling)
             return false;
 
-        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet)
+        if (IsPlayingMachinistComboShoot || IsPlayingLoadBullet || isMachinistMeleeAttacking)
             return false;
 
         if (isMelee)
@@ -617,6 +627,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return false;
 
         if (IsPlayingLoadBullet)
+            return false;
+
+        if (isMachinistMeleeAttacking)
             return false;
 
         // MachineShoot 仅允许被下一次 MachineShoot 打断，不被普通/Combo/Blast/Electric 打断
@@ -1249,6 +1262,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     }
 
     public override bool TryPlayMachinistMeleeAttackAnim(int step)
+        => TryPlayMachinistMeleeAttackAnim(step, null, null);
+
+    public override bool TryPlayMachinistMeleeAttackAnim(int step, string upperState, string lowerState)
     {
         if (isSwitchingWeapon || isRecalling || isRolling || isDispatching || isDead)
             return false;
@@ -1286,7 +1302,12 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (IsUpperLookActive())
             StopLook();
 
-        string upperState = ResolveMachinistMeleeAttackState(machinistMeleeAttackUpStates, step, "M_Melee_Attack2_up");
+        if (string.IsNullOrEmpty(upperState))
+            upperState = ResolveMachinistMeleeAttackState(
+                machinistMeleeAttackUpStates, step, step >= 2 ? "M_Melee_Attack3_up" : "M_Melee_Attack2_up");
+        if (string.IsNullOrEmpty(upperState))
+            return false;
+
         bool groundedMelee = airPhase == AirPhaseType.Ground;
 
         isMelee = true;
@@ -1303,13 +1324,18 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         if (groundedMelee && lowerAnimator != null)
         {
-            string lowerState = ResolveMachinistMeleeAttackState(
-                machinistMeleeAttackDownStates, step, "M_Melee_Attack2_down");
-            // 先挡 AnyState Ground→Idle，再 Play；否则同帧会被拉回 Idle
-            BlockLowerAirPhaseForMelee();
-            lowerAnimator.Play(lowerState, 0, 0f);
-            lowerMeleePlayed = true;
-            activeLowerMeleeStateName = lowerState;
+            if (string.IsNullOrEmpty(lowerState))
+                lowerState = ResolveMachinistMeleeAttackState(
+                    machinistMeleeAttackDownStates, step, step >= 2 ? "M_Melee_Attack3_down" : "M_Melee_Attack2_down");
+
+            if (!string.IsNullOrEmpty(lowerState))
+            {
+                // 先挡 AnyState Ground→Idle，再 Play；否则同帧会被拉回 Idle
+                BlockLowerAirPhaseForMelee();
+                lowerAnimator.Play(lowerState, 0, 0f);
+                lowerMeleePlayed = true;
+                activeLowerMeleeStateName = lowerState;
+            }
         }
 
         return true;
@@ -1442,6 +1468,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return false;
 
         if (IsPlayingLoadBullet || IsPlayingMachinistComboShoot || IsPlayingMachineShoot)
+            return false;
+
+        if (isMachinistMeleeAttacking)
             return false;
 
         if (isCharging)
@@ -2092,17 +2121,35 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     }
 
     public override bool TryGetMeleeAnimProgress(out float normalizedTime)
+        => TryGetMeleeAnimProgress(out normalizedTime, out _);
+
+    public override bool TryGetMeleeAnimProgress(out float normalizedTime, out float length)
     {
         normalizedTime = 0f;
+        length = 0f;
         if (!isMelee || activeMeleeAnimator == null || string.IsNullOrEmpty(activeMeleeStateName))
             return false;
 
         var info = activeMeleeAnimator.GetCurrentAnimatorStateInfo(0);
-        if (!info.IsName(activeMeleeStateName))
-            return false;
+        if (info.IsName(activeMeleeStateName))
+        {
+            normalizedTime = info.normalizedTime;
+            length = info.length;
+            return true;
+        }
 
-        normalizedTime = info.normalizedTime;
-        return true;
+        if (activeMeleeAnimator.IsInTransition(0))
+        {
+            var next = activeMeleeAnimator.GetNextAnimatorStateInfo(0);
+            if (next.IsName(activeMeleeStateName))
+            {
+                normalizedTime = next.normalizedTime;
+                length = next.length;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override void PlayDieAnim()
@@ -2628,8 +2675,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
         }
 
-        EnterFullBody(LandStateName, autoExitOnComplete: true);
+        EnterFullBody(GetLandStateName(), autoExitOnComplete: true);
     }
+
+    string GetLandStateName() =>
+        machinistMeleeStance ? MeleeLandFullStateName : LandStateName;
 
     public override bool InterruptLand() // 下半身有输入时立刻退出 Land，返回是否打断了 Land
     {
@@ -2808,7 +2858,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     void CompleteAutoFullBodyExit()
     {
-        if (activeFullBodyState == LandStateName)
+        if (IsLandFullBodyState)
         {
             airPhase = AirPhaseType.Ground;
             airTrack = AirTrack.None;
@@ -2916,8 +2966,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
 
         int phase = (int)airPhase;
+        // 近战空中写 5：upM AnyState 会把 AirPhase 1–4 抢回普通 Jump/Fall/Leap
+        bool blockAirPhase = machinistMeleeStance && airPhase != AirPhaseType.Ground;
+        int syncedPhase = blockAirPhase ? UpperLookAirPhaseBlock : phase;
         string stateName = GetUpperLocomotionStateName();
-        bool phaseChanged = phase != lastUpperSyncedPhase;
+        bool phaseChanged = syncedPhase != lastUpperSyncedPhase;
         bool stateChanged = stateName != lastUpperLocomotionState;
         bool runChanged = airPhase == AirPhaseType.Ground && isRunning != lastUpperSyncedRun;
 
@@ -2933,8 +2986,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         if (phaseChanged)
         {
-            lastUpperSyncedPhase = phase;
-            upperAnimator.SetInteger("AirPhase", phase);
+            lastUpperSyncedPhase = syncedPhase;
+            upperAnimator.SetInteger("AirPhase", syncedPhase);
         }
 
         if (airPhase == AirPhaseType.Ground && runChanged)
@@ -3212,6 +3265,16 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return isRunning ? "Run" : "Idle";
         }
 
+        if (machinistMeleeStance)
+        {
+            return airPhase switch
+            {
+                AirPhaseType.Jump or AirPhaseType.Leap => MeleeJumpUpStateName,
+                AirPhaseType.Fall or AirPhaseType.LeapAir => MeleeFallUpStateName,
+                _ => MeleeIdleUpStateName,
+            };
+        }
+
         switch (airPhase)
         {
             case AirPhaseType.Jump: return "Jump";
@@ -3398,6 +3461,18 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 && activeMeleeStateName == CrouchMeleeStateName
                 && (info.IsName(CrouchStateName) || info.IsName("CrouchMove")))
                 return;
+
+            if (activeMeleeAnimator.IsInTransition(0)
+                && activeMeleeAnimator.GetNextAnimatorStateInfo(0).IsName(activeMeleeStateName))
+                return;
+
+            // 刚 Play 的一帧仍可能报旧状态；机械师出刀先钉回，避免第三刀被立刻 Complete
+            if (isMachinistMeleeAttacking)
+            {
+                BlockUpperAirPhaseForHorizontalShoot();
+                activeMeleeAnimator.Play(activeMeleeStateName, 0, 0f);
+                return;
+            }
 
             CompleteMelee();
             return;

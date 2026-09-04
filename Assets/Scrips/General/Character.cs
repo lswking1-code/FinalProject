@@ -105,9 +105,12 @@ public class Character : MonoBehaviour,ISaveable
     public UnityEvent<Transform> OnTakeDamage;// 受伤时广播，参数为攻击者 Transform
     public UnityEvent OnDie;
 
-    // 初始化时设置满血，使敌人也能在 Start 时获得正确血量
+    // 敌人开局补满血；玩家血量由读档 / ResetForNewGame 负责，避免首次启用冲掉存档
     private void Start()
     {
+        if (CompareTag("Player"))
+            return;
+
         currentHealth = maxHealth;
         NotifyStatsChanged();
     }
@@ -160,6 +163,17 @@ public class Character : MonoBehaviour,ISaveable
     {
         ISaveable saveable = this;
         saveable.RegisterSaveData();
+        // 读档重载：补回淡出窗口里误扣的弹药。传送切关必须跳过，否则会套成上一关存档点的弹药。
+        if (SceneLoader.ShouldApplySaveOnEnable())
+            ApplyLoadedStats();
+    }
+
+    void ApplyLoadedStats()
+    {
+        if (DataManager.instance?.CurrentData == null)
+            return;
+
+        LoadSaveData(DataManager.instance.CurrentData, restorePosition: false);
     }
 
     private void OnDisable()
@@ -588,6 +602,11 @@ public class Character : MonoBehaviour,ISaveable
 
     public void LoadSaveData(Data data)
     {
+        LoadSaveData(data, restorePosition: true);
+    }
+
+    void LoadSaveData(Data data, bool restorePosition)
+    {
         if (!TryGetPersistId(out string id))
             return;
 
@@ -600,7 +619,8 @@ public class Character : MonoBehaviour,ISaveable
         forcedInvulnerable = false;
         currentHealth = data.floatSavedData[id + "health"];
         currentPower = data.floatSavedData[id + "power"];
-        transform.position = data.characterPosDict[id].ToVector3();
+        if (restorePosition)
+            transform.position = data.characterPosDict[id].ToVector3();
 
         if (data.floatSavedData.TryGetValue(id + "abilityPower", out float ap))
             AbilityPower = ap;

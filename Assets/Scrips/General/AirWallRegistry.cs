@@ -9,6 +9,9 @@ public static class AirWallRegistry
 {
     const float OverlapDistance = 0.01f;
     const float InsideSkin = 0.02f;
+    const int ProbeHitCapacity = 24;
+
+    static readonly Collider2D[] s_probeHits = new Collider2D[ProbeHitCapacity];
 
     struct Binding
     {
@@ -57,6 +60,214 @@ public static class AirWallRegistry
             return false;
 
         return Vector2.Dot(velocity, toCenter) > 0f;
+    }
+
+    /// <summary>
+    /// 收集敌人用于穿墙忽略的全部实体碰撞，以及用于封门的主体碰撞（根节点，排除顶板/攻击盒）。
+    /// </summary>
+    public static void CollectEnemyBodyColliders(
+        GameObject root,
+        List<Collider2D> allBodies,
+        List<Collider2D> lockBodies)
+    {
+        allBodies?.Clear();
+        lockBodies?.Clear();
+        if (root == null)
+            return;
+
+        var cols = root.GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < cols.Length; i++)
+        {
+            Collider2D col = cols[i];
+            if (col == null || !col.enabled || col.isTrigger)
+                continue;
+
+            allBodies?.Add(col);
+        }
+
+        var rootCols = root.GetComponents<Collider2D>();
+        for (int i = 0; i < rootCols.Length; i++)
+        {
+            Collider2D col = rootCols[i];
+            if (col == null || !col.enabled || col.isTrigger || IsAuxiliaryBodyCollider(col))
+                continue;
+
+            lockBodies?.Add(col);
+        }
+
+        if (lockBodies != null && lockBodies.Count == 0 && allBodies != null)
+        {
+            for (int i = 0; i < allBodies.Count; i++)
+            {
+                Collider2D col = allBodies[i];
+                if (col == null || IsAuxiliaryBodyCollider(col))
+                    continue;
+
+                lockBodies.Add(col);
+                break;
+            }
+        }
+    }
+
+    public static Vector2 GetLockBodyCenter(IReadOnlyList<Collider2D> lockBodies, Vector2 fallback)
+    {
+        if (lockBodies == null)
+            return fallback;
+
+        for (int i = 0; i < lockBodies.Count; i++)
+        {
+            Collider2D body = lockBodies[i];
+            if (body == null || !body.enabled)
+                continue;
+            return body.bounds.center;
+        }
+
+        return fallback;
+    }
+
+    public static Vector2 ResolveCageCenter(IReadOnlyList<Collider2D> walls, Collider2D cage, Vector2 fallback)
+    {
+        return GetCageCenter(walls, cage, fallback);
+    }
+
+    /// <summary>
+    /// 主体中心尚未越过该面墙内沿时，允许 IgnoreCollision 以便从区外穿入。
+    /// 中心一旦进笼即应恢复碰撞，宽体单位不必等整圈 AABB 完全过线。
+    /// </summary>
+    public static bool ShouldIgnoreWallForEntry(Vector2 bodyCenter, Collider2D wall, Vector2 cageCenter)
+    {
+        if (wall == null || !wall.enabled)
+            return false;
+
+        return !IsPointPastWall(bodyCenter, wall, cageCenter);
+    }
+
+    public static bool IsOverlappingWall(IReadOnlyList<Collider2D> bodies, Collider2D wall)
+    {
+        if (bodies == null || wall == null || !wall.enabled)
+            return false;
+
+        for (int i = 0; i < bodies.Count; i++)
+        {
+            Collider2D body = bodies[i];
+            if (body == null || !body.enabled)
+                continue;
+
+            var distance = Physics2D.Distance(body, wall);
+            if (distance.isOverlapped || distance.distance <= OverlapDistance)
+                return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsPointPastWall(Vector2 point, Collider2D wall, Vector2 cageCenter)
+    {
+        if (wall == null)
+            return true;
+
+        return IsBoundsPastWall(new Bounds(point, Vector3.zero), wall.bounds, cageCenter);
+    }
+
+    /// <summary>
+    /// 将点拉回已封死墙的内侧，防止高速冲撞在 IgnoreCollision 窗口穿出后停在区外。
+    /// </summary>
+    public static Vector2 ClampPointPastWalls(
+        Vector2 point,
+        IReadOnlyList<Collider2D> walls,
+        Vector2 cageCenter,
+        ICollection<Collider2D> sealedWalls)
+    {
+        if (walls == null || walls.Count == 0)
+            return point;
+
+        Vector2 result = point;
+        for (int i = 0; i < walls.Count; i++)
+        {
+            Collider2D wall = walls[i];
+            if (wall == null || !wall.enabled)
+                continue;
+            if (sealedWalls != null && !sealedWalls.Contains(wall))
+                continue;
+            if (IsPointPastWall(result, wall, cageCenter))
+                continue;
+
+            result = ProjectPointPastWall(result, wall.bounds, cageCenter);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 探测盒是否碰到空气墙，且速度是朝笼外。进场穿墙（朝笼心）不阻挡。
+    /// </summary>
+    public static bool IsOutboundAirWallAhead(Vector2 probeCenter, Vector2 probeSize, Vector2 velocity)
+    {
+        if (s_walls.Count == 0 || velocity.sqrMagnitude < 0.0001f)
+            return false;
+
+        int count = Physics2D.OverlapBoxNonAlloc(probeCenter, probeSize, 0f, s_probeHits);
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = s_probeHits[i];
+            if (!IsAirWall(hit))
+                continue;
+            if (IsMovementTowardCage(hit, velocity, probeCenter))
+                continue;
+            return true;
+        }
+
+        return false;
+    }
+
+    static bool IsMovementTowardCage(Collider2D wall, Vector2 velocity, Vector2 worldPos)
+    {
+        if (wall == null || !s_walls.TryGetValue(wall, out Binding binding))
+            return false;
+
+        Vector2 center = binding.cage != null
+            ? (Vector2)binding.cage.bounds.center
+            : (Vector2)wall.bounds.center;
+        Vector2 toCenter = center - worldPos;
+        if (toCenter.sqrMagnitude < 0.0001f)
+            return true;
+        if (velocity.sqrMagnitude < 0.0001f)
+            return false;
+
+        return Vector2.Dot(velocity, toCenter) > 0f;
+    }
+
+    static bool IsAuxiliaryBodyCollider(Collider2D col)
+    {
+        if (col == null)
+            return true;
+
+        if (col.GetComponent<RobotTopPlatform>() != null)
+            return true;
+        if (col.GetComponent<PlatformEffector2D>() != null)
+            return true;
+        if (col.GetComponent<Attack>() != null)
+            return true;
+
+        return false;
+    }
+
+    static Vector2 ProjectPointPastWall(Vector2 point, Bounds wall, Vector2 cageCenter)
+    {
+        Vector2 toWall = (Vector2)wall.center - cageCenter;
+        bool treatAsVertical = wall.size.y > wall.size.x
+            || (Mathf.Abs(wall.size.y - wall.size.x) < 0.01f && Mathf.Abs(toWall.x) >= Mathf.Abs(toWall.y));
+
+        if (treatAsVertical)
+        {
+            if (toWall.x < 0f)
+                return new Vector2(Mathf.Max(point.x, wall.max.x), point.y);
+            return new Vector2(Mathf.Min(point.x, wall.min.x), point.y);
+        }
+
+        if (toWall.y < 0f)
+            return new Vector2(point.x, Mathf.Max(point.y, wall.max.y));
+        return new Vector2(point.x, Mathf.Min(point.y, wall.min.y));
     }
 
     /// <summary>

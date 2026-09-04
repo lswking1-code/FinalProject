@@ -376,11 +376,34 @@ public class ArmoredVehicleEnemy : Enemy
 
     public bool IsWallInDirection(float moveDir)
     {
-        if (physicsCheck == null || Mathf.Approximately(moveDir, 0f))
+        if (Mathf.Approximately(moveDir, 0f))
             return false;
 
-        return (moveDir < 0f && physicsCheck.touchLeftWall)
-            || (moveDir > 0f && physicsCheck.touchRightWall);
+        if (physicsCheck != null
+            && ((moveDir < 0f && physicsCheck.touchLeftWall)
+                || (moveDir > 0f && physicsCheck.touchRightWall)))
+            return true;
+
+        return IsOutboundAirWallInDirection(moveDir);
+    }
+
+    bool IsOutboundAirWallInDirection(float moveDir)
+    {
+        var body = GetComponent<Collider2D>();
+        if (body == null)
+            return false;
+
+        Bounds bounds = body.bounds;
+        float probeWidth = 0.18f;
+        float probeHeight = Mathf.Max(0.4f, bounds.size.y * 0.8f);
+        float centerX = moveDir > 0f
+            ? bounds.max.x + probeWidth * 0.5f
+            : bounds.min.x - probeWidth * 0.5f;
+
+        return AirWallRegistry.IsOutboundAirWallAhead(
+            new Vector2(centerX, bounds.center.y),
+            new Vector2(probeWidth, probeHeight),
+            new Vector2(moveDir, 0f));
     }
 
     public void StopHorizontalMotion()

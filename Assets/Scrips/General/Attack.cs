@@ -186,9 +186,7 @@ public class Attack : MonoBehaviour
         Physics2D.SyncTransforms();
 
         overlapBuffer.Clear();
-        var filter = new ContactFilter2D { useTriggers = true };
-        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
-        col.Overlap(filter, overlapBuffer);
+        col.Overlap(CreateOverlapFilter(), overlapBuffer);
 
         for (int i = 0; i < overlapBuffer.Count; i++)
         {
@@ -224,15 +222,20 @@ public class Attack : MonoBehaviour
         Physics2D.SyncTransforms();
 
         overlapBuffer.Clear();
-        var filter = new ContactFilter2D { useTriggers = true };
-        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
-        col.Overlap(filter, overlapBuffer);
+        col.Overlap(CreateOverlapFilter(), overlapBuffer);
 
         for (int i = 0; i < overlapBuffer.Count; i++)
         {
             if (overlapBuffer[i] != null)
                 TryDamage(overlapBuffer[i]);
         }
+    }
+
+    ContactFilter2D CreateOverlapFilter()
+    {
+        var filter = new ContactFilter2D { useTriggers = true };
+        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+        return filter;
     }
 
     void OnTriggerEnter2D(Collider2D collision) => TryDamage(collision);

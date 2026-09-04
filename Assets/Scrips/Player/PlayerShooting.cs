@@ -102,6 +102,7 @@ public class PlayerShooting : MonoBehaviour
     float chargePressTime;
     int chargeWeaponId = -1;
     float laserNextAmmoTime;
+    bool ignoreHeldAttack;
 
     void Awake()
     {
@@ -113,15 +114,16 @@ public class PlayerShooting : MonoBehaviour
         character = GetComponent<Character>();
     }
 
-    void OnEnable() => actions.Player.Enable();
+    void OnEnable()
+    {
+        actions.Player.Enable();
+        ignoreHeldAttack = true;
+    }
 
     void OnDisable()
     {
         actions.Player.Disable();
-        StopBurst();
-        ExitSpinUp();
-        CancelChargeShot(playRelease: false);
-        EndLaser(immediate: true);
+        ResetCombatState();
     }
 
     void OnDestroy()
@@ -132,8 +134,30 @@ public class PlayerShooting : MonoBehaviour
         actions?.Dispose();
     }
 
+    public void ResetCombatState()
+    {
+        StopBurst();
+        ExitSpinUp();
+        CancelChargeShot(playRelease: false);
+        EndLaser(immediate: true);
+        ignoreHeldAttack = true;
+    }
+
+    bool ShouldIgnoreHeldAttack()
+    {
+        if (!ignoreHeldAttack)
+            return false;
+        if (actions.Player.Attack.IsPressed())
+            return true;
+        ignoreHeldAttack = false;
+        return false;
+    }
+
     void Update()
     {
+        if (ShouldIgnoreHeldAttack())
+            return;
+
         WeaponFireConfig config = ResolveFireConfig();
         bool holdLaser = config != null && config.holdToFire;
         bool chargeHold = config != null && config.chargeOnHold;

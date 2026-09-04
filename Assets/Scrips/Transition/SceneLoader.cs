@@ -89,6 +89,17 @@ public class SceneLoader : MonoBehaviour, ISaveable
     bool hasSceneEntry;
     bool pendingRecordEntry;
     bool pendingSaveAfterRestart;
+    bool restoringFromSave;
+
+    /// <summary>
+    /// 切关 OnEnable 是否应套用存档数值。
+    /// 传送/新游戏保持当前弹药；只有读档重载才需要把淡出窗口里误扣的弹盖回去。
+    /// </summary>
+    public static bool ShouldApplySaveOnEnable()
+    {
+        var loader = FindFirstObjectByType<SceneLoader>();
+        return loader == null || !loader.isLoading || loader.restoringFromSave;
+    }
 
     /// <summary>当前 Location 关卡的进入坐标。未记录过则返回 false。</summary>
     public bool TryGetCurrentSceneEntry(out Vector3 position)
@@ -521,8 +532,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
     {
         if (playerTrans != null)
         {
-            playerTrans.position = positionToGo;
-            cameraControl?.SnapCameraToFollowTarget();
+            if (playerTrans.gameObject.activeInHierarchy)
+                playerTrans.GetComponent<PlayerMovement>()?.BeginExternalControl(false);
+            PlacePlayerAt(positionToGo);
         }
 
         GrantPlayerSpawnInvulnerability();
@@ -568,12 +580,15 @@ public class SceneLoader : MonoBehaviour, ISaveable
             isLoading = false;
             pendingRecordEntry = false;
             pendingSaveAfterRestart = false;
+            restoringFromSave = false;
             return;
         }
 
-        playerTrans.position = positionToGo;
+        PlacePlayerAt(positionToGo);
 
         playerTrans.gameObject.SetActive(currentLoadedScene.sceneType != SceneType.Menu);
+        // OnEnable 可能改过 Transform，启用后再钉一次传送点坐标
+        PlacePlayerAt(positionToGo);
         BindCameraToPlayer();
 
         if (fadeScreen)
@@ -584,6 +599,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         bgmManager?.PlayForScene(currentLoadedScene);
 
         isLoading = false;
+        restoringFromSave = false;
 
         if (currentLoadedScene.sceneType == SceneType.Loaction)
         {
@@ -638,6 +654,22 @@ public class SceneLoader : MonoBehaviour, ISaveable
         return !string.IsNullOrEmpty(guidA) && guidA == guidB;
     }
 
+    void PlacePlayerAt(Vector3 position)
+    {
+        if (playerTrans == null)
+            return;
+
+        playerTrans.position = position;
+        var rb = playerTrans.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.position = position;
+        }
+
+        cameraControl?.SnapCameraToFollowTarget();
+    }
+
     void GrantPlayerSpawnInvulnerability()
     {
         if (spawnInvulnerableDuration <= 0f || playerTrans == null)
@@ -676,13 +708,13 @@ public class SceneLoader : MonoBehaviour, ISaveable
         var playerID = playerTrans.GetComponent<DataDefination>().ID;
         if (data.characterPosDict.ContainsKey(playerID))
         {
+            restoringFromSave = true;
             positionToGo = data.characterPosDict[playerID].ToVector3();
             sceneToLoad = data.GetSavedScene();
 
             // Character 可能已瞬移，也可能还没轮到；先放到存档点并 Snap。
             // 否则坠崖读档会先淡出 0.5s，镜头仍停在坑底，视差采到错误基线。
-            playerTrans.position = positionToGo;
-            cameraControl?.SnapCameraToFollowTarget();
+            PlacePlayerAt(positionToGo);
 
             OnLoadRequestEvent(sceneToLoad, positionToGo, true);
         }

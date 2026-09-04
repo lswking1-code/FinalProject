@@ -28,6 +28,8 @@ public class OneWayAirWallVolume : MonoBehaviour
     public bool IsActive => isActive;
     internal IReadOnlyList<Collider2D> GetAirWallColliders() => airWallColliders;
 
+    internal Collider2D GetCageCollider() => cageBounds;
+
     public static void PrepareSpawnedEnemyAll(GameObject enemyObject)
     {
         for (int i = s_activeVolumes.Count - 1; i >= 0; i--)
@@ -317,40 +319,34 @@ public class OneWayAirWallVolume : MonoBehaviour
     }
 
     /// <summary>
-    /// 敌人单向空气墙：区外 IgnoreCollision，完全进入笼内后恢复碰撞。
+    /// 敌人单向空气墙：区外按墙 IgnoreCollision，主体中心越过该墙内沿后恢复碰撞。
     /// </summary>
     class EnemyOneWayAirWallGate : MonoBehaviour
     {
         OneWayAirWallVolume volume;
         readonly List<Collider2D> bodyColliders = new();
+        readonly List<Collider2D> lockBodies = new();
+        readonly HashSet<Collider2D> enteredWalls = new();
+        readonly HashSet<Collider2D> sealedWalls = new();
         bool sealedInside;
 
         public void Bind(OneWayAirWallVolume owner)
         {
             volume = owner;
             sealedInside = false;
+            enteredWalls.Clear();
+            sealedWalls.Clear();
             CacheBodyColliders();
             EvaluateGate();
         }
 
         void CacheBodyColliders()
         {
-            bodyColliders.Clear();
-            var cols = GetComponentsInChildren<Collider2D>(true);
-            for (int i = 0; i < cols.Length; i++)
-            {
-                var col = cols[i];
-                if (col == null || !col.enabled || col.isTrigger)
-                    continue;
-                bodyColliders.Add(col);
-            }
+            AirWallRegistry.CollectEnemyBodyColliders(gameObject, bodyColliders, lockBodies);
         }
 
         void FixedUpdate()
         {
-            if (sealedInside)
-                return;
-
             if (volume == null || !volume.IsActive)
             {
                 SetIgnoringWalls(false);
@@ -358,7 +354,10 @@ public class OneWayAirWallVolume : MonoBehaviour
                 return;
             }
 
-            EvaluateGate();
+            if (!sealedInside)
+                EvaluateGate();
+
+            ClampSealedCenterInside();
         }
 
         void EvaluateGate()
@@ -369,22 +368,89 @@ public class OneWayAirWallVolume : MonoBehaviour
             if (bodyColliders.Count == 0)
                 CacheBodyColliders();
 
-            if (bodyColliders.Count == 0)
-            {
-                SetIgnoringWalls(true);
-                return;
-            }
-
-            bool fullyInside = volume.IsEnemyFullyInsideCombatArea(bodyColliders, transform.position);
-
-            if (fullyInside)
+            var walls = volume.GetAirWallColliders();
+            if (walls == null || walls.Count == 0)
             {
                 SetIgnoringWalls(false);
                 sealedInside = true;
                 return;
             }
 
-            SetIgnoringWalls(true);
+            if (bodyColliders.Count == 0)
+            {
+                SetIgnoringWalls(true);
+                return;
+            }
+
+            Vector2 cageCenter = AirWallRegistry.ResolveCageCenter(
+                walls, volume.GetCageCollider(), transform.position);
+            Vector2 bodyCenter = AirWallRegistry.GetLockBodyCenter(lockBodies, transform.position);
+
+            bool allSealed = true;
+            for (int w = 0; w < walls.Count; w++)
+            {
+                var wall = walls[w];
+                if (wall == null || !wall.enabled)
+                    continue;
+
+                bool centerPast = enteredWalls.Contains(wall)
+                    || !AirWallRegistry.ShouldIgnoreWallForEntry(bodyCenter, wall, cageCenter);
+
+                if (!centerPast)
+                {
+                    SetIgnoreWall(wall, true);
+                    allSealed = false;
+                    continue;
+                }
+
+                enteredWalls.Add(wall);
+
+                if (sealedWalls.Contains(wall)
+                    || !AirWallRegistry.IsOverlappingWall(lockBodies, wall))
+                {
+                    SetIgnoreWall(wall, false);
+                    sealedWalls.Add(wall);
+                    continue;
+                }
+
+                SetIgnoreWall(wall, true);
+                allSealed = false;
+            }
+
+            sealedInside = allSealed;
+        }
+
+        void ClampSealedCenterInside()
+        {
+            if (enteredWalls.Count == 0)
+                return;
+
+            var walls = volume.GetAirWallColliders();
+            if (walls == null || walls.Count == 0)
+                return;
+
+            Vector2 cageCenter = AirWallRegistry.ResolveCageCenter(
+                walls, volume.GetCageCollider(), transform.position);
+            Vector2 bodyCenter = AirWallRegistry.GetLockBodyCenter(lockBodies, transform.position);
+            Vector2 clamped = AirWallRegistry.ClampPointPastWalls(
+                bodyCenter, walls, cageCenter, enteredWalls);
+
+            Vector2 delta = clamped - bodyCenter;
+            if (delta.sqrMagnitude < 0.0001f)
+                return;
+
+            transform.position += (Vector3)delta;
+
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb == null)
+                return;
+
+            Vector2 velocity = rb.linearVelocity;
+            if (delta.x != 0f && velocity.x * delta.x < 0f)
+                velocity.x = 0f;
+            if (delta.y != 0f && velocity.y * delta.y < 0f)
+                velocity.y = 0f;
+            rb.linearVelocity = velocity;
         }
 
         void SetIgnoringWalls(bool ignore)
@@ -396,19 +462,21 @@ public class OneWayAirWallVolume : MonoBehaviour
             if (walls == null)
                 return;
 
+            for (int w = 0; w < walls.Count; w++)
+                SetIgnoreWall(walls[w], ignore);
+        }
+
+        void SetIgnoreWall(Collider2D wall, bool ignore)
+        {
+            if (wall == null)
+                return;
+
             for (int b = 0; b < bodyColliders.Count; b++)
             {
                 var body = bodyColliders[b];
                 if (body == null)
                     continue;
-
-                for (int w = 0; w < walls.Count; w++)
-                {
-                    var wall = walls[w];
-                    if (wall == null)
-                        continue;
-                    Physics2D.IgnoreCollision(body, wall, ignore);
-                }
+                Physics2D.IgnoreCollision(body, wall, ignore);
             }
         }
 

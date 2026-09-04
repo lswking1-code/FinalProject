@@ -72,6 +72,12 @@ public class ArmoredVehicleRamState : BaseState
             return;
         }
 
+        if (vehicle.IsWallInDirection(dashDir) || currentEnemy.IsLedgeBlocking(dashDir))
+        {
+            vehicle.StopHorizontalMotion();
+            return;
+        }
+
         currentEnemy.currentSpeed = vehicle.ramSpeed;
         vehicle.MoveHorizontal(dashDir);
     }

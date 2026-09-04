@@ -11,7 +11,7 @@ using UnityEngine.Events;
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
 /// UnlockLock() 只解开空气墙与镜头，不结束遭遇、不停刷。
 /// startOnPlayerEnter：默认 true（进区开战）；取消后仅外部 StartEncounter() 开战。
-/// 敌人空气墙为单向：区外可穿入，进入后锁定不让出区；敌人弹不能穿过空气墙。
+/// 敌人空气墙为单向：区外可穿入，主体中心进入后按墙锁定不让出区；敌人弹不能穿过空气墙。
 /// 可选弹药援助：停留过久且 S/M/L 全空时在固定点刷 BulletBox。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
@@ -41,7 +41,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] bool autoEndWhenCleared = true;
     [Tooltip("启用空气墙后先与玩家忽略碰撞，直到玩家不再与空气墙重叠，避免卡在墙外")]
     [SerializeField] bool delaySealAirWalls = true;
-    [Tooltip("允许敌人从区外单向穿入空气墙；完全进入后恢复碰撞，不可再穿出")]
+    [Tooltip("允许敌人从区外单向穿入空气墙；主体中心进入后按墙恢复碰撞，不可再穿出")]
     [SerializeField] bool allowEnemiesThroughAirWalls = true;
 
     [Header("弹药援助")]
@@ -560,6 +560,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     internal IReadOnlyList<Collider2D> GetAirWallColliders() => airWallColliders;
 
+    internal Collider2D GetCageCollider() => encounterBounds;
+
     internal bool IsEnemyFullyInsideCombatArea(IReadOnlyList<Collider2D> bodyColliders, Vector2 fallbackPoint)
     {
         return AirWallRegistry.IsBodyFullyInsideCage(
@@ -904,48 +906,46 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 敌人单向空气墙：区外/穿墙过程中 IgnoreCollision，整圈身体越过空气墙内沿后恢复碰撞锁区。
+    /// 敌人单向空气墙：区外/穿墙过程中按墙 IgnoreCollision，
+    /// 主体中心越过某面墙内沿后恢复该墙碰撞，不可再从该侧穿出。
     /// </summary>
     class EnemyOneWayAirWallGate : MonoBehaviour
     {
         EncounterZone zone;
         readonly List<Collider2D> bodyColliders = new();
+        readonly List<Collider2D> lockBodies = new();
+        readonly HashSet<Collider2D> enteredWalls = new();
+        readonly HashSet<Collider2D> sealedWalls = new();
         bool sealedInside;
 
         public void Bind(EncounterZone owner)
         {
             zone = owner;
             sealedInside = false;
+            enteredWalls.Clear();
+            sealedWalls.Clear();
             CacheBodyColliders();
             EvaluateGate();
         }
 
         void CacheBodyColliders()
         {
-            bodyColliders.Clear();
-            var cols = GetComponentsInChildren<Collider2D>(true);
-            for (int i = 0; i < cols.Length; i++)
-            {
-                var col = cols[i];
-                if (col == null || !col.enabled || col.isTrigger)
-                    continue;
-                bodyColliders.Add(col);
-            }
+            AirWallRegistry.CollectEnemyBodyColliders(gameObject, bodyColliders, lockBodies);
         }
 
         void FixedUpdate()
         {
-            if (sealedInside)
-                return;
-
-            if (zone == null || !zone.IsActive)
+            if (zone == null || !zone.IsActive || zone.LockReleased)
             {
                 SetIgnoringWalls(false);
                 Destroy(this);
                 return;
             }
 
-            EvaluateGate();
+            if (!sealedInside)
+                EvaluateGate();
+
+            ClampSealedCenterInside();
         }
 
         void EvaluateGate()
@@ -956,22 +956,90 @@ public class EncounterZone : MonoBehaviour, ISaveable
             if (bodyColliders.Count == 0)
                 CacheBodyColliders();
 
-            if (bodyColliders.Count == 0)
-            {
-                SetIgnoringWalls(true);
-                return;
-            }
-
-            bool fullyInside = zone.IsEnemyFullyInsideCombatArea(bodyColliders, transform.position);
-
-            if (fullyInside)
+            var walls = zone.GetAirWallColliders();
+            if (walls == null || walls.Count == 0)
             {
                 SetIgnoringWalls(false);
                 sealedInside = true;
                 return;
             }
 
-            SetIgnoringWalls(true);
+            if (bodyColliders.Count == 0)
+            {
+                SetIgnoringWalls(true);
+                return;
+            }
+
+            Vector2 cageCenter = AirWallRegistry.ResolveCageCenter(
+                walls, zone.GetCageCollider(), transform.position);
+            Vector2 bodyCenter = AirWallRegistry.GetLockBodyCenter(lockBodies, transform.position);
+
+            bool allSealed = true;
+            for (int w = 0; w < walls.Count; w++)
+            {
+                var wall = walls[w];
+                if (wall == null || !wall.enabled)
+                    continue;
+
+                bool centerPast = enteredWalls.Contains(wall)
+                    || !AirWallRegistry.ShouldIgnoreWallForEntry(bodyCenter, wall, cageCenter);
+
+                if (!centerPast)
+                {
+                    SetIgnoreWall(wall, true);
+                    allSealed = false;
+                    continue;
+                }
+
+                enteredWalls.Add(wall);
+
+                if (sealedWalls.Contains(wall)
+                    || !AirWallRegistry.IsOverlappingWall(lockBodies, wall))
+                {
+                    SetIgnoreWall(wall, false);
+                    sealedWalls.Add(wall);
+                    continue;
+                }
+
+                // 中心已进、车体仍叠墙：继续忽略以免被物理弹开，靠 AI / 钳位挡住出界
+                SetIgnoreWall(wall, true);
+                allSealed = false;
+            }
+
+            sealedInside = allSealed;
+        }
+
+        void ClampSealedCenterInside()
+        {
+            if (enteredWalls.Count == 0)
+                return;
+
+            var walls = zone.GetAirWallColliders();
+            if (walls == null || walls.Count == 0)
+                return;
+
+            Vector2 cageCenter = AirWallRegistry.ResolveCageCenter(
+                walls, zone.GetCageCollider(), transform.position);
+            Vector2 bodyCenter = AirWallRegistry.GetLockBodyCenter(lockBodies, transform.position);
+            Vector2 clamped = AirWallRegistry.ClampPointPastWalls(
+                bodyCenter, walls, cageCenter, enteredWalls);
+
+            Vector2 delta = clamped - bodyCenter;
+            if (delta.sqrMagnitude < 0.0001f)
+                return;
+
+            transform.position += (Vector3)delta;
+
+            var rb = GetComponent<Rigidbody2D>();
+            if (rb == null)
+                return;
+
+            Vector2 velocity = rb.linearVelocity;
+            if (delta.x != 0f && velocity.x * delta.x < 0f)
+                velocity.x = 0f;
+            if (delta.y != 0f && velocity.y * delta.y < 0f)
+                velocity.y = 0f;
+            rb.linearVelocity = velocity;
         }
 
         void SetIgnoringWalls(bool ignore)
@@ -983,19 +1051,21 @@ public class EncounterZone : MonoBehaviour, ISaveable
             if (walls == null)
                 return;
 
+            for (int w = 0; w < walls.Count; w++)
+                SetIgnoreWall(walls[w], ignore);
+        }
+
+        void SetIgnoreWall(Collider2D wall, bool ignore)
+        {
+            if (wall == null)
+                return;
+
             for (int b = 0; b < bodyColliders.Count; b++)
             {
                 var body = bodyColliders[b];
                 if (body == null)
                     continue;
-
-                for (int w = 0; w < walls.Count; w++)
-                {
-                    var wall = walls[w];
-                    if (wall == null)
-                        continue;
-                    Physics2D.IgnoreCollision(body, wall, ignore);
-                }
+                Physics2D.IgnoreCollision(body, wall, ignore);
             }
         }
 

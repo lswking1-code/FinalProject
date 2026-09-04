@@ -1094,8 +1094,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         savedGravityScale = normalGravityScale;
         savedColliderEnabled = capsuleCollider != null && capsuleCollider.enabled;
 
-        rb.gravityScale = 0f;
-        rb.linearVelocity = Vector2.zero;
+        if (rb != null)
+        {
+            rb.gravityScale = 0f;
+            rb.linearVelocity = Vector2.zero;
+        }
         if (disableCollider && capsuleCollider != null)
             capsuleCollider.enabled = false;
 
@@ -1148,7 +1151,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         if (!actionLocked)
             return;
 
-        rb.gravityScale = savedGravityScale;
+        if (rb != null)
+            rb.gravityScale = savedGravityScale;
         if (capsuleCollider != null)
             capsuleCollider.enabled = savedColliderEnabled;
 

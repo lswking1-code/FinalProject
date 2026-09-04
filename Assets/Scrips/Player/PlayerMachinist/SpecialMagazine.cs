@@ -35,7 +35,8 @@ public class SpecialMagazine : MonoBehaviour, ISaveable
     void OnEnable()
     {
         ((ISaveable)this).RegisterSaveData();
-        DataManager.instance?.ApplyLoadedData(this);
+        if (SceneLoader.ShouldApplySaveOnEnable())
+            DataManager.instance?.ApplyLoadedData(this);
     }
 
     void OnDisable() => ((ISaveable)this).UnregisterSaveData();

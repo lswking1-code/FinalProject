@@ -282,6 +282,7 @@ public class PlayerDeath : MonoBehaviour
         character?.Revive();
         character?.RestoreFullHealth();
         playerAnim?.ResetFromDeath();
+        ResetCombatState();
         playerMovement?.EndExternalControl();
     }
 
@@ -305,7 +306,9 @@ public class PlayerDeath : MonoBehaviour
         StopWhiteFlash();
         character?.Revive();
         playerAnim?.ResetFromDeath();
-        playerMovement?.EndExternalControl();
+        ResetCombatState();
+        if (!IsSceneLoading())
+            playerMovement?.EndExternalControl();
         ApplyReviveInvulnerability();
     }
 
@@ -318,8 +321,21 @@ public class PlayerDeath : MonoBehaviour
         character?.SetForcedInvulnerable(false);
         character?.Revive();
         playerAnim?.ResetFromDeath();
+        ResetCombatState();
         playerMovement?.EndExternalControl();
         character?.ResetForNewGame();
+    }
+
+    void ResetCombatState()
+    {
+        GetComponent<PlayerShooting>()?.ResetCombatState();
+        GetComponent<MachinistShooting>()?.ResetCombatState();
+    }
+
+    static bool IsSceneLoading()
+    {
+        var loader = FindFirstObjectByType<SceneLoader>();
+        return loader != null && loader.IsLoading;
     }
 
     void ApplyReviveInvulnerability()

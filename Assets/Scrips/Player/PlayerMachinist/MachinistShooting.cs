@@ -2,6 +2,23 @@ using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[System.Serializable]
+public class MachinistMeleeComboStep
+{
+    [Tooltip("上半身 Animator 状态名，须与 upM 一致")]
+    public string upperState;
+    [Tooltip("下半身 Animator 状态名，须与 downM 一致；留空则地面也不播下半身")]
+    public string lowerState;
+    [Tooltip("该段启用的判定盒")]
+    public GameObject hitbox;
+    [Tooltip("判定开始（秒）；<0 则用全局 meleeHitStart")]
+    public float hitStart = -1f;
+    [Tooltip("判定结束（秒）；<0 则用全局 meleeHitEnd")]
+    public float hitEnd = -1f;
+    [Tooltip("机器人 Blast 段（0=Blast1）。<0 则用本刀在列表中的下标")]
+    public int robotBlastStep = -1;
+}
+
 [DefaultExecutionOrder(100)]
 [RequireComponent(typeof(PlayerAnim))]
 [RequireComponent(typeof(PlayerMovement))]
@@ -59,9 +76,29 @@ public class MachinistShooting : MonoBehaviour
     [SerializeField] VoidEventSO robotBlastComboEvent;
 
     [Header("近战判定")]
-    [Tooltip("对齐 M_Melee_Attack*_up 里 BlastCombo 激活窗（约 0.14–0.28 / 0.57s）")]
-    [SerializeField] float meleeHitStart = 0.25f;
+    [Tooltip("判定开始（秒，从出刀动画开头计）。短刀约第 1 帧。")]
+    [SerializeField] float meleeHitStart = 0.14f;
+    [Tooltip("判定结束（秒）。需覆盖短刀最后一帧（Attack3 约 0.43s）。")]
     [SerializeField] float meleeHitEnd = 0.5f;
+    [Tooltip("按出刀顺序配置：动画 ↔ 判定盒 ↔ 机器人 Blast。改顺序只改这一列表。")]
+    [SerializeField] MachinistMeleeComboStep[] meleeComboSteps =
+    {
+        new MachinistMeleeComboStep
+        {
+            upperState = "M_Melee_Attack1_up",
+            lowerState = "M_Melee_Attack1_down",
+        },
+        new MachinistMeleeComboStep
+        {
+            upperState = "M_Melee_Attack2_up",
+            lowerState = "M_Melee_Attack2_down",
+        },
+        new MachinistMeleeComboStep
+        {
+            upperState = "M_Melee_Attack3_up",
+            lowerState = "M_Melee_Attack3_down",
+        },
+    };
 
     [Header("音效")]
     [SerializeField] EventReference fireEvent;
@@ -92,9 +129,9 @@ public class MachinistShooting : MonoBehaviour
     float machineBurstNextFireAt;
     FireDir machineBurstDir;
 
-    GameObject[] meleeHitboxes;
     Attack[] meleeAttacks;
     GameObject activeMeleeHitbox;
+    bool ignoreHeldAttack;
 
     void Awake()
     {
@@ -117,6 +154,7 @@ public class MachinistShooting : MonoBehaviour
             specialMagazine.RoundConsumed += OnSpecialMagazineChanged;
         }
 
+        ignoreHeldAttack = true;
         SyncMeleeStance();
     }
 
@@ -129,6 +167,7 @@ public class MachinistShooting : MonoBehaviour
         }
 
         actions.Player.Disable();
+        ResetCombatState();
         DisableMeleeHitboxes();
     }
 
@@ -136,13 +175,46 @@ public class MachinistShooting : MonoBehaviour
 
     void LateUpdate() => UpdateMeleeHitboxes();
 
+    public void ResetCombatState()
+    {
+        phase = ShootPhase.Idle;
+        CancelPendingFire();
+        CancelMachineBurst();
+        playerAnim?.CancelCharge();
+        ignoreHeldAttack = true;
+    }
+
+    bool ShouldIgnoreHeldAttack()
+    {
+        if (!ignoreHeldAttack)
+            return false;
+        if (actions.Player.Attack.IsPressed())
+            return true;
+        ignoreHeldAttack = false;
+        return false;
+    }
+
     void Update()
     {
+        if (ShouldIgnoreHeldAttack())
+            return;
+
         TrySpawnPendingProjectile();
         TrySpawnMachineBurstProjectile();
 
         if (playerMovement.IsActionLocked || playerAnim.IsDispatching || playerAnim.IsPlayingLoadBullet)
             return;
+
+        // 出刀播完前不进射击状态机：最后一发 L 消耗后 IsSpecialLReady 已为 false，
+        // 否则下一次 Attack 会走射击并打断收招。
+        if (playerAnim.IsMachinistMeleeAttacking)
+        {
+            if (phase == ShootPhase.Charging)
+                playerAnim.CancelCharge();
+            phase = ShootPhase.Idle;
+            TryResetComboOnTimeout();
+            return;
+        }
 
         if (IsSpecialLReady())
         {
@@ -245,29 +317,28 @@ public class MachinistShooting : MonoBehaviour
         playerAnim?.SetMachinistMeleeStance(stance);
     }
 
-    void CacheMeleeHitboxes()
+    int MeleeStepCount => meleeComboSteps != null ? meleeComboSteps.Length : 0;
+
+    MachinistMeleeComboStep GetMeleeStep(int step)
     {
-        meleeHitboxes = new GameObject[3];
-        meleeAttacks = new Attack[3];
-        if (playerAnim == null || playerAnim.upperAnimator == null)
-            return;
-
-        Transform attackers = playerAnim.upperAnimator.transform.Find("Attackers");
-        if (attackers == null)
-            return;
-
-        BindMeleeHitbox(0, attackers.Find("BlastCombo1"));
-        BindMeleeHitbox(1, attackers.Find("BlastCombo2"));
-        Transform combo3 = attackers.Find("BlastCombo3");
-        BindMeleeHitbox(2, combo3 != null ? combo3 : attackers.Find("BlastCombo2"));
+        if (meleeComboSteps == null || step < 0 || step >= meleeComboSteps.Length)
+            return null;
+        return meleeComboSteps[step];
     }
 
-    void BindMeleeHitbox(int index, Transform target)
+    void CacheMeleeHitboxes()
+    {
+        int count = MeleeStepCount;
+        meleeAttacks = new Attack[count];
+        for (int i = 0; i < count; i++)
+            BindMeleeHitbox(i, meleeComboSteps[i] != null ? meleeComboSteps[i].hitbox : null);
+    }
+
+    void BindMeleeHitbox(int index, GameObject target)
     {
         if (target == null)
             return;
 
-        meleeHitboxes[index] = target.gameObject;
         var attack = target.GetComponent<Attack>();
         if (attack != null)
         {
@@ -277,7 +348,7 @@ public class MachinistShooting : MonoBehaviour
             meleeAttacks[index] = attack;
         }
 
-        target.gameObject.SetActive(false);
+        target.SetActive(false);
     }
 
     void UpdateMeleeHitboxes()
@@ -288,27 +359,34 @@ public class MachinistShooting : MonoBehaviour
             return;
         }
 
-        int step = Mathf.Clamp(playerAnim.CurrentMachinistMeleeStep, 0, 2);
-        GameObject box = meleeHitboxes != null && step < meleeHitboxes.Length
-            ? meleeHitboxes[step]
-            : null;
+        int step = playerAnim.CurrentMachinistMeleeStep;
+        var cfg = GetMeleeStep(step);
+        GameObject box = cfg != null ? cfg.hitbox : null;
         if (box == null)
             return;
 
-        bool inWindow = playerAnim.TryGetMeleeAnimProgress(out float t)
-            && t >= meleeHitStart
-            && t <= meleeHitEnd;
+        float start = cfg.hitStart >= 0f ? cfg.hitStart : meleeHitStart;
+        float end = cfg.hitEnd >= 0f ? cfg.hitEnd : meleeHitEnd;
+
+        bool inWindow = false;
+        if (playerAnim.TryGetMeleeAnimProgress(out float normalized, out float length) && length > 0.001f)
+        {
+            float elapsed = normalized * length;
+            inWindow = elapsed >= start && elapsed <= end;
+        }
 
         if (inWindow)
         {
-            if (activeMeleeHitbox != box)
-            {
+            if (activeMeleeHitbox != null && activeMeleeHitbox != box)
                 DisableMeleeHitboxes();
-                box.SetActive(true);
-                activeMeleeHitbox = box;
-            }
 
-            meleeAttacks[step]?.ProcessOverlapHits();
+            // 每帧强制打开：Write Defaults / 残留曲线可能把判定盒写回关闭
+            if (!box.activeSelf)
+                box.SetActive(true);
+            activeMeleeHitbox = box;
+
+            if (meleeAttacks != null && step >= 0 && step < meleeAttacks.Length)
+                meleeAttacks[step]?.ProcessOverlapHits();
         }
         else
         {
@@ -318,12 +396,13 @@ public class MachinistShooting : MonoBehaviour
 
     void DisableMeleeHitboxes()
     {
-        if (meleeHitboxes != null)
+        if (meleeComboSteps != null)
         {
-            for (int i = 0; i < meleeHitboxes.Length; i++)
+            for (int i = 0; i < meleeComboSteps.Length; i++)
             {
-                if (meleeHitboxes[i] != null && meleeHitboxes[i].activeSelf)
-                    meleeHitboxes[i].SetActive(false);
+                var box = meleeComboSteps[i] != null ? meleeComboSteps[i].hitbox : null;
+                if (box != null && box.activeSelf)
+                    box.SetActive(false);
             }
         }
 
@@ -332,8 +411,16 @@ public class MachinistShooting : MonoBehaviour
 
     void TryMeleeAttack()
     {
-        int step = Mathf.Clamp(meleeComboIndex, 0, 2);
-        if (!playerAnim.TryPlayMachinistMeleeAttackAnim(step))
+        int count = MeleeStepCount;
+        if (count <= 0)
+            return;
+
+        int step = Mathf.Clamp(meleeComboIndex, 0, count - 1);
+        var cfg = meleeComboSteps[step];
+        if (cfg == null)
+            return;
+
+        if (!playerAnim.TryPlayMachinistMeleeAttackAnim(step, cfg.upperState, cfg.lowerState))
             return;
 
         if (!TryConsumeSpecial(SpecialAmmoType.L))
@@ -348,7 +435,8 @@ public class MachinistShooting : MonoBehaviour
         comboCount = 0;
         lastShotTime = Time.time;
         meleeComboIndex = step + 1;
-        playerAbilities?.TriggerRobotBlastStep(step);
+        int robotStep = cfg.robotBlastStep >= 0 ? cfg.robotBlastStep : step;
+        playerAbilities?.TriggerRobotBlastStep(robotStep);
     }
 
     void FireTapShot()
