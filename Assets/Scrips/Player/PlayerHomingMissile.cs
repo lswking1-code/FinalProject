@@ -121,12 +121,9 @@ public class PlayerHomingMissile : MonoBehaviour
         if (other.CompareTag("Player"))
             return;
 
-        if (IsGround(other) || IsEnemyCollider(other))
+        if (Attack.IsProjectileBlockingCollider(other) || IsEnemyCollider(other))
             Explode();
     }
-
-    static bool IsGround(Collider2D collider) =>
-        LayerMask.LayerToName(collider.gameObject.layer) == "Ground";
 
     static bool IsEnemyCollider(Collider2D collider)
     {

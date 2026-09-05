@@ -1,14 +1,21 @@
 using UnityEngine;
 
 /// <summary>
-/// 升降平台：开关控制。可往复循环，或单次开合（ON 到终点、OFF 回初始位置）。
+/// 升降平台：多开关/压力板组合控制。可往复循环，或单次开合（ON 到终点、OFF 回初始位置）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class ReciprocatingPlatform : MonoBehaviour
 {
+    public enum CombineMode
+    {
+        And,
+        Or,
+    }
+
     [Header("开关")]
-    [SerializeField] ToggleSwitch activationSwitch;
-    [SerializeField] PressurePlate activationPlate;
+    [SerializeField] ToggleSwitch[] activationSwitches;
+    [SerializeField] PressurePlate[] activationPlates;
+    [SerializeField] CombineMode combineMode = CombineMode.Or;
     [SerializeField] bool listenToSwitch = true;
 
     [Header("运动")]
@@ -59,10 +66,7 @@ public class ReciprocatingPlatform : MonoBehaviour
         if (!listenToSwitch)
             return;
 
-        if (activationSwitch != null)
-            activationSwitch.onToggled.AddListener(SetRunning);
-        if (activationPlate != null)
-            activationPlate.onToggled.AddListener(SetRunning);
+        SubscribeInputs();
     }
 
     void Start()
@@ -70,18 +74,17 @@ public class ReciprocatingPlatform : MonoBehaviour
         if (!listenToSwitch)
             return;
 
-        if (activationSwitch != null && activationSwitch.IsOn)
-            SetRunning(true);
-        else if (activationPlate != null && activationPlate.IsOn)
-            SetRunning(true);
+        SetRunning(EvaluateInputs());
     }
 
     void OnDisable()
     {
-        if (activationSwitch != null)
-            activationSwitch.onToggled.RemoveListener(SetRunning);
-        if (activationPlate != null)
-            activationPlate.onToggled.RemoveListener(SetRunning);
+        UnsubscribeInputs();
+    }
+
+    void OnInputChanged(bool _)
+    {
+        SetRunning(EvaluateInputs());
     }
 
     public void SetRunning(bool on)
@@ -89,6 +92,92 @@ public class ReciprocatingPlatform : MonoBehaviour
         isActivated = on;
         if (!oneShot && !isActivated)
             platformVelocity = Vector2.zero;
+    }
+
+    bool EvaluateInputs()
+    {
+        bool hasInput = false;
+        bool anyOn = false;
+        bool allOn = true;
+
+        if (activationSwitches != null)
+        {
+            for (int i = 0; i < activationSwitches.Length; i++)
+            {
+                ToggleSwitch sw = activationSwitches[i];
+                if (sw == null)
+                    continue;
+
+                hasInput = true;
+                if (sw.IsOn)
+                    anyOn = true;
+                else
+                    allOn = false;
+            }
+        }
+
+        if (activationPlates != null)
+        {
+            for (int i = 0; i < activationPlates.Length; i++)
+            {
+                PressurePlate plate = activationPlates[i];
+                if (plate == null)
+                    continue;
+
+                hasInput = true;
+                if (plate.IsOn)
+                    anyOn = true;
+                else
+                    allOn = false;
+            }
+        }
+
+        if (!hasInput)
+            return false;
+
+        return combineMode == CombineMode.And ? allOn : anyOn;
+    }
+
+    void SubscribeInputs()
+    {
+        if (activationSwitches != null)
+        {
+            for (int i = 0; i < activationSwitches.Length; i++)
+            {
+                if (activationSwitches[i] != null)
+                    activationSwitches[i].onToggled.AddListener(OnInputChanged);
+            }
+        }
+
+        if (activationPlates != null)
+        {
+            for (int i = 0; i < activationPlates.Length; i++)
+            {
+                if (activationPlates[i] != null)
+                    activationPlates[i].onToggled.AddListener(OnInputChanged);
+            }
+        }
+    }
+
+    void UnsubscribeInputs()
+    {
+        if (activationSwitches != null)
+        {
+            for (int i = 0; i < activationSwitches.Length; i++)
+            {
+                if (activationSwitches[i] != null)
+                    activationSwitches[i].onToggled.RemoveListener(OnInputChanged);
+            }
+        }
+
+        if (activationPlates != null)
+        {
+            for (int i = 0; i < activationPlates.Length; i++)
+            {
+                if (activationPlates[i] != null)
+                    activationPlates[i].onToggled.RemoveListener(OnInputChanged);
+            }
+        }
     }
 
     void FixedUpdate()

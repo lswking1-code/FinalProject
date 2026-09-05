@@ -52,7 +52,7 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
+        if (Attack.IsProjectileBlockingCollider(collision))
         {
             Destroy(gameObject);
             return;

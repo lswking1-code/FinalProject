@@ -9,7 +9,6 @@ public class TimedChargeLinkedTarget
         ElectrifiedPlatform,
         ActuatedGate,
         ReciprocatingPlatform,
-        LaserGate,
     }
 
     public enum ActivatedState
@@ -71,8 +70,6 @@ public class TimedChargeLinkedTarget
                 return target as ActuatedGate;
             case TargetKind.ReciprocatingPlatform:
                 return target as ReciprocatingPlatform;
-            case TargetKind.LaserGate:
-                return target as LaserGate;
             default:
                 return null;
         }
@@ -88,8 +85,6 @@ public class TimedChargeLinkedTarget
                 return gate.IsOpen;
             case ReciprocatingPlatform reciprocal:
                 return reciprocal.IsRunning;
-            case LaserGate laserGate:
-                return laserGate.IsActive;
             default:
                 return false;
         }
@@ -107,9 +102,6 @@ public class TimedChargeLinkedTarget
                 break;
             case ReciprocatingPlatform reciprocal:
                 reciprocal.SetRunning(state);
-                break;
-            case LaserGate laserGate:
-                laserGate.SetActive(state);
                 break;
         }
     }

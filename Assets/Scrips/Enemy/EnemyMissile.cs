@@ -120,7 +120,7 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
-        if (IsPlayerCollider(other) || IsGround(other))
+        if (IsPlayerCollider(other) || Attack.IsProjectileBlockingCollider(other))
             Explode();
     }
 
@@ -158,9 +158,6 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
         var character = collider.GetComponentInParent<Character>();
         return character != null && character.CompareTag("Player");
     }
-
-    static bool IsGround(Collider2D collider) =>
-        LayerMask.LayerToName(collider.gameObject.layer) == "Ground";
 
     static bool IsRobotTopCollider(Collider2D collider)
     {
