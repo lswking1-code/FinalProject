@@ -35569,6 +35569,10 @@ PrefabInstance:
       propertyPath: dropHealthOnDeath
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
+      propertyPath: enableRollGrenade
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8190837749373279148, guid: e7a8b9c0d1ec7234567890123456789a, type: 3}
       propertyPath: m_Name
       value: GrenadeEnemy

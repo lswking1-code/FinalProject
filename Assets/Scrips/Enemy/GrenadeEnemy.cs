@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 手雷远程敌人：AI 循环与 RangedEnemy 一致，Shot 时以玩家水平位置对应地面为落点投雷。
 /// 精英可开启 Jump 替代蹲伏能力。
+/// 勾选 enableRollGrenade 后改为投掷贴地滚雷。
 /// </summary>
 public class GrenadeEnemy : RangedEnemy
 {
@@ -10,6 +11,8 @@ public class GrenadeEnemy : RangedEnemy
     /// 新像素精灵默认朝右，与旧 Metal Slug 朝左资源相反。
     /// </summary>
     protected override bool SpriteFacesRight => true;
+
+    protected override bool AllowCrouchActions => false;
 
     [Header("手雷")]
     public EnemyGrenade grenadePrefab;
@@ -20,6 +23,12 @@ public class GrenadeEnemy : RangedEnemy
     [SerializeField] float throwSpeed = 8.6f;
     [Tooltip("最小抛射水平距离；玩家更近时仍掷到该距离。不会大于 shootRange")]
     [SerializeField] float minThrowDistance = 2f;
+
+    [Header("进阶能力")]
+    [Tooltip("勾选后改为投掷滚雷，不再投抛物线手雷")]
+    public bool enableRollGrenade;
+    [Tooltip("滚雷预制体；为空则回退 grenadePrefab，并由 InitRoll 强制滚雷行为")]
+    public EnemyGrenade rollGrenadePrefab;
 
     const float MinBallisticTime = 0.05f;
     const float FallbackMinFlightTime = 0.35f;
@@ -46,10 +55,20 @@ public class GrenadeEnemy : RangedEnemy
     /// <summary>
     /// 以玩家水平位置为落点投出一枚手雷；高度取该处地面。
     /// 水平距离夹在 minThrowDistance 与 shootRange 之间。
+    /// 开启 enableRollGrenade 时改为朝玩家投出贴地滚雷。
     /// </summary>
     public void ThrowGrenade()
     {
-        if (grenadePrefab == null || player == null)
+        if (player == null)
+            return;
+
+        if (enableRollGrenade)
+        {
+            ThrowRollGrenade();
+            return;
+        }
+
+        if (grenadePrefab == null)
             return;
 
         Vector3 spawnPos = throwPoint != null ? throwPoint.position : transform.position;
@@ -72,6 +91,25 @@ public class GrenadeEnemy : RangedEnemy
         var grenade = Instantiate(grenadePrefab, spawnPos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(grenade.gameObject, this);
         grenade.Init(dir, Vector2.zero, throwerCollider, angle, speed);
+        FacePlayer();
+    }
+
+    void ThrowRollGrenade()
+    {
+        EnemyGrenade prefab = rollGrenadePrefab != null ? rollGrenadePrefab : grenadePrefab;
+        if (prefab == null)
+            return;
+
+        Vector3 spawnPos = throwPoint != null ? throwPoint.position : transform.position;
+        float dir = Mathf.Sign(player.position.x - transform.position.x);
+        if (dir == 0f)
+            dir = faceDir.x != 0f ? Mathf.Sign(faceDir.x) : 1f;
+
+        Vector2 throwerVelocity = Rb != null ? Rb.linearVelocity : Vector2.zero;
+        var throwerCollider = GetComponent<Collider2D>();
+        var grenade = Instantiate(prefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(grenade.gameObject, this);
+        grenade.InitRoll(dir, throwerVelocity, throwerCollider);
         FacePlayer();
     }
 

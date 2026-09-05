@@ -50,6 +50,7 @@ public class Attack : MonoBehaviour
 
     const string BlastTag = "Blast";
     const float DefaultBlastPropKnockback = 8f;
+    const float DefaultLightPropKnockback = 2f;
 
     /// <summary>成功对 Character 造成伤害时广播（含 Trigger 与外部 TakeDamage 无关）。</summary>
     public event System.Action<Character, int> CharacterDamaged;
@@ -154,7 +155,32 @@ public class Attack : MonoBehaviour
             return false;
         if (HasBlastTag(attacker.transform))
             return true;
-        return attacker.enableKnockback && attacker.knockbackForce > 0f;
+        if (attacker.enableKnockback && attacker.knockbackForce > 0f)
+            return true;
+        return IsPlayerLightPropAttack(attacker);
+    }
+
+    /// <summary>
+    /// 玩家普通射击/近战可轻推场景物。不含镭射、手雷；霰弹等 Blast 走滑行。
+    /// </summary>
+    public static bool IsPlayerLightPropAttack(Attack attacker)
+    {
+        if (attacker == null)
+            return false;
+
+        if (attacker.GetComponentInParent<PlayerLaserBeam>() != null)
+            return false;
+        if (attacker.GetComponentInParent<GrenadeExplosion>() != null)
+            return false;
+
+        if (attacker.GetComponentInParent<IPlayerAmmo>() != null)
+            return true;
+
+        if (attacker.attackType != AttackType.Melee)
+            return false;
+
+        var character = attacker.GetComponentInParent<Character>();
+        return character != null && character.CompareTag("Player");
     }
 
     /// <summary>
@@ -171,15 +197,30 @@ public class Attack : MonoBehaviour
         return collider != null && IsProjectileBlockingLayer(collider.gameObject.layer);
     }
 
-    /// <summary>场景物击退：Blast 即使未勾 enableKnockback 也能推；力为 0 时用默认冲量。</summary>
+    /// <summary>
+    /// 场景物击退：Blast 用默认大冲量；已勾击退用 knockbackForce；其余玩家射击/近战用轻推。
+    /// </summary>
     public static float EffectivePropKnockbackForce(Attack attacker, float resistance)
     {
         if (!ShouldKnockbackProp(attacker))
             return 0f;
 
-        float force = attacker.knockbackForce;
-        if (force <= 0f)
-            force = DefaultBlastPropKnockback;
+        float force;
+        if (HasBlastTag(attacker.transform))
+        {
+            force = attacker.knockbackForce;
+            if (force <= 0f)
+                force = DefaultBlastPropKnockback;
+        }
+        else if (attacker.enableKnockback && attacker.knockbackForce > 0f)
+        {
+            force = attacker.knockbackForce;
+        }
+        else
+        {
+            force = DefaultLightPropKnockback;
+        }
+
         return force / Mathf.Max(1f, resistance);
     }
 

@@ -101,7 +101,7 @@ GameObject:
   - component: {fileID: 2000000000000000007}
   - component: {fileID: 2000000000000000006}
   m_Layer: 7
-  m_Name: EnemyGrenade
+  m_Name: EnemyRollGrenade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -135,10 +135,10 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 0.5
+  m_Mass: 0.25
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 0.7
+  m_GravityScale: 1.5
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -223,19 +223,19 @@ MonoBehaviour:
   defaultThrowAngle: 90
   defaultThrowSpeed: 8.6
   explosionPrefab: {fileID: 1000000000000000006, guid: e6f7a8b9c0db612345f7890123456789, type: 3}
-  throwerHorizontalInherit: 0.5
-  throwerVerticalInherit: 0.5
+  throwerHorizontalInherit: 0.2
+  throwerVerticalInherit: 0
   rollSpeedReference: 12
   minRollAnimSpeed: 0.6
   maxRollAnimSpeed: 1.8
   spinDegreesPerSecond: 720
-  fuseTime: 0.5
+  fuseTime: 2.5
   groundLayer:
     serializedVersion: 2
     m_Bits: 524352
   groundSnapRayDistance: 1.5
   passThroughScanPadding: 1
-  isRollGrenade: 0
+  isRollGrenade: 1
   horizontalSpeed: 2.8
   verticalSpeed: 0.55
   forwardImpulse: 0.3

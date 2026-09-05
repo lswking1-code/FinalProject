@@ -235,7 +235,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &95438999
 RectTransform:
   m_ObjectHideFlags: 0
@@ -314,7 +314,7 @@ MonoBehaviour:
   - {fileID: 922762930}
   menuActions: {fileID: 1046789002}
   language: {fileID: 11400000, guid: 9a6c3e1d4f0b42a5c8d7e6f5a4b3c2d1, type: 2}
-  useEnglish: 0
+  useEnglish: 1
 --- !u!1 &156853045
 GameObject:
   m_ObjectHideFlags: 0
@@ -372,7 +372,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7CBE\u901A\u591A\u79CD\u67AA\u68B0\uFF0C\u53EF\u4EE5\u8FDB\u884C\u6218\u672F\u7FFB\u6EDA\uFF0C\u8FD8\u53EF\u4F7F\u7528\u591A\u79CD\u7279\u5236\u70B8\u5F39\u5BF9\u654C\u4EBA\u8FDB\u884C\u7CBE\u51C6\u6253\u51FB\u3002"
+  m_text: Skilled with multiple firearms. Can tactical-roll and use custom bombs
+    for precise strikes.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -867,7 +868,7 @@ RectTransform:
   m_GameObject: {fileID: 506156438}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 318725616}
@@ -875,7 +876,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 18.1, y: 37}
-  m_SizeDelta: {x: 262.5, y: 331.25}
+  m_SizeDelta: {x: 300, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &506156440
 MonoBehaviour:
@@ -897,7 +898,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -6390111493352511050, guid: b264c8d8ec04571409f1b58e37b78c28, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 453ed566c2d58ff45af131c8c742f2b7, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -994,7 +995,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u53EF\u4EE5\u53EC\u5524\u81EA\u5F8B\u578B\u6218\u672F\u673A\u5668\u4EBA\u201CAE-7\u201C\u8FDB\u884C\u534F\u540C\u6218\u6597\uFF0C\u914D\u5408\u7279\u6B8A\u5F39\u836F\u4E0E\u94A9\u9501\u80FD\u591F\u8FDB\u884C\u591A\u79CD\u6218\u672F\u914D\u5408\u3002"
+  m_text: Can summon autonomous tactical robot "AE-7". Special ammo and a grappling
+    hook enable multiple combos.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -1991,7 +1993,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u64C5\u957F\u8FD1\u6218\u653B\u51FB\uFF0C\u9AD8\u673A\u52A8\u6027\uFF0C\u7279\u5236\u6B66\u5668\u53EF\u4EE5\u6D88\u8017\u5F39\u836F\u53D8\u4E3A\u591A\u79CD\u5F62\u6001\u5E94\u5BF9\u4E0D\u540C\u654C\u4EBA\u3002"
+  m_text: Melee specialist with high mobility. Special weapons spend ammo to shift
+    forms against different foes.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -3094,7 +3097,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: JOHN
+  m_text: JANE
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}

@@ -14,6 +14,8 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
     [SerializeField] float blastSlideSpeed = 10f;
     [Tooltip("Blast 滑行距离。8 ≈ 七八个身位")]
     [SerializeField] float blastSlideDistance = 8f;
+    [Tooltip("非 Blast 轻推冷却，避免机枪连发叠成大推")]
+    [SerializeField] float lightPushCooldown = 0.15f;
 
     Rigidbody2D rb;
     Collider2D[] colliders;
@@ -25,6 +27,7 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
     float blastSlideDir = 1f;
     float blastSlideOriginX;
     float blastSlideUntil;
+    float nextLightPushTime;
 
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
@@ -82,12 +85,16 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
             return;
         }
 
+        if (Time.time < nextLightPushTime)
+            return;
+
         float force = Attack.EffectivePropKnockbackForce(attacker, KnockbackResistance);
         if (force <= 0f)
             return;
 
         rb.WakeUp();
         rb.AddForce(dir * force, ForceMode2D.Impulse);
+        nextLightPushTime = Time.time + Mathf.Max(0f, lightPushCooldown);
     }
 
     void BeginBlastSlide(float dirX)

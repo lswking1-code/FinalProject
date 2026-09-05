@@ -332,6 +332,14 @@ public class Enemy : MonoBehaviour
         return info.IsName(stateName) && info.normalizedTime >= 1f;
     }
 
+    public bool IsNamedAnimPlaying(string stateName)
+    {
+        if (anim == null || anim.runtimeAnimatorController == null || string.IsNullOrEmpty(stateName))
+            return false;
+
+        return anim.GetCurrentAnimatorStateInfo(0).IsName(stateName);
+    }
+
     /// <summary>
     /// 缓存玩家引用。玩家在 Persistent 场景中可能晚于敌人 Awake 才激活。
     /// </summary>

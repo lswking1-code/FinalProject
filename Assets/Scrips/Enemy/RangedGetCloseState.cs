@@ -21,8 +21,7 @@ public class RangedGetCloseState : BaseState
         if (rangedEnemy == null)
             return;
 
-        if (rangedEnemy.ShouldHoldPositionOnMove()
-            || rangedEnemy.GetCombatDistanceToPlayer() <= rangedEnemy.GetSlottedRange(rangedEnemy.shootRange))
+        if (rangedEnemy.ShouldHoldPositionOnMove() || rangedEnemy.IsWithinSlottedShootRange())
             rangedEnemy.EvaluateCycle();
     }
 

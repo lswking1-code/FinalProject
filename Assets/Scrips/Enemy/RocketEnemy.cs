@@ -12,6 +12,8 @@ public class RocketEnemy : RangedEnemy
     /// </summary>
     protected override bool SpriteFacesRight => true;
 
+    protected override bool AllowCrouchActions => false;
+
     static readonly Vector2[] Dirs8 =
     {
         Vector2.right,

@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 5823242802849310312}
   - component: {fileID: 7922217810541670464}
   m_Layer: 8
-  m_Name: GrenadeEnemy
+  m_Name: GrenadeEnemyAdvanced
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -350,7 +350,7 @@ MonoBehaviour:
   throwAngle: 70
   throwSpeed: 8
   minThrowDistance: 4
-  enableRollGrenade: 0
+  enableRollGrenade: 1
   rollGrenadePrefab: {fileID: 2000000000000000006, guid: f8a9b0c1d2ed834567b0123456789012, type: 3}
   jumpHeight: 2.5
   jumpHorizontalSpeed: 4

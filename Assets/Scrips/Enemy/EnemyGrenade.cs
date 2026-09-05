@@ -21,13 +21,30 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     [SerializeField] float maxRollAnimSpeed = 1.8f;
     [Tooltip("空中视觉旋转角速度（度/秒），符号随水平飞行方向翻转")]
     [SerializeField] float spinDegreesPerSecond = 720f;
-    [Tooltip("投出后的引信时间。期间碰到玩家不爆炸并穿过；到期后碰到玩家会爆炸。落地引爆不受影响。")]
+    [Tooltip("高抛：期间碰到玩家不爆炸并穿过，到期后碰到玩家会爆炸，落地引爆不受影响。滚雷：到期后自爆。")]
     [SerializeField] float fuseTime = 0.5f;
-    [Tooltip("命中该层时引爆（地面）")]
+    [Tooltip("命中该层时引爆（地面）；滚雷落地不爆，只用于落地手感")]
     [SerializeField] LayerMask groundLayer;
     [SerializeField] float groundSnapRayDistance = 1.5f;
     [Tooltip("物理步进前预扫描并 Ignore 平台的额外半径，避免接触当帧被托住")]
     [SerializeField] float passThroughScanPadding = 1f;
+
+    [Header("滚雷")]
+    [Tooltip("预制体标记；InitRoll 会强制进入滚雷模式")]
+    [SerializeField] bool isRollGrenade;
+    [SerializeField] float horizontalSpeed = 2.8f;
+    [SerializeField] float verticalSpeed = 0.55f;
+    [SerializeField] float forwardImpulse = 0.3f;
+    [Tooltip("滚雷重力倍率")]
+    [SerializeField] float gravityScale = 1.5f;
+    [Tooltip(">=0 时覆盖碰撞体摩擦；旋转锁定时摩擦过大会几乎不滚，宜偏低")]
+    [SerializeField] float rollFriction = 0.03f;
+    [Tooltip("落地材质弹力，略大于 0 更像弹跳滚动")]
+    [SerializeField, Range(0f, 1f)] float rollBounciness = 0.12f;
+    [Tooltip("首次落地时保留的水平速度比例")]
+    [SerializeField, Range(0f, 1f)] float landHorizontalRetain = 0.92f;
+    [Tooltip("首次落地时保留的向上反弹比例（抑制轻飘回弹）")]
+    [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.25f;
 
     Rigidbody2D rb;
     CircleCollider2D grenadeCollider;
@@ -36,6 +53,8 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     float spinDir = 1f;
     bool hasExploded;
     bool fuseExpired;
+    bool rollModeActive;
+    bool hasLanded;
     float fuseElapsed;
     Vector2 cachedVelocity;
     ContactFilter2D passThroughFilter;
@@ -87,6 +106,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             Physics2D.IgnoreCollision(grenadeCollider, throwerCollider);
 
         cachedVelocity = rb.linearVelocity;
+        rollModeActive = false;
         BeginPlayerPassThrough();
         IgnoreNearbyPassThroughs();
 
@@ -94,6 +114,45 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             animator.Play(RollingStateName, 0, 0f);
 
         SyncRollAnimSpeed();
+    }
+
+    /// <summary>
+    /// 贴地滚雷：低抛 + 前冲，落地弹跳滚动，碰玩家或引信到期爆炸。
+    /// </summary>
+    public void InitRoll(float faceDir, Vector2 throwerVelocity, Collider2D throwerCollider)
+    {
+        float dir = Mathf.Sign(faceDir);
+        if (dir == 0f)
+            dir = 1f;
+
+        spinDir = dir;
+        rollModeActive = true;
+        hasLanded = false;
+        fuseElapsed = 0f;
+        fuseExpired = fuseTime <= 0f;
+
+        ApplyRollFriction();
+        rb.gravityScale = Mathf.Max(0.01f, gravityScale);
+        var inherited = new Vector2(
+            throwerVelocity.x * throwerHorizontalInherit,
+            throwerVelocity.y * throwerVerticalInherit);
+        rb.linearVelocity = inherited + new Vector2(dir * horizontalSpeed, verticalSpeed);
+        if (forwardImpulse > 0f)
+            rb.AddForce(new Vector2(dir * forwardImpulse, 0f), ForceMode2D.Impulse);
+
+        if (throwerCollider != null && grenadeCollider != null)
+            Physics2D.IgnoreCollision(grenadeCollider, throwerCollider);
+
+        cachedVelocity = rb.linearVelocity;
+        IgnoreNearbyPassThroughs();
+
+        if (animator != null)
+            animator.Play(RollingStateName, 0, 0f);
+
+        SyncRollAnimSpeed();
+
+        if (fuseExpired)
+            Explode();
     }
 
     void FixedUpdate()
@@ -108,10 +167,16 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         SpinVisual();
     }
 
-    bool IsFuseActive => !fuseExpired && fuseTime > 0f;
+    bool IsFuseActive => !rollModeActive && !fuseExpired && fuseTime > 0f;
 
     void TickFuse()
     {
+        if (rollModeActive)
+        {
+            TickRollFuse();
+            return;
+        }
+
         if (fuseExpired)
             return;
 
@@ -125,6 +190,73 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         fuseElapsed += Time.fixedDeltaTime;
         if (fuseElapsed >= fuseTime)
             EndPlayerPassThrough();
+    }
+
+    void TickRollFuse()
+    {
+        if (fuseExpired)
+            return;
+
+        if (fuseTime <= 0f)
+        {
+            fuseExpired = true;
+            Explode();
+            return;
+        }
+
+        fuseElapsed += Time.fixedDeltaTime;
+        if (fuseElapsed < fuseTime)
+            return;
+
+        fuseExpired = true;
+        Explode();
+    }
+
+    void ApplyRollFriction()
+    {
+        if (rollFriction < 0f)
+            return;
+
+        var mat = new PhysicsMaterial2D("EnemyGrenadeRollFriction")
+        {
+            friction = Mathf.Max(0f, rollFriction),
+            bounciness = Mathf.Clamp01(rollBounciness),
+            frictionCombine = PhysicsMaterialCombine2D.Minimum,
+            bounceCombine = PhysicsMaterialCombine2D.Maximum
+        };
+        rb.sharedMaterial = mat;
+        if (grenadeCollider != null)
+            grenadeCollider.sharedMaterial = mat;
+    }
+
+    void TryApplyLandingFeel(Collision2D collision)
+    {
+        if (hasLanded || groundLayer.value == 0)
+            return;
+
+        int layerBit = 1 << collision.collider.gameObject.layer;
+        if ((groundLayer.value & layerBit) == 0)
+            return;
+
+        bool landedOnTop = false;
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            if (collision.GetContact(i).normal.y > 0.5f)
+            {
+                landedOnTop = true;
+                break;
+            }
+        }
+
+        if (!landedOnTop)
+            return;
+
+        hasLanded = true;
+        var velocity = rb.linearVelocity;
+        velocity.x *= landHorizontalRetain;
+        if (velocity.y > 0f)
+            velocity.y *= landBounceRetain;
+        rb.linearVelocity = velocity;
     }
 
     void SyncRollAnimSpeed()
@@ -167,7 +299,12 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
-        if (IsGroundCollider(collision.collider))
+        if (!IsGroundCollider(collision.collider))
+            return;
+
+        if (rollModeActive)
+            TryApplyLandingFeel(collision);
+        else
             Explode();
     }
 

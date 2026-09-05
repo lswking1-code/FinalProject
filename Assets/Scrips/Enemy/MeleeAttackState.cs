@@ -1,8 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 近战攻击：必要时先贴近 meleeRange，再前摇 → 挥刀动画 → 后摇。
-/// Hitbox（Attacker1）按 Melee clip 归一化时间在出刀帧开启，状态退出时关闭。
+/// 近战攻击：发起时锁定玩家当时水平位置，必要时先贴近该点的 meleeRange，再前摇 → 挥刀 → 后摇。
+/// 过程中不追踪玩家实时坐标。Hitbox（Attacker1）按 Melee clip 归一化时间在出刀帧开启。
 /// </summary>
 public class MeleeAttackState : BaseState
 {
@@ -22,6 +22,7 @@ public class MeleeAttackState : BaseState
     MeleeEnemy meleeEnemy;
     Phase phase;
     float timer;
+    float lockedTargetX;
     Transform attacker1;
 
     public override void OnEnter(Enemy enemy)
@@ -36,8 +37,9 @@ public class MeleeAttackState : BaseState
 
         attacker1 = currentEnemy.transform.Find(AttackerChildName);
         SetAttackerActive(false);
+        LockTargetFromPlayer();
 
-        if (meleeEnemy.GetHorizontalDistanceToPlayer() > meleeEnemy.meleeRange)
+        if (GetHorizontalDistanceToLocked() > meleeEnemy.meleeRange)
             EnterCloseIn();
         else
             EnterWindup();
@@ -51,7 +53,7 @@ public class MeleeAttackState : BaseState
         if (phase == Phase.CloseIn)
         {
             meleeEnemy.blockSeparation = true;
-            if (meleeEnemy.GetHorizontalDistanceToPlayer() <= meleeEnemy.meleeRange)
+            if (GetHorizontalDistanceToLocked() <= meleeEnemy.meleeRange)
                 EnterWindup();
             return;
         }
@@ -86,8 +88,10 @@ public class MeleeAttackState : BaseState
 
         if (phase == Phase.CloseIn)
         {
-            meleeEnemy.MoveTowardPlayer();
-            meleeEnemy.TryFlipOnObstacle(meleeEnemy.GetMoveDirTowardPlayer());
+            float dir = GetMoveDirTowardLocked();
+            meleeEnemy.MoveHorizontal(dir);
+            FaceLockedTarget();
+            meleeEnemy.TryFlipOnObstacle(dir);
             return;
         }
 
@@ -114,7 +118,7 @@ public class MeleeAttackState : BaseState
         phase = Phase.CloseIn;
         currentEnemy.blockSeparation = true;
         currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
-        meleeEnemy.FacePlayer();
+        FaceLockedTarget();
         SetAttackerActive(false);
 
         if (currentEnemy.anim != null)
@@ -129,7 +133,7 @@ public class MeleeAttackState : BaseState
     {
         phase = Phase.Windup;
         currentEnemy.blockSeparation = false;
-        meleeEnemy.FacePlayer();
+        FaceLockedTarget();
         StopHorizontal();
         SetAttackerActive(false);
 
@@ -147,7 +151,7 @@ public class MeleeAttackState : BaseState
     {
         phase = Phase.Slash;
         currentEnemy.blockSeparation = true;
-        meleeEnemy.FacePlayer();
+        FaceLockedTarget();
         SetAttackerActive(false);
 
         if (currentEnemy.anim != null)
@@ -206,6 +210,30 @@ public class MeleeAttackState : BaseState
         float n = info.normalizedTime;
         bool active = n >= HitboxActiveFromNormalized && n < 1f;
         SetAttackerActive(active);
+    }
+
+    void LockTargetFromPlayer()
+    {
+        meleeEnemy.EnsurePlayerReference();
+        lockedTargetX = meleeEnemy.player != null
+            ? meleeEnemy.player.position.x
+            : meleeEnemy.transform.position.x;
+    }
+
+    float GetHorizontalDistanceToLocked()
+    {
+        return Mathf.Abs(meleeEnemy.transform.position.x - lockedTargetX);
+    }
+
+    float GetMoveDirTowardLocked()
+    {
+        float dir = Mathf.Sign(lockedTargetX - meleeEnemy.transform.position.x);
+        return dir == 0f ? meleeEnemy.faceDir.x : dir;
+    }
+
+    void FaceLockedTarget()
+    {
+        meleeEnemy.ApplyFacing(lockedTargetX - meleeEnemy.transform.position.x);
     }
 
     void StopHorizontal()

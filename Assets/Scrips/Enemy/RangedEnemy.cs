@@ -15,6 +15,7 @@ public class RangedEnemy : Enemy
     protected override bool SpriteFacesRight => true;
 
     const float ProbabilityStep = 0.1f;
+    const float CombatRangeArriveSlack = 0.12f;
 
     [Header("远程参数")]
     public float shootRange = 5f;
@@ -48,13 +49,39 @@ public class RangedEnemy : Enemy
     [Tooltip("预备动作最长等待；Animator 的 ShotPrep 播完会提前开火")]
     public float shotPrepDuration = 0.9f;
     public string shotPrepStateName = "ShotPrep";
+    [Tooltip("蹲射先等 CrouchStart 播完再进入蹲预备")]
+    public float crouchStartDuration = 0.4f;
+    public string crouchStartStateName = "CrouchStart";
+    [Tooltip("蹲射预备状态名；播完会提前开火")]
+    public string crouchShotPrepStateName = "CrouchShotPrep";
+    [Tooltip("开火后停留在 CrouchShoot 的时长；动画播完会提前进 Reload")]
+    public float crouchShootHoldDuration = 0.35f;
+    public string crouchShootStateName = "CrouchShoot";
 
     [Header("专注模式")]
     [Tooltip("开启后不再靠近玩家：MOVE 原地停留，超出射程也不进入 GetClose")]
     public bool enableFocusMode;
 
+    [Header("蹲姿")]
+    [Tooltip("蹲下时的胶囊尺寸；脚底与站立对齐")]
+    [SerializeField] Vector2 crouchColliderSize = new Vector2(1f, 1.2f);
+    [Tooltip("蹲下时 FirePoint 的本地坐标")]
+    [SerializeField] Vector2 crouchFirePointLocal = new Vector2(2.312f, 0.15f);
+
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
+
+    /// <summary>仅枪兵（基类）允许蹲伏进入权重池；手雷/火箭兵关闭。</summary>
+    protected virtual bool AllowCrouchActions => true;
+
+    CapsuleCollider2D bodyCollider;
+    CircleCollider2D hurtTrigger;
+    Vector2 standingColliderSize;
+    Vector2 standingColliderOffset;
+    Vector3 standingFirePointLocal;
+    bool standingHurtTriggerEnabled;
+    bool crouchPoseCached;
+    bool crouchPoseActive;
 
     protected override void Awake()
     {
@@ -72,6 +99,8 @@ public class RangedEnemy : Enemy
             normalSpeed = 2f;
         if (chaseSpeed <= 0f)
             chaseSpeed = 4f;
+
+        CacheStandingPose();
     }
 
     protected override void StartCombatCycle() => EvaluateCycle();
@@ -133,7 +162,7 @@ public class RangedEnemy : Enemy
             (EnemyAction.Move, moveWeight)
         };
 
-        if (enableCrouchActions)
+        if (enableCrouchActions && AllowCrouchActions)
         {
             weights.Add((EnemyAction.Crouch, crouchWeight));
             weights.Add((EnemyAction.CrouchShoot, crouchShootWeight));
@@ -160,6 +189,109 @@ public class RangedEnemy : Enemy
     protected override bool ShouldRunTimeCounter() => false;
 
     protected override bool ShouldAutoMove() => false;
+
+    protected override void Update()
+    {
+        base.Update();
+        if (isDead && crouchPoseActive)
+            SetCrouchPose(false);
+    }
+
+    protected override void OnDisable()
+    {
+        SetCrouchPose(false);
+        base.OnDisable();
+    }
+
+    /// <summary>
+    /// 蹲下时缩小受击胶囊并下移开火点；站起恢复。脚底锚定，不改变站立贴地。
+    /// </summary>
+    public void SetCrouchPose(bool crouching)
+    {
+        CacheStandingPose();
+        if (crouchPoseActive == crouching)
+            return;
+
+        if (crouching && !AllowCrouchActions)
+            return;
+
+        ApplyCrouchPose(crouching);
+    }
+
+    void CacheStandingPose()
+    {
+        if (crouchPoseCached)
+            return;
+
+        bodyCollider = GetComponent<CapsuleCollider2D>();
+        if (bodyCollider != null)
+        {
+            standingColliderSize = bodyCollider.size;
+            standingColliderOffset = bodyCollider.offset;
+        }
+
+        if (firePoint != null)
+            standingFirePointLocal = firePoint.localPosition;
+
+        var circles = GetComponents<CircleCollider2D>();
+        for (int i = 0; i < circles.Length; i++)
+        {
+            if (circles[i] == null || !circles[i].isTrigger)
+                continue;
+
+            hurtTrigger = circles[i];
+            standingHurtTriggerEnabled = hurtTrigger.enabled;
+            break;
+        }
+
+        crouchPoseCached = true;
+    }
+
+    void ApplyCrouchPose(bool crouching)
+    {
+        crouchPoseActive = crouching;
+
+        if (bodyCollider != null)
+        {
+            if (crouching)
+            {
+                float bottom = standingColliderOffset.y - standingColliderSize.y * 0.5f;
+                Vector2 size = crouchColliderSize;
+                if (size.x < 0.1f)
+                    size.x = standingColliderSize.x;
+                if (size.y < 0.1f)
+                    size.y = Mathf.Max(0.2f, standingColliderSize.y * 0.5f);
+
+                bodyCollider.size = size;
+                bodyCollider.offset = new Vector2(
+                    standingColliderOffset.x,
+                    bottom + size.y * 0.5f);
+            }
+            else
+            {
+                bodyCollider.size = standingColliderSize;
+                bodyCollider.offset = standingColliderOffset;
+            }
+        }
+
+        if (firePoint != null)
+        {
+            firePoint.localPosition = crouching
+                ? new Vector3(crouchFirePointLocal.x, crouchFirePointLocal.y, standingFirePointLocal.z)
+                : standingFirePointLocal;
+        }
+
+        if (hurtTrigger != null)
+            hurtTrigger.enabled = !crouching && standingHurtTriggerEnabled;
+
+        if (physicsCheck == null)
+            return;
+
+        if (crouching)
+            physicsCheck.RefreshOffsets();
+        else
+            ConfigurePhysicsCheck();
+    }
 
     public override void ApplyEncounterFocusMode(bool enabled) => enableFocusMode = enabled;
 
@@ -196,10 +328,8 @@ public class RangedEnemy : Enemy
             }
         }
 
-        float dist = GetCombatDistanceToPlayer();
-
         // 专注模式：不靠近玩家，原地射击/停留（与盾兵死守一致）
-        if (!ShouldHoldPositionOnMove() && dist > GetSlottedRange(shootRange))
+        if (!ShouldHoldPositionOnMove() && !IsWithinSlottedShootRange())
             SwitchState(NPCState.GetClose);
         else
             RollAndEnterAction();
@@ -213,9 +343,18 @@ public class RangedEnemy : Enemy
         return GetHorizontalDistanceToPlayer();
     }
 
-    public override bool IsPlayerInCombatRange()
+    public override bool IsPlayerInCombatRange() => IsWithinSlottedShootRange();
+
+    /// <summary>
+    /// 已进入射击距离，或已走到同侧站位槽（避免 0.08 到位死区导致 GetClose 原地踏步）。
+    /// </summary>
+    public bool IsWithinSlottedShootRange()
     {
-        return GetCombatDistanceToPlayer() <= GetSlottedRange(shootRange);
+        float slotted = GetSlottedRange(shootRange);
+        if (GetCombatDistanceToPlayer() <= slotted + CombatRangeArriveSlack)
+            return true;
+
+        return Mathf.Approximately(GetCombatSlotMoveDir(shootRange), 0f);
     }
 
     void RollAndEnterAction()

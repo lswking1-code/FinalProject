@@ -19,6 +19,7 @@ public class RangedCrouchState : BaseState
         rangedEnemy.OnActionEntered(EnemyAction.Crouch);
         rangedEnemy.FacePlayer();
         actionTimer = rangedEnemy.actionDuration;
+        rangedEnemy.SetCrouchPose(true);
         currentEnemy.SetAnimBool("crouch", true);
     }
 
@@ -45,6 +46,7 @@ public class RangedCrouchState : BaseState
 
     public override void OnExit()
     {
+        rangedEnemy?.SetCrouchPose(false);
         currentEnemy.SetAnimBool("crouch", false);
     }
 }
