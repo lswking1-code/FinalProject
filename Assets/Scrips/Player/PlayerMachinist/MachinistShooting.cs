@@ -326,6 +326,7 @@ public class MachinistShooting : MonoBehaviour
         if (stance && (playerAnim == null || !playerAnim.IsMachinistMeleeStance))
             meleeComboIndex = 0;
         playerAnim?.SetMachinistMeleeStance(stance);
+        playerAbilities?.SyncRobotBlastMode(stance);
     }
 
     int MeleeStepCount => meleeComboSteps != null ? meleeComboSteps.Length : 0;

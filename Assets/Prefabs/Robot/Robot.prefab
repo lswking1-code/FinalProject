@@ -1307,6 +1307,24 @@ MonoBehaviour:
   jumpStateName: Jump
   fallStateName: Fall
   landStateName: Land
+  blastModeMoveSpeed: 6
+  blastModeAttackDamageBonus: 5
+  blastModeStartStateName: BlastMode_start
+  idleClip: {fileID: 7400000, guid: 64a4662d1b3126e4b9770c90f90f6f38, type: 2}
+  walkClip: {fileID: 7400000, guid: 0eb77c7ce75957848a3f13651aea9613, type: 2}
+  attackClip: {fileID: 7400000, guid: 773ddd39ecf39424d8101ab797034094, type: 2}
+  jumpClip: {fileID: 7400000, guid: a5238fa793a640d0b0dbff8aeb50f264, type: 2}
+  fallClip: {fileID: 7400000, guid: 532a0763e80840ca9ec8ea2cb652eaed, type: 2}
+  landClip: {fileID: 7400000, guid: 4e35c383b0ca478488d438819678a3da, type: 2}
+  pullClip: {fileID: 7400000, guid: bb018f732d8107b4bad871f6ba9d79e2, type: 2}
+  blastModeIdleClip: {fileID: 7400000, guid: a0d493300a4044447a71d1d1466e74af, type: 2}
+  blastModeWalkClip: {fileID: 7400000, guid: e91526629fee28949ac1ad2881dfc0d1, type: 2}
+  blastModeAttackClip: {fileID: 7400000, guid: 4ad614fa4d8c43646995a5890fce92c6, type: 2}
+  blastModeJumpClip: {fileID: 7400000, guid: e42ddf662c5e11f40ba790067506d704, type: 2}
+  blastModeFallClip: {fileID: 7400000, guid: 289362db0b0647441a722012b0809d28, type: 2}
+  blastModeLandClip: {fileID: 7400000, guid: 712fc172605632840943f370f7179686, type: 2}
+  blastModePullClip: {fileID: 7400000, guid: 6687a2f4fef6f354fb459391e4d0b5f6, type: 2}
+  normalAttackHitboxes: []
   robotComboEvent: {fileID: 11400000, guid: 19c79b935fb5dcd47a1c3078d1232e65, type: 2}
   robotBlastComboEvent: {fileID: 11400000, guid: e2ffee01112233445566778899aabb03, type: 2}
   attackEvent:

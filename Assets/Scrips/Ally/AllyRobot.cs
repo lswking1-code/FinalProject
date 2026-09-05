@@ -202,6 +202,30 @@ public class AllyRobot : MonoBehaviour
     public string fallStateName = "Fall";
     public string landStateName = "Land";
 
+    [Header("BlastMode")]
+    [Tooltip("BlastMode 下的地面移速")]
+    [SerializeField] float blastModeMoveSpeed = 6f;
+    [Tooltip("BlastMode 下普通攻击判定盒伤害加成")]
+    [SerializeField] int blastModeAttackDamageBonus = 5;
+    [Tooltip("进入 BlastMode 时的开场 Animator 状态名")]
+    public string blastModeStartStateName = "BlastMode_start";
+    [SerializeField] AnimationClip idleClip;
+    [SerializeField] AnimationClip walkClip;
+    [SerializeField] AnimationClip attackClip;
+    [SerializeField] AnimationClip jumpClip;
+    [SerializeField] AnimationClip fallClip;
+    [SerializeField] AnimationClip landClip;
+    [SerializeField] AnimationClip pullClip;
+    [SerializeField] AnimationClip blastModeIdleClip;
+    [SerializeField] AnimationClip blastModeWalkClip;
+    [SerializeField] AnimationClip blastModeAttackClip;
+    [SerializeField] AnimationClip blastModeJumpClip;
+    [SerializeField] AnimationClip blastModeFallClip;
+    [SerializeField] AnimationClip blastModeLandClip;
+    [SerializeField] AnimationClip blastModePullClip;
+    [Tooltip("普通攻击判定盒；留空则按 Attact1/Attack2/Attack3/Attack4 查找")]
+    [SerializeField] Attack[] normalAttackHitboxes;
+
     [Header("事件监听")]
     [SerializeField] VoidEventSO robotComboEvent;
     [SerializeField] VoidEventSO robotBlastComboEvent;
@@ -254,6 +278,10 @@ public class AllyRobot : MonoBehaviour
     public bool IsComboDashing => currentState == AllyState.ComboDashing;
 
     public bool IsRecalling => currentState == AllyState.Recalling;
+
+    public bool IsBlastMode { get; private set; }
+
+    float CurrentMoveSpeed => IsBlastMode ? blastModeMoveSpeed : moveSpeed;
 
     bool IsAirborneBusy =>
         airPhase != RobotAirPhase.Ground || isLanding;
@@ -350,6 +378,12 @@ public class AllyRobot : MonoBehaviour
     bool wasGrounded;
     bool airStateInitialized;
     float slopeDetachTimer;
+    AnimatorOverrideController blastModeOverride;
+    bool blastModeIntroPlaying;
+    bool blastModeIntroSeen;
+    bool blastModeDamageApplied;
+    Attack[] blastModeDamageTargets;
+    int[] blastModeDamageBases;
     const float MinAirTime = 0.05f;
     const float DescendVelocityThreshold = 0.01f;
     const float MicroAirHitchMaxTime = 0.25f;
@@ -371,6 +405,9 @@ public class AllyRobot : MonoBehaviour
 
         if (jumpObstacleMask.value == 0 && physicsCheck != null)
             jumpObstacleMask = physicsCheck.groundLayer;
+
+        EnsureBlastModeAnimator();
+        CacheBlastModeDamageTargets();
     }
 
     void ResolveBoostVisual()
@@ -441,6 +478,8 @@ public class AllyRobot : MonoBehaviour
         if (currentState != AllyState.Recalling)
             UpdateAirAndLanding();
 
+        UpdateBlastModeIntro();
+
         // 并行钩锁（Blast 等忙碌态）需在原状态 Update 之外单独推进
         if (pullInProgress && currentState != AllyState.Pulling)
             UpdatePulling();
@@ -486,6 +525,13 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
+        if (blastModeIntroPlaying && !attackLungeActive)
+        {
+            if (airPhase == RobotAirPhase.Ground)
+                StopMoving();
+            return;
+        }
+
         bool movingHorizontally = false;
         float moveDir = 0f;
 
@@ -512,7 +558,7 @@ public class AllyRobot : MonoBehaviour
                     if (TryGetChaseMoveDir(out moveDir)
                         && ApplyHorizontalMove(
                             moveDir,
-                            moveSpeed,
+                            CurrentMoveSpeed,
                             respectLedge: !IsChaseTargetBelow(currentTarget)))
                         movingHorizontally = true;
                     else
@@ -520,7 +566,7 @@ public class AllyRobot : MonoBehaviour
                     break;
                 case AllyState.Return:
                     if (TryGetHomeMoveDir(arriveThreshold, out moveDir)
-                        && ApplyHorizontalMove(moveDir, moveSpeed))
+                        && ApplyHorizontalMove(moveDir, CurrentMoveSpeed))
                         movingHorizontally = true;
                     else
                         StopMoving();
@@ -543,7 +589,7 @@ public class AllyRobot : MonoBehaviour
                     break;
                 case AllyState.Idle:
                     if (idleFollowing
-                        && ApplyHorizontalMove(idleFollowDir, moveSpeed))
+                        && ApplyHorizontalMove(idleFollowDir, CurrentMoveSpeed))
                     {
                         movingHorizontally = true;
                         moveDir = idleFollowDir;
@@ -556,7 +602,7 @@ public class AllyRobot : MonoBehaviour
                 case AllyState.ManualMove:
                     if (!pendingStationOnLand
                         && TryGetManualMoveDir(out moveDir)
-                        && ApplyHorizontalMove(moveDir, moveSpeed, respectLedge: false))
+                        && ApplyHorizontalMove(moveDir, CurrentMoveSpeed, respectLedge: false))
                     {
                         movingHorizontally = true;
                     }
@@ -750,6 +796,9 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateManualMove()
     {
+        if (blastModeIntroPlaying)
+            return;
+
         if (pendingStationOnLand)
         {
             if (!IsAirborneBusy && IsSolidGrounded())
@@ -781,6 +830,7 @@ public class AllyRobot : MonoBehaviour
         bool jumpHeld = manualMoveInput.y > ManualMoveInputThreshold;
         if (jumpHeld && !manualJumpHeldPrev
             && !IsAirborneBusy
+            && !blastModeIntroPlaying
             && jumpCooldownTimer <= 0f)
         {
             float jumpDir = !Mathf.Approximately(moveX, 0f)
@@ -1358,6 +1408,7 @@ public class AllyRobot : MonoBehaviour
         if (anim == null || string.IsNullOrEmpty(stateName))
             return;
 
+        CancelBlastModeIntro();
         anim.ResetTrigger(attackTriggerName);
         anim.ResetTrigger(comboAttackTriggerName);
         anim.ResetTrigger(dashAttackTriggerName);
@@ -1642,6 +1693,7 @@ public class AllyRobot : MonoBehaviour
             case AllyState.Recalling:
                 SetDashActive(false);
                 SetBoostActive(false);
+                CancelBlastModeIntro();
                 if (anim != null)
                 {
                     anim.SetBool(walkBoolName, false);
@@ -1686,6 +1738,7 @@ public class AllyRobot : MonoBehaviour
                 break;
             case AllyState.Pulling:
                 SetDashActive(false);
+                CancelBlastModeIntro();
                 if (anim != null)
                     anim.SetBool(walkBoolName, false);
                 StopMoving();
@@ -2098,7 +2151,7 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateIdle()
     {
-        if (isLanding)
+        if (isLanding || blastModeIntroPlaying)
             return;
 
         if (pendingRetarget)
@@ -2163,7 +2216,7 @@ public class AllyRobot : MonoBehaviour
 
     void UpdateAttack()
     {
-        if (isLanding || IsAirborneBusy)
+        if (isLanding || IsAirborneBusy || blastModeIntroPlaying)
             return;
 
         if (IsOutsideMaxChaseRange())
@@ -3180,7 +3233,7 @@ public class AllyRobot : MonoBehaviour
             gravity = Mathf.Abs(Physics2D.gravity.y);
 
         float jumpVelocity = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, jumpHeight));
-        float speed = currentState == AllyState.ComboDashing ? dashSpeed : moveSpeed;
+        float speed = currentState == AllyState.ComboDashing ? dashSpeed : CurrentMoveSpeed;
 
         if (physicsCheck != null && physicsCheck.isOnSlope)
         {
@@ -3395,5 +3448,230 @@ public class AllyRobot : MonoBehaviour
             footY + probeHeight,
             0f);
         Gizmos.DrawLine(probe, probe + Vector3.right * face * jumpProbeDistance);
+    }
+
+    bool CanPlayBlastModeIntro =>
+        currentState != AllyState.Spawning
+        && currentState != AllyState.Recalling
+        && !IsPulling
+        && !IsBusyWithCombo
+        && !IsAirborneBusy;
+
+    public void SetBlastMode(bool enabled, bool allowIntro)
+    {
+        if (IsBlastMode == enabled)
+            return;
+
+        IsBlastMode = enabled;
+        ApplyBlastModeClipOverrides(enabled);
+        ApplyBlastModeDamage(enabled);
+
+        if (enabled && allowIntro && CanPlayBlastModeIntro)
+        {
+            BeginBlastModeIntro();
+            return;
+        }
+
+        CancelBlastModeIntro();
+        RefreshLocomotionVisual();
+    }
+
+    void EnsureBlastModeAnimator()
+    {
+        if (anim == null || blastModeOverride != null)
+            return;
+
+        var current = anim.runtimeAnimatorController;
+        if (current == null)
+            return;
+
+        if (current is AnimatorOverrideController existing)
+            blastModeOverride = existing;
+        else
+        {
+            blastModeOverride = new AnimatorOverrideController(current);
+            anim.runtimeAnimatorController = blastModeOverride;
+        }
+    }
+
+    void ApplyBlastModeClipOverrides(bool enabled)
+    {
+        EnsureBlastModeAnimator();
+        if (blastModeOverride == null)
+            return;
+
+        SetClipOverride(idleClip, enabled ? blastModeIdleClip : null);
+        SetClipOverride(walkClip, enabled ? blastModeWalkClip : null);
+        SetClipOverride(attackClip, enabled ? blastModeAttackClip : null);
+        SetClipOverride(jumpClip, enabled ? blastModeJumpClip : null);
+        SetClipOverride(fallClip, enabled ? blastModeFallClip : null);
+        SetClipOverride(landClip, enabled ? blastModeLandClip : null);
+        SetClipOverride(pullClip, enabled ? blastModePullClip : null);
+    }
+
+    void SetClipOverride(AnimationClip original, AnimationClip replacement)
+    {
+        if (blastModeOverride == null || original == null)
+            return;
+
+        blastModeOverride[original] = replacement != null && replacement != original
+            ? replacement
+            : null;
+    }
+
+    static readonly string[] DefaultNormalAttackHitboxNames =
+    {
+        "Attact1", "Attack2", "Attack3", "Attack4"
+    };
+
+    void CacheBlastModeDamageTargets()
+    {
+        if (blastModeDamageTargets != null)
+            return;
+
+        if (normalAttackHitboxes != null && normalAttackHitboxes.Length > 0)
+        {
+            blastModeDamageTargets = normalAttackHitboxes;
+        }
+        else
+        {
+            var hits = GetComponentsInChildren<Attack>(true);
+            var matched = new List<Attack>(DefaultNormalAttackHitboxNames.Length);
+            for (int i = 0; i < DefaultNormalAttackHitboxNames.Length; i++)
+            {
+                string hitboxName = DefaultNormalAttackHitboxNames[i];
+                for (int j = 0; j < hits.Length; j++)
+                {
+                    if (hits[j] != null && hits[j].gameObject.name == hitboxName)
+                    {
+                        matched.Add(hits[j]);
+                        break;
+                    }
+                }
+            }
+
+            blastModeDamageTargets = matched.ToArray();
+        }
+
+        blastModeDamageBases = new int[blastModeDamageTargets.Length];
+        for (int i = 0; i < blastModeDamageTargets.Length; i++)
+        {
+            blastModeDamageBases[i] = blastModeDamageTargets[i] != null
+                ? blastModeDamageTargets[i].damage
+                : 0;
+        }
+    }
+
+    void ApplyBlastModeDamage(bool enabled)
+    {
+        CacheBlastModeDamageTargets();
+        if (blastModeDamageTargets == null || blastModeDamageBases == null)
+            return;
+
+        if (enabled)
+        {
+            if (blastModeDamageApplied)
+                return;
+
+            for (int i = 0; i < blastModeDamageTargets.Length; i++)
+            {
+                if (blastModeDamageTargets[i] != null)
+                    blastModeDamageTargets[i].damage = blastModeDamageBases[i] + blastModeAttackDamageBonus;
+            }
+
+            blastModeDamageApplied = true;
+            return;
+        }
+
+        if (!blastModeDamageApplied)
+            return;
+
+        for (int i = 0; i < blastModeDamageTargets.Length; i++)
+        {
+            if (blastModeDamageTargets[i] != null)
+                blastModeDamageTargets[i].damage = blastModeDamageBases[i];
+        }
+
+        blastModeDamageApplied = false;
+    }
+
+    void BeginBlastModeIntro()
+    {
+        blastModeIntroPlaying = true;
+        blastModeIntroSeen = false;
+        if (anim == null || string.IsNullOrEmpty(blastModeStartStateName))
+            return;
+
+        anim.SetBool(walkBoolName, false);
+        anim.ResetTrigger(attackTriggerName);
+        anim.Play(blastModeStartStateName, 0, 0f);
+        anim.Update(0f);
+    }
+
+    void UpdateBlastModeIntro()
+    {
+        if (!blastModeIntroPlaying)
+            return;
+
+        if (IsAirborneBusy || IsBusyWithCombo || currentState == AllyState.Recalling || IsPulling)
+        {
+            CancelBlastModeIntro();
+            return;
+        }
+
+        if (anim == null)
+        {
+            EndBlastModeIntro();
+            return;
+        }
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (info.IsName(blastModeStartStateName))
+        {
+            blastModeIntroSeen = true;
+            if (info.normalizedTime < 1f)
+                return;
+        }
+        else if (!blastModeIntroSeen)
+        {
+            return;
+        }
+
+        EndBlastModeIntro();
+    }
+
+    void EndBlastModeIntro()
+    {
+        blastModeIntroPlaying = false;
+        blastModeIntroSeen = false;
+        RefreshLocomotionVisual();
+    }
+
+    void CancelBlastModeIntro()
+    {
+        blastModeIntroPlaying = false;
+        blastModeIntroSeen = false;
+    }
+
+    void RefreshLocomotionVisual()
+    {
+        if (anim == null || IsAirborneBusy || SuppressAirAnim || blastModeIntroPlaying)
+            return;
+
+        if (currentState != AllyState.Idle
+            && currentState != AllyState.Chase
+            && currentState != AllyState.Return
+            && currentState != AllyState.ManualMove)
+            return;
+
+        bool walking = currentState == AllyState.Chase
+            || currentState == AllyState.Return
+            || idleFollowing
+            || (currentState == AllyState.ManualMove
+                && !pendingStationOnLand
+                && Mathf.Abs(manualMoveInput.x) > ManualMoveInputThreshold);
+
+        anim.SetBool(walkBoolName, walking);
+        anim.Play(walking ? "Walk" : "Idle", 0, 0f);
     }
 }

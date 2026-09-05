@@ -61,6 +61,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     GameObject activeRobot;
     AllyRobot activeRobotController;
     RobotCoreVisual returningCore;
+    bool pendingRobotBlastMode;
 
     public bool HasRobot => HasActiveRobot();
     public float PullCooldownNormalized =>
@@ -128,6 +129,7 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
         DestroyReturningCoreImmediate();
         DestroyActiveRobot();
+        pendingRobotBlastMode = false;
         specialMagazine?.Clear();
     }
 
@@ -252,6 +254,12 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     public void TriggerRobotBlastStep(int step)
     {
         activeRobotController?.PlaySyncedBlastStep(step);
+    }
+
+    public void SyncRobotBlastMode(bool enabled)
+    {
+        pendingRobotBlastMode = enabled;
+        activeRobotController?.SetBlastMode(enabled, allowIntro: enabled);
     }
 
     void UpdateRobotManualMove()
@@ -464,8 +472,11 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
             return false;
 
         var robot = Instantiate(robotPrefab, worldPos, Quaternion.identity);
-        robot.GetComponent<AllyRobot>()?.Initialize(transform, mode);
+        var robotController = robot.GetComponent<AllyRobot>();
+        robotController?.Initialize(transform, mode);
         OnRobotSpawned(robot);
+        if (pendingRobotBlastMode)
+            robotController?.SetBlastMode(true, allowIntro: false);
         SpawnOpenCore(worldPos);
         PlaySessionRecorder.Instance?.RecordRobotSummon();
         PlaySessionRecorder.Instance?.RecordAbility2();

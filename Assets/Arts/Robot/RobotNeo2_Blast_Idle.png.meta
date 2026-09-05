@@ -1,43 +1,25 @@
 fileFormatVersion: 2
-guid: d88eb74f02ea7f44a9b8f56dcb9036b9
+guid: ef029bee57de8104392af0baa49cc3b7
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -231168929533857212
-    second: RobotNeo2_SlashAttack2_0
+      213: 9098192193975261033
+    second: RobotNeo2_Blast_Idle_0
   - first:
-      213: 4619851574078120683
-    second: RobotNeo2_SlashAttack2_1
+      213: 920360803788786658
+    second: RobotNeo2_Blast_Idle_1
   - first:
-      213: -4128782390947854526
-    second: RobotNeo2_SlashAttack2_2
+      213: -4452227207931214972
+    second: RobotNeo2_Blast_Idle_2
   - first:
-      213: 201465980762321767
-    second: RobotNeo2_SlashAttack2_3
+      213: -7182888105368777015
+    second: RobotNeo2_Blast_Idle_3
   - first:
-      213: -979553822353053247
-    second: RobotNeo2_SlashAttack2_4
+      213: -3079326601892977798
+    second: RobotNeo2_Blast_Idle_4
   - first:
-      213: 826586069848891371
-    second: RobotNeo2_SlashAttack2_5
-  - first:
-      213: -9154317283845271240
-    second: RobotNeo2_SlashAttack2_6
-  - first:
-      213: -1709798164877253977
-    second: RobotNeo2_SlashAttack2_7
-  - first:
-      213: 3734289053988579260
-    second: RobotNeo2_SlashAttack2_8
-  - first:
-      213: -8897831724987395650
-    second: RobotNeo2_SlashAttack2_9
-  - first:
-      213: 6117965332551472632
-    second: RobotNeo2_SlashAttack2_10
-  - first:
-      213: -2241161603573235158
-    second: RobotNeo2_SlashAttack2_11
+      213: 219610001530173407
+    second: RobotNeo2_Blast_Idle_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -159,243 +141,155 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_0
+      name: RobotNeo2_Blast_Idle_0
       rect:
         serializedVersion: 2
-        x: 20
-        y: 208
-        width: 70
-        height: 48
+        x: 0
+        y: 64
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.3857143, y: -0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 442f6085519baccf0800000000000000
-      internalID: -231168929533857212
+      spriteID: 967902c9895434e70800000000000000
+      internalID: 9098192193975261033
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_1
+      name: RobotNeo2_Blast_Idle_1
       rect:
         serializedVersion: 2
-        x: 97
-        y: 208
-        width: 88
-        height: 48
+        x: 64
+        y: 64
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.3068182, y: 0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: be2a4f397820d1040800000000000000
-      internalID: 4619851574078120683
+      spriteID: 2eb06075647c5cc00800000000000000
+      internalID: 920360803788786658
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_2
+      name: RobotNeo2_Blast_Idle_2
       rect:
         serializedVersion: 2
-        x: 186
-        y: 208
-        width: 70
-        height: 48
+        x: 128
+        y: 64
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.25714287, y: -0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2474aa86a4e93b6c0800000000000000
-      internalID: -4128782390947854526
+      spriteID: 4834eeb71f28632c0800000000000000
+      internalID: -4452227207931214972
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_4
+      name: RobotNeo2_Blast_Idle_3
       rect:
         serializedVersion: 2
-        x: 20
-        y: 144
-        width: 76
-        height: 48
+        x: 192
+        y: 64
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.35526317, y: 0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1c9254c0dfce762f0800000000000000
-      internalID: -979553822353053247
+      spriteID: 9ce8d122351415c90800000000000000
+      internalID: -7182888105368777015
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_5
+      name: RobotNeo2_Blast_Idle_4
       rect:
         serializedVersion: 2
-        x: 100
-        y: 144
-        width: 70
-        height: 48
+        x: 0
+        y: 0
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.3857143, y: -0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bef11ada6af987b00800000000000000
-      internalID: 826586069848891371
+      spriteID: a7322c245c80445d0800000000000000
+      internalID: -3079326601892977798
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_6
+      name: RobotNeo2_Blast_Idle_5
       rect:
         serializedVersion: 2
-        x: 180
-        y: 144
-        width: 70
-        height: 48
+        x: 64
+        y: 0
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.3857143, y: 0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8311f279ee455f080800000000000000
-      internalID: -9154317283845271240
+      spriteID: fd7345202263c0300800000000000000
+      internalID: 219610001530173407
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_7
+      name: RobotNeo2_Blast_Idle_6
       rect:
         serializedVersion: 2
-        x: 20
-        y: 80
-        width: 70
-        height: 48
+        x: 128
+        y: 0
+        width: 64
+        height: 64
       alignment: 9
-      pivot: {x: 0.3857143, y: -0}
+      pivot: {x: 0.5, y: 0.140625}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 7a260e0c0a39548e0800000000000000
-      internalID: -1709798164877253977
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_8
-      rect:
-        serializedVersion: 2
-        x: 111
-        y: 80
-        width: 78
-        height: 42
-      alignment: 9
-      pivot: {x: 0.26923078, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: cb76e970c1cd2d330800000000000000
-      internalID: 3734289053988579260
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_9
-      rect:
-        serializedVersion: 2
-        x: 21
-        y: 16
-        width: 70
-        height: 48
-      alignment: 9
-      pivot: {x: 0.3857143, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: eb1dce8503d848480800000000000000
-      internalID: -8897831724987395650
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_10
-      rect:
-        serializedVersion: 2
-        x: 101
-        y: 16
-        width: 88
-        height: 48
-      alignment: 9
-      pivot: {x: 0.3068182, y: -0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8f592ea3e0167e450800000000000000
-      internalID: 6117965332551472632
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RobotNeo2_SlashAttack2_11
-      rect:
-        serializedVersion: 2
-        x: 191
-        y: 16
-        width: 60
-        height: 48
-      alignment: 9
-      pivot: {x: 0.28333333, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a22c5ce456bc5e0e0800000000000000
-      internalID: -2241161603573235158
+      spriteID: 71bffe72cc1e6f74ab6bcb706afa1ecb
+      internalID: 102178347
       vertices: []
       indices: 
       edges: []
@@ -404,7 +298,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 71e80d15f6bd4f447afa1d039025853e
+    spriteID: 8c7a675123f5eb349ad5c1564c8cf41e
     internalID: 0
     vertices: []
     indices: 
@@ -414,18 +308,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      RobotNeo2_SlashAttack2_0: -231168929533857212
-      RobotNeo2_SlashAttack2_1: 4619851574078120683
-      RobotNeo2_SlashAttack2_10: 6117965332551472632
-      RobotNeo2_SlashAttack2_11: -2241161603573235158
-      RobotNeo2_SlashAttack2_2: -4128782390947854526
-      RobotNeo2_SlashAttack2_3: 201465980762321767
-      RobotNeo2_SlashAttack2_4: -979553822353053247
-      RobotNeo2_SlashAttack2_5: 826586069848891371
-      RobotNeo2_SlashAttack2_6: -9154317283845271240
-      RobotNeo2_SlashAttack2_7: -1709798164877253977
-      RobotNeo2_SlashAttack2_8: 3734289053988579260
-      RobotNeo2_SlashAttack2_9: -8897831724987395650
+      RobotNeo2_Blast_Idle_0: 9098192193975261033
+      RobotNeo2_Blast_Idle_1: 920360803788786658
+      RobotNeo2_Blast_Idle_2: -4452227207931214972
+      RobotNeo2_Blast_Idle_3: -7182888105368777015
+      RobotNeo2_Blast_Idle_4: -3079326601892977798
+      RobotNeo2_Blast_Idle_5: 219610001530173407
+      RobotNeo2_Blast_Idle_6: 102178347
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
