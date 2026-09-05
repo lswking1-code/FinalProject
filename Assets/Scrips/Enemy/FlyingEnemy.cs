@@ -62,6 +62,8 @@ public class FlyingEnemy : Enemy
     ContactFilter2D oneWayPlatformFilter;
     readonly Collider2D[] oneWayOverlapBuffer = new Collider2D[16];
     readonly HashSet<Collider2D> ignoredOneWayPlatforms = new HashSet<Collider2D>();
+    bool spawnApproachPassthrough;
+    bool savedBodyIsTrigger;
     // #region agent log
     float _dbgAnimLogTimer;
     string _dbgLastState;
@@ -180,6 +182,12 @@ public class FlyingEnemy : Enemy
             if (ShouldStartCombatOnEnable())
                 EvaluateCycle();
         }
+    }
+
+    protected override void OnDisable()
+    {
+        EndSpawnApproachPassthrough();
+        base.OnDisable();
     }
 
     /// <summary>
@@ -690,23 +698,54 @@ public class FlyingEnemy : Enemy
         if (isHurt || isDead || Rb == null)
             return;
 
+        BeginSpawnApproachPassthrough();
+
         currentSpeed = GetSpawnApproachSpeed();
         Vector2 target = spawnTargetPosition;
         target.y = RaiseYAboveOneWayPlatforms(target.x, target.y);
         Vector2 toTarget = target - (Vector2)transform.position;
         float dist = toTarget.magnitude;
+
         if (dist <= returnArriveDistance)
         {
             Rb.linearVelocity = Vector2.zero;
             return;
         }
 
-        Rb.linearVelocity = toTarget / dist * currentSpeed;
+        Vector2 dir = toTarget / dist;
+        // Dynamic RB 会覆盖 transform.position；进场用 MovePosition + Trigger 穿墙
+        Rb.linearVelocity = Vector2.zero;
+        Rb.MovePosition(Rb.position + dir * currentSpeed * Time.fixedDeltaTime);
 
         if (toTarget.x > 0f)
             transform.localScale = new Vector3(-1f, 1f, 1f);
         else if (toTarget.x < 0f)
             transform.localScale = new Vector3(1f, 1f, 1f);
+    }
+
+    void BeginSpawnApproachPassthrough()
+    {
+        if (spawnApproachPassthrough)
+            return;
+
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
+        if (bodyCollider == null)
+            return;
+
+        savedBodyIsTrigger = bodyCollider.isTrigger;
+        bodyCollider.isTrigger = true;
+        spawnApproachPassthrough = true;
+    }
+
+    void EndSpawnApproachPassthrough()
+    {
+        if (!spawnApproachPassthrough)
+            return;
+
+        if (bodyCollider != null)
+            bodyCollider.isTrigger = savedBodyIsTrigger;
+        spawnApproachPassthrough = false;
     }
 
     protected override void SnapToSpawnTarget()
@@ -720,6 +759,7 @@ public class FlyingEnemy : Enemy
 
     protected override void OnSpawnApproachFinished()
     {
+        EndSpawnApproachPassthrough();
         hoverBaseY = RaiseYAboveOneWayPlatforms(homePosition.x, homePosition.y);
         bobPhase = 0f;
         hoverHeightOutOfRangeTimer = 0f;

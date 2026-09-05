@@ -942,6 +942,17 @@ public class EncounterZone : MonoBehaviour, ISaveable
                 return;
             }
 
+            // 遭遇进场（走到 targetPoint）期间必须可自由穿入；
+            // 否则未进区时其它墙已被记入 entered/sealed，Clamp 会把速度清零卡在入口墙外。
+            var enemy = GetComponent<Enemy>();
+            if (enemy != null && enemy.isApproachingSpawnTarget)
+            {
+                if (bodyColliders.Count == 0)
+                    CacheBodyColliders();
+                SetIgnoringWalls(true);
+                return;
+            }
+
             if (!sealedInside)
                 EvaluateGate();
 

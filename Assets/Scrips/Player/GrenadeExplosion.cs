@@ -3,6 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CircleCollider2D))]
 [RequireComponent(typeof(Attack))]
 [RequireComponent(typeof(Animator))]
+[DefaultExecutionOrder(-100)] // 先于 Attack.OnEnable，避免用 damage=0 结算并把目标记入 hitTargets
 public class GrenadeExplosion : MonoBehaviour
 {
     const string ExplosionStateName = "GrenadeExplosion";

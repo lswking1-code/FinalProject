@@ -247,6 +247,18 @@ public class Attack : MonoBehaviour
 
     ContactFilter2D CreateOverlapFilter()
     {
+        // Player(9)↔Enemy(8) 故意不相交；近战主动 Overlap 必须绕过矩阵（Bob 同理）。
+        // 子弹仍走 Layer Collision Matrix，避免误扫无关层。
+        if (attackType == AttackType.Melee)
+        {
+            return new ContactFilter2D
+            {
+                useTriggers = true,
+                useLayerMask = false,
+                useDepth = false,
+            };
+        }
+
         var filter = new ContactFilter2D { useTriggers = true };
         filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
         return filter;

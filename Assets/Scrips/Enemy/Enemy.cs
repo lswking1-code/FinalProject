@@ -980,7 +980,7 @@ public class Enemy : MonoBehaviour
     public virtual float GetMoveSpeedScale() => 1f;
 
     public virtual bool ShouldApplySeparation =>
-        enableSeparation && !blockSeparation && !isHurt && !isDead && IsHittable;
+        enableSeparation && !blockSeparation && !isHurt && !isDead && !isApproachingSpawnTarget && IsHittable;
 
     public virtual float GetSeparationScale() => isReturning ? 0.35f : 1f;
 

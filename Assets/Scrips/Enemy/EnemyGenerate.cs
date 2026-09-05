@@ -780,14 +780,16 @@ public class EnemyGenerate : MonoBehaviour
         ApplyScales(instance, wave);
         ApplyDrops(instance, entry, indexInEntry);
         BindSpawnedSummoner(instance, entry);
-        ApplyEncounterBehavior(instance, entry, position);
 
+        // 先挂空气墙门控，再开始进场，避免首帧物理顶在墙上
         if (encounterZone != null)
         {
             if (registerWithZone)
                 encounterZone.RegisterEnemy(instance);
             encounterZone.PrepareSpawnedEnemy(instance);
         }
+
+        ApplyEncounterBehavior(instance, entry, position);
 
         OneWayAirWallVolume.PrepareSpawnedEnemyAll(instance);
 
