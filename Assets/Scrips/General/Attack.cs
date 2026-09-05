@@ -157,6 +157,20 @@ public class Attack : MonoBehaviour
         return attacker.enableKnockback && attacker.knockbackForce > 0f;
     }
 
+    /// <summary>
+    /// 投射物撞墙销毁：Ground，以及箱子/压力板所在的 InteractableObject。
+    /// </summary>
+    public static bool IsProjectileBlockingLayer(int layer)
+    {
+        string name = LayerMask.LayerToName(layer);
+        return name == "Ground" || name == "InteractableObject";
+    }
+
+    public static bool IsProjectileBlockingCollider(Collider2D collider)
+    {
+        return collider != null && IsProjectileBlockingLayer(collider.gameObject.layer);
+    }
+
     /// <summary>场景物击退：Blast 即使未勾 enableKnockback 也能推；力为 0 时用默认冲量。</summary>
     public static float EffectivePropKnockbackForce(Attack attacker, float resistance)
     {
@@ -255,9 +269,9 @@ public class Attack : MonoBehaviour
         }
 
         if (attackType == AttackType.Projectile
-            && LayerMask.LayerToName(collision.gameObject.layer) == "Ground")
+            && IsProjectileBlockingCollider(collision))
         {
-            // Ground 上的可破坏物（如 BreakableDoor）需先计次/闪红，再销毁子弹
+            // Ground / InteractableObject 上的可破坏物（如 BreakableDoor）需先计次/闪红，再销毁子弹
             var groundHitCountable = collision.GetComponentInParent<IHitCountable>();
             if (groundHitCountable != null && CanHitCountable(groundHitCountable))
             {
