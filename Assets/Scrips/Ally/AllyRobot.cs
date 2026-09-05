@@ -380,10 +380,11 @@ public class AllyRobot : MonoBehaviour
     float slopeDetachTimer;
     AnimatorOverrideController blastModeOverride;
     bool blastModeIntroPlaying;
-    bool blastModeIntroSeen;
+    float blastModeIntroTimer;
     bool blastModeDamageApplied;
     Attack[] blastModeDamageTargets;
     int[] blastModeDamageBases;
+    const float BlastModeIntroFallbackDuration = 0.35f;
     const float MinAirTime = 0.05f;
     const float DescendVelocityThreshold = 0.01f;
     const float MicroAirHitchMaxTime = 0.25f;
@@ -779,7 +780,26 @@ public class AllyRobot : MonoBehaviour
             spawnPoint = transform.position;
         manualMoveInput = Vector2.zero;
         manualJumpHeldPrev = false;
-        SwitchState(AllyState.Idle);
+        currentTarget = null;
+        pendingRetarget = false;
+        AcquireNearestTargetAfterManual();
+    }
+
+    /// <summary>
+    /// 手动操控结束后立刻以自身为中心重锁最近敌人。
+    /// </summary>
+    void AcquireNearestTargetAfterManual()
+    {
+        if (TryAcquireTarget(out Transform target, nearestToSelf: true))
+        {
+            BeginCombat(target);
+            return;
+        }
+
+        if (IsOutsideMaxChaseRange())
+            SwitchState(AllyState.Return);
+        else
+            SwitchState(AllyState.Idle);
     }
 
     bool TryGetManualMoveDir(out float moveDir)
@@ -2014,9 +2034,9 @@ public class AllyRobot : MonoBehaviour
         return EncounterZone.IsAllyTargetingAllowed(worldPoint);
     }
 
-    bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false)
+    bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false, bool nearestToSelf = false)
     {
-        target = FindClosestEnemy(includeAirEnemy);
+        target = FindClosestEnemy(includeAirEnemy, nearestToSelf: nearestToSelf);
         return target != null;
     }
 
@@ -3279,7 +3299,11 @@ public class AllyRobot : MonoBehaviour
 
     const string AirEnemyTag = "AirEnemy";
 
-    Transform FindClosestEnemy(bool includeAirEnemy = false, float rangeX = -1f, float rangeY = -1f)
+    Transform FindClosestEnemy(
+        bool includeAirEnemy = false,
+        float rangeX = -1f,
+        float rangeY = -1f,
+        bool nearestToSelf = false)
     {
         Transform closestMarked = null;
         Transform closestUnmarked = null;
@@ -3287,6 +3311,8 @@ public class AllyRobot : MonoBehaviour
         float minMarkedDistX = float.MaxValue;
         float minUnmarkedDistY = float.MaxValue;
         float minUnmarkedDistX = float.MaxValue;
+        float minMarkedSq = float.MaxValue;
+        float minUnmarkedSq = float.MaxValue;
 
         float maxX = rangeX > 0f ? rangeX : detectRangeX;
         float comboMaxY = rangeY > 0f ? rangeY : detectRangeY;
@@ -3297,9 +3323,11 @@ public class AllyRobot : MonoBehaviour
             maxX,
             groundMaxY,
             !includeAirEnemy,
+            nearestToSelf,
             ref closestMarked, ref closestUnmarked,
             ref minMarkedDistY, ref minMarkedDistX,
-            ref minUnmarkedDistY, ref minUnmarkedDistX);
+            ref minUnmarkedDistY, ref minUnmarkedDistX,
+            ref minMarkedSq, ref minUnmarkedSq);
         if (includeAirEnemy)
         {
             ConsiderEnemiesWithTag(
@@ -3307,19 +3335,37 @@ public class AllyRobot : MonoBehaviour
                 maxX,
                 comboMaxY,
                 false,
+                nearestToSelf,
                 ref closestMarked, ref closestUnmarked,
                 ref minMarkedDistY, ref minMarkedDistX,
-                ref minUnmarkedDistY, ref minUnmarkedDistX);
+                ref minUnmarkedDistY, ref minUnmarkedDistX,
+                ref minMarkedSq, ref minUnmarkedSq);
+        }
+
+        if (nearestToSelf)
+        {
+            if (closestMarked == null)
+                return closestUnmarked;
+            if (closestUnmarked == null)
+                return closestMarked;
+            return minMarkedSq <= minUnmarkedSq ? closestMarked : closestUnmarked;
         }
 
         return closestMarked != null ? closestMarked : closestUnmarked;
     }
 
     /// <summary>
-    /// 同标记层级内：更小 |ΔY| 优先；Y 相等时更小 |ΔX| 优先。
+    /// 普通索敌：同标记层级内更小 |ΔY| 优先，Y 相等时更小 |ΔX| 优先。
+    /// 手动恢复：同标记层级内以自身欧氏距离最近优先。
     /// </summary>
-    static bool IsBetterAcquireCandidate(float distY, float distX, float bestY, float bestX)
+    static bool IsBetterAcquireCandidate(
+        bool nearestToSelf,
+        float distSq, float distY, float distX,
+        float bestSq, float bestY, float bestX)
     {
+        if (nearestToSelf)
+            return distSq < bestSq;
+
         if (distY < bestY)
             return true;
         if (distY > bestY)
@@ -3332,12 +3378,15 @@ public class AllyRobot : MonoBehaviour
         float maxDistX,
         float maxDistY,
         bool skipUnreachableAbove,
+        bool nearestToSelf,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
         ref float minMarkedDistY,
         ref float minMarkedDistX,
         ref float minUnmarkedDistY,
-        ref float minUnmarkedDistX)
+        ref float minUnmarkedDistX,
+        ref float minMarkedSq,
+        ref float minUnmarkedSq)
     {
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(tag);
         foreach (var e in enemies)
@@ -3361,17 +3410,24 @@ public class AllyRobot : MonoBehaviour
                 continue;
 
             bool marked = enemy != null && enemy.isMarked;
+            float distSq = ((Vector2)transform.position - aim).sqrMagnitude;
             if (marked)
             {
-                if (IsBetterAcquireCandidate(distY, distX, minMarkedDistY, minMarkedDistX))
+                if (IsBetterAcquireCandidate(
+                    nearestToSelf, distSq, distY, distX,
+                    minMarkedSq, minMarkedDistY, minMarkedDistX))
                 {
+                    minMarkedSq = distSq;
                     minMarkedDistY = distY;
                     minMarkedDistX = distX;
                     closestMarked = e.transform;
                 }
             }
-            else if (IsBetterAcquireCandidate(distY, distX, minUnmarkedDistY, minUnmarkedDistX))
+            else if (IsBetterAcquireCandidate(
+                nearestToSelf, distSq, distY, distX,
+                minUnmarkedSq, minUnmarkedDistY, minUnmarkedDistX))
             {
+                minUnmarkedSq = distSq;
                 minUnmarkedDistY = distY;
                 minUnmarkedDistX = distX;
                 closestUnmarked = e.transform;
@@ -3595,10 +3651,17 @@ public class AllyRobot : MonoBehaviour
         blastModeDamageApplied = false;
     }
 
+    bool IsBlastModeStartState(AnimatorStateInfo info)
+    {
+        return !string.IsNullOrEmpty(blastModeStartStateName)
+            && (info.IsName(blastModeStartStateName)
+                || info.IsName("Base Layer." + blastModeStartStateName));
+    }
+
     void BeginBlastModeIntro()
     {
         blastModeIntroPlaying = true;
-        blastModeIntroSeen = false;
+        blastModeIntroTimer = BlastModeIntroFallbackDuration;
         if (anim == null || string.IsNullOrEmpty(blastModeStartStateName))
             return;
 
@@ -3606,6 +3669,10 @@ public class AllyRobot : MonoBehaviour
         anim.ResetTrigger(attackTriggerName);
         anim.Play(blastModeStartStateName, 0, 0f);
         anim.Update(0f);
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (IsBlastModeStartState(info) && info.length > 0.01f)
+            blastModeIntroTimer = info.length;
     }
 
     void UpdateBlastModeIntro()
@@ -3619,23 +3686,18 @@ public class AllyRobot : MonoBehaviour
             return;
         }
 
-        if (anim == null)
+        blastModeIntroTimer -= Time.deltaTime;
+
+        bool animDone = false;
+        if (anim != null)
         {
-            EndBlastModeIntro();
-            return;
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (IsBlastModeStartState(info))
+                animDone = info.normalizedTime >= 0.99f;
         }
 
-        var info = anim.GetCurrentAnimatorStateInfo(0);
-        if (info.IsName(blastModeStartStateName))
-        {
-            blastModeIntroSeen = true;
-            if (info.normalizedTime < 1f)
-                return;
-        }
-        else if (!blastModeIntroSeen)
-        {
+        if (blastModeIntroTimer > 0f && !animDone)
             return;
-        }
 
         EndBlastModeIntro();
     }
@@ -3643,14 +3705,14 @@ public class AllyRobot : MonoBehaviour
     void EndBlastModeIntro()
     {
         blastModeIntroPlaying = false;
-        blastModeIntroSeen = false;
+        blastModeIntroTimer = 0f;
         RefreshLocomotionVisual();
     }
 
     void CancelBlastModeIntro()
     {
         blastModeIntroPlaying = false;
-        blastModeIntroSeen = false;
+        blastModeIntroTimer = 0f;
     }
 
     void RefreshLocomotionVisual()
@@ -3658,10 +3720,10 @@ public class AllyRobot : MonoBehaviour
         if (anim == null || IsAirborneBusy || SuppressAirAnim || blastModeIntroPlaying)
             return;
 
-        if (currentState != AllyState.Idle
-            && currentState != AllyState.Chase
-            && currentState != AllyState.Return
-            && currentState != AllyState.ManualMove)
+        if (IsBusyWithCombo
+            || currentState == AllyState.Pulling
+            || currentState == AllyState.Recalling
+            || currentState == AllyState.Spawning)
             return;
 
         bool walking = currentState == AllyState.Chase
@@ -3673,5 +3735,6 @@ public class AllyRobot : MonoBehaviour
 
         anim.SetBool(walkBoolName, walking);
         anim.Play(walking ? "Walk" : "Idle", 0, 0f);
+        anim.Update(0f);
     }
 }

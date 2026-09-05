@@ -270,7 +270,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 10
+  damage: 15
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -990,7 +990,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 30
+  damage: 40
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -1307,8 +1307,8 @@ MonoBehaviour:
   jumpStateName: Jump
   fallStateName: Fall
   landStateName: Land
-  blastModeMoveSpeed: 6
-  blastModeAttackDamageBonus: 5
+  blastModeMoveSpeed: 5
+  blastModeAttackDamageBonus: 10
   blastModeStartStateName: BlastMode_start
   idleClip: {fileID: 7400000, guid: 64a4662d1b3126e4b9770c90f90f6f38, type: 2}
   walkClip: {fileID: 7400000, guid: 0eb77c7ce75957848a3f13651aea9613, type: 2}
