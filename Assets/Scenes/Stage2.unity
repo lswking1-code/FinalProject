@@ -27480,13 +27480,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3599074054726278277, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
+      propertyPath: m_SortingLayer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3599074054726278277, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3599074054726278277, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 226565215
+      objectReference: {fileID: 0}
     - target: {fileID: 5376560405586235159, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
       propertyPath: m_Name
       value: Savepoint (1)
       objectReference: {fileID: 0}
     - target: {fileID: 6553997713741672300, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 82.18
+      value: 88.34
       objectReference: {fileID: 0}
     - target: {fileID: 6553997713741672300, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
       propertyPath: m_LocalPosition.y
