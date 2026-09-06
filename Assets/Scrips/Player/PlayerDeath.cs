@@ -17,6 +17,10 @@ public class PlayerDeath : MonoBehaviour
     [SerializeField, Min(0f)] float reviveInvulnerableDuration = 2f;
     [Tooltip("无敌白闪切换间隔（秒）。")]
     [SerializeField, Min(0.02f)] float reviveFlashInterval = 0.1f;
+    [Tooltip("白闪时叠白强度。0 为原色半透明，1 为纯白半透明。")]
+    [SerializeField, Range(0f, 1f)] float reviveFlashWhiteAmount = 0.45f;
+    [Tooltip("白闪时的不透明度。")]
+    [SerializeField, Range(0.05f, 1f)] float reviveFlashAlpha = 0.5f;
 
     [Header("音效")]
     [SerializeField] EventReference hitEvent;
@@ -40,6 +44,11 @@ public class PlayerDeath : MonoBehaviour
     bool flashWhite;
     SpriteRenderer[] flashRenderers;
     Color[] flashOriginals;
+    Material[] flashOriginalMaterials;
+
+    static readonly int FlashBlendId = Shader.PropertyToID("_FlashBlend");
+    static readonly int FlashAlphaId = Shader.PropertyToID("_FlashAlpha");
+    static Material whiteFlashMaterial;
 
     static readonly List<Collider2D> overlapBuffer = new();
 
@@ -361,10 +370,13 @@ public class PlayerDeath : MonoBehaviour
             return;
 
         flashOriginals = new Color[flashRenderers.Length];
+        flashOriginalMaterials = new Material[flashRenderers.Length];
         for (int i = 0; i < flashRenderers.Length; i++)
         {
-            if (flashRenderers[i] != null)
-                flashOriginals[i] = flashRenderers[i].color;
+            if (flashRenderers[i] == null)
+                continue;
+            flashOriginals[i] = flashRenderers[i].color;
+            flashOriginalMaterials[i] = flashRenderers[i].sharedMaterial;
         }
 
         flashing = true;
@@ -400,23 +412,42 @@ public class PlayerDeath : MonoBehaviour
         if (flashRenderers == null)
             return;
 
+        Material flashMaterial = flashWhite ? GetWhiteFlashMaterial() : null;
+        if (flashMaterial != null)
+        {
+            flashMaterial.SetFloat(FlashBlendId, reviveFlashWhiteAmount);
+            flashMaterial.SetFloat(FlashAlphaId, reviveFlashAlpha);
+        }
         for (int i = 0; i < flashRenderers.Length; i++)
         {
             SpriteRenderer renderer = flashRenderers[i];
             if (renderer == null)
                 continue;
 
-            renderer.color = flashWhite ? Color.white : FlashOffColor(flashOriginals[i]);
+            renderer.color = flashOriginals[i];
+            renderer.sharedMaterial = flashWhite && flashMaterial != null
+                ? flashMaterial
+                : flashOriginalMaterials[i];
         }
     }
 
-    static Color FlashOffColor(Color original)
+    static Material GetWhiteFlashMaterial()
     {
-        // 原色接近白时略压暗，否则白闪看不出来
-        if (original.r > 0.85f && original.g > 0.85f && original.b > 0.85f)
-            return new Color(0.55f, 0.55f, 0.55f, original.a);
+        if (whiteFlashMaterial != null)
+            return whiteFlashMaterial;
 
-        return original;
+        Shader shader = Resources.Load<Shader>("SpriteWhiteFlash");
+        if (shader == null)
+            shader = Shader.Find("Sprites/WhiteFlash");
+        if (shader == null)
+            return null;
+
+        whiteFlashMaterial = new Material(shader)
+        {
+            name = "SpriteWhiteFlash (Runtime)",
+            hideFlags = HideFlags.HideAndDontSave
+        };
+        return whiteFlashMaterial;
     }
 
     void StopWhiteFlash()
@@ -424,13 +455,19 @@ public class PlayerDeath : MonoBehaviour
         if (!flashing)
             return;
 
-        if (flashRenderers != null && flashOriginals != null)
+        if (flashRenderers != null)
         {
-            int count = Mathf.Min(flashRenderers.Length, flashOriginals.Length);
+            int count = flashRenderers.Length;
             for (int i = 0; i < count; i++)
             {
-                if (flashRenderers[i] != null)
-                    flashRenderers[i].color = flashOriginals[i];
+                SpriteRenderer renderer = flashRenderers[i];
+                if (renderer == null)
+                    continue;
+
+                if (flashOriginals != null && i < flashOriginals.Length)
+                    renderer.color = flashOriginals[i];
+                if (flashOriginalMaterials != null && i < flashOriginalMaterials.Length)
+                    renderer.sharedMaterial = flashOriginalMaterials[i];
             }
         }
 
@@ -438,5 +475,6 @@ public class PlayerDeath : MonoBehaviour
         flashRemaining = 0f;
         flashRenderers = null;
         flashOriginals = null;
+        flashOriginalMaterials = null;
     }
 }

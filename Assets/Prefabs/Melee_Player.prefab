@@ -394,6 +394,8 @@ MonoBehaviour:
   backToMenuEvent: {fileID: 0}
   reviveInvulnerableDuration: 2
   reviveFlashInterval: 0.1
+  reviveFlashWhiteAmount: 1
+  reviveFlashAlpha: 0.6
   hitEvent:
     Guid:
       Data1: 0
@@ -1390,6 +1392,8 @@ MonoBehaviour:
   enableHitCameraShake: 1
   hitCameraShakeEvent: {fileID: 11400000, guid: 7c4e9a1b2d3f4e5a8b6c0d1e2f3a4b5c, type: 2}
   hitCameraShakeForce: 0.12
+  impactKind: 0
+  impactScale: 1
 --- !u!1 &7012345678901234510
 GameObject:
   m_ObjectHideFlags: 0
