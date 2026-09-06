@@ -687,6 +687,8 @@ MonoBehaviour:
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
+  impactKind: 0
+  impactScale: 1
 --- !u!1 &8190837749373279148
 GameObject:
   m_ObjectHideFlags: 0
@@ -810,9 +812,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anim: {fileID: 0}
   physicsCheck: {fileID: 0}
-  normalSpeed: 4
+  normalSpeed: 3
   chaseSpeed: 5
-  spawnApproachSpeedScale: 1.5
+  spawnApproachSpeedScale: 3
   currentSpeed: 0
   blocksLaser: 0
   faceDir: {x: 0, y: 0, z: 0}

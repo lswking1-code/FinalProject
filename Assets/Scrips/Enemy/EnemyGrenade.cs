@@ -71,7 +71,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         visual = transform.Find("Sprite");
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         SetupPassThroughFilter();
-        ExcludePassThroughLayers();
+        ApplyPassThroughLayerFilter();
     }
 
     public void Init(float faceDir, Vector2 throwerVelocity, Collider2D throwerCollider)
@@ -144,6 +144,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             Physics2D.IgnoreCollision(grenadeCollider, throwerCollider);
 
         cachedVelocity = rb.linearVelocity;
+        ApplyPassThroughLayerFilter();
         IgnoreNearbyPassThroughs();
 
         if (animator != null)
@@ -168,6 +169,9 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     }
 
     bool IsFuseActive => !rollModeActive && !fuseExpired && fuseTime > 0f;
+
+    /// <summary>高抛手雷穿过单向平台；滚雷应落在平台上滚动。</summary>
+    bool ShouldPassThroughPlatforms => !isRollGrenade && !rollModeActive;
 
     void TickFuse()
     {
@@ -231,11 +235,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
 
     void TryApplyLandingFeel(Collision2D collision)
     {
-        if (hasLanded || groundLayer.value == 0)
-            return;
-
-        int layerBit = 1 << collision.collider.gameObject.layer;
-        if ((groundLayer.value & layerBit) == 0)
+        if (hasLanded || !IsLandingSurface(collision.collider))
             return;
 
         bool landedOnTop = false;
@@ -286,7 +286,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         if (hasExploded)
             return;
 
-        // 单向平台 / 机器人顶部仅给角色站立，手雷应穿过、不引爆、不吸附
+        // 高抛：单向平台 / 机器人顶部穿过。滚雷：只穿过机器人顶部，平台落地滚动。
         if (TryPassThrough(collision.collider) || TryPassThroughPlayer(collision.collider))
         {
             RestoreFlightVelocity();
@@ -299,12 +299,13 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
-        if (!IsGroundCollider(collision.collider))
-            return;
-
         if (rollModeActive)
+        {
             TryApplyLandingFeel(collision);
-        else
+            return;
+        }
+
+        if (IsGroundCollider(collision.collider))
             Explode();
     }
 
@@ -343,13 +344,43 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         };
     }
 
-    void ExcludePassThroughLayers()
+    void ApplyPassThroughLayerFilter()
     {
-        LayerMask excluded = LayerMask.GetMask("Platform", "RobotTop");
+        LayerMask platformMask = LayerMask.GetMask("Platform");
+        LayerMask robotTopMask = LayerMask.GetMask("RobotTop");
+
+        if (ShouldPassThroughPlatforms)
+        {
+            LayerMask excluded = platformMask | robotTopMask;
+            if (grenadeCollider != null)
+            {
+                grenadeCollider.includeLayers &= ~platformMask;
+                grenadeCollider.excludeLayers |= excluded;
+            }
+
+            if (rb != null)
+            {
+                rb.includeLayers &= ~platformMask;
+                rb.excludeLayers |= excluded;
+            }
+
+            return;
+        }
+
+        // EnemyBullet 与 Platform 在碰撞矩阵中默认不相交，滚雷需显式 include。
         if (grenadeCollider != null)
-            grenadeCollider.excludeLayers |= excluded;
+        {
+            grenadeCollider.includeLayers |= platformMask;
+            grenadeCollider.excludeLayers |= robotTopMask;
+            grenadeCollider.excludeLayers &= ~platformMask;
+        }
+
         if (rb != null)
-            rb.excludeLayers |= excluded;
+        {
+            rb.includeLayers |= platformMask;
+            rb.excludeLayers |= robotTopMask;
+            rb.excludeLayers &= ~platformMask;
+        }
     }
 
     void BeginPlayerPassThrough()
@@ -541,12 +572,18 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         return true;
     }
 
-    static bool IsPassThroughCollider(Collider2D collider)
+    bool IsPassThroughCollider(Collider2D collider)
     {
         if (collider == null)
             return false;
 
-        if (IsRobotTopCollider(collider) || IsPlatformLayer(collider))
+        if (IsRobotTopCollider(collider))
+            return true;
+
+        if (!ShouldPassThroughPlatforms)
+            return false;
+
+        if (IsPlatformLayer(collider))
             return true;
 
         return FallingPlatform.IsOneWayPlatformCollider(collider);
@@ -579,6 +616,17 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return false;
 
         return (groundLayer.value & (1 << collider.gameObject.layer)) != 0;
+    }
+
+    bool IsLandingSurface(Collider2D collider)
+    {
+        if (IsGroundCollider(collider))
+            return true;
+
+        if (!rollModeActive || collider == null || IsRobotTopCollider(collider))
+            return false;
+
+        return IsPlatformLayer(collider) || FallingPlatform.IsOneWayPlatformCollider(collider);
     }
 
     void Explode()
@@ -617,10 +665,14 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             ? grenadeCollider.bounds.max.y
             : transform.position.y + 0.1f;
 
-        if (groundLayer.value != 0)
+        LayerMask snapMask = groundLayer;
+        if (rollModeActive)
+            snapMask |= LayerMask.GetMask("Platform");
+
+        if (snapMask.value != 0)
         {
             RaycastHit2D[] hits = Physics2D.RaycastAll(
-                new Vector2(x, probeY), Vector2.down, groundSnapRayDistance, groundLayer);
+                new Vector2(x, probeY), Vector2.down, groundSnapRayDistance, snapMask);
             float bestDistance = float.PositiveInfinity;
             Vector2 bestPoint = Vector2.zero;
             bool found = false;

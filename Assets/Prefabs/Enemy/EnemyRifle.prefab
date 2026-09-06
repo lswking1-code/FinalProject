@@ -274,7 +274,7 @@ MonoBehaviour:
   physicsCheck: {fileID: 0}
   normalSpeed: 2
   chaseSpeed: 4
-  spawnApproachSpeedScale: 1.5
+  spawnApproachSpeedScale: 2.5
   currentSpeed: 0
   blocksLaser: 0
   faceDir: {x: 0, y: 0, z: 0}
@@ -335,8 +335,8 @@ MonoBehaviour:
   reloadDuration: 1
   projectilePrefab: {fileID: 1207313983663696913, guid: 504c5d92d03bea14b9beba43ecef18e9, type: 3}
   firePoint: {fileID: 5507517411812069850}
-  shotWeight: 0.5
-  moveWeight: 0.5
+  shotWeight: 0.6
+  moveWeight: 0.4
   crouchWeight: 0.2
   crouchShootWeight: 0.3
   jumpWeight: 0.25

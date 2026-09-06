@@ -302,6 +302,10 @@ MonoBehaviour:
   blockSeparation: 0
   isPatrol: 0
   patrolDetectRange: 10
+  patrolLeashRange: 8
+  returnHomeSpeedScale: 1.5
+  returnStuckTimeout: 2
+  returnStuckMoveThreshold: 0.08
   returnArriveDistance: 0.15
   waitTime: 0
   waitTimeCounter: 0
@@ -341,7 +345,14 @@ MonoBehaviour:
   enableJumpAction: 0
   shotPrepDuration: 0.9
   shotPrepStateName: ShotPrep
+  crouchStartDuration: 0.4
+  crouchStartStateName: CrouchStart
+  crouchShotPrepStateName: CrouchShotPrep
+  crouchShootHoldDuration: 0.35
+  crouchShootStateName: CrouchShoot
   enableFocusMode: 0
+  crouchColliderSize: {x: 1, y: 1.2}
+  crouchFirePointLocal: {x: 2.312, y: 0.15}
   missilePrefab: {fileID: 6100000000000000006, guid: a07b24d5e10672912d4f8a3b5c6170e9, type: 3}
   firePointRadius: 1.4
   fireOriginOffset: {x: 0, y: 0.8}
