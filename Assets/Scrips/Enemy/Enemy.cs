@@ -70,7 +70,7 @@ public class Enemy : MonoBehaviour
     public float combatSlotSpacing = 0.75f;
     [Tooltip("参与站位槽分配的同伴水平范围，避免远处敌人把停点排得过远")]
     public float combatSlotGroupRadius = 8f;
-    /// <summary>近战贴脸、飞扑、举盾等临时关闭间隔。</summary>
+    /// <summary>近战贴脸、冲刺、举盾等临时关闭间隔。</summary>
     [HideInInspector] public bool blockSeparation;
     /// <summary>本帧水平移动意图；贴边把速度清零后仍用来判断是否该被同伴往内侧挤开。</summary>
     float lastMoveIntentX;
@@ -152,7 +152,7 @@ public class Enemy : MonoBehaviour
     {
         "walk", "shoot", "shootDown", "shotPrep", "crouch", "reload",
         "melee", "meleeWindup", "throw", "jump", "fall", "land", "run",
-        "missile", "ramWindup", "ram",
+        "missile", "ramWindup", "ram", "warning", "bomb",
     };
 
     protected Character character;
@@ -571,6 +571,13 @@ public class Enemy : MonoBehaviour
     /// 遭遇刷怪条目覆盖专注模式。默认无效果；远程与盾兵子类写入 enableFocusMode。
     /// </summary>
     public virtual void ApplyEncounterFocusMode(bool enabled)
+    {
+    }
+
+    /// <summary>
+    /// 遭遇刷怪条目覆盖空中敌人自爆攻击。默认无效果。
+    /// </summary>
+    public virtual void ApplyEncounterSuicideBomb(bool enabled)
     {
     }
 
@@ -1367,15 +1374,32 @@ public class Enemy : MonoBehaviour
         }
 
         gameObject.layer = 2;
-        SetAnimBool("dead", true);
 
         StopHurtVisualRoutines();
         RestoreHurtVisuals();
         isHurt = false;
 
+        if (TryPlayAlternateDeathAnim())
+        {
+            OnDeathVisualStarted();
+            return;
+        }
+
+        SetAnimBool("dead", true);
+
         if (UseDeathVanishFlash)
             deathFlashRoutine = StartCoroutine(DeathVanishFlash());
+
+        OnDeathVisualStarted();
     }
+
+    /// <summary>
+    /// 自爆等特殊死亡表现。返回 true 时不再播 Die。
+    /// </summary>
+    protected virtual bool TryPlayAlternateDeathAnim() => false;
+
+    /// <summary>死亡动画或替代表现已开始。飞行敌人等可在此启动缓落。</summary>
+    protected virtual void OnDeathVisualStarted() { }
 
     void ClearCombatAnimatorBools()
     {
@@ -1426,7 +1450,7 @@ public class Enemy : MonoBehaviour
     /// <summary>
     /// 死亡动画结束后销毁对象（由动画事件调用）
     /// </summary>
-    public void DestroyAfterAnimation()
+    public virtual void DestroyAfterAnimation()
     {
         StopDeathFlash();
         Destroy(gameObject);

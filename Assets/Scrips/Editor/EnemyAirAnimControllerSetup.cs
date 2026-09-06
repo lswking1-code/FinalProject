@@ -5,8 +5,8 @@ using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
-/// 生成 / 修复飞行敌人 Animator Controller（Idle / Fly / Shoot / ShootDown / Hit / Die）。
-/// 参数与 FlyingEnemy 状态脚本对齐：walk / shoot / shootDown / hurt / dead。
+/// 生成 / 修复飞行敌人 Animator Controller（Idle / Fly / Shoot / ShootDown / Warning / Bomb / Hit / Die）。
+/// 参数与 FlyingEnemy 状态脚本对齐：walk / shoot / shootDown / warning / bomb / hurt / dead。
 /// </summary>
 public static class EnemyAirAnimControllerSetup
 {
@@ -17,6 +17,8 @@ public static class EnemyAirAnimControllerSetup
     const string FlyClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_fly.anim";
     const string ShootClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_shoot.anim";
     const string ShootDownClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_downshoot.anim";
+    const string WarningClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_warning.anim";
+    const string BombClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_Bomb.anim";
     const string HitClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_hit.anim";
     const string DieClipPath = "Assets/Animations/Enemy/FlyEnemy/FlyEnemy_die.anim";
 
@@ -50,6 +52,9 @@ public static class EnemyAirAnimControllerSetup
         var shootDown = AssetDatabase.LoadAssetAtPath<AnimationClip>(ShootDownClipPath);
         if (shootDown == null)
             shootDown = shoot;
+        var warning = AssetDatabase.LoadAssetAtPath<AnimationClip>(WarningClipPath);
+        var bomb = AssetDatabase.LoadAssetAtPath<AnimationClip>(BombClipPath);
+        DisableClipLoop(bomb);
         var hit = AssetDatabase.LoadAssetAtPath<AnimationClip>(HitClipPath);
         var die = AssetDatabase.LoadAssetAtPath<AnimationClip>(DieClipPath);
 
@@ -60,6 +65,8 @@ public static class EnemyAirAnimControllerSetup
         EnsureParameter(controller, "walk", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "shoot", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "shootDown", AnimatorControllerParameterType.Bool);
+        EnsureParameter(controller, "warning", AnimatorControllerParameterType.Bool);
+        EnsureParameter(controller, "bomb", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "hurt", AnimatorControllerParameterType.Trigger);
         EnsureParameter(controller, "dead", AnimatorControllerParameterType.Bool);
 
@@ -69,6 +76,8 @@ public static class EnemyAirAnimControllerSetup
         states["Fly"].motion = fly;
         states["Shoot"].motion = shoot;
         states["ShootDown"].motion = shootDown;
+        states["Warning"].motion = warning;
+        states["Bomb"].motion = bomb;
         states["Hit"].motion = hit;
         states["Die"].motion = die;
         sm.defaultState = states["Idle"];
@@ -83,6 +92,9 @@ public static class EnemyAirAnimControllerSetup
         EnsureAnyStateBool(sm, states["ShootDown"], "shootDown", true, canTransitionToSelf: false);
         EnsureBoolTransition(states["ShootDown"], states["Fly"], "shootDown", false, extraWalkTrue: true);
         EnsureBoolTransition(states["ShootDown"], states["Idle"], "shootDown", false, extraWalkTrue: false);
+
+        EnsureAnyStateBool(sm, states["Warning"], "warning", true, canTransitionToSelf: false);
+        EnsureAnyStateBool(sm, states["Bomb"], "bomb", true, canTransitionToSelf: false);
 
         EnsureAnyStateTrigger(sm, states["Hit"], "hurt");
         EnsureExitTimeTransition(states["Hit"], states["Idle"], 0.9f);
@@ -142,18 +154,34 @@ public static class EnemyAirAnimControllerSetup
             "Fly" => new Vector3(580f, -40f, 0f),
             "Shoot" => new Vector3(580f, 100f, 0f),
             "ShootDown" => new Vector3(580f, 200f, 0f),
+            "Warning" => new Vector3(800f, 100f, 0f),
+            "Bomb" => new Vector3(800f, 220f, 0f),
             "Hit" => new Vector3(300f, 240f, 0f),
             "Die" => new Vector3(50f, -120f, 0f),
             _ => new Vector3(200f, 200f, 0f)
         };
 
-        foreach (var name in new[] { "Idle", "Fly", "Shoot", "ShootDown", "Hit", "Die" })
+        foreach (var name in new[] { "Idle", "Fly", "Shoot", "ShootDown", "Warning", "Bomb", "Hit", "Die" })
         {
             if (!map.ContainsKey(name))
                 map[name] = sm.AddState(name, Pos(name));
         }
 
         return map;
+    }
+
+    static void DisableClipLoop(AnimationClip clip)
+    {
+        if (clip == null)
+            return;
+
+        var settings = AnimationUtility.GetAnimationClipSettings(clip);
+        if (!settings.loopTime)
+            return;
+
+        settings.loopTime = false;
+        AnimationUtility.SetAnimationClipSettings(clip, settings);
+        EditorUtility.SetDirty(clip);
     }
 
     static void EnsureParameter(AnimatorController controller, string name, AnimatorControllerParameterType type)

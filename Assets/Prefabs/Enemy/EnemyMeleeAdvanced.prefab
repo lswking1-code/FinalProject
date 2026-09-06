@@ -424,7 +424,7 @@ GameObject:
   - component: {fileID: 7922217810541670464}
   - component: {fileID: 4191023545506385523}
   m_Layer: 8
-  m_Name: EnemyMelee
+  m_Name: EnemyMeleeAdvanced
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -622,15 +622,15 @@ MonoBehaviour:
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
   meleeRange: 1.2
-  idealRange: 5
+  idealRange: 6
   idealRangeSlack: 0.5
   windupDuration: 0.3
   recoveryDuration: 2
   actionDuration: 1.5
   meleeAttackWeight: 0.6
   moveWeight: 0.4
-  enableDash: 0
-  dashSpeed: 12
+  enableDash: 1
+  dashSpeed: 8
   dashTimeout: 1.5
 --- !u!114 &7759382780292668202
 MonoBehaviour:

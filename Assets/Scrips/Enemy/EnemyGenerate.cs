@@ -34,6 +34,8 @@ public class EnemyWaveEntry
     public Transform[] spawnPoints;
     [Tooltip("覆盖预制体上的专注模式。盾兵有盾原地举盾；枪兵/火箭兵不靠近玩家；直升机只原地召唤。近战、无人机、装甲车无效")]
     public bool enableFocusMode;
+    [Tooltip("覆盖预制体上的无人机自爆攻击。仅普通空中敌人有效，直升机忽略")]
+    public bool enableSuicideBomb;
     [Tooltip("仅直升机：覆盖预制体默认召唤编制。枪兵等条目留空即可")]
     public HelicopterSummonProfile summonProfile;
     [Tooltip("开启后，生成后先走到目标点，再进入战斗/专注模式")]
@@ -882,6 +884,7 @@ public class EnemyGenerate : MonoBehaviour
             return;
 
         enemy.ApplyEncounterFocusMode(entry.enableFocusMode);
+        enemy.ApplyEncounterSuicideBomb(entry.enableSuicideBomb);
 
         if (entry.enableTargetPoint)
         {

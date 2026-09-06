@@ -33,6 +33,24 @@ public class FlyingEnemy : Enemy
     [Tooltip("向下射击开火点；为空时回退 firePoint")]
     public Transform downFirePoint;
 
+    [Header("自爆攻击")]
+    [Tooltip("开启后射击改为预警接近锁定点、延迟后圆形自爆")]
+    public bool enableSuicideBomb;
+    [Tooltip("到达锁定点附近后停下的距离")]
+    public float bombApproachStopDistance = 1.2f;
+    [Tooltip("停下后到爆炸的延迟（秒）")]
+    public float bombFuseDelay = 0.75f;
+    [Tooltip("预警接近速度；<=0 时使用 chaseSpeed")]
+    public float bombApproachSpeed;
+    [Tooltip("自爆圆形伤害半径")]
+    public float bombRadius = 2f;
+    [Tooltip("爆炸中心相对根节点上移，对齐身体碰撞中心")]
+    public float bombCenterYOffset = 1.31f;
+    [Tooltip("自爆伤害")]
+    public int bombDamage = 20;
+    [Tooltip("自爆判定；为空时运行时自动创建 BombHitbox")]
+    public Attack bombHitbox;
+
     [Header("悬停浮动")]
     [Tooltip("相对当前悬停高度的最大上下偏移")]
     public float bobAmplitude = 0.35f;
@@ -51,6 +69,10 @@ public class FlyingEnemy : Enemy
     [Tooltip("IgnoreCollision 预扫描半径相对碰撞体的额外距离")]
     [SerializeField] float oneWayScanPadding = 3f;
 
+    [Header("死亡缓落")]
+    [Tooltip("死亡后恒定下落速度")]
+    [SerializeField] float deathFallSpeed = 1.5f;
+
     [HideInInspector] public float hoverBaseY;
     float bobPhase;
     float hoverHeightOutOfRangeTimer;
@@ -64,6 +86,11 @@ public class FlyingEnemy : Enemy
     readonly HashSet<Collider2D> ignoredOneWayPlatforms = new HashSet<Collider2D>();
     bool spawnApproachPassthrough;
     bool savedBodyIsTrigger;
+    bool isPerformingSuicideAttack;
+    bool isSuicideDetonating;
+    bool isDeathFalling;
+    bool suicideLockCached;
+    Vector2 suicideLockPoint;
     // #region agent log
     float _dbgAnimLogTimer;
     string _dbgLastState;
@@ -90,7 +117,7 @@ public class FlyingEnemy : Enemy
         returnState = new FlyingReturnHomeState();
         getCloseState = new FlyingChaseState();
         moveState = new FlyingMoveState();
-        shotState = new FlyingShotState();
+        BindSuicideShotState();
         reloadState = new FlyingRecoveryState();
 
         if (normalSpeed <= 0f)
@@ -109,6 +136,12 @@ public class FlyingEnemy : Enemy
 
     protected override void FixedUpdate()
     {
+        if (isDeathFalling)
+        {
+            ApplyDeathFall();
+            return;
+        }
+
         UpdateOneWayPlatformIgnores();
         hoverBaseY = RaiseYAboveOneWayPlatforms(transform.position.x, hoverBaseY);
         base.FixedUpdate();
@@ -134,7 +167,7 @@ public class FlyingEnemy : Enemy
         else if (intended.x < -0.05f)
             vel.x = Mathf.Min(0f, vel.x);
 
-        if (IsInOverheadFan())
+        if (!isPerformingSuicideAttack && IsInOverheadFan())
             vel = ClampVelocityInsideFan(vel);
         Rb.linearVelocity = vel;
     }
@@ -307,7 +340,8 @@ public class FlyingEnemy : Enemy
 
     public override void BeginReturnHome()
     {
-        if (isDead || isReturning || isApproachingSpawnTarget)
+        if (isDead || isReturning || isApproachingSpawnTarget
+            || isPerformingSuicideAttack || isSuicideDetonating)
             return;
 
         ApplyReturnHomeStart(clearVerticalVelocity: true);
@@ -494,6 +528,208 @@ public class FlyingEnemy : Enemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(dir);
         FacePlayer();
+    }
+
+    public override void ApplyEncounterSuicideBomb(bool enabled)
+    {
+        enableSuicideBomb = enabled;
+        BindSuicideShotState();
+    }
+
+    void BindSuicideShotState()
+    {
+        shotState = enableSuicideBomb
+            ? new FlyingSuicideBombState()
+            : new FlyingShotState();
+    }
+
+    public bool IsSuicideDetonating => isSuicideDetonating;
+
+    public float BombFuseDelay => Mathf.Max(0f, bombFuseDelay);
+
+    public float GetBombApproachSpeed()
+    {
+        return bombApproachSpeed > 0f ? bombApproachSpeed : chaseSpeed;
+    }
+
+    public void BeginSuicideAttack()
+    {
+        isPerformingSuicideAttack = true;
+    }
+
+    public void EndSuicideAttack()
+    {
+        isPerformingSuicideAttack = false;
+    }
+
+    public void CacheSuicideLockPoint()
+    {
+        EnsurePlayerReference();
+        suicideLockPoint = player != null ? (Vector2)player.position : (Vector2)transform.position;
+        suicideLockCached = true;
+    }
+
+    public void FaceSuicideLockPoint()
+    {
+        FaceDirection(suicideLockPoint.x - transform.position.x);
+    }
+
+    public bool IsInSuicideDetonateRange()
+    {
+        return Vector2.Distance(transform.position, suicideLockPoint) <= Mathf.Max(0.05f, bombApproachStopDistance);
+    }
+
+    Vector2 GetSuicideBombCenterLocal()
+    {
+        return new Vector2(0f, bombCenterYOffset);
+    }
+
+    Vector3 GetSuicideBombCenterWorld()
+    {
+        return transform.position + (Vector3)GetSuicideBombCenterLocal();
+    }
+
+    public void MoveTowardSuicideLockPoint(float speed)
+    {
+        if (isHurt || isDead || Rb == null)
+            return;
+
+        Vector2 toTarget = suicideLockPoint - (Vector2)transform.position;
+        float dist = toTarget.magnitude;
+        if (dist <= Mathf.Max(0.05f, bombApproachStopDistance))
+        {
+            Rb.linearVelocity = Vector2.zero;
+            FaceSuicideLockPoint();
+            return;
+        }
+
+        Rb.linearVelocity = toTarget / dist * Mathf.Max(0f, speed);
+        FaceSuicideLockPoint();
+    }
+
+    public void BeginSuicideDetonation()
+    {
+        if (isSuicideDetonating || isDead)
+            return;
+
+        isSuicideDetonating = true;
+        StopHorizontalMotion();
+
+        if (character != null)
+            character.Kill();
+        else
+            OnDie();
+    }
+
+    public void ApplySuicideBombAoe()
+    {
+        EnsureBombHitbox();
+        if (bombHitbox == null)
+            return;
+
+        bombHitbox.damage = Mathf.Max(0, bombDamage);
+        bombHitbox.attackType = AttackType.Melee;
+        bombHitbox.requireTag = "Player";
+
+        var col = bombHitbox.GetComponent<CircleCollider2D>();
+        if (col != null)
+        {
+            col.offset = GetSuicideBombCenterLocal();
+            col.radius = Mathf.Max(0.05f, bombRadius);
+            col.enabled = true;
+        }
+
+        bombHitbox.enabled = false;
+        bombHitbox.enabled = true;
+        if (col != null && col.enabled)
+            bombHitbox.ProcessOverlapHits();
+        bombHitbox.enabled = false;
+        if (col != null)
+            col.enabled = false;
+    }
+
+    void EnsureBombHitbox()
+    {
+        if (bombHitbox != null)
+            return;
+
+        var existing = transform.Find("BombHitbox");
+        if (existing != null)
+            bombHitbox = existing.GetComponent<Attack>();
+
+        if (bombHitbox != null)
+            return;
+
+        var go = new GameObject("BombHitbox");
+        go.transform.SetParent(transform, false);
+        go.layer = 0;
+
+        var col = go.AddComponent<CircleCollider2D>();
+        col.isTrigger = true;
+        col.offset = GetSuicideBombCenterLocal();
+        col.radius = Mathf.Max(0.05f, bombRadius);
+        col.enabled = false;
+
+        bombHitbox = go.AddComponent<Attack>();
+        bombHitbox.damage = Mathf.Max(0, bombDamage);
+        bombHitbox.attackType = AttackType.Melee;
+        bombHitbox.requireTag = "Player";
+        bombHitbox.enabled = false;
+    }
+
+    protected override bool TryPlayAlternateDeathAnim()
+    {
+        if (!isSuicideDetonating)
+            return false;
+
+        SetAnimBool("warning", false);
+        SetAnimBool("dead", false);
+        SetAnimBool("bomb", true);
+        ApplySuicideBombAoe();
+        return true;
+    }
+
+    protected override void OnDeathVisualStarted()
+    {
+        if (isSuicideDetonating)
+            return;
+
+        BeginDeathFall();
+    }
+
+    void BeginDeathFall()
+    {
+        if (isDeathFalling)
+            return;
+
+        isDeathFalling = true;
+        EndSpawnApproachPassthrough();
+        DisableAllColliders();
+
+        if (Rb != null)
+        {
+            Rb.gravityScale = 0f;
+            Rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    void ApplyDeathFall()
+    {
+        if (Rb == null)
+            return;
+
+        Rb.gravityScale = 0f;
+        Rb.linearVelocity = new Vector2(0f, -Mathf.Max(0f, deathFallSpeed));
+    }
+
+    void DisableAllColliders()
+    {
+        var colliders = GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null)
+                colliders[i].enabled = false;
+        }
     }
 
     /// <summary>
@@ -906,6 +1142,23 @@ public class FlyingEnemy : Enemy
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(hover, 0.2f);
             Gizmos.DrawLine(player.position, hover);
+        }
+
+        if (enableSuicideBomb)
+        {
+            Vector3 lockPoint = Application.isPlaying && suicideLockCached
+                ? (Vector3)suicideLockPoint
+                : origin;
+            Vector3 aoeCenter = GetSuicideBombCenterWorld();
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(lockPoint, Mathf.Max(0.05f, bombApproachStopDistance));
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(aoeCenter, Mathf.Max(0.05f, bombRadius));
+            if (Application.isPlaying && suicideLockCached)
+            {
+                Gizmos.color = Color.yellow;
+                Gizmos.DrawSphere(suicideLockPoint, 0.12f);
+            }
         }
 
         DrawPatrolGizmos();

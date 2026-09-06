@@ -86,6 +86,10 @@ public class HelicopterEnemy : FlyingEnemy
 
     public override void ApplyEncounterFocusMode(bool enabled) => enableFocusMode = enabled;
 
+    public override void ApplyEncounterSuicideBomb(bool enabled)
+    {
+    }
+
     public void ApplySummonProfile(HelicopterSummonProfile profile)
     {
         summonProfileApplied = true;

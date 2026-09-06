@@ -3,7 +3,7 @@ public enum NPCState
 {
     Patrol,      // 巡逻 / 远程站岗 Idle
     Chase,       // 追击
-    Skill,       // 技能（近战飞扑预留等）
+    Skill,       // 技能（盾兵举盾等）
     GetClose,    // 靠近玩家
     Shot,        // 射击
     Move,        // 随机移动

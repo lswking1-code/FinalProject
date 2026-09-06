@@ -1,46 +1,25 @@
 fileFormatVersion: 2
-guid: fca845a2dd239bb4ba2914786bb88a98
+guid: 41c42f561f352ba41a82442f6fea4643
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2529301502410045259
-    second: enemy_drone_bomb_0
+      213: 5573614060997337279
+    second: enemy_default_r_melee_run_0
   - first:
-      213: -2729350226481675943
-    second: enemy_drone_bomb_1
+      213: -7627391011179803680
+    second: enemy_default_r_melee_run_1
   - first:
-      213: 1059319863373316102
-    second: enemy_drone_bomb_2
+      213: 4958597219591227198
+    second: enemy_default_r_melee_run_2
   - first:
-      213: 7164910401507574039
-    second: enemy_drone_bomb_3
+      213: -3384366895690740012
+    second: enemy_default_r_melee_run_3
   - first:
-      213: -2083638914731398088
-    second: enemy_drone_bomb_4
+      213: 8580921111032043321
+    second: enemy_default_r_melee_run_4
   - first:
-      213: -4142593387670109045
-    second: enemy_drone_bomb_5
-  - first:
-      213: -7476674218574028435
-    second: enemy_drone_bomb_6
-  - first:
-      213: 2435379712026453303
-    second: enemy_drone_bomb_7
-  - first:
-      213: 5147004615596682690
-    second: enemy_drone_bomb_8
-  - first:
-      213: 8349521995990848015
-    second: enemy_drone_bomb_9
-  - first:
-      213: 683236433374901741
-    second: enemy_drone_bomb_10
-  - first:
-      213: -8456851824857419020
-    second: enemy_drone_bomb_11
-  - first:
-      213: -5579523047809461573
-    second: enemy_drone_bomb_12
+      213: -8009526617396975408
+    second: enemy_default_r_melee_run_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -162,199 +141,133 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: enemy_drone_bomb_0
+      name: enemy_default_r_melee_run_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 192
+        y: 64
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5b8ccf23fad16ecd0800000000000000
-      internalID: -2529301502410045259
+      spriteID: fb06edc4574795d40800000000000000
+      internalID: 5573614060997337279
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_1
+      name: enemy_default_r_melee_run_1
       rect:
         serializedVersion: 2
         x: 64
-        y: 192
+        y: 64
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9518de20e666f1ad0800000000000000
-      internalID: -2729350226481675943
+      spriteID: 0ebce977940162690800000000000000
+      internalID: -7627391011179803680
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_2
+      name: enemy_default_r_melee_run_2
       rect:
         serializedVersion: 2
         x: 128
-        y: 192
+        y: 64
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 600c1ef9dc573be00800000000000000
-      internalID: 1059319863373316102
+      spriteID: e3789f146e970d440800000000000000
+      internalID: 4958597219591227198
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_3
+      name: enemy_default_r_melee_run_3
       rect:
         serializedVersion: 2
         x: 192
-        y: 192
+        y: 64
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7114c518c00ee6360800000000000000
-      internalID: 7164910401507574039
+      spriteID: 4de03c05d305801d0800000000000000
+      internalID: -3384366895690740012
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_4
+      name: enemy_default_r_melee_run_4
       rect:
         serializedVersion: 2
         x: 0
-        y: 128
+        y: 0
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 83c2147527d6513e0800000000000000
-      internalID: -2083638914731398088
+      spriteID: 93717bc694e851770800000000000000
+      internalID: 8580921111032043321
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_5
+      name: enemy_default_r_melee_run_5
       rect:
         serializedVersion: 2
         x: 64
-        y: 128
+        y: 0
         width: 64
         height: 64
       alignment: 9
-      pivot: {x: 0.5, y: 0.21875}
+      pivot: {x: 0.5, y: 0.203125}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b848a07234d8286c0800000000000000
-      internalID: -4142593387670109045
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_bomb_6
-      rect:
-        serializedVersion: 2
-        x: 160
-        y: 117
-        width: 72
-        height: 71
-      alignment: 9
-      pivot: {x: 0.5, y: 0.23943663}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d61e29c49648d3890800000000000000
-      internalID: -7476674218574028435
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_bomb_8
-      rect:
-        serializedVersion: 2
-        x: 12
-        y: 19
-        width: 93
-        height: 89
-      alignment: 9
-      pivot: {x: 0.49462366, y: 0.29213482}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 2cdafe98d65dd6740800000000000000
-      internalID: 5147004615596682690
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_bomb_14
-      rect:
-        serializedVersion: 2
-        x: 133
-        y: 15
-        width: 103
-        height: 98
-      alignment: 9
-      pivot: {x: 0.49514565, y: 0.31632653}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8f3e0c03630b2de4bbd19635b1b787bb
-      internalID: 363319570
+      spriteID: 0d8640f4af178d090800000000000000
+      internalID: -8009526617396975408
       vertices: []
       indices: 
       edges: []
@@ -363,7 +276,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: f949ec507fff93148a20de62dfdb3062
+    spriteID: e3cfe3196d6840c478fa84a49f64dcdd
     internalID: 0
     vertices: []
     indices: 
@@ -373,22 +286,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      enemy_drone_bomb_0: -2529301502410045259
-      enemy_drone_bomb_1: -2729350226481675943
-      enemy_drone_bomb_10: 683236433374901741
-      enemy_drone_bomb_11: -8456851824857419020
-      enemy_drone_bomb_12: -5579523047809461573
-      enemy_drone_bomb_13: -1179324366
-      enemy_drone_bomb_14: 363319570
-      enemy_drone_bomb_15: 654720141
-      enemy_drone_bomb_2: 1059319863373316102
-      enemy_drone_bomb_3: 7164910401507574039
-      enemy_drone_bomb_4: -2083638914731398088
-      enemy_drone_bomb_5: -4142593387670109045
-      enemy_drone_bomb_6: -7476674218574028435
-      enemy_drone_bomb_7: 2435379712026453303
-      enemy_drone_bomb_8: 5147004615596682690
-      enemy_drone_bomb_9: 8349521995990848015
+      enemy_default_r_melee_run_0: 5573614060997337279
+      enemy_default_r_melee_run_1: -7627391011179803680
+      enemy_default_r_melee_run_2: 4958597219591227198
+      enemy_default_r_melee_run_3: -3384366895690740012
+      enemy_default_r_melee_run_4: 8580921111032043321
+      enemy_default_r_melee_run_5: -8009526617396975408
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

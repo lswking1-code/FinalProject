@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 近战敌人：进入 idealRange 后按权重在 MeleeAttack / Move 间循环；可选巡逻脱战回位。
 /// GetClose / Move 停在理想距离；MeleeAttack 才会再贴近 meleeRange 出刀。
-/// 冲刺飞扑通过 enablePounce / CanPounce / Skill 状态预留，当前 CanPounce 恒为 false。
+/// enableDash 开启后，MeleeAttack 的 CloseIn 用冲刺取代普通奔跑。
 /// </summary>
 public class MeleeEnemy : Enemy
 {
@@ -14,6 +14,8 @@ public class MeleeEnemy : Enemy
     protected override bool SpriteFacesRight => true;
 
     const float ProbabilityStep = 0.1f;
+    /// <summary>与站位槽 0.08 到位阈值对齐并略放宽，避免 GetClose 停步后无法进入攻击。</summary>
+    const float ApproachArriveSlack = 0.12f;
 
     [Header("近战参数")]
     [Tooltip("近战出刀的水平距离；仅 MeleeAttack 才会贴近到此距离")]
@@ -35,21 +37,14 @@ public class MeleeEnemy : Enemy
     [Tooltip("移动权重")]
     [Min(0f)] public float moveWeight = 0.3f;
 
-    [Header("冲刺飞扑（预留）")]
-    [Tooltip("开启后才会尝试进入飞扑判定（当前 CanPounce 仍返回 false）")]
-    public bool enablePounce;
-    [Tooltip("飞扑触发最小水平距离")]
-    public float pounceMinRange = 3f;
-    [Tooltip("飞扑触发最大水平距离")]
-    public float pounceMaxRange = 6f;
-    [Tooltip("飞扑冷却")]
-    public float pounceCooldown = 3f;
-    [Tooltip("飞扑蓄力前摇")]
-    public float pounceWindupDuration = 0.4f;
-    [Tooltip("落地硬直")]
-    public float pounceLandStunDuration = 1.1f;
+    [Header("冲刺（进阶）")]
+    [Tooltip("开启后，MeleeAttack 贴近出刀距离时用冲刺取代普通奔跑")]
+    public bool enableDash;
+    [Tooltip("冲刺水平速度，应明显高于 chaseSpeed")]
+    public float dashSpeed = 12f;
+    [Tooltip("冲刺超时：卡住或到不了锁定点时强制进入前摇，避免死循环")]
+    public float dashTimeout = 1.5f;
 
-    [HideInInspector] public float lastPounceTime = -999f;
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
 
@@ -61,7 +56,6 @@ public class MeleeEnemy : Enemy
         getCloseState = new MeleeGetCloseState();
         meleeAttackState = new MeleeAttackState();
         moveState = new MeleeMoveState();
-        skillState = new MeleePounceState();
 
         if (normalSpeed <= 0f)
             normalSpeed = 2f;
@@ -125,9 +119,18 @@ public class MeleeEnemy : Enemy
     /// <summary>靠近状态停下的水平距离（盾兵有盾时用 holdRange）。</summary>
     public virtual float GetApproachStopRange() => GetIdealRange();
 
-    public override bool IsPlayerInCombatRange()
+    public override bool IsPlayerInCombatRange() => IsWithinApproachRange();
+
+    /// <summary>
+    /// 已进入靠近停步距离，或已走到同侧站位槽（避免 0.08 到位死区导致 GetClose 原地踏步）。
+    /// </summary>
+    public bool IsWithinApproachRange()
     {
-        return GetHorizontalDistanceToPlayer() <= GetSlottedRange(GetApproachStopRange());
+        float slotted = GetSlottedRange(GetApproachStopRange());
+        if (GetHorizontalDistanceToPlayer() <= slotted + ApproachArriveSlack)
+            return true;
+
+        return Mathf.Approximately(GetCombatSlotMoveDir(GetApproachStopRange()), 0f);
     }
 
     /// <summary>Move / GetClose 使用的理想站位距离，至少不小于 meleeRange。</summary>
@@ -161,7 +164,7 @@ public class MeleeEnemy : Enemy
     }
 
     /// <summary>
-    /// 每轮循环：巡逻闸门 → 飞扑预留 → 超出理想距离则 GetClose，否则按权重选择 MeleeAttack / Move
+    /// 每轮循环：巡逻闸门 → 超出理想距离则 GetClose，否则按权重选择 MeleeAttack / Move
     /// </summary>
     public virtual void EvaluateCycle()
     {
@@ -188,18 +191,8 @@ public class MeleeEnemy : Enemy
             }
         }
 
-        float dist = GetHorizontalDistanceToPlayer();
-        float stopRange = GetSlottedRange(GetApproachStopRange());
-
-        if (dist > stopRange)
+        if (!IsWithinApproachRange())
         {
-            // 冲刺飞扑预留：enablePounce 且 CanPounce() 时进入 Skill
-            if (enablePounce && CanPounce())
-            {
-                SwitchState(NPCState.Skill);
-                return;
-            }
-
             SwitchState(NPCState.GetClose);
             return;
         }
@@ -269,26 +262,6 @@ public class MeleeEnemy : Enemy
             actionProbabilities[key] /= total;
     }
 
-    /// <summary>
-    /// 飞扑触发判定。实现飞扑位移前恒返回 false；下方保留距离/CD 骨架供后续启用。
-    /// </summary>
-    public bool CanPounce()
-    {
-        // 实现 MeleePounceState 真实流程前保持关闭。
-        if (!enablePounce || isHurt || isDead || isReturning)
-            return false;
-
-        float dist = GetHorizontalDistanceToPlayer();
-        if (dist < pounceMinRange || dist > pounceMaxRange)
-            return false;
-
-        if (Time.time < lastPounceTime + pounceCooldown)
-            return false;
-
-        // TODO: 飞扑位移落地后改为 return true
-        return false;
-    }
-
     private void OnDrawGizmosSelected()
     {
         float ideal = GetIdealRange();
@@ -301,17 +274,6 @@ public class MeleeEnemy : Enemy
         Gizmos.DrawLine(
             transform.position + Vector3.left * meleeRange,
             transform.position + Vector3.right * meleeRange);
-
-        if (enablePounce)
-        {
-            Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
-            Gizmos.DrawLine(
-                transform.position + Vector3.left * pounceMinRange,
-                transform.position + Vector3.right * pounceMinRange);
-            Gizmos.DrawLine(
-                transform.position + Vector3.left * pounceMaxRange,
-                transform.position + Vector3.right * pounceMaxRange);
-        }
 
         DrawPatrolGizmos();
     }

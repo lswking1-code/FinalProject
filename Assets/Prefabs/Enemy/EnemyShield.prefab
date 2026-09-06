@@ -875,13 +875,9 @@ MonoBehaviour:
   actionDuration: 2
   meleeAttackWeight: 0.7
   moveWeight: 0.3
-  enablePounce: 0
-  pounceMinRange: 3
-  pounceMaxRange: 6
-  pounceCooldown: 3
-  pounceWindupDuration: 0.4
-  pounceLandStunDuration: 1.1
-  lastPounceTime: -999
+  enableDash: 0
+  dashSpeed: 12
+  dashTimeout: 1.5
   holdRange: 6
   reapproachDelay: 3
   reapproachRange: 6.5

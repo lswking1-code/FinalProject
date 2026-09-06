@@ -435,6 +435,8 @@ MonoBehaviour:
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
+  impactKind: 0
+  impactScale: 1
 --- !u!1 &8190837749373279148
 GameObject:
   m_ObjectHideFlags: 0
@@ -477,6 +479,7 @@ Transform:
   - {fileID: 5354714358090969949}
   - {fileID: 1814542059954750661}
   - {fileID: 7561936581632732110}
+  - {fileID: 9100111222333444557}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!58 &4861387932195180126
@@ -624,6 +627,14 @@ MonoBehaviour:
   projectilePrefab: {fileID: 1207313983663696913, guid: 26f15fc281f4e154b95080b9c834a7fd, type: 3}
   firePoint: {fileID: 5507517411812069850}
   downFirePoint: {fileID: 6539236226052418689}
+  enableSuicideBomb: 0
+  bombApproachStopDistance: 1.2
+  bombFuseDelay: 0.75
+  bombApproachSpeed: 0
+  bombRadius: 2
+  bombCenterYOffset: 1.31
+  bombDamage: 20
+  bombHitbox: {fileID: 9100111222333444559}
   bobAmplitude: 0.35
   bobSpeed: 2
   hoverHeightErrorThreshold: 2
@@ -633,6 +644,7 @@ MonoBehaviour:
     m_Bits: 4096
   platformClearance: 1.1
   oneWayScanPadding: 3
+  deathFallSpeed: 2.5
   hoverBaseY: 0
 --- !u!114 &7759382780292668202
 MonoBehaviour:
@@ -840,3 +852,101 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &9100111222333444556
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9100111222333444557}
+  - component: {fileID: 9100111222333444558}
+  - component: {fileID: 9100111222333444559}
+  m_Layer: 7
+  m_Name: BombHitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9100111222333444557
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9100111222333444556}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7677709745587300971}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &9100111222333444558
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9100111222333444556}
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 1.31}
+  m_Radius: 2
+--- !u!114 &9100111222333444559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9100111222333444556}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 20
+  attackRange: 0
+  attackRate: 0
+  attackType: 0
+  chargesEnergyNode: 0
+  requireTag: Player
+  ignoreTag: 
+  enableKnockback: 0
+  knockbackForce: 0
+  knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 0
+  enableHitCameraShake: 0
+  hitCameraShakeEvent: {fileID: 0}
+  hitCameraShakeForce: 0.12
+  impactKind: 0
+  impactScale: 1

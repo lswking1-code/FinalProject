@@ -24,6 +24,7 @@ public class MeleeAttackState : BaseState
     float timer;
     float lockedTargetX;
     Transform attacker1;
+    bool dashing;
 
     public override void OnEnter(Enemy enemy)
     {
@@ -54,7 +55,17 @@ public class MeleeAttackState : BaseState
         {
             meleeEnemy.blockSeparation = true;
             if (GetHorizontalDistanceToLocked() <= meleeEnemy.meleeRange)
+            {
                 EnterWindup();
+                return;
+            }
+
+            if (dashing)
+            {
+                timer -= Time.deltaTime;
+                if (timer <= 0f)
+                    EnterWindup();
+            }
             return;
         }
 
@@ -89,9 +100,17 @@ public class MeleeAttackState : BaseState
         if (phase == Phase.CloseIn)
         {
             float dir = GetMoveDirTowardLocked();
+            if (dashing && IsDashBlocked(dir))
+            {
+                StopHorizontal();
+                EnterWindup();
+                return;
+            }
+
             meleeEnemy.MoveHorizontal(dir);
             FaceLockedTarget();
-            meleeEnemy.TryFlipOnObstacle(dir);
+            if (!dashing)
+                meleeEnemy.TryFlipOnObstacle(dir);
             return;
         }
 
@@ -100,6 +119,7 @@ public class MeleeAttackState : BaseState
 
     public override void OnExit()
     {
+        dashing = false;
         if (currentEnemy != null)
             currentEnemy.blockSeparation = false;
 
@@ -109,6 +129,7 @@ public class MeleeAttackState : BaseState
             return;
 
         currentEnemy.SetAnimBool("walk", false);
+        currentEnemy.SetAnimBool("dash", false);
         currentEnemy.SetAnimBool("melee", false);
         currentEnemy.SetAnimBool("meleeWindup", false);
     }
@@ -117,7 +138,11 @@ public class MeleeAttackState : BaseState
     {
         phase = Phase.CloseIn;
         currentEnemy.blockSeparation = true;
-        currentEnemy.currentSpeed = currentEnemy.chaseSpeed;
+        dashing = meleeEnemy.enableDash;
+        currentEnemy.currentSpeed = dashing && meleeEnemy.dashSpeed > 0f
+            ? meleeEnemy.dashSpeed
+            : currentEnemy.chaseSpeed;
+        timer = dashing ? Mathf.Max(0.01f, meleeEnemy.dashTimeout) : 0f;
         FaceLockedTarget();
         SetAttackerActive(false);
 
@@ -125,13 +150,15 @@ public class MeleeAttackState : BaseState
         {
             currentEnemy.SetAnimBool("melee", false);
             currentEnemy.SetAnimBool("meleeWindup", false);
-            currentEnemy.SetAnimBool("walk", true);
+            currentEnemy.SetAnimBool("walk", !dashing);
+            currentEnemy.SetAnimBool("dash", dashing);
         }
     }
 
     void EnterWindup()
     {
         phase = Phase.Windup;
+        dashing = false;
         currentEnemy.blockSeparation = false;
         FaceLockedTarget();
         StopHorizontal();
@@ -140,6 +167,7 @@ public class MeleeAttackState : BaseState
         if (currentEnemy.anim != null)
         {
             currentEnemy.SetAnimBool("walk", false);
+            currentEnemy.SetAnimBool("dash", false);
             currentEnemy.SetAnimBool("melee", false);
             currentEnemy.SetAnimBool("meleeWindup", true);
         }
@@ -234,6 +262,18 @@ public class MeleeAttackState : BaseState
     void FaceLockedTarget()
     {
         meleeEnemy.ApplyFacing(lockedTargetX - meleeEnemy.transform.position.x);
+    }
+
+    bool IsDashBlocked(float dir)
+    {
+        if (meleeEnemy.IsLedgeBlocking(dir))
+            return true;
+
+        var check = meleeEnemy.physicsCheck;
+        if (check == null)
+            return false;
+
+        return (check.touchLeftWall && dir < 0f) || (check.touchRightWall && dir > 0f);
     }
 
     void StopHorizontal()
