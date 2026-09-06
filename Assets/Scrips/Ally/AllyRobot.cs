@@ -115,6 +115,10 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] string laserAttackTag = "Electric";
     [Tooltip("瞄准时最小水平距离；近距垫高 |dx| 避免高度差把角度推过 11.25° 误锁斜向")]
     [SerializeField] float laserMinAimHorizontal = 2f;
+    [Tooltip("吸收特殊弹 M 时播放的充能特效子物体；为空则按名称 Lighting 查找")]
+    [SerializeField] GameObject lightingVisual;
+    [Tooltip("吸收特殊弹 M 后，激光实际发射的延迟（秒）")]
+    [SerializeField] float laserFireDelay = 0.25f;
 
     // 16 向：每 22.5° 一档
     static readonly Vector2[] LaserDirs16 =
@@ -346,7 +350,11 @@ public class AllyRobot : MonoBehaviour
     bool recallAnimSeen;
     LineRenderer laserLine;
     Coroutine laserVisualRoutine;
+    Coroutine laserFireRoutine;
+    Coroutine lightingRoutine;
+    Animator lightingAnimator;
     Attack laserAttackSource;
+    const string LightingStateName = "Lighting";
     EventInstance dashInstance;
 
     RobotDeployMode deployMode = RobotDeployMode.Stationed;
@@ -403,6 +411,7 @@ public class AllyRobot : MonoBehaviour
         normalGravityScale = rb.gravityScale;
         pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
         ResolveBoostVisual();
+        ResolveLightingVisual();
 
         if (jumpObstacleMask.value == 0 && physicsCheck != null)
             jumpObstacleMask = physicsCheck.groundLayer;
@@ -421,6 +430,21 @@ public class AllyRobot : MonoBehaviour
         }
 
         SetBoostActive(false);
+    }
+
+    void ResolveLightingVisual()
+    {
+        if (lightingVisual == null)
+        {
+            Transform lightingTf = transform.Find("Lighting");
+            if (lightingTf != null)
+                lightingVisual = lightingTf.gameObject;
+        }
+
+        if (lightingVisual != null && lightingAnimator == null)
+            lightingAnimator = lightingVisual.GetComponent<Animator>();
+
+        SetLightingActive(false);
     }
 
     void Start()
@@ -450,6 +474,8 @@ public class AllyRobot : MonoBehaviour
         airComboBoostLatched = false;
         verticalComboDashLatched = false;
         SetBoostActive(false);
+        StopLightingBurst();
+        StopPendingPierceLaser();
         StopDashSfx();
     }
 
@@ -457,6 +483,8 @@ public class AllyRobot : MonoBehaviour
     {
         if (laserVisualRoutine != null)
             StopCoroutine(laserVisualRoutine);
+        StopLightingBurst();
+        StopPendingPierceLaser();
 
         if (pullInProgress)
         {
@@ -1063,10 +1091,58 @@ public class AllyRobot : MonoBehaviour
 
     public bool TryFirePierceLaser()
     {
-        if (currentState == AllyState.Spawning || currentState == AllyState.Recalling || IsPulling
-            || currentState == AllyState.ManualMove || pendingStationOnLand)
+        if (!CanFirePierceLaser())
             return false;
 
+        PlayLightingBurst();
+        SchedulePierceLaser();
+        return true;
+    }
+
+    bool CanFirePierceLaser()
+    {
+        return currentState != AllyState.Spawning && currentState != AllyState.Recalling && !IsPulling
+            && currentState != AllyState.ManualMove && !pendingStationOnLand;
+    }
+
+    void SchedulePierceLaser()
+    {
+        if (laserFireRoutine != null)
+        {
+            StopCoroutine(laserFireRoutine);
+            laserFireRoutine = null;
+        }
+
+        if (laserFireDelay <= 0f)
+        {
+            FirePierceLaserNow();
+            return;
+        }
+
+        laserFireRoutine = StartCoroutine(FirePierceLaserAfterDelay());
+    }
+
+    IEnumerator FirePierceLaserAfterDelay()
+    {
+        yield return new WaitForSeconds(laserFireDelay);
+        laserFireRoutine = null;
+        if (!CanFirePierceLaser())
+            yield break;
+
+        FirePierceLaserNow();
+    }
+
+    void StopPendingPierceLaser()
+    {
+        if (laserFireRoutine == null)
+            return;
+
+        StopCoroutine(laserFireRoutine);
+        laserFireRoutine = null;
+    }
+
+    void FirePierceLaserNow()
+    {
         Transform aimTarget = null;
         if (IsValidCombatTarget(currentTarget, allowAirEnemy: true))
             aimTarget = currentTarget;
@@ -1114,7 +1190,6 @@ public class AllyRobot : MonoBehaviour
         ApplyPierceLaserDamage(origin, dir);
         ShowPierceLaserVisual(origin, dir);
         FmodAudio.Play(laserEvent);
-        return true;
     }
 
     static Vector2 SnapToNearestLaserDir(Vector2 desired)
@@ -1239,6 +1314,73 @@ public class AllyRobot : MonoBehaviour
         if (laserLine != null)
             laserLine.enabled = false;
         laserVisualRoutine = null;
+    }
+
+    void PlayLightingBurst()
+    {
+        if (lightingVisual == null)
+            ResolveLightingVisual();
+        if (lightingVisual == null)
+            return;
+
+        if (lightingRoutine != null)
+        {
+            StopCoroutine(lightingRoutine);
+            lightingRoutine = null;
+        }
+
+        SetLightingActive(true);
+        if (lightingAnimator != null)
+            lightingAnimator.Play(LightingStateName, 0, 0f);
+
+        lightingRoutine = StartCoroutine(HideLightingAfterAnim());
+    }
+
+    IEnumerator HideLightingAfterAnim()
+    {
+        bool animSeen = false;
+        while (true)
+        {
+            if (lightingAnimator == null || !lightingAnimator.isActiveAndEnabled)
+                break;
+
+            var info = lightingAnimator.GetCurrentAnimatorStateInfo(0);
+            if (info.IsName(LightingStateName))
+            {
+                animSeen = true;
+                if (info.normalizedTime >= 1f)
+                    break;
+            }
+            else if (animSeen)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        SetLightingActive(false);
+        lightingRoutine = null;
+    }
+
+    void StopLightingBurst()
+    {
+        if (lightingRoutine != null)
+        {
+            StopCoroutine(lightingRoutine);
+            lightingRoutine = null;
+        }
+
+        SetLightingActive(false);
+    }
+
+    void SetLightingActive(bool active)
+    {
+        if (lightingVisual == null)
+            return;
+        if (lightingVisual.activeSelf == active)
+            return;
+        lightingVisual.SetActive(active);
     }
 
     /// <summary>
