@@ -317,6 +317,10 @@ public class PlaySessionRecorder : MonoBehaviour
         if (homing != null)
             return "HomingMissile:" + CleanName(homing.gameObject.name);
 
+        var rocketHoming = root.GetComponentInParent<EnemyRocketHomingMissile>();
+        if (rocketHoming != null)
+            return "HomingMissile:" + CleanName(rocketHoming.gameObject.name);
+
         var explosion = root.GetComponentInParent<EnemyGrenadeExplosion>();
         if (explosion != null)
             return "Explosion:" + CleanName(explosion.gameObject.name);

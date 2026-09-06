@@ -346,6 +346,8 @@ MonoBehaviour:
   firePointRadius: 1.4
   fireOriginOffset: {x: 0, y: 0.8}
   heightDeadlockSlack: 0.5
+  enableHomingMissile: 0
+  homingMissilePrefab: {fileID: 7200000000000000006, guid: 6f9b2d8c3e045a1f8b7c6d5e4f302816, type: 3}
 --- !u!114 &7759382780292668202
 MonoBehaviour:
   m_ObjectHideFlags: 0

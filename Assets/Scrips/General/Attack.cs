@@ -41,6 +41,13 @@ public class Attack : MonoBehaviour
     [SerializeField] FloatEventSO hitCameraShakeEvent;
     [SerializeField] float hitCameraShakeForce = 0.12f;
 
+    [Header("机械师命中特效")]
+    [Tooltip("Auto 自动识别机械师子弹/近战/机器人；None 关闭；其他值手动指定风格")]
+    public MachinistImpactKind impactKind = MachinistImpactKind.Auto;
+    [Min(0.1f)] public float impactScale = 1f;
+    readonly Dictionary<int, float> nextImpactTime = new();
+    bool projectileImpactShown;
+
     readonly HashSet<Character> hitTargets = new();
     readonly Dictionary<Character, float> nextHitTime = new();
     readonly HashSet<IHitCountable> hitCountables = new();
@@ -97,6 +104,8 @@ public class Attack : MonoBehaviour
 
     void OnEnable()
     {
+        nextImpactTime.Clear();
+        projectileImpactShown = false;
         hitTargets.Clear();
         nextHitTime.Clear();
         hitCountables.Clear();
@@ -304,6 +313,7 @@ public class Attack : MonoBehaviour
 
         if (TryApplyPropKnockback(collision))
         {
+            ReportImpact(collision, MachinistImpactKind.Surface);
             if (attackType == AttackType.Projectile)
                 Destroy(gameObject);
             return;
@@ -319,6 +329,7 @@ public class Attack : MonoBehaviour
                 if (groundHitCountable.RegisterHit(this))
                     MarkHitCountable(groundHitCountable);
             }
+            ReportImpact(collision, MachinistImpactKind.Surface);
             Destroy(gameObject);
             return;
         }
@@ -349,6 +360,9 @@ public class Attack : MonoBehaviour
             if (useRateLimit && nextHitTime.TryGetValue(target, out float nextHit) && Time.time < nextHit)
                 return;
 
+            // TakeDamage may disable a collider on a killing blow; preserve the live contact first.
+            Vector2? impactPoint = MachinistImpactVfx.ResolveKind(this) != MachinistImpactKind.None
+                ? MachinistImpactVfx.ContactPoint(this, collision) : (Vector2?)null;
             bool damaged = target.TakeDamage(this);
             if (!useRateLimit)
                 hitTargets.Add(target);
@@ -357,6 +371,7 @@ public class Attack : MonoBehaviour
 
             if (damaged)
             {
+                ReportImpact(collision, point: impactPoint);
                 RaiseHitCameraShakeIfEnabled();
                 CharacterDamaged?.Invoke(target, damage);
             }
@@ -369,7 +384,10 @@ public class Attack : MonoBehaviour
             if (cancelable != null)
             {
                 if (cancelEnemyProjectiles && cancelable.TryCancelByMelee(this))
+                {
+                    ReportImpact(collision, MachinistImpactKind.Shield);
                     hitSomething = true;
+                }
             }
             else
             {
@@ -379,6 +397,7 @@ public class Attack : MonoBehaviour
                     if (hitCountable.RegisterHit(this))
                     {
                         MarkHitCountable(hitCountable);
+                        ReportImpact(collision);
                         hitSomething = true;
                     }
                 }
@@ -390,6 +409,27 @@ public class Attack : MonoBehaviour
 
         if (hitSomething && attackType == AttackType.Projectile)
             Destroy(gameObject);
+    }
+
+    /// <summary>Call only after accepted damage, absorption or a blocking contact. Cosmetic deduplication only.</summary>
+    public void ReportImpact(Collider2D collision, MachinistImpactKind kind = MachinistImpactKind.Auto,
+        Vector2? point = null, Vector2? direction = null)
+    {
+        var sourceKind = MachinistImpactVfx.ResolveKind(this);
+        if (sourceKind == MachinistImpactKind.None || collision == null) return;
+        if (attackType == AttackType.Projectile && projectileImpactShown) return;
+        var target = collision.GetComponentInParent<Character>();
+        int key = target != null ? target.GetInstanceID()
+            : collision.attachedRigidbody != null ? collision.attachedRigidbody.GetInstanceID()
+            : collision.GetInstanceID();
+        if (nextImpactTime.TryGetValue(key, out float next) && Time.time < next) return;
+        nextImpactTime[key] = Time.time + 0.075f;
+        if (attackType == AttackType.Projectile) projectileImpactShown = true;
+        var body = GetComponent<Rigidbody2D>();
+        Vector2 facing = body != null && body.linearVelocity.sqrMagnitude > 0.001f
+            ? body.linearVelocity.normalized : (Vector2)transform.right;
+        MachinistImpactVfx.Play(kind == MachinistImpactKind.Auto ? sourceKind : kind,
+            point ?? MachinistImpactVfx.ContactPoint(this, collision), direction ?? facing, impactScale, sourceKind);
     }
 
     bool TryApplyPropKnockback(Collider2D collision)

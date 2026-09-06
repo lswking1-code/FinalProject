@@ -1,0 +1,82 @@
+fileFormatVersion: 2
+guid: 1cb99f1efc7b43be8fe0dc6451e2b449
+TextureImporter:
+  serializedVersion: 13
+  mipmaps:
+    enableMipMap: 0
+    sRGBTexture: 1
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    wrapU: 1
+    wrapV: 1
+  nPOTScale: 0
+  spriteMode: 2
+  spriteMeshType: 0
+  spritePixelsToUnits: 24
+  alphaIsTransparency: 1
+  textureType: 8
+  textureShape: 1
+  maxTextureSize: 256
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 256
+    textureFormat: -1
+    textureCompression: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: slash_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 64
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      spriteID: 5063c8c231664f968eff596bd6e58870
+      internalID: 21300000
+    - serializedVersion: 2
+      name: slash_1
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      spriteID: cfce8a7ac4f24d49a841668d350c19ca
+      internalID: 21300002
+    - serializedVersion: 2
+      name: slash_2
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 64
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      spriteID: e938631063754d6eb6eb3fcfd33479b5
+      internalID: 21300004
+    - serializedVersion: 2
+      name: slash_3
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 64
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      spriteID: a121d830c4a74796a3ed4b80646c5a23
+      internalID: 21300006
+    nameFileIdTable:
+      slash_0: 21300000
+      slash_1: 21300002
+      slash_2: 21300004
+      slash_3: 21300006

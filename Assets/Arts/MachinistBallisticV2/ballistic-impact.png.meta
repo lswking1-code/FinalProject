@@ -1,0 +1,113 @@
+fileFormatVersion: 2
+guid: 09e1c001b9a748cdb61f20f27ca78ce5
+TextureImporter:
+  serializedVersion: 13
+  mipmaps:
+    enableMipMap: 0
+    sRGBTexture: 1
+  isReadable: 0
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  spriteMode: 2
+  spriteMeshType: 0
+  spritePixelsToUnits: 256
+  alphaIsTransparency: 1
+  textureType: 8
+  textureShape: 1
+  maxTextureSize: 2048
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ballistic_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 512
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.54296875, y: 0.513671875}
+      spriteID: d6b2cda5eef94e2caf3bfb9dea26c71b
+      internalID: 21300000
+    - serializedVersion: 2
+      name: ballistic_1
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 512
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.720703125, y: 0.513671875}
+      spriteID: 998899412c6b4d8897a5a62932a0beee
+      internalID: 21300002
+    - serializedVersion: 2
+      name: ballistic_2
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 512
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.6171875, y: 0.513671875}
+      spriteID: 2077474c17044307834f54624c79d411
+      internalID: 21300004
+    - serializedVersion: 2
+      name: ballistic_3
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.625, y: 0.5}
+      spriteID: 43aee94eed1d4be8b1a5ec7e0b327b00
+      internalID: 21300006
+    - serializedVersion: 2
+      name: ballistic_4
+      rect:
+        serializedVersion: 2
+        x: 512
+        y: 0
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.625, y: 0.5}
+      spriteID: 6f5454ee56654c39b2c5af8aaaa86c35
+      internalID: 21300008
+    - serializedVersion: 2
+      name: ballistic_5
+      rect:
+        serializedVersion: 2
+        x: 1024
+        y: 0
+        width: 512
+        height: 512
+      alignment: 9
+      pivot: {x: 0.625, y: 0.5}
+      spriteID: 7f33ecd2d95c4546a745d162582e8bc2
+      internalID: 21300010
+    spriteID: 5f8bd523c66f49e1a9b0cfbc350c1ec2
+    internalID: 0
+    nameFileIdTable:
+      ballistic_0: 21300000
+      ballistic_1: 21300002
+      ballistic_2: 21300004
+      ballistic_3: 21300006
+      ballistic_4: 21300008
+      ballistic_5: 21300010

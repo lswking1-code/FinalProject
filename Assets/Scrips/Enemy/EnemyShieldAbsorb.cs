@@ -36,6 +36,9 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         if (attacker == null || enemy == null || enemy.isDead)
             return false;
 
+        if (shieldEnemy != null && shieldEnemy.IsShieldWithdrawn)
+            return false;
+
         if (IsElectric(attacker.transform))
             return false;
 
@@ -48,6 +51,8 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
         // 与 faceDir 同号 = 攻击来自面朝一侧（正面）
         if (toAttackX * enemy.faceDir.x <= 0f)
             return false;
+
+        attacker.ReportImpact(GetComponent<Collider2D>(), MachinistImpactKind.Shield);
 
         // 正面 Blast 虽被盾吸收、不会进 Character.OnTakeDamage，但仍需引爆盾上标记炸弹
         TryDetonateMarkBombsFromBlast(attacker);

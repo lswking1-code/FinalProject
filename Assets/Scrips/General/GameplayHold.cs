@@ -47,6 +47,7 @@ public static class GameplayHold
         FreezeBehaviours(Object.FindObjectsByType<EnemyProjectile>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
         FreezeBehaviours(Object.FindObjectsByType<EnemyMissile>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
         FreezeBehaviours(Object.FindObjectsByType<EnemyHomingMissile>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
+        FreezeBehaviours(Object.FindObjectsByType<EnemyRocketHomingMissile>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
         FreezeBehaviours(Object.FindObjectsByType<EnemyGrenade>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
         FreezeBehaviours(Object.FindObjectsByType<EnemyGrenadeExplosion>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
     }

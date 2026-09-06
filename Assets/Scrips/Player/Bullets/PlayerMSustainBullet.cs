@@ -54,6 +54,7 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
     {
         if (Attack.IsProjectileBlockingCollider(collision))
         {
+            attack.ReportImpact(collision, MachinistImpactKind.Surface);
             Destroy(gameObject);
             return;
         }
@@ -61,6 +62,7 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
         var robot = collision.GetComponentInParent<AllyRobot>();
         if (robot != null)
         {
+            attack.ReportImpact(collision, MachinistImpactKind.Electric);
             robot.TryFirePierceLaser();
             Destroy(gameObject);
             return;

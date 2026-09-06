@@ -1165,7 +1165,8 @@ public class AllyRobot : MonoBehaviour
                 continue;
 
             damaged.Add(character);
-            character.TakeDamage(laserAttackSource);
+            if (character.TakeDamage(laserAttackSource))
+                laserAttackSource.ReportImpact(col, MachinistImpactKind.Electric, hits[i].point, dir);
         }
     }
 

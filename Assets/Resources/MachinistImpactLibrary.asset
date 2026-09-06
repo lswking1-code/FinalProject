@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2ad0a5b136d4e91a63000d972d092f0, type: 3}
+  m_Name: MachinistImpactLibrary
+  m_EditorClassIdentifier: 
+  shader: {fileID: 4800000, guid: 43dc1c50fde44e928b59674613cfdb10, type: 3}
+  bullet:
+  - {fileID: 21300000, guid: ebce1d758bc2479690d71f2f1460b41d, type: 3}
+  - {fileID: 21300000, guid: 1777c9a0bb8549a388dacedac4b518a0, type: 3}
+  - {fileID: 21300000, guid: a6107043bd1c4ad9812f8649cf98d6c2, type: 3}
+  - {fileID: 21300000, guid: 113908a4221e4a53bcbb3345f7dfd20f, type: 3}
+  - {fileID: 21300000, guid: 6d8e92be8da04a8cbf0fced2e980d101, type: 3}
+  - {fileID: 21300000, guid: 1e0a5a2865e6484fa38e26e12fd775e6, type: 3}
+  - {fileID: 21300000, guid: e4d8d33a918b43ccae2ea87abb2c5adc, type: 3}
+  heavy:
+  - {fileID: 21300000, guid: ebce1d758bc2479690d71f2f1460b41d, type: 3}
+  - {fileID: 21300000, guid: 1777c9a0bb8549a388dacedac4b518a0, type: 3}
+  - {fileID: 21300000, guid: a6107043bd1c4ad9812f8649cf98d6c2, type: 3}
+  - {fileID: 21300000, guid: 113908a4221e4a53bcbb3345f7dfd20f, type: 3}
+  - {fileID: 21300000, guid: 6d8e92be8da04a8cbf0fced2e980d101, type: 3}
+  - {fileID: 21300000, guid: 1e0a5a2865e6484fa38e26e12fd775e6, type: 3}
+  - {fileID: 21300000, guid: e4d8d33a918b43ccae2ea87abb2c5adc, type: 3}
+  electric:
+  - {fileID: 21300000, guid: 047e742669114b479a64fdb9d18da24a, type: 3}
+  - {fileID: 21300000, guid: 3261c2e9eb8c4553a576189a25f1df7e, type: 3}
+  - {fileID: 21300000, guid: 925cdcdf772d4d778586ef8ac46747fc, type: 3}
+  - {fileID: 21300000, guid: dc074c33a1394c9295a0597eae9e63d1, type: 3}
+  - {fileID: 21300000, guid: 172a977bc4874b55987d40c2b0269cf2, type: 3}
+  ring:
+  - {fileID: 21300000, guid: 292cfe64e312451bbc391e792f20d99a, type: 3}
+  - {fileID: 21300000, guid: 5906b987a52341458ce67b09ad9d019f, type: 3}
+  - {fileID: 21300000, guid: 00e880c4d25246629ef4104e0c9b473a, type: 3}
+  - {fileID: 21300000, guid: a2baa691c4ee471cbe4738f0d30017f4, type: 3}
+  - {fileID: 21300000, guid: 7f636c45eeb54dbfa307c7c67b303140, type: 3}
+  slash:
+  - {fileID: 21300000, guid: 1cb99f1efc7b43be8fe0dc6451e2b449, type: 3}
+  - {fileID: 21300002, guid: 1cb99f1efc7b43be8fe0dc6451e2b449, type: 3}
+  - {fileID: 21300004, guid: 1cb99f1efc7b43be8fe0dc6451e2b449, type: 3}
+  - {fileID: 21300006, guid: 1cb99f1efc7b43be8fe0dc6451e2b449, type: 3}
+  ballisticShader: {fileID: 4800000, guid: c903b47a86e741a5ad1108ac87b5a62d, type: 3}
+  ballistic:
+  - {fileID: 21300000, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  - {fileID: 21300002, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  - {fileID: 21300004, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  - {fileID: 21300006, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  - {fileID: 21300008, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  - {fileID: 21300010, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
+  ballisticFramesPerSecond: 28
+  ballisticSize: 1
+  ballisticWorldPixelSize: 0.0625
+  ballisticPixelsPerUnit: 256
+  framesPerSecond: 26
+  size: 1
+  poolCapacity: 48
+  sortingLayer: Bullet
+  sortingOrder: 20
+  warm: {r: 1, g: 0.46, b: 0.08, a: 1}
+  energy: {r: 0.61796415, g: 0.92832875, b: 1, a: 1}
+  heavyColor: {r: 0.07843137, g: 0.7919124, b: 1, a: 1}
+  metal: {r: 0.62, g: 0.78, b: 1, a: 1}

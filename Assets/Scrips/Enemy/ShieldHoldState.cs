@@ -3,17 +3,20 @@ using UnityEngine;
 /// <summary>
 /// 盾兵举盾对峙：原地停下，未面向玩家时延迟转身；
 /// 玩家离开理想距离持续一段时间后重新追击（专注模式除外）。
+/// enableShoot 时举盾满 holdDuration 后再掷射击。
 /// </summary>
 public class ShieldHoldState : BaseState
 {
     ShieldEnemy shieldEnemy;
     float turnTimer;
+    float holdTimer;
 
     public override void OnEnter(Enemy enemy)
     {
         currentEnemy = enemy;
         shieldEnemy = enemy as ShieldEnemy;
         turnTimer = 0f;
+        holdTimer = 0f;
 
         currentEnemy.currentSpeed = 0f;
         currentEnemy.blockSeparation = true;
@@ -25,6 +28,7 @@ public class ShieldHoldState : BaseState
             currentEnemy.SetAnimBool("walk", false);
             currentEnemy.SetAnimBool("melee", false);
             currentEnemy.SetAnimBool("meleeWindup", false);
+            currentEnemy.SetAnimBool("shoot", false);
         }
     }
 
@@ -44,6 +48,9 @@ public class ShieldHoldState : BaseState
             shieldEnemy.SwitchState(NPCState.GetClose);
             return;
         }
+
+        if (TryRerollShoot())
+            return;
 
         if (IsFacingPlayer())
         {
@@ -72,6 +79,21 @@ public class ShieldHoldState : BaseState
         if (currentEnemy != null)
             currentEnemy.blockSeparation = false;
         turnTimer = 0f;
+        holdTimer = 0f;
+    }
+
+    bool TryRerollShoot()
+    {
+        if (!shieldEnemy.enableShoot)
+            return false;
+
+        holdTimer += Time.deltaTime;
+        if (holdTimer < shieldEnemy.holdDuration || shieldEnemy.IsShootOnCooldown)
+            return false;
+
+        holdTimer = 0f;
+        shieldEnemy.EvaluateCycle();
+        return true;
     }
 
     bool IsFacingPlayer()

@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 火箭兵：AI 循环与 RangedEnemy 一致，战斗射程为二维全向圆；
 /// 射击时在八向中选取最接近玩家的方向发射直线导弹。
+/// 勾选 enableHomingMissile 后改为发射无上升阶段的追踪导弹。
 /// 可选专注模式：MOVE 时原地停留，时长与 actionDuration 一致。
 /// </summary>
 public class RocketEnemy : RangedEnemy
@@ -35,6 +36,12 @@ public class RocketEnemy : RangedEnemy
     [Tooltip("水平已贴齐但仍因高度差超出射程时，视为可射击，避免 GetClose 卡死")]
     [SerializeField] float heightDeadlockSlack = 0.5f;
 
+    [Header("进阶能力")]
+    [Tooltip("勾选后改为发射追踪导弹，不再发射八向直线导弹")]
+    public bool enableHomingMissile;
+    [Tooltip("火箭兵专用追踪导弹；开启进阶但未指定时不发射")]
+    public EnemyRocketHomingMissile homingMissilePrefab;
+
     float cachedFirePointRadius = -1f;
 
     void Reset()
@@ -65,14 +72,44 @@ public class RocketEnemy : RangedEnemy
 
     public override void FireProjectile()
     {
-        if (missilePrefab == null || player == null)
+        if (player == null)
             return;
 
+        if (enableHomingMissile)
+        {
+            FireHomingMissile();
+            return;
+        }
+
+        if (missilePrefab == null)
+            return;
+
+        Vector3 spawnPos = GetAimedSpawnPosition(out Vector2 dir);
+        var throwerCollider = GetComponent<Collider2D>();
+        var missile = Instantiate(missilePrefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
+        missile.Init(dir, throwerCollider);
+    }
+
+    void FireHomingMissile()
+    {
+        if (homingMissilePrefab == null)
+            return;
+
+        Vector3 spawnPos = GetAimedSpawnPosition(out _);
+        var throwerCollider = GetComponent<Collider2D>();
+        var missile = Instantiate(homingMissilePrefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
+        missile.Init(throwerCollider, player);
+    }
+
+    Vector3 GetAimedSpawnPosition(out Vector2 dir)
+    {
         FacePlayer();
 
         Vector2 origin = GetFireOrigin();
         Vector2 toPlayer = (Vector2)player.position - origin;
-        Vector2 dir = SnapToNearest8Dir(toPlayer);
+        dir = SnapToNearest8Dir(toPlayer);
         if (dir == Vector2.zero)
             dir = new Vector2(faceDir.x >= 0f ? 1f : -1f, 0f);
 
@@ -81,10 +118,7 @@ public class RocketEnemy : RangedEnemy
         if (firePoint != null)
             firePoint.position = spawnPos;
 
-        var throwerCollider = GetComponent<Collider2D>();
-        var missile = Instantiate(missilePrefab, spawnPos, Quaternion.identity);
-        EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
-        missile.Init(dir, throwerCollider);
+        return spawnPos;
     }
 
     Vector2 GetFireOrigin()

@@ -887,6 +887,15 @@ MonoBehaviour:
   reapproachRange: 6.5
   faceTurnDelay: 1
   enableFocusMode: 0
+  enableShoot: 1
+  shootWeight: 0.2
+  holdWeight: 0.8
+  holdDuration: 2
+  shootCooldown: 1
+  projectilePrefab: {fileID: 1207313983663696913, guid: 504c5d92d03bea14b9beba43ecef18e9, type: 3}
+  firePoint: {fileID: 5507517411812069850}
+  fireNormalizedTime: 0.375
+  shootStateName: enemy_shield_shooting
   meleeAnimatorController: {fileID: 9100000, guid: e8a4c2b17f9d4e6a8b3c5d0e1f2a3b4c, type: 2}
 --- !u!114 &7759382780292668202
 MonoBehaviour:

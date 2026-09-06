@@ -2,7 +2,8 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 盾兵：有盾时举盾对峙；非巡逻生成时立刻靠近 holdRange，之后玩家离开再延迟追击。
+/// 盾兵：有盾时举盾对峙；可选 enableShoot，到达 holdRange 后按权重射击。
+/// 非巡逻生成时立刻靠近 holdRange，之后玩家离开再延迟追击。
 /// 专注模式开启时有盾原地死守。isPatrol 只负责站岗索敌与脱战半径回位。
 /// 破盾后行为与近战敌人一致。
 /// </summary>
@@ -22,6 +23,24 @@ public class ShieldEnemy : MeleeEnemy
     [Tooltip("开启后有盾时原地举盾，不因玩家离开理想距离而追击。与 isPatrol 独立：isPatrol 只负责站岗索敌与脱战半径回位。")]
     public bool enableFocusMode;
 
+    [Header("射击（有盾）")]
+    [Tooltip("开启后，到达 holdRange 时按权重在举盾与射击间掷骰。关闭则只举盾。")]
+    public bool enableShoot;
+    [Tooltip("射程内选择射击的权重")]
+    [Min(0f)] public float shootWeight = 0.3f;
+    [Tooltip("射程内选择举盾的权重")]
+    [Min(0f)] public float holdWeight = 0.7f;
+    [Tooltip("举盾持续多久后再掷一次；enableShoot 关闭时举盾无限持续")]
+    [Min(0.05f)] public float holdDuration = 1.5f;
+    [Tooltip("射完后强制举盾、不可立刻再射的冷却")]
+    [Min(0f)] public float shootCooldown = 1f;
+    public EnemyProjectile projectilePrefab;
+    public Transform firePoint;
+    [Tooltip("射击动画 normalizedTime 达到此值时出弹（约第 4 帧）")]
+    [Range(0f, 1f)] public float fireNormalizedTime = 0.375f;
+    [Tooltip("Animator 中射击状态名，需与 clip 状态一致")]
+    public string shootStateName = "enemy_shield_shooting";
+
     [Header("动画")]
     [Tooltip("破盾后切换到的近战 Animator Controller")]
     public RuntimeAnimatorController meleeAnimatorController;
@@ -33,8 +52,14 @@ public class ShieldEnemy : MeleeEnemy
     Coroutine shieldVisualFlashRoutine;
     float leaveIdealTimer;
     bool hasHeldAtIdealRange;
+    float shootReadyTime;
 
     public bool HasShield => shieldAbsorb != null;
+
+    /// <summary>射击动画期间盾牌撤开，正面伤害打到本体。</summary>
+    public bool IsShieldWithdrawn { get; private set; }
+
+    public bool IsShootOnCooldown => Time.time < shootReadyTime;
 
     /// <summary>离开理想距离后触发再追的水平距离。</summary>
     public float GetReapproachRange()
@@ -72,6 +97,7 @@ public class ShieldEnemy : MeleeEnemy
     {
         base.Awake();
         skillState = new ShieldHoldState();
+        shotState = new ShieldShootState();
         CacheShield();
         DisableShieldOverlaySprite();
         RecacheSpriteRendererFromChild("Sprite");
@@ -81,17 +107,23 @@ public class ShieldEnemy : MeleeEnemy
     {
         hasHeldAtIdealRange = false;
         leaveIdealTimer = 0f;
+        shootReadyTime = 0f;
+        SetShieldWithdrawn(false);
         base.OnEnable();
     }
 
     protected override void OnDisable()
     {
+        SetShieldWithdrawn(false);
         StopShieldVisualFlash(hideIfAttached: true);
         base.OnDisable();
     }
 
     void CacheShield()
     {
+        if (firePoint == null)
+            firePoint = transform.Find("FirePoint");
+
         shieldAbsorb = GetComponentInChildren<EnemyShieldAbsorb>(true);
         shieldDropVisual = GetComponentInChildren<ShieldDropVisual>(true);
         shieldVisualRenderer = shieldDropVisual != null
@@ -128,6 +160,7 @@ public class ShieldEnemy : MeleeEnemy
     public void NotifyShieldBroken()
     {
         shieldAbsorb = null;
+        SetShieldWithdrawn(false);
         leaveIdealTimer = 0f;
         if (physicsCheck != null)
             physicsCheck.RefreshLedgeColliders();
@@ -158,16 +191,32 @@ public class ShieldEnemy : MeleeEnemy
     /// </summary>
     public void PlayShieldHitAnim()
     {
-        if (isDead || anim == null)
+        if (isDead || anim == null || IsShieldWithdrawn)
             return;
 
         anim.SetTrigger("shieldHurt");
         BeginShieldVisualFeedback();
     }
 
+    /// <summary>开枪立刻打断盾受击动画与盾牌闪红，避免 ShieldHit 挡住射击。</summary>
+    public void InterruptShieldHitForShoot()
+    {
+        if (anim == null)
+            return;
+
+        anim.ResetTrigger("shieldHurt");
+        if (!string.IsNullOrEmpty(shootStateName))
+        {
+            anim.Play(shootStateName, 0, 0f);
+            anim.Update(0f);
+        }
+
+        StopShieldVisualFlash(hideIfAttached: true);
+    }
+
     public override void OnTakeDamage(Transform attackTrans)
     {
-        if (HasShield)
+        if (HasShield && !IsShieldWithdrawn)
             BeginShieldVisualFeedback();
 
         base.OnTakeDamage(attackTrans);
@@ -289,8 +338,9 @@ public class ShieldEnemy : MeleeEnemy
     }
 
     /// <summary>
-    /// 有盾：专注模式则原地举盾。非巡逻首次接敌立刻靠近；到达 holdRange 后举盾，
-    /// 玩家再离开则等待延迟后追击。isPatrol 只做站岗/脱战闸门。无盾：走近战 EvaluateCycle。
+    /// 有盾：专注模式则原地举盾/射击。非巡逻首次接敌立刻靠近；到达 holdRange 后
+    /// 举盾，enableShoot 时按权重射击。玩家再离开则等待延迟后追击。
+    /// isPatrol 只做站岗/脱战闸门。无盾：走近战 EvaluateCycle。
     /// </summary>
     public override void EvaluateCycle()
     {
@@ -323,16 +373,19 @@ public class ShieldEnemy : MeleeEnemy
             return;
         }
 
+        if (CurrentState == shotState)
+            return;
+
         if (enableFocusMode)
         {
-            SwitchToSkillIfNeeded();
+            TryEnterHoldOrShoot();
             return;
         }
 
         if (GetHorizontalDistanceToPlayer() <= GetSlottedRange(holdRange))
         {
             hasHeldAtIdealRange = true;
-            SwitchToSkillIfNeeded();
+            TryEnterHoldOrShoot();
             return;
         }
 
@@ -345,7 +398,67 @@ public class ShieldEnemy : MeleeEnemy
             return;
         }
 
+        TryEnterHoldOrShoot();
+    }
+
+    void TryEnterHoldOrShoot()
+    {
+        if (enableShoot && !IsShootOnCooldown)
+        {
+            RollShieldAction();
+            return;
+        }
+
         SwitchToSkillIfNeeded();
+    }
+
+    void RollShieldAction()
+    {
+        float shoot = Mathf.Max(0f, shootWeight);
+        float hold = Mathf.Max(0f, holdWeight);
+        float total = shoot + hold;
+        if (total <= 0f)
+        {
+            SwitchToSkillIfNeeded();
+            return;
+        }
+
+        if (Random.value * total < shoot)
+        {
+            SwitchState(NPCState.Shot);
+            return;
+        }
+
+        if (CurrentState == skillState)
+            return;
+
+        SwitchToSkillIfNeeded();
+    }
+
+    public void BeginShootCooldown()
+    {
+        shootReadyTime = Time.time + Mathf.Max(0f, shootCooldown);
+    }
+
+    public void SetShieldWithdrawn(bool withdrawn)
+    {
+        IsShieldWithdrawn = withdrawn;
+    }
+
+    public void FireProjectile()
+    {
+        if (projectilePrefab == null || player == null)
+            return;
+
+        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
+        float dir = Mathf.Sign(player.position.x - transform.position.x);
+        if (dir == 0f)
+            dir = faceDir.x;
+
+        var projectile = Instantiate(projectilePrefab, spawnPos, Quaternion.identity);
+        EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
+        projectile.Init(new Vector2(dir, 0f));
+        FacePlayer();
     }
 
     void SwitchToSkillIfNeeded()

@@ -31,6 +31,8 @@ public static class EnemySceneCleanup
         DestroyAll<Enemy>();
         DestroyAll<EnemyProjectile>();
         DestroyAll<EnemyMissile>();
+        DestroyAll<EnemyHomingMissile>();
+        DestroyAll<EnemyRocketHomingMissile>();
         DestroyAll<EnemyGrenade>();
         DestroyAll<EnemyGrenadeExplosion>();
         DestroyAll<ShieldDropVisual>();
