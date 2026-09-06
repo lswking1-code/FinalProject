@@ -53,6 +53,7 @@ public class PlayerProjectile : MonoBehaviour, IPlayerAmmo
         transform.rotation = GetRotation(dir, faceY);
         direction = transform.right;
         rb.linearVelocity = direction * speed;
+        attack.NotifySpawnInitialized();
     }
 
     void FixedUpdate()

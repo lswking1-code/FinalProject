@@ -54,6 +54,7 @@ public class Attack : MonoBehaviour
     readonly Dictionary<IHitCountable, float> nextHitCountableTime = new();
     readonly HashSet<IKnockbackable> knockbackTargets = new();
     readonly List<Collider2D> overlapBuffer = new();
+    bool deferSpawnOverlap;
 
     const string BlastTag = "Blast";
     const float DefaultBlastPropKnockback = 8f;
@@ -102,6 +103,23 @@ public class Attack : MonoBehaviour
         return true;
     }
 
+    void Awake()
+    {
+        deferSpawnOverlap = ShouldDeferSpawnOverlap();
+    }
+
+    bool ShouldDeferSpawnOverlap()
+    {
+        if (GetComponent<EnemyProjectile>() != null)
+            return true;
+
+        var ammo = GetComponent<IPlayerAmmo>();
+        if (ammo == null)
+            return false;
+
+        return ammo is not PlayerShotgunBlast && ammo is not PlayerShotgunDragonBlast;
+    }
+
     void OnEnable()
     {
         nextImpactTime.Clear();
@@ -111,6 +129,17 @@ public class Attack : MonoBehaviour
         hitCountables.Clear();
         nextHitCountableTime.Clear();
         knockbackTargets.Clear();
+        WakeRelatedRigidbodies();
+        if (!deferSpawnOverlap)
+            ProcessOverlapHits();
+    }
+
+    /// <summary>
+    /// 飞行弹药完成伤害/朝向配置后调用：补扫生成时已重叠的目标。
+    /// </summary>
+    public void NotifySpawnInitialized()
+    {
+        deferSpawnOverlap = false;
         WakeRelatedRigidbodies();
         ProcessOverlapHits();
     }

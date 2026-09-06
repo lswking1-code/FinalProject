@@ -194,7 +194,7 @@ public static class FrameworkSetupEditor
     {
         var root = new GameObject("Fade Canvas");
         var canvas = root.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        ConfigureCrtCanvas(canvas);
         canvas.sortingOrder = 999;
         root.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         root.AddComponent<GraphicRaycaster>();
@@ -245,6 +245,7 @@ public static class FrameworkSetupEditor
         camera.orthographicSize = 5f;
         mainCameraGo.AddComponent<AudioListener>();
         mainCameraGo.AddComponent<CinemachineBrain>();
+        mainCameraGo.AddComponent<CrtUiCanvasBinder>();
 
         var vcamGo = new GameObject("CM vcam1");
         vcamGo.transform.SetParent(mainCameraGo.transform.parent);
@@ -282,7 +283,7 @@ public static class FrameworkSetupEditor
     {
         var root = new GameObject("UI Canvas");
         var canvas = root.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        ConfigureCrtCanvas(canvas);
         root.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         root.AddComponent<GraphicRaycaster>();
 
@@ -342,6 +343,14 @@ public static class FrameworkSetupEditor
         return panel;
     }
 
+    private static void ConfigureCrtCanvas(Canvas canvas)
+    {
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.planeDistance = 1f;
+        canvas.worldCamera = Camera.main;
+        canvas.sortingLayerName = "UI";
+    }
+
     private static void CreateInitScene()
     {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -375,7 +384,7 @@ public static class FrameworkSetupEditor
         if (canvasGo.GetComponent<Canvas>() == null)
         {
             var canvas = canvasGo.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            ConfigureCrtCanvas(canvas);
             canvasGo.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             canvasGo.AddComponent<GraphicRaycaster>();
         }

@@ -46,6 +46,7 @@ public class PlayerMLChargeBullet : MonoBehaviour, IPlayerAmmo
         transform.rotation = PlayerProjectile.GetRotation(dir, faceY);
         direction = transform.right;
         rb.linearVelocity = direction * speed;
+        attack.NotifySpawnInitialized();
     }
 
     void FixedUpdate()

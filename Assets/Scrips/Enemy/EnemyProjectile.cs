@@ -42,6 +42,7 @@ public class EnemyProjectile : MonoBehaviour, IEnemyProjectileCancelable
             direction = Vector2.right;
 
         rb.linearVelocity = direction * speed;
+        attack.NotifySpawnInitialized();
     }
 
     void FixedUpdate()

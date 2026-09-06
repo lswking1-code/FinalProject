@@ -39,6 +39,7 @@ public class PlayerMChargeBullet : MonoBehaviour, IPlayerAmmo
         direction = transform.right;
         startPosition = transform.position;
         rb.linearVelocity = direction * speed;
+        attack.NotifySpawnInitialized();
     }
 
     void FixedUpdate()
