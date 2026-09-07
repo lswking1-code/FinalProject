@@ -532,7 +532,9 @@ public class FlyingEnemy : Enemy
 
     public override void ApplyEncounterSuicideBomb(bool enabled)
     {
-        enableSuicideBomb = enabled;
+        // 条目勾选可打开自爆；未勾选不关预制体（EnemyAirAdvanced 默认开启）。
+        if (enabled)
+            enableSuicideBomb = true;
         BindSuicideShotState();
     }
 
@@ -555,11 +557,14 @@ public class FlyingEnemy : Enemy
     public void BeginSuicideAttack()
     {
         isPerformingSuicideAttack = true;
+        BeginSpawnApproachPassthrough();
     }
 
     public void EndSuicideAttack()
     {
         isPerformingSuicideAttack = false;
+        if (!isSuicideDetonating)
+            EndSpawnApproachPassthrough();
     }
 
     public void CacheSuicideLockPoint()
@@ -576,7 +581,29 @@ public class FlyingEnemy : Enemy
 
     public bool IsInSuicideDetonateRange()
     {
-        return Vector2.Distance(transform.position, suicideLockPoint) <= Mathf.Max(0.05f, bombApproachStopDistance);
+        if (Vector2.Distance(transform.position, suicideLockPoint) <= Mathf.Max(0.05f, bombApproachStopDistance))
+            return true;
+
+        return IsTouchingPlayerForSuicide();
+    }
+
+    bool IsTouchingPlayerForSuicide()
+    {
+        EnsurePlayerReference();
+        if (player == null)
+            return false;
+
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<Collider2D>();
+        if (bodyCollider == null)
+            return false;
+
+        var playerCol = player.GetComponent<Collider2D>();
+        if (playerCol == null)
+            return false;
+
+        ColliderDistance2D hit = bodyCollider.Distance(playerCol);
+        return hit.isOverlapped || hit.distance <= 0.08f;
     }
 
     Vector2 GetSuicideBombCenterLocal()
@@ -594,9 +621,16 @@ public class FlyingEnemy : Enemy
         if (isHurt || isDead || Rb == null)
             return;
 
+        if (IsInSuicideDetonateRange())
+        {
+            Rb.linearVelocity = Vector2.zero;
+            FaceSuicideLockPoint();
+            return;
+        }
+
         Vector2 toTarget = suicideLockPoint - (Vector2)transform.position;
         float dist = toTarget.magnitude;
-        if (dist <= Mathf.Max(0.05f, bombApproachStopDistance))
+        if (dist <= 0.0001f)
         {
             Rb.linearVelocity = Vector2.zero;
             FaceSuicideLockPoint();
