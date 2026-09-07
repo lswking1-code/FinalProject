@@ -22,6 +22,8 @@ public class MachinistImpactVfx : MonoBehaviour
         public MaterialPropertyBlock debrisProperties;
         public Sprite[] frames;
         public Sprite[] accentFrames;
+        public float accentFrameRate;
+        public float accentScale;
         public float started;
         public float duration;
         public float scale;
@@ -180,10 +182,12 @@ public class MachinistImpactVfx : MonoBehaviour
         cursor = (slot + 1) % pool.Length;
         b.frames = frames;
         b.ballistic = library.UsesBallistic(kind);
-        b.legacyPixelGrid = kind == MachinistImpactKind.Heavy;
+        bool bulletAccent = kind == MachinistImpactKind.Bullet && b.ballistic;
+        b.legacyPixelGrid = kind == MachinistImpactKind.Heavy || bulletAccent;
         b.slash = kind == MachinistImpactKind.Slash || kind == MachinistImpactKind.BlastSlash;
         bool heavy = kind == MachinistImpactKind.Heavy || kind == MachinistImpactKind.BlastSlash;
-        b.accentFrames = b.ballistic || b.slash ? null : heavy ? library.ring : null;
+        b.accentFrames = bulletAccent ? library.electric
+            : b.ballistic || b.slash ? null : heavy ? library.ring : null;
         b.frameRate = b.ballistic ? library.ballisticFramesPerSecond * (heavy ? 0.85f : 1f)
             : library.framesPerSecond;
         b.frameRate = Mathf.Max(1f, b.frameRate);
@@ -192,10 +196,14 @@ public class MachinistImpactVfx : MonoBehaviour
             * (heavy ? 1.1f : kind == MachinistImpactKind.Surface ? 0.5f
                 : kind == MachinistImpactKind.Bullet ? 0.65f
                 : kind == MachinistImpactKind.Shield ? 0.75f : 1f);
+        // The Electric-shaped bullet accent follows the normal-hit size, independent of Ballistic art scaling.
+        b.accentScale = b.scale * (bulletAccent ? 1f : b.slash ? 1.15f * 1.15f : 1.1f);
+        b.accentFrameRate = bulletAccent ? Mathf.Max(1f, library.framesPerSecond) : b.frameRate;
         if (b.ballistic) b.scale *= library.ballisticSize;
         if (b.slash) b.scale *= 1.15f;
         b.pixelStep = Mathf.Max(1f, library.ballisticWorldPixelSize * b.pixelsPerUnit / b.scale);
-        b.duration = Mathf.Max(frames.Length, b.accentFrames == null ? 0 : b.accentFrames.Length) / b.frameRate;
+        b.duration = Mathf.Max(frames.Length / b.frameRate,
+            b.accentFrames == null ? 0f : b.accentFrames.Length / b.accentFrameRate);
         b.debrisActive = kind == MachinistImpactKind.Heavy && ballisticMaterial != null
             && library.ballistic != null && library.ballistic.Length > 0;
         b.debrisScale = b.scale * library.ballisticSize;
@@ -226,7 +234,8 @@ public class MachinistImpactVfx : MonoBehaviour
         if (b.slash) b.core.color = new Color(1f, 0.9f, 0.65f, 1f);
         b.core.transform.localRotation = Quaternion.Euler(0f, 0f, b.slash ? -35f : 0f);
         b.tint = b.core.color;
-        b.accent.color = b.slash ? new Color(1f, 0.9f, 0.65f, 1f) : b.core.color;
+        b.accent.color = bulletAccent ? library.warm
+            : b.slash ? new Color(1f, 0.9f, 0.65f, 1f) : b.core.color;
         b.accent.transform.localRotation = Quaternion.Euler(0f, 0f, b.slash ? -35f : 0f);
         b.root.gameObject.SetActive(true);
         Draw(b, 0f);
@@ -268,13 +277,14 @@ public class MachinistImpactVfx : MonoBehaviour
             b.core.SetPropertyBlock(b.properties);
         }
         else if (!b.ballistic && !b.legacyPixelGrid) b.core.SetPropertyBlock(null);
-        SetFrame(b.accent, b.accentFrames, frame, b.scale * (b.slash ? 1.15f : 1.1f), 24f);
+        SetFrame(b.accent, b.accentFrames, Mathf.FloorToInt(Mathf.Max(0f, age) * b.accentFrameRate),
+            b.accentScale, 24f);
         if (b.legacyPixelGrid && b.accent.enabled)
         {
             if (b.accentProperties == null) b.accentProperties = new MaterialPropertyBlock();
             Vector2 pivot = b.accent.sprite.rect.position + b.accent.sprite.pivot;
             b.accentProperties.SetFloat("_PixelStep", Mathf.Max(1f,
-                library.ballisticWorldPixelSize * 24f / (b.scale * 1.1f)));
+                library.ballisticWorldPixelSize * 24f / b.accentScale));
             b.accentProperties.SetVector("_PixelPivot", new Vector4(pivot.x, pivot.y, 0f, 0f));
             b.accent.SetPropertyBlock(b.accentProperties);
         }

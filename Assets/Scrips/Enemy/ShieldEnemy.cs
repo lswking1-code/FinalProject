@@ -56,8 +56,12 @@ public class ShieldEnemy : MeleeEnemy
 
     public bool HasShield => shieldAbsorb != null;
 
-    /// <summary>射击动画期间盾牌撤开，正面伤害打到本体。</summary>
+    /// <summary>射击动画期间盾牌撤开，正面伤害打到本体；期间不播 hurt 硬直。</summary>
     public bool IsShieldWithdrawn { get; private set; }
+
+    protected override bool UseHurtStun => !IsShieldWithdrawn;
+
+    protected override bool CanChangeFacing => !IsShieldWithdrawn && base.CanChangeFacing;
 
     public bool IsShootOnCooldown => Time.time < shootReadyTime;
 
@@ -187,7 +191,7 @@ public class ShieldEnemy : MeleeEnemy
 
     /// <summary>
     /// 盾牌受击：播 shieldHurt（Shurt），不进入 isHurt 硬直、不打断举盾 AI。
-    /// 本体受击仍走 OnTakeDamage 的 hurt。
+    /// 举盾时本体受击仍走 hurt；射击撤盾时只闪红，不打断射击。
     /// </summary>
     public void PlayShieldHitAnim()
     {
@@ -205,6 +209,7 @@ public class ShieldEnemy : MeleeEnemy
             return;
 
         anim.ResetTrigger("shieldHurt");
+        anim.ResetTrigger("hurt");
         if (!string.IsNullOrEmpty(shootStateName))
         {
             anim.Play(shootStateName, 0, 0f);

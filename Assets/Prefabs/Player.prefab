@@ -620,6 +620,9 @@ MonoBehaviour:
   reviveFlashInterval: 0.1
   reviveFlashWhiteAmount: 1
   reviveFlashAlpha: 0.6
+  hurtFlashDuration: 0.35
+  hurtFlashInterval: 0.07
+  hurtFlashColor: {r: 1, g: 0.25, b: 0.25, a: 1}
   hitEvent:
     Guid:
       Data1: -485491071

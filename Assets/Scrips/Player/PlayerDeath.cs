@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
@@ -22,6 +23,13 @@ public class PlayerDeath : MonoBehaviour
     [Tooltip("白闪时的不透明度。")]
     [SerializeField, Range(0.05f, 1f)] float reviveFlashAlpha = 0.5f;
 
+    [Header("受击闪红")]
+    [Tooltip("闪红总时长（秒）。")]
+    [SerializeField, Min(0.05f)] float hurtFlashDuration = 0.35f;
+    [Tooltip("闪红切换间隔（秒）。")]
+    [SerializeField, Min(0.02f)] float hurtFlashInterval = 0.05f;
+    [SerializeField] Color hurtFlashColor = new Color(1f, 0.25f, 0.25f, 1f);
+
     [Header("音效")]
     [SerializeField] EventReference hitEvent;
     [SerializeField] EventReference dieEvent;
@@ -45,6 +53,10 @@ public class PlayerDeath : MonoBehaviour
     SpriteRenderer[] flashRenderers;
     Color[] flashOriginals;
     Material[] flashOriginalMaterials;
+
+    Coroutine hurtFlashRoutine;
+    SpriteRenderer[] hurtFlashRenderers;
+    Color[] hurtFlashOriginals;
 
     static readonly int FlashBlendId = Shader.PropertyToID("_FlashBlend");
     static readonly int FlashAlphaId = Shader.PropertyToID("_FlashAlpha");
@@ -106,6 +118,7 @@ public class PlayerDeath : MonoBehaviour
 
     void OnDisable()
     {
+        StopHurtFlash();
         bool wasFlashing = flashing;
         StopWhiteFlash();
         if (wasFlashing)
@@ -162,6 +175,7 @@ public class PlayerDeath : MonoBehaviour
 
     void OnTakeDamage(Transform _)
     {
+        StartHurtFlash();
         if (hitEvent.IsNull || character == null || character.currentHealth <= 0)
             return;
 
@@ -287,6 +301,7 @@ public class PlayerDeath : MonoBehaviour
     {
         deathHandled = false;
         gameOverRaised = false;
+        StopHurtFlash();
         StopWhiteFlash();
         character?.Revive();
         character?.RestoreFullHealth();
@@ -312,6 +327,7 @@ public class PlayerDeath : MonoBehaviour
     {
         deathHandled = false;
         gameOverRaised = false;
+        StopHurtFlash();
         StopWhiteFlash();
         character?.Revive();
         playerAnim?.ResetFromDeath();
@@ -326,6 +342,7 @@ public class PlayerDeath : MonoBehaviour
     {
         deathHandled = false;
         gameOverRaised = false;
+        StopHurtFlash();
         StopWhiteFlash();
         character?.SetForcedInvulnerable(false);
         character?.Revive();
@@ -363,6 +380,7 @@ public class PlayerDeath : MonoBehaviour
 
     void StartWhiteFlash(float duration)
     {
+        StopHurtFlash();
         StopWhiteFlash();
 
         flashRenderers = GetComponentsInChildren<SpriteRenderer>(true);
@@ -476,5 +494,109 @@ public class PlayerDeath : MonoBehaviour
         flashRenderers = null;
         flashOriginals = null;
         flashOriginalMaterials = null;
+    }
+
+    void StartHurtFlash()
+    {
+        if (flashing)
+            return;
+
+        StopHurtFlash();
+        hurtFlashRoutine = StartCoroutine(HurtFlash());
+    }
+
+    IEnumerator HurtFlash()
+    {
+        hurtFlashRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        if (hurtFlashRenderers == null || hurtFlashRenderers.Length == 0)
+        {
+            hurtFlashRoutine = null;
+            yield break;
+        }
+
+        hurtFlashOriginals = new Color[hurtFlashRenderers.Length];
+        for (int i = 0; i < hurtFlashRenderers.Length; i++)
+        {
+            SpriteRenderer renderer = hurtFlashRenderers[i];
+            if (renderer == null)
+                continue;
+
+            hurtFlashOriginals[i] = renderer.color;
+            renderer.color = hurtFlashColor;
+        }
+
+        float elapsed = 0f;
+        float flashTimer = 0f;
+        bool flashOn = true;
+        float duration = Mathf.Max(0.05f, hurtFlashDuration);
+
+        while (elapsed < duration)
+        {
+            float dt = Time.deltaTime;
+            elapsed += dt;
+            flashTimer += dt;
+
+            if (flashTimer >= hurtFlashInterval)
+            {
+                flashTimer = 0f;
+                flashOn = !flashOn;
+                ApplyHurtFlashColors(flashOn);
+            }
+
+            yield return null;
+        }
+
+        RestoreHurtFlash();
+        hurtFlashRoutine = null;
+    }
+
+    void ApplyHurtFlashColors(bool flashOn)
+    {
+        if (hurtFlashRenderers == null)
+            return;
+
+        for (int i = 0; i < hurtFlashRenderers.Length; i++)
+        {
+            SpriteRenderer renderer = hurtFlashRenderers[i];
+            if (renderer == null)
+                continue;
+
+            renderer.color = flashOn
+                ? hurtFlashColor
+                : hurtFlashOriginals != null && i < hurtFlashOriginals.Length
+                    ? hurtFlashOriginals[i]
+                    : renderer.color;
+        }
+    }
+
+    void StopHurtFlash()
+    {
+        if (hurtFlashRoutine != null)
+        {
+            StopCoroutine(hurtFlashRoutine);
+            hurtFlashRoutine = null;
+        }
+
+        RestoreHurtFlash();
+    }
+
+    void RestoreHurtFlash()
+    {
+        if (hurtFlashRenderers != null)
+        {
+            int count = hurtFlashRenderers.Length;
+            for (int i = 0; i < count; i++)
+            {
+                SpriteRenderer renderer = hurtFlashRenderers[i];
+                if (renderer == null)
+                    continue;
+
+                if (hurtFlashOriginals != null && i < hurtFlashOriginals.Length)
+                    renderer.color = hurtFlashOriginals[i];
+            }
+        }
+
+        hurtFlashRenderers = null;
+        hurtFlashOriginals = null;
     }
 }

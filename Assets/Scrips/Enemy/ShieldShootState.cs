@@ -2,6 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// 盾兵射击：播 shooting 动画，第 4 帧左右出弹；期间撤盾，正面可打本体。
+/// 射击中本体受击只闪红，不进硬直、不打断射击。
 /// </summary>
 public class ShieldShootState : BaseState
 {
@@ -39,12 +40,6 @@ public class ShieldShootState : BaseState
     {
         if (shieldEnemy == null || currentEnemy.isDead)
             return;
-
-        if (currentEnemy.isHurt)
-        {
-            FinishShoot();
-            return;
-        }
 
         TryFireIfReady();
 
