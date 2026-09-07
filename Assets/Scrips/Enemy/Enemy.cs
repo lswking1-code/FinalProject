@@ -266,13 +266,14 @@ public class Enemy : MonoBehaviour
         EnemySeparation.Register(this);
     }
 
-    protected void CacheSpriteRenderer()
+    protected virtual void CacheSpriteRenderer()
     {
         RecacheSpriteRendererFromChild("Sprite");
     }
 
     /// <summary>
     /// 优先绑定名为 childName 的身体 Sprite，避免盾/占位渲染器抢走闪白目标。
+    /// 不绑定根节点 SpriteRenderer，否则受击还原 localPosition 会把整只敌人拉回出生点。
     /// </summary>
     protected void RecacheSpriteRendererFromChild(string childName)
     {
@@ -285,7 +286,7 @@ public class Enemy : MonoBehaviour
         }
 
         if (spriteRenderer == null)
-            spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+            spriteRenderer = FindBodySpriteRenderer();
 
         if (spriteRenderer == null)
             return;
@@ -293,6 +294,29 @@ public class Enemy : MonoBehaviour
         spriteOriginalColor = spriteRenderer.color;
         spriteOriginalLocalPos = spriteRenderer.transform.localPosition;
     }
+
+    SpriteRenderer FindBodySpriteRenderer()
+    {
+        var renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        SpriteRenderer fallback = null;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            var sr = renderers[i];
+            if (sr == null || sr.transform == transform)
+                continue;
+
+            if (sr.sprite != null)
+                return sr;
+
+            if (fallback == null)
+                fallback = sr;
+        }
+
+        return fallback;
+    }
+
+    bool CanShakeHurtSprite =>
+        spriteRenderer != null && spriteRenderer.transform != transform;
 
     protected void RecacheAnimBoolNames()
     {
@@ -1278,7 +1302,7 @@ public class Enemy : MonoBehaviour
                 spriteRenderer.color = flashOn ? hurtFlashColor : spriteOriginalColor;
             }
 
-            if (spriteRenderer != null && shakeIntensity > 0f)
+            if (CanShakeHurtSprite && shakeIntensity > 0f)
             {
                 Vector2 offset = Random.insideUnitCircle * shakeIntensity;
                 spriteRenderer.transform.localPosition = spriteOriginalLocalPos + (Vector3)offset;
@@ -1296,7 +1320,8 @@ public class Enemy : MonoBehaviour
             return;
 
         spriteRenderer.color = spriteOriginalColor;
-        spriteRenderer.transform.localPosition = spriteOriginalLocalPos;
+        if (CanShakeHurtSprite)
+            spriteRenderer.transform.localPosition = spriteOriginalLocalPos;
     }
 
     /// <summary>

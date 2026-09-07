@@ -14,6 +14,11 @@ public class ArmoredVehicleEnemy : Enemy
     protected override bool CanChangeFacing => false;
     protected override bool UseHurtStun => false;
 
+    protected override void CacheSpriteRenderer()
+    {
+        RecacheSpriteRendererFromChild("Capsule");
+    }
+
     [Header("朝向")]
     [Tooltip("车头世界 X 方向：+1 朝右，-1 朝左。占位 Prefab 机枪在左侧，默认 -1")]
     public float forwardSign = -1f;
@@ -69,9 +74,14 @@ public class ArmoredVehicleEnemy : Enemy
     [Header("车头/车尾碰撞")]
     public GameObject bumperLeft;
     public GameObject bumperRight;
-    [Tooltip("冲撞/移动时对玩家造成的伤害（写入 bumper Attack）")]
+    [Tooltip("仅冲刺命中玩家时造成的伤害（写入 bumper Attack）")]
     public int bumperDamage = 20;
-    public float bumperKnockbackForce = 8f;
+    [Tooltip("冲刺命中击退冲量（始终写入 bumper Attack）")]
+    public float bumperKnockbackForce = 16f;
+    [Tooltip("冲刺命中后玩家水平输入被盖住的时长（秒）")]
+    public float bumperKnockbackDuration = 0.3f;
+    [Tooltip("冲刺击退上扬角度（度）；左右 Bumper 分别向外斜上")]
+    public float bumperKnockbackAngle = 25f;
 
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
@@ -137,10 +147,11 @@ public class ArmoredVehicleEnemy : Enemy
         attack.attackType = AttackType.Melee;
         attack.requireTag = "Player";
         attack.enableKnockback = true;
-        if (attack.knockbackForce <= 0f)
-            attack.knockbackForce = bumperKnockbackForce;
+        attack.knockbackForce = bumperKnockbackForce;
+        attack.knockbackDuration = bumperKnockbackDuration;
 
-        float z = outwardX < 0f ? 180f : 0f;
+        float angle = Mathf.Clamp(bumperKnockbackAngle, 0f, 80f);
+        float z = outwardX < 0f ? 180f - angle : angle;
         attack.transform.localRotation = Quaternion.Euler(0f, 0f, z);
     }
 

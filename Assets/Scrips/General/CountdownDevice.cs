@@ -59,6 +59,9 @@ public class CountdownDevice : MonoBehaviour, ISaveable
             sfxSource.loop = false;
             sfxSource.spatialBlend = 0f;
         }
+
+        if (doorOnComplete == null)
+            doorOnComplete = GetComponent<AnimatedDestroy>();
     }
 
     void OnEnable()

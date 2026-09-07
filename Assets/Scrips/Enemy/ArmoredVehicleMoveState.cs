@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 装甲车缓慢前进或倒车，不翻转车体。车头/车尾碰到玩家造成伤害与击退，但不中断移动。
+/// 装甲车缓慢前进或倒车，不翻转车体。普通移动不开启 Bumper，不伤人、不击退。
 /// </summary>
 public class ArmoredVehicleMoveState : BaseState
 {
@@ -26,7 +26,7 @@ public class ArmoredVehicleMoveState : BaseState
         vehicle.SetAnimBool("ram", false);
         vehicle.SetAnimBool("ramWindup", false);
         vehicle.SetAnimBool("walk", true);
-        vehicle.SetBumpersActive(true);
+        vehicle.SetBumpersActive(false);
     }
 
     public override void LogicUpdate()

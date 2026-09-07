@@ -13,6 +13,9 @@ using UnityEditor;
 public class ElectrifiedPlatformGridSpan : MonoBehaviour
 {
     public const string TilesRootName = "Tiles";
+    /// <summary>碰撞高度（格子单位）。顶边对齐格子顶面，避免站上地板时漏伤。</summary>
+    public const float DefaultColliderHeight = 0.5f;
+    const float CellHeight = 1f;
 
     [SerializeField] Vector3Int origin;
     [SerializeField] int width = 1;
@@ -65,8 +68,9 @@ public class ElectrifiedPlatformGridSpan : MonoBehaviour
             if (!Application.isPlaying)
                 Undo.RecordObject(box, "Resize Electrified Platform");
 #endif
-            box.size = new Vector2(width, 1f);
-            box.offset = Vector2.zero;
+            float height = DefaultColliderHeight;
+            box.size = new Vector2(width, height);
+            box.offset = new Vector2(0f, (CellHeight - height) * 0.5f);
 #if UNITY_EDITOR
             if (!Application.isPlaying)
                 EditorUtility.SetDirty(box);

@@ -8,6 +8,8 @@ using UnityEngine.Events;
 public class AnimatedDestroy : MonoBehaviour
 {
     const string DefaultVisualName = "Visual";
+    const float AnimatorEnterGrace = 0.25f;
+    const float AnimatorSafetyTimeout = 8f;
 
     [Header("打开 / 摧毁动画")]
     [Tooltip("视觉根节点（含 SpriteRenderer / Animator）。留空则查找子物体 Visual，或本物体")]
@@ -33,7 +35,10 @@ public class AnimatedDestroy : MonoBehaviour
     Collider2D[] colliders;
     bool isDestroying;
     bool isFinishing;
+    bool waitingForAnimator;
+    bool sawDestroyState;
     float fallbackTimer;
+    float animatorTimer;
     bool sliding;
     float slideTimer;
     Vector3 slideStart;
@@ -42,10 +47,9 @@ public class AnimatedDestroy : MonoBehaviour
     void Awake()
     {
         ResolveVisualRoot();
-        animator = visualRoot != null
-            ? visualRoot.GetComponentInChildren<Animator>(true)
-            : GetComponentInChildren<Animator>(true);
-        colliders = GetComponentsInChildren<Collider2D>();
+        // Animator 可能在根节点，而 visualRoot 只是名为 Visual 的空子物体。
+        animator = GetComponentInChildren<Animator>(true);
+        colliders = GetComponentsInChildren<Collider2D>(true);
     }
 
     void ResolveVisualRoot()
@@ -75,9 +79,10 @@ public class AnimatedDestroy : MonoBehaviour
         DisableColliders();
         BeginSlideIfNeeded();
 
-        if (animator != null && !string.IsNullOrEmpty(destroyStateName))
+        if (TryPlayDestroyAnimation())
         {
-            animator.Play(destroyStateName, 0, 0f);
+            waitingForAnimator = true;
+            animatorTimer = 0f;
             return;
         }
 
@@ -137,6 +142,28 @@ public class AnimatedDestroy : MonoBehaviour
         }
     }
 
+    bool TryPlayDestroyAnimation()
+    {
+        if (animator == null || string.IsNullOrEmpty(destroyStateName))
+            return false;
+
+        if (!AnimatorHasState(animator, destroyStateName))
+            return false;
+
+        animator.Play(destroyStateName, 0, 0f);
+        return true;
+    }
+
+    static bool AnimatorHasState(Animator target, string stateName)
+    {
+        if (target == null || string.IsNullOrEmpty(stateName))
+            return false;
+
+        int shortHash = Animator.StringToHash(stateName);
+        int layeredHash = Animator.StringToHash("Base Layer." + stateName);
+        return target.HasState(0, shortHash) || target.HasState(0, layeredHash);
+    }
+
     void PrepareVisualForDestroyAnimation()
     {
         if (visualRoot == null || visualRoot == transform)
@@ -167,14 +194,23 @@ public class AnimatedDestroy : MonoBehaviour
         if (sliding)
             return;
 
-        if (animator != null && !string.IsNullOrEmpty(destroyStateName))
+        if (waitingForAnimator)
         {
-            var info = animator.GetCurrentAnimatorStateInfo(0);
-            if (!info.IsName(destroyStateName))
-                return;
-
-            if (info.normalizedTime < 1f)
-                return;
+            animatorTimer += Time.deltaTime;
+            if (animator != null)
+            {
+                var info = animator.GetCurrentAnimatorStateInfo(0);
+                if (info.IsName(destroyStateName))
+                {
+                    sawDestroyState = true;
+                    if (info.normalizedTime < 1f && animatorTimer < AnimatorSafetyTimeout)
+                        return;
+                }
+                else if (!sawDestroyState && animatorTimer < AnimatorEnterGrace)
+                {
+                    return;
+                }
+            }
 
             Finish();
             return;
@@ -203,13 +239,11 @@ public class AnimatedDestroy : MonoBehaviour
 
     void HideVisual()
     {
-        if (animator != null)
-            animator.enabled = false;
-
-        if (visualRoot != null && visualRoot != transform)
+        var animators = GetComponentsInChildren<Animator>(true);
+        for (int i = 0; i < animators.Length; i++)
         {
-            visualRoot.gameObject.SetActive(false);
-            return;
+            if (animators[i] != null)
+                animators[i].enabled = false;
         }
 
         var renderers = GetComponentsInChildren<Renderer>(true);
@@ -218,5 +252,8 @@ public class AnimatedDestroy : MonoBehaviour
             if (renderers[i] != null)
                 renderers[i].enabled = false;
         }
+
+        if (visualRoot != null && visualRoot != transform)
+            visualRoot.gameObject.SetActive(false);
     }
 }

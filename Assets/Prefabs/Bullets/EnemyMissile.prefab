@@ -167,6 +167,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 8
+  startSpeed: 2
+  accelerateDuration: 0.4
   lifetime: 5
   explosionPrefab: {fileID: 1000000000000000006, guid: e6f7a8b9c0db612345f7890123456789, type: 3}
 --- !u!95 &6100000000000000007

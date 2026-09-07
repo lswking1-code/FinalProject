@@ -9,12 +9,15 @@ using UnityEngine;
 public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
 {
     [SerializeField] float speed = 8f;
+    [SerializeField] float startSpeed = 2f;
+    [SerializeField] float accelerateDuration = 0.4f;
     [SerializeField] float lifetime = 5f;
     [SerializeField] EnemyGrenadeExplosion explosionPrefab;
 
     Rigidbody2D rb;
     CircleCollider2D missileCollider;
     Vector2 direction = Vector2.right;
+    float spawnTime;
     bool hasExploded;
 
     void Awake()
@@ -32,6 +35,7 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
         if (direction == Vector2.zero)
             direction = Vector2.right;
 
+        spawnTime = Time.time;
         ApplyVelocityAndRotation();
 
         if (throwerCollider != null && missileCollider != null)
@@ -64,7 +68,12 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
         if (direction.sqrMagnitude < 0.0001f)
             direction = Vector2.right;
 
-        rb.linearVelocity = direction * speed;
+        float t = accelerateDuration <= 0f
+            ? 1f
+            : Mathf.Clamp01((Time.time - spawnTime) / accelerateDuration);
+        t *= t;
+        float currentSpeed = Mathf.Lerp(startSpeed, speed, t);
+        rb.linearVelocity = direction * currentSpeed;
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
