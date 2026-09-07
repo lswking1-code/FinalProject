@@ -10,7 +10,16 @@ public static class FmodAudio
 
     public static void Play(EventReference evt, string paramName, string label)
     {
-        EventInstance instance = CreateStarted(evt, paramName, label);
+        EventInstance instance = CreateStarted(evt, paramName, label, 0f, false);
+        if (!instance.isValid())
+            return;
+
+        instance.release();
+    }
+
+    public static void Play(EventReference evt, string paramName, float value)
+    {
+        EventInstance instance = CreateStarted(evt, paramName, null, value, true);
         if (!instance.isValid())
             return;
 
@@ -19,7 +28,7 @@ public static class FmodAudio
 
     public static EventInstance PlayHeld(EventReference evt)
     {
-        return CreateStarted(evt, null, null);
+        return CreateStarted(evt, null, null, 0f, false);
     }
 
     public static void Stop(ref EventInstance instance)
@@ -40,7 +49,12 @@ public static class FmodAudio
         instance.clearHandle();
     }
 
-    static EventInstance CreateStarted(EventReference evt, string paramName, string label)
+    static EventInstance CreateStarted(
+        EventReference evt,
+        string paramName,
+        string label,
+        float numericValue,
+        bool hasNumeric)
     {
         if (evt.IsNull)
             return default;
@@ -51,8 +65,13 @@ public static class FmodAudio
             if (!instance.isValid())
                 return default;
 
-            if (!string.IsNullOrEmpty(paramName) && !string.IsNullOrEmpty(label))
-                instance.setParameterByNameWithLabel(paramName, label);
+            if (!string.IsNullOrEmpty(paramName))
+            {
+                if (!string.IsNullOrEmpty(label))
+                    instance.setParameterByNameWithLabel(paramName, label);
+                else if (hasNumeric)
+                    instance.setParameterByName(paramName, numericValue);
+            }
 
             instance.start();
             return instance;

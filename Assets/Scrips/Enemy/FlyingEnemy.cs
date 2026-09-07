@@ -79,6 +79,8 @@ public class FlyingEnemy : Enemy
 
     protected override bool UseDeathDelay => false;
     protected override bool UseDeathVanishFlash => false;
+    protected override bool UseMetalHitSfx => true;
+    protected override bool UseExplodeDeathSfx => true;
 
     Collider2D bodyCollider;
     ContactFilter2D oneWayPlatformFilter;

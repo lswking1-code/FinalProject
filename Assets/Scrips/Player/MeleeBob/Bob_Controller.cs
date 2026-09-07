@@ -292,6 +292,7 @@ public class Bob_Controller : MonoBehaviour
     [SerializeField] EventReference doubleJumpEvent;
     [SerializeField] EventReference switchWeaponEvent;
     [SerializeField] EventReference dieEvent;
+    [SerializeField] EventReference ultEvent;
 
     [Header("向上攻击默认判定（剖面 upHitbox 未填时回退）")]
     [SerializeField] Vector2 defaultUpHitboxSize = new Vector2(1.3f, 1.8f);
@@ -1293,6 +1294,8 @@ public class Bob_Controller : MonoBehaviour
 
         ApplyActiveProfileToColliders();
         PlayAttackSfx(ResolveWeaponSpecialLabel(weaponId));
+        if (ultimate)
+            PlaySfx(ultEvent);
         BeginAttackInputLock();
         LogSkillCast();
     }

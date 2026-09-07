@@ -621,6 +621,36 @@ MonoBehaviour:
   player: {fileID: 0}
   homePosition: {x: 0, y: 0, z: 0}
   homeBounds: {fileID: 0}
+  hitNormalEvent:
+    Guid:
+      Data1: 1625850060
+      Data2: 1144223968
+      Data3: -190204515
+      Data4: 1475172266
+    Path: event:/Enemy/hit_normal
+  hitMetalEvent:
+    Guid:
+      Data1: -1527838820
+      Data2: 1302612421
+      Data3: -163164262
+      Data4: -140042452
+    Path: event:/Enemy/hit_metal
+  dieEvent:
+    Guid:
+      Data1: -195894160
+      Data2: 1305153310
+      Data3: 447925174
+      Data4: 683905010
+    Path: event:/Enemy/die
+  explodeEvent:
+    Guid:
+      Data1: -1260045560
+      Data2: 1073742844
+      Data3: -621922395
+      Data4: 450737181
+    Path: event:/Enemy/explode_02
+  dieTypeParam: enemy_die
+  dieVariantCount: 5
   meleeRange: 1.2
   idealRange: 6
   idealRangeSlack: 0.5

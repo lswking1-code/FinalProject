@@ -13,6 +13,8 @@ public class ArmoredVehicleEnemy : Enemy
     protected override bool SpriteFacesRight => false;
     protected override bool CanChangeFacing => false;
     protected override bool UseHurtStun => false;
+    protected override bool UseMetalHitSfx => true;
+    protected override bool UseExplodeDeathSfx => true;
 
     protected override void CacheSpriteRenderer()
     {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{6308cc6a-e240-45f7-b70f-25e824b2bcb1}">
+		<property name="name">
+			<value>enemy_die</value>
+		</property>
+		<relationship name="folder">
+			<destination>{9308ac1d-0409-497e-88a0-0849723f18f8}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{4a9254c7-167f-4a10-b156-4b2d0ffbdcf7}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{4a9254c7-167f-4a10-b156-4b2d0ffbdcf7}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

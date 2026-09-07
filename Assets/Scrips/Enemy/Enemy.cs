@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -135,12 +136,36 @@ public class Enemy : MonoBehaviour
     [HideInInspector] public Vector3 homePosition;
     [HideInInspector] public Collider2D homeBounds;
 
+    [Header("音效")]
+    [SerializeField] EventReference hitNormalEvent;
+    [SerializeField] EventReference hitMetalEvent;
+    [SerializeField] EventReference dieEvent;
+    [SerializeField] EventReference explodeEvent;
+    [Tooltip("FMOD die 事件上的参数名，对应五种死亡音效")]
+    [SerializeField] string dieTypeParam = "enemy_die";
+    [Tooltip("die 参数档位数；0~1 上每 0.2 一档（0 / 0.2 / 0.4 / 0.6 / 0.8）")]
+    [SerializeField] int dieVariantCount = 5;
+
+    static readonly EventReference FallbackHitNormal = CreateHitEvent(
+        "{60e880cc-78e0-4433-9db5-a9f4aa57ed57}",
+        "event:/Enemy/hit_normal");
+    static readonly EventReference FallbackHitMetal = CreateHitEvent(
+        "{a4ef079c-49c5-4da4-9a4f-46f62c1fa7f7}",
+        "event:/Enemy/hit_metal");
+    static readonly EventReference FallbackDie = CreateHitEvent(
+        "{f452e470-0f1e-4dcb-b6cb-b21af28fc328}",
+        "event:/Enemy/die");
+    static readonly EventReference FallbackExplode = CreateHitEvent(
+        "{b4e53b08-03fc-4000-a537-eeda1db4dd1a}",
+        "event:/Enemy/explode_02");
+
     Vector3 returnStuckLastPos;
     float returnStuckTimer;
 
     bool ammoDropped;
     bool healthDropped;
     bool deathAnimStarted;
+    bool deathSfxPlayed;
     float deathDelayTimer;
     HashSet<string> animBoolNames;
 
@@ -1146,10 +1171,62 @@ public class Enemy : MonoBehaviour
     protected virtual bool UseHurtStun => true;
 
     /// <summary>
+    /// 装甲车、无人机打金属受击；其余敌人打普通受击。盾牌挡刀由 EnemyShieldAbsorb 另播金属。
+    /// </summary>
+    protected virtual bool UseMetalHitSfx => false;
+
+    /// <summary>
+    /// 装甲车、无人机死亡播爆炸；其余敌人播 die。
+    /// </summary>
+    protected virtual bool UseExplodeDeathSfx => false;
+
+    static EventReference CreateHitEvent(string guid, string path)
+    {
+        return new EventReference
+        {
+            Guid = FMOD.GUID.Parse(guid),
+            Path = path,
+        };
+    }
+
+    public void PlayHitSfx(bool metal)
+    {
+        EventReference evt = metal
+            ? (hitMetalEvent.IsNull ? FallbackHitMetal : hitMetalEvent)
+            : (hitNormalEvent.IsNull ? FallbackHitNormal : hitNormalEvent);
+        FmodAudio.Play(evt);
+    }
+
+    void PlayDeathSfx()
+    {
+        if (deathSfxPlayed)
+            return;
+
+        deathSfxPlayed = true;
+
+        if (UseExplodeDeathSfx)
+        {
+            FmodAudio.Play(explodeEvent.IsNull ? FallbackExplode : explodeEvent);
+            return;
+        }
+
+        EventReference evt = dieEvent.IsNull ? FallbackDie : dieEvent;
+        int variantCount = Mathf.Max(1, dieVariantCount);
+        float step = 1f / variantCount;
+        float variant = Random.Range(0, variantCount) * step;
+        if (string.IsNullOrEmpty(dieTypeParam))
+            FmodAudio.Play(evt);
+        else
+            FmodAudio.Play(evt, dieTypeParam, variant);
+    }
+
+    /// <summary>
     /// 受到伤害时调用，转向攻击者并触发闪红与抖动硬直（推动由 Attack 负责）
     /// </summary>
     public virtual void OnTakeDamage(Transform attackTrans)
     {
+        PlayHitSfx(UseMetalHitSfx);
+
         if (isReturning)
             return;
 
@@ -1331,6 +1408,7 @@ public class Enemy : MonoBehaviour
     {
         isDead = true;
         isReturning = false;
+        PlayDeathSfx();
         SetReturnInvulnerable(false);
         if (ShouldPersistDeath)
             EnemyDeathProgress.MarkKilled(EnemyDeathPersist.BuildProgressKey(this));
@@ -1391,6 +1469,7 @@ public class Enemy : MonoBehaviour
 
         deathAnimStarted = true;
         isDead = true;
+        PlayDeathSfx();
 
         if (character != null)
         {
