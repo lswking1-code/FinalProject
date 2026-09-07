@@ -1,4 +1,5 @@
 using System;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -34,6 +35,8 @@ public class EnergyNode : MonoBehaviour, IHitCountable
 
     [Header("事件")]
     [SerializeField] UnityEvent<bool> onChargeChanged;
+
+    [SerializeField] EventReference hitNormalEvent;
 
     Attack lastHitAttacker;
     int lastHitFrame = -1;
@@ -89,6 +92,7 @@ public class EnergyNode : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
+        ScenePropAudio.PlayHitNormal(hitNormalEvent);
 
         if (attacker != null && attacker.chargesEnergyNode)
         {

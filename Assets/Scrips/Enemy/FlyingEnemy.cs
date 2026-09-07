@@ -81,6 +81,7 @@ public class FlyingEnemy : Enemy
     protected override bool UseDeathVanishFlash => false;
     protected override bool UseMetalHitSfx => true;
     protected override bool UseExplodeDeathSfx => true;
+    protected override bool UseDroneAttackSfx => true;
 
     Collider2D bodyCollider;
     ContactFilter2D oneWayPlatformFilter;
@@ -516,6 +517,8 @@ public class FlyingEnemy : Enemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(Vector2.down);
         FacePlayer();
+        if (UseDroneAttackSfx)
+            PlayDroneAttackSfx();
     }
 
     public void FireDiagonalProjectile()
@@ -530,6 +533,8 @@ public class FlyingEnemy : Enemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(dir);
         FacePlayer();
+        if (UseDroneAttackSfx)
+            PlayDroneAttackSfx();
     }
 
     public override void ApplyEncounterSuicideBomb(bool enabled)

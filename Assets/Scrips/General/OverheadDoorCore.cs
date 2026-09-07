@@ -1,4 +1,5 @@
 using System.IO;
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -34,6 +35,9 @@ public class OverheadDoorCore : MonoBehaviour, IHitCountable
     [Tooltip("受击闪烁颜色；a=0 则关闭")]
     [SerializeField] Color hitFlashColor = new Color(1f, 0.35f, 0.35f, 1f);
     [SerializeField, Min(0f)] float hitFlashDuration = 0.08f;
+
+    [Header("音效")]
+    [SerializeField] EventReference hitNormalEvent;
 
     Attack lastHitAttacker;
     int lastHitFrame = -1;
@@ -98,6 +102,7 @@ public class OverheadDoorCore : MonoBehaviour, IHitCountable
         int damage = attacker != null ? attacker.damage : 0;
         door.ApplyDamage(damage);
         BeginHitFlash();
+        ScenePropAudio.PlayHitNormal(hitNormalEvent);
         return true;
     }
 

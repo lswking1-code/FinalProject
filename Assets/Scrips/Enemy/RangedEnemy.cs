@@ -439,6 +439,7 @@ public class RangedEnemy : Enemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(new Vector2(dir, 0f));
         FacePlayer();
+        PlayShootSfx();
     }
 
     protected virtual void OnDrawGizmosSelected()

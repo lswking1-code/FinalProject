@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -29,6 +30,7 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
     [SerializeField] AudioSource sfxSource;
     [SerializeField] AudioClip toggleClip;
     [SerializeField, Range(0f, 1f)] float toggleVolume = 0.8f;
+    [SerializeField] EventReference hitNormalEvent;
 
     Attack lastHitAttacker;
     int lastHitFrame = -1;
@@ -60,6 +62,7 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
+        ScenePropAudio.PlayHitNormal(hitNormalEvent);
 
         SetOn(!isOn, playSfx: true);
         return true;

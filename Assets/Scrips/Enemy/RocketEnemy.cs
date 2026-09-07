@@ -89,6 +89,7 @@ public class RocketEnemy : RangedEnemy
         var missile = Instantiate(missilePrefab, spawnPos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
         missile.Init(dir, throwerCollider);
+        PlayRocketLaunchSfx();
     }
 
     void FireHomingMissile()
@@ -101,6 +102,7 @@ public class RocketEnemy : RangedEnemy
         var missile = Instantiate(homingMissilePrefab, spawnPos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
         missile.Init(throwerCollider, player);
+        PlayRocketLaunchSfx();
     }
 
     Vector3 GetAimedSpawnPosition(out Vector2 dir)

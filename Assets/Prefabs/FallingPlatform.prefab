@@ -161,6 +161,13 @@ MonoBehaviour:
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+  explodeEvent:
+    Guid:
+      Data1: 1228090301
+      Data2: 1297765039
+      Data3: 1893767606
+      Data4: 1198832414
+    Path: event:/Enemy/explode_01
 --- !u!251 &9012345678901234609
 PlatformEffector2D:
   m_ObjectHideFlags: 0

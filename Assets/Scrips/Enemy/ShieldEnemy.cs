@@ -464,6 +464,7 @@ public class ShieldEnemy : MeleeEnemy
         EnemySceneCleanup.PlaceInSourceScene(projectile.gameObject, this);
         projectile.Init(new Vector2(dir, 0f));
         FacePlayer();
+        PlayShootSfx();
     }
 
     void SwitchToSkillIfNeeded()

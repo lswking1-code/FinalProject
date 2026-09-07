@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -23,6 +24,8 @@ public class TimedChargeNode : MonoBehaviour, IHitCountable
 
     [Header("事件")]
     [SerializeField] UnityEvent<bool> onActiveChanged;
+
+    [SerializeField] EventReference hitNormalEvent;
 
     Attack lastHitAttacker;
     int lastHitFrame = -1;
@@ -69,6 +72,7 @@ public class TimedChargeNode : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
+        ScenePropAudio.PlayHitNormal(hitNormalEvent);
 
         if (!isActive)
         {

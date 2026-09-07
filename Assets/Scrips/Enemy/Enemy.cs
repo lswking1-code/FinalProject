@@ -145,6 +145,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] string dieTypeParam = "enemy_die";
     [Tooltip("die 参数档位数；0~1 上每 0.2 一档（0 / 0.2 / 0.4 / 0.6 / 0.8）")]
     [SerializeField] int dieVariantCount = 5;
+    [SerializeField] EventReference meleeAttackEvent;
+    [SerializeField] EventReference shootEvent;
+    [SerializeField] EventReference droneAttackEvent;
+    [SerializeField] EventReference rocketLaunchEvent;
 
     static readonly EventReference FallbackHitNormal = CreateHitEvent(
         "{60e880cc-78e0-4433-9db5-a9f4aa57ed57}",
@@ -158,6 +162,18 @@ public class Enemy : MonoBehaviour
     static readonly EventReference FallbackExplode = CreateHitEvent(
         "{b4e53b08-03fc-4000-a537-eeda1db4dd1a}",
         "event:/Enemy/explode_02");
+    static readonly EventReference FallbackMeleeAttack = CreateHitEvent(
+        "{d97e9706-dbea-47f1-815a-72c959f2c7a5}",
+        "event:/Enemy/melee");
+    static readonly EventReference FallbackShoot = CreateHitEvent(
+        "{9f030f58-55c6-4e15-b942-1ef2a063d189}",
+        "event:/Enemy/shoot");
+    static readonly EventReference FallbackDroneAttack = CreateHitEvent(
+        "{55475483-85b5-4dad-a65d-0fa0f6796ab5}",
+        "event:/Enemy/drone_attack");
+    static readonly EventReference FallbackRocketLaunch = CreateHitEvent(
+        "{c404eb95-2501-4439-b688-720123ab0ba7}",
+        "event:/Enemy/rocket_launch");
 
     Vector3 returnStuckLastPos;
     float returnStuckTimer;
@@ -1180,6 +1196,9 @@ public class Enemy : MonoBehaviour
     /// </summary>
     protected virtual bool UseExplodeDeathSfx => false;
 
+    /// <summary>无人机开火播 drone_attack；直升机不播。</summary>
+    protected virtual bool UseDroneAttackSfx => false;
+
     static EventReference CreateHitEvent(string guid, string path)
     {
         return new EventReference
@@ -1191,11 +1210,21 @@ public class Enemy : MonoBehaviour
 
     public void PlayHitSfx(bool metal)
     {
-        EventReference evt = metal
-            ? (hitMetalEvent.IsNull ? FallbackHitMetal : hitMetalEvent)
-            : (hitNormalEvent.IsNull ? FallbackHitNormal : hitNormalEvent);
-        FmodAudio.Play(evt);
+        PlayResolvedSfx(
+            metal ? hitMetalEvent : hitNormalEvent,
+            metal ? FallbackHitMetal : FallbackHitNormal);
     }
+
+    public void PlayMeleeAttackSfx() => PlayResolvedSfx(meleeAttackEvent, FallbackMeleeAttack);
+
+    public void PlayShootSfx() => PlayResolvedSfx(shootEvent, FallbackShoot);
+
+    public void PlayDroneAttackSfx() => PlayResolvedSfx(droneAttackEvent, FallbackDroneAttack);
+
+    public void PlayRocketLaunchSfx() => PlayResolvedSfx(rocketLaunchEvent, FallbackRocketLaunch);
+
+    void PlayResolvedSfx(EventReference evt, EventReference fallback)
+        => FmodAudio.Play(evt.IsNull ? fallback : evt);
 
     void PlayDeathSfx()
     {

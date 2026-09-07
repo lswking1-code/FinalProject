@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -35,6 +36,9 @@ public class FallingPlatform : MonoBehaviour
     [SerializeField] string destroyStateName = "Destroy";
     [Tooltip("无 Animator 或状态名无效时的销毁延迟（秒）")]
     [SerializeField] float fallbackDestroyDelay = 0.5f;
+
+    [Header("音效")]
+    [SerializeField] EventReference explodeEvent;
 
     public bool OneWay => oneWay;
 
@@ -265,6 +269,7 @@ public class FallingPlatform : MonoBehaviour
             return;
 
         isDestroying = true;
+        ScenePropAudio.PlayExplode01(explodeEvent);
         RestoreOriginalColors();
         PrepareVisualForDestroyAnimation();
 

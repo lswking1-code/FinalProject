@@ -586,6 +586,7 @@ public class ArmoredVehicleEnemy : Enemy
         projectile.transform.rotation = Quaternion.Euler(0f, 0f, angle);
 
         IgnoreSelfCollision(projectile.GetComponent<Collider2D>());
+        PlayShootSfx();
     }
 
     public void FireHomingMissile(int shotIndex)
@@ -603,6 +604,7 @@ public class ArmoredVehicleEnemy : Enemy
 
         EnsurePlayerReference();
         missile.Init(GetComponent<Collider2D>(), player, missileAscentDuration);
+        PlayRocketLaunchSfx();
     }
 
     void IgnoreSelfCollision(Collider2D other)

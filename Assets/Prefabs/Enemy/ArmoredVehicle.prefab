@@ -642,6 +642,34 @@ MonoBehaviour:
     Path: event:/Enemy/explode_02
   dieTypeParam: enemy_die
   dieVariantCount: 5
+  meleeAttackEvent:
+    Guid:
+      Data1: -646015226
+      Data2: 1207032810
+      Data3: -915252607
+      Data4: -1513622951
+    Path: event:/Enemy/melee
+  shootEvent:
+    Guid:
+      Data1: -1627189416
+      Data2: 1310021062
+      Data3: -232897863
+      Data4: -1982766176
+    Path: event:/Enemy/shoot
+  droneAttackEvent:
+    Guid:
+      Data1: 1430738051
+      Data2: 1303217589
+      Data3: -1609605722
+      Data4: -1251313162
+    Path: event:/Enemy/drone_attack
+  rocketLaunchEvent:
+    Guid:
+      Data1: -1006310507
+      Data2: 1144595713
+      Data3: 24283318
+      Data4: -1492407517
+    Path: event:/Enemy/rocket_launch
   forwardSign: -1
   shotWeight: 0.2
   missileWeight: 0.35

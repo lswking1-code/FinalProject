@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -51,6 +52,9 @@ public class BreakableProp : MonoBehaviour, IHitCountable
     [SerializeField] string destroyStateName = "Destroy";
     [Tooltip("无 Animator 或状态名无效时的销毁延迟（秒）")]
     [SerializeField] float fallbackDestroyDelay = 0.5f;
+
+    [Header("音效")]
+    [SerializeField] EventReference hitNormalEvent;
 
     int currentHits;
     bool isBroken;
@@ -122,6 +126,7 @@ public class BreakableProp : MonoBehaviour, IHitCountable
 
         currentHits++;
         BeginHitFlash();
+        ScenePropAudio.PlayHitNormal(hitNormalEvent);
 
         if (currentHits < hitsToBreak)
             return true;

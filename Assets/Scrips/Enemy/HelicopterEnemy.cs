@@ -10,6 +10,7 @@ public class HelicopterEnemy : FlyingEnemy
 {
     protected override bool UseMetalHitSfx => false;
     protected override bool UseExplodeDeathSfx => false;
+    protected override bool UseDroneAttackSfx => false;
 
     [Header("直升机")]
     [Tooltip("专注模式：不追玩家、不扇区走位，只原地召唤")]

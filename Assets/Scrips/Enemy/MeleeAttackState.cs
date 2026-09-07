@@ -187,6 +187,8 @@ public class MeleeAttackState : BaseState
             currentEnemy.SetAnimBool("meleeWindup", false);
             currentEnemy.SetAnimBool("melee", true);
         }
+
+        meleeEnemy.PlayMeleeAttackSfx();
     }
 
     void EnterRecovery()
