@@ -194,6 +194,7 @@ public class Enemy : MonoBehaviour
         "walk", "shoot", "shootDown", "shotPrep", "crouch", "reload",
         "melee", "meleeWindup", "throw", "jump", "fall", "land", "run",
         "missile", "ramWindup", "ram", "warning", "bomb",
+        "dashStart", "dash", "fly", "airAttack", "landStart", "landEnd",
     };
 
     protected Character character;
