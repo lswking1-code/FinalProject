@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 升降平台：多开关/压力板组合控制。可往复循环，或单次开合（ON 到终点、OFF 回初始位置）。
+/// 升降平台：多开关/压力板组合控制。
+/// 不勾选 oneShot 为持续移动（ON 往复、OFF 停在当前位置）；勾选为单次开合（ON 到终点、OFF 回初始位置）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class ReciprocatingPlatform : MonoBehaviour
@@ -23,7 +24,7 @@ public class ReciprocatingPlatform : MonoBehaviour
     [SerializeField] float travelDuration = 2f;
     [SerializeField] Vector2 moveDirection = Vector2.up;
     [SerializeField] bool startAtBottom = true;
-    [Tooltip("勾选后：激活仅移动一次到终点并停下；关闭时移回初始位置。取消勾选则为往复循环，关闭时冻结当前位置。")]
+    [Tooltip("不勾选 = 持续移动：ON 往复循环，OFF 停在当前位置，不回落。勾选 = 单次开合：ON 到终点，OFF 移回初始位置。")]
     [SerializeField] bool oneShot;
 
     Rigidbody2D rb;
@@ -234,16 +235,95 @@ public class ReciprocatingPlatform : MonoBehaviour
     }
 
 #if UNITY_EDITOR
+    void OnDrawGizmos()
+    {
+        DrawTravelPreview(selected: false);
+    }
+
     void OnDrawGizmosSelected()
     {
-        Vector2 dir = moveDirection.sqrMagnitude > 0.0001f ? moveDirection.normalized : Vector2.up;
-        Vector2 bottom = Application.isPlaying ? bottomPos : (Vector2)transform.position;
-        Vector2 top = bottom + dir * travelHeight;
+        DrawTravelPreview(selected: true);
+    }
 
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawLine(bottom, top);
-        Gizmos.DrawWireSphere(bottom, 0.12f);
-        Gizmos.DrawWireSphere(top, 0.12f);
+    void DrawTravelPreview(bool selected)
+    {
+        if (travelHeight <= 0f)
+            return;
+
+        GetPreviewEnds(out Vector2 home, out Vector2 away);
+        Vector3 home3 = home;
+        Vector3 away3 = away;
+        Vector3 mid = (home3 + away3) * 0.5f;
+        Color path = selected ? new Color(0.2f, 0.95f, 1f, 1f) : new Color(0.2f, 0.85f, 1f, 0.7f);
+        Color ghost = selected ? new Color(0.2f, 0.95f, 1f, 0.22f) : new Color(0.2f, 0.85f, 1f, 0.12f);
+
+        Gizmos.color = path;
+        Gizmos.DrawLine(home3, away3);
+        Gizmos.DrawWireSphere(home3, selected ? 0.14f : 0.1f);
+        Gizmos.DrawWireSphere(away3, selected ? 0.14f : 0.1f);
+
+        Vector2 travel = away - home;
+        if (travel.sqrMagnitude > 0.0001f)
+        {
+            Vector2 n = travel.normalized;
+            Vector2 perp = new Vector2(-n.y, n.x);
+            float head = selected ? 0.28f : 0.22f;
+            Vector3 tip = away3;
+            Gizmos.DrawLine(tip, tip - (Vector3)(n * head + perp * head * 0.45f));
+            Gizmos.DrawLine(tip, tip - (Vector3)(n * head - perp * head * 0.45f));
+        }
+
+        GetPreviewCollider(out Vector3 homeCenter, out Vector3 awayCenter, out Vector3 colliderSize);
+        Gizmos.color = ghost;
+        Gizmos.DrawCube(awayCenter, colliderSize);
+        Gizmos.color = path;
+        Gizmos.DrawWireCube(homeCenter, colliderSize);
+        Gizmos.DrawWireCube(awayCenter, colliderSize);
+
+        var style = new GUIStyle(UnityEditor.EditorStyles.boldLabel)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = selected ? 12 : 11
+        };
+        style.normal.textColor = path;
+        UnityEditor.Handles.Label(mid + Vector3.right * 0.2f, $"{travelHeight:0.##}", style);
+    }
+
+    void GetPreviewEnds(out Vector2 home, out Vector2 away)
+    {
+        if (Application.isPlaying)
+        {
+            home = homePos;
+            away = awayPos;
+            return;
+        }
+
+        Vector2 dir = moveDirection.sqrMagnitude > 0.0001f ? moveDirection.normalized : Vector2.up;
+        Vector2 origin = transform.position;
+        home = origin;
+        away = origin + dir * travelHeight;
+    }
+
+    void GetPreviewCollider(out Vector3 homeCenter, out Vector3 awayCenter, out Vector3 size)
+    {
+        GetPreviewEnds(out Vector2 home, out Vector2 away);
+        var box = GetComponent<BoxCollider2D>();
+        Vector3 currentCenter = transform.position;
+        size = Vector3.one * 0.4f;
+
+        if (box != null)
+        {
+            currentCenter = transform.TransformPoint(box.offset);
+            size = new Vector3(
+                Mathf.Abs(box.size.x * transform.lossyScale.x),
+                Mathf.Abs(box.size.y * transform.lossyScale.y),
+                0.05f);
+        }
+
+        Vector3 deltaHome = (Vector3)home - transform.position;
+        Vector3 deltaAway = (Vector3)away - transform.position;
+        homeCenter = currentCenter + deltaHome;
+        awayCenter = currentCenter + deltaAway;
     }
 #endif
 }

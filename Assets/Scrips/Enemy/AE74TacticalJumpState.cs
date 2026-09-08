@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 招式 D：45° 起跳飞行 → 空中多波机枪（瞄准→连射 N 发，共 3~5 波）→ 飞到落点上方践踏。
+/// 招式 D：45° 起跳飞行 → 空中多波机枪 → 原地悬停 N 秒 → 飞到落点上方践踏。
 /// </summary>
 public class AE74TacticalJumpState : BaseState
 {
@@ -11,6 +11,7 @@ public class AE74TacticalJumpState : BaseState
         FlyToApex,
         AirAim,
         AirBurst,
+        PostShootHold,
         FlyToHover,
         Drop,
         Impact
@@ -66,6 +67,9 @@ public class AE74TacticalJumpState : BaseState
                 break;
             case Phase.AirBurst:
                 UpdateAirBurst();
+                break;
+            case Phase.PostShootHold:
+                UpdatePostShootHold();
                 break;
             case Phase.FlyToHover:
                 if (descendingToHover)
@@ -216,7 +220,34 @@ public class AE74TacticalJumpState : BaseState
         if (cyclesRemaining > 0)
             EnterAirAim();
         else
+            EnterPostShootHold();
+    }
+
+    void EnterPostShootHold()
+    {
+        robot.SetFacingLocked(false);
+        robot.RestoreGunPose();
+        robot.SetAnimBool("airAttack", false);
+        robot.SetAnimBool("fly", true);
+        robot.SetBoostActive(true);
+
+        if (robot.airPostShootHold <= 0f)
+        {
             BeginHoverTravel();
+            return;
+        }
+
+        phase = Phase.PostShootHold;
+        timer = robot.airPostShootHold;
+    }
+
+    void UpdatePostShootHold()
+    {
+        timer -= Time.deltaTime;
+        if (timer > 0f)
+            return;
+
+        BeginHoverTravel();
     }
 
     void BeginHoverTravel()

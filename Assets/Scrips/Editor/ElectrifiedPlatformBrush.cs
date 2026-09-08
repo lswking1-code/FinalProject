@@ -17,7 +17,12 @@ public class ElectrifiedPlatformBrush : GridBrushBase
 
     [SerializeField] GameObject prefab;
     [SerializeField] bool defaultIsOn = true;
-    [SerializeField] string rootName = "ElectrifiedPlatforms";
+    [SerializeField] string rootName;
+
+    protected virtual ElectrifiedPlatformGridSpan.Anchor BrushAnchor =>
+        ElectrifiedPlatformGridSpan.Anchor.Bottom;
+
+    protected virtual string DefaultRootName => "ElectrifiedPlatforms";
 
     public GameObject Prefab
     {
@@ -33,7 +38,7 @@ public class ElectrifiedPlatformBrush : GridBrushBase
 
     public string RootName
     {
-        get => string.IsNullOrWhiteSpace(rootName) ? "ElectrifiedPlatforms" : rootName;
+        get => string.IsNullOrWhiteSpace(rootName) ? DefaultRootName : rootName;
         set => rootName = value;
     }
 
@@ -127,7 +132,7 @@ public class ElectrifiedPlatformBrush : GridBrushBase
         for (int i = 0; i < all.Count; i++)
         {
             var span = all[i];
-            if (span == null)
+            if (span == null || span.PlatformAnchor != BrushAnchor)
                 continue;
 
             bool hit = false;
@@ -303,7 +308,7 @@ public class ElectrifiedPlatformBrush : GridBrushBase
         return span;
     }
 
-    static void ApplySpan(GridLayout grid, ElectrifiedPlatformGridSpan span, Vector3Int origin, int width)
+    void ApplySpan(GridLayout grid, ElectrifiedPlatformGridSpan span, Vector3Int origin, int width)
     {
         if (span == null)
             return;
@@ -312,7 +317,7 @@ public class ElectrifiedPlatformBrush : GridBrushBase
         Undo.RecordObject(span.transform, "Resize Electrified Platform");
         Undo.RecordObject(span.gameObject, "Resize Electrified Platform");
 
-        span.SetSpan(origin, width);
+        span.SetSpan(origin, width, BrushAnchor);
         span.transform.position = SpanCenterWorld(grid, origin, width);
         span.transform.localRotation = Quaternion.identity;
         span.transform.localScale = ComputeCellScale(grid, span.transform.parent);
@@ -375,9 +380,12 @@ public class ElectrifiedPlatformBrush : GridBrushBase
         return (left + right) * 0.5f;
     }
 
-    static string FormatName(Vector3Int origin, int width)
+    string FormatName(Vector3Int origin, int width)
     {
-        return $"ElectrifiedPlatform ({origin.x},{origin.y} x{width})";
+        string prefix = BrushAnchor == ElectrifiedPlatformGridSpan.Anchor.Top
+            ? "ElectrifiedPlatformTop"
+            : "ElectrifiedPlatform";
+        return $"{prefix} ({origin.x},{origin.y} x{width})";
     }
 
     GameObject ResolvePrefab()
@@ -474,14 +482,16 @@ public class ElectrifiedPlatformBrush : GridBrushBase
         return width > 0;
     }
 
-    static List<ElectrifiedPlatformGridSpan> FindTouchingSpans(int y, int z, int x0, int x1Inclusive)
+    List<ElectrifiedPlatformGridSpan> FindTouchingSpans(int y, int z, int x0, int x1Inclusive)
     {
         var result = new List<ElectrifiedPlatformGridSpan>();
         var all = FindSceneSpans();
         for (int i = 0; i < all.Count; i++)
         {
             var span = all[i];
-            if (span != null && span.TouchesOrOverlaps(y, z, x0, x1Inclusive))
+            if (span == null || span.PlatformAnchor != BrushAnchor)
+                continue;
+            if (span.TouchesOrOverlaps(y, z, x0, x1Inclusive))
                 result.Add(span);
         }
 
@@ -557,6 +567,18 @@ public class ElectrifiedPlatformBrush : GridBrushBase
     }
 }
 
+/// <summary>
+/// 顶部通电平台笔刷：贴图下翻、碰撞贴格子顶面，只与同为顶部的平台合并。
+/// </summary>
+[CustomGridBrush(true, false, false, "Electrified Ceiling Platform Brush")]
+public class ElectrifiedCeilingPlatformBrush : ElectrifiedPlatformBrush
+{
+    protected override ElectrifiedPlatformGridSpan.Anchor BrushAnchor =>
+        ElectrifiedPlatformGridSpan.Anchor.Top;
+
+    protected override string DefaultRootName => "ElectrifiedPlatformsTop";
+}
+
 static class ElectrifiedPlatformRefRetarget
 {
     public static void Replace(ElectrifiedPlatform from, ElectrifiedPlatform to)
@@ -608,7 +630,7 @@ static class ElectrifiedPlatformRefRetarget
     }
 }
 
-[CustomEditor(typeof(ElectrifiedPlatformBrush))]
+[CustomEditor(typeof(ElectrifiedPlatformBrush), true)]
 public class ElectrifiedPlatformBrushEditor : GridBrushEditorBase
 {
     static readonly Color PaintColor = new Color(0.35f, 0.85f, 1f, 1f);
@@ -616,7 +638,11 @@ public class ElectrifiedPlatformBrushEditor : GridBrushEditorBase
     static readonly Color MergeColor = new Color(0.2f, 1f, 0.75f, 0.95f);
     static readonly List<BoundsInt> PreviewUnions = new List<BoundsInt>();
 
-    public override string tooltip => "绘制通电平台：相邻格合并碰撞，每格一张图，不写入 Tilemap。";
+    bool IsCeiling => target is ElectrifiedCeilingPlatformBrush;
+
+    public override string tooltip => IsCeiling
+        ? "绘制顶部通电平台：贴图下翻、碰撞贴顶，相邻格合并，不写入 Tilemap。"
+        : "绘制通电平台：相邻格合并碰撞，每格一张图，不写入 Tilemap。";
 
     public override bool canChangeZPosition
     {
@@ -660,7 +686,11 @@ public class ElectrifiedPlatformBrushEditor : GridBrushEditorBase
                 fallback != null ? MessageType.Info : MessageType.Warning);
         }
 
-        EditorGUILayout.HelpBox("在网格上绘制通电平台。同一行相邻格子合并为一条碰撞，每格一张图（不拉伸）。不会写入 Tilemap。开关仍需手动接线。", MessageType.Info);
+        EditorGUILayout.HelpBox(
+            IsCeiling
+                ? "在网格上绘制顶部通电平台。贴图垂直翻转、碰撞贴格子顶面。同一行相邻格子合并为一条碰撞。不会写入 Tilemap。与地面通电平台互不合并、互不擦除。"
+                : "在网格上绘制通电平台。同一行相邻格子合并为一条碰撞，每格一张图（不拉伸）。不会写入 Tilemap。开关仍需手动接线。",
+            MessageType.Info);
     }
 
     public override void OnPaintSceneGUI(

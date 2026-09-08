@@ -727,11 +727,10 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         Vector2 platformVelocity = platform.PlatformVelocity;
 
-        // 起跳脱离、未实站、或相对平台仍在上升：不要携带，避免盖掉起跳速度 / 空中连加水平速度
-        if (applyVertical
-            && (platformDetachTimer > 0f
-                || !physicsCheck.isSolidGround
-                || rb.linearVelocity.y > platformVelocity.y + 0.05f))
+        // 起跳脱离、或相对平台仍在上升：不要携带，避免盖掉起跳速度
+        if (applyVertical && platformDetachTimer > 0f)
+            return;
+        if (applyVertical && rb.linearVelocity.y > platformVelocity.y + 0.05f)
             return;
 
         Vector2 velocity = rb.linearVelocity;
@@ -809,25 +808,31 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     IPlatformVelocityProvider FindPlatformUnderFeet()
     {
-        float facing = Mathf.Sign(transform.localScale.x);
-        if (Mathf.Approximately(facing, 0f))
-            facing = 1f;
+        Collider2D col = physicsCheck != null ? physicsCheck.GroundCollider : null;
+        if (col == null)
+        {
+            float facing = Mathf.Sign(transform.localScale.x);
+            if (Mathf.Approximately(facing, 0f))
+                facing = 1f;
 
-        Vector2 origin = (Vector2)transform.position
-            + new Vector2(physicsCheck.bottomOffset.x * facing, physicsCheck.bottomOffset.y);
-        float castDistance = physicsCheck.checkRaduis + 0.12f;
+            Vector2 origin = (Vector2)transform.position
+                + new Vector2(physicsCheck.bottomOffset.x * facing, physicsCheck.bottomOffset.y);
+            Vector2 castOrigin = origin + Vector2.up * 0.1f;
+            float castDistance = physicsCheck.checkRaduis + 0.22f;
 
-        RaycastHit2D hit = Physics2D.CircleCast(
-            origin, 0.08f, Vector2.down, castDistance, physicsCheck.groundLayer);
+            RaycastHit2D hit = Physics2D.CircleCast(
+                castOrigin, 0.08f, Vector2.down, castDistance, physicsCheck.groundLayer);
+            col = hit.collider != null && hit.normal.y > 0.5f ? hit.collider : null;
+        }
 
-        if (hit.collider == null || hit.normal.y <= 0.5f)
+        if (col == null)
             return null;
 
-        if (platformDropThrough != null && !platformDropThrough.ShouldCollideWith(hit.collider))
+        if (platformDropThrough != null && !platformDropThrough.ShouldCollideWith(col))
             return null;
 
-        return hit.collider.GetComponent<IPlatformVelocityProvider>()
-            ?? hit.collider.GetComponentInParent<IPlatformVelocityProvider>();
+        return col.GetComponent<IPlatformVelocityProvider>()
+            ?? col.GetComponentInParent<IPlatformVelocityProvider>();
     }
 
     void ApplyHorizontalMovement()

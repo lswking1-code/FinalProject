@@ -97,6 +97,8 @@ public class AE74Enemy : Enemy
     public float airFireInterval = 0.16f;
     [Tooltip("空中每发的左右散射角（度），中间一发沿锁定方向")]
     public float airScatterAngle = 35f;
+    [Tooltip("空中射击结束后、开始飞向落点/下砸前的最短悬停时间（秒）")]
+    public float airPostShootHold = 1f;
     public float heightBiasThreshold = 1.8f;
     public float heightBiasDuration = 2.2f;
     [Min(1f)] public float heightBiasWeightMultiplier = 1.8f;

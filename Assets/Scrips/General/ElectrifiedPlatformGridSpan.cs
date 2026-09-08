@@ -12,13 +12,20 @@ using UnityEditor;
 [RequireComponent(typeof(ElectrifiedPlatform))]
 public class ElectrifiedPlatformGridSpan : MonoBehaviour
 {
+    public enum Anchor
+    {
+        Bottom,
+        Top,
+    }
+
     public const string TilesRootName = "Tiles";
-    /// <summary>碰撞高度（格子单位）。顶边对齐格子顶面，避免站上地板时漏伤。</summary>
+    /// <summary>碰撞高度（格子单位）。Bottom 贴格子底面，Top 贴格子顶面，与贴图电刺位置一致。</summary>
     public const float DefaultColliderHeight = 0.5f;
     const float CellHeight = 1f;
 
     [SerializeField] Vector3Int origin;
     [SerializeField] int width = 1;
+    [SerializeField] Anchor anchor = Anchor.Bottom;
 
     public Vector3Int Origin => origin;
     public int Width => width;
@@ -26,11 +33,18 @@ public class ElectrifiedPlatformGridSpan : MonoBehaviour
     public int MaxXExclusive => origin.x + width;
     public int Y => origin.y;
     public int Z => origin.z;
+    public Anchor PlatformAnchor => anchor;
 
     public void SetSpan(Vector3Int newOrigin, int newWidth)
     {
+        SetSpan(newOrigin, newWidth, anchor);
+    }
+
+    public void SetSpan(Vector3Int newOrigin, int newWidth, Anchor newAnchor)
+    {
         origin = newOrigin;
         width = Mathf.Max(1, newWidth);
+        anchor = newAnchor;
     }
 
     public bool Contains(Vector3Int cell)
@@ -59,25 +73,57 @@ public class ElectrifiedPlatformGridSpan : MonoBehaviour
         return x0 <= MaxXExclusive && x1Inclusive + 1 >= MinX;
     }
 
+    void OnEnable()
+    {
+        if (Application.isPlaying)
+        {
+            ApplyCollider();
+            ApplySpriteFlip();
+        }
+    }
+
     public void ApplyMergedLayout()
     {
-        var box = GetComponent<BoxCollider2D>();
-        if (box != null)
-        {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                Undo.RecordObject(box, "Resize Electrified Platform");
-#endif
-            float height = DefaultColliderHeight;
-            box.size = new Vector2(width, height);
-            box.offset = new Vector2(0f, (CellHeight - height) * 0.5f);
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                EditorUtility.SetDirty(box);
-#endif
-        }
-
+        ApplyCollider();
+        ApplySpriteFlip();
         RebuildVisualTiles();
+    }
+
+    void ApplyCollider()
+    {
+        var box = GetComponent<BoxCollider2D>();
+        if (box == null)
+            return;
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            Undo.RecordObject(box, "Resize Electrified Platform");
+#endif
+        float height = DefaultColliderHeight;
+        float signedOffset = (CellHeight - height) * 0.5f;
+        box.size = new Vector2(width, height);
+        box.offset = new Vector2(0f, anchor == Anchor.Top ? signedOffset : -signedOffset);
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            EditorUtility.SetDirty(box);
+#endif
+    }
+
+    void ApplySpriteFlip()
+    {
+        var host = GetComponent<SpriteRenderer>();
+        if (host == null)
+            return;
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            Undo.RecordObject(host, "Flip Electrified Platform");
+#endif
+        host.flipY = anchor == Anchor.Top;
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            EditorUtility.SetDirty(host);
+#endif
     }
 
     public void RebuildVisualTiles()
@@ -136,6 +182,7 @@ public class ElectrifiedPlatformGridSpan : MonoBehaviour
             {
                 sr.sprite = host.sprite;
                 sr.color = host.color;
+                sr.flipY = host.flipY;
             }
         }
     }

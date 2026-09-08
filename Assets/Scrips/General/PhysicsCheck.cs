@@ -40,6 +40,9 @@ public class PhysicsCheck : MonoBehaviour
     public Vector2 groundNormal = Vector2.up;
     public bool isOnSlope;
 
+    /// <summary>本帧判定为地面的碰撞体，供移动平台跟随使用。</summary>
+    public Collider2D GroundCollider { get; private set; }
+
     /// <summary>
     /// 实心地面上拦截悬崖；刚离开实心地面且仍在下落的短窗口内也拦截，避免迈出后空中继续追击。
     /// 单向平台上不拦截，允许走下去。
@@ -67,6 +70,7 @@ public class PhysicsCheck : MonoBehaviour
     bool collisionGround;
     bool collisionOnSolidGround;
     bool collisionOnPlatform;
+    Collider2D collisionGroundCollider;
     Vector2 collisionGroundNormal;
     bool wasOnSlope;
     Vector2 lastGroundNormal;
@@ -81,9 +85,15 @@ public class PhysicsCheck : MonoBehaviour
     const float LedgeProbeLift = 0.35f;
     const float LedgeProbeContinue = 0.05f;
     const int LedgeProbeMaxSteps = 12;
+    const float FeetCastLift = 0.1f;
+    const float FeetOverlapRadius = 0.12f;
+    const float TopSurfaceBelow = 0.22f;
+    const float TopSurfaceAbove = 0.28f;
+    const float TopSurfaceXSlop = 0.18f;
     float SafeLandingDrop => Mathf.Max(0.5f, safeLandingDrop);
     readonly RaycastHit2D[] hazardProbeHits = new RaycastHit2D[8];
     readonly Collider2D[] sideOverlapHits = new Collider2D[8];
+    readonly Collider2D[] feetOverlapHits = new Collider2D[8];
     Collider2D[] ledgeColliders;
 
     public bool WasOnSlopeRecently =>
@@ -346,14 +356,17 @@ public class PhysicsCheck : MonoBehaviour
 
         foreach (ContactPoint2D contact in collision.contacts)
         {
-            if (contact.normal.y > 0.5f && TryRegisterCollisionGround(collision.collider, contact.normal))
+            bool onTop = contact.normal.y > 0.5f || IsFeetOnColliderTop(collision.collider);
+            if (onTop && TryRegisterCollisionGround(collision.collider, contact.normal.y > 0.5f ? contact.normal : Vector2.up))
             {
                 collisionGround = true;
-                collisionGroundNormal = contact.normal;
+                collisionGroundCollider = collision.collider;
+                collisionGroundNormal = contact.normal.y > 0.5f ? contact.normal : Vector2.up;
                 if (IsSolidGroundSurface(collision.collider))
                     collisionOnSolidGround = true;
                 else if (IsDropOffPlatform(collision.collider))
                     collisionOnPlatform = true;
+                continue;
             }
 
             // 仅将接近竖直的法线视为墙体，避免斜坡接触误判为侧墙
@@ -366,6 +379,9 @@ public class PhysicsCheck : MonoBehaviour
 
             // 可推物顶面在 Ground 层供站立，侧面接触不能当墙，否则站立推箱会被清速度
             if (IsPushablePropSurface(collision.collider))
+                continue;
+
+            if (IsRideablePlatform(collision.collider) || IsFeetOnColliderTop(collision.collider))
                 continue;
 
             if (!CountsAsSolidObstacle(collision.collider))
@@ -444,14 +460,16 @@ public class PhysicsCheck : MonoBehaviour
         return col != null && col.GetComponentInParent<PushableProp>() != null;
     }
 
-    void UpdateOnPlatform(bool rawGround, bool rayGround, RaycastHit2D groundHit)
+    void UpdateOnPlatform(bool rawGround, bool rayGround, bool overlapGround, RaycastHit2D groundHit, Collider2D overlapCol)
     {
         if (rawGround)
         {
             bool rayOnSolid = rayGround && IsSolidGroundSurface(groundHit.collider);
             bool rayOnPlatform = rayGround && IsDropOffPlatform(groundHit.collider);
-            bool onSolid = collisionOnSolidGround || rayOnSolid;
-            isOnPlatform = !onSolid && (collisionOnPlatform || rayOnPlatform);
+            bool overlapOnSolid = overlapGround && IsSolidGroundSurface(overlapCol);
+            bool overlapOnPlatform = overlapGround && IsDropOffPlatform(overlapCol);
+            bool onSolid = collisionOnSolidGround || rayOnSolid || overlapOnSolid;
+            isOnPlatform = !onSolid && (collisionOnPlatform || rayOnPlatform || overlapOnPlatform);
             return;
         }
 
@@ -514,6 +532,9 @@ public class PhysicsCheck : MonoBehaviour
             if (IsPushablePropSurface(hit))
                 continue;
 
+            if (IsRideablePlatform(hit) || IsFeetOnColliderTop(hit))
+                continue;
+
             if (!CountsAsSolidObstacle(hit))
                 continue;
 
@@ -564,6 +585,57 @@ public class PhysicsCheck : MonoBehaviour
         return coll != null && other != null && Physics2D.GetIgnoreCollision(coll, other);
     }
 
+    Vector2 GetFeetWorldPos()
+    {
+        if (coll != null)
+            return new Vector2(coll.bounds.center.x, coll.bounds.min.y);
+        return transform.position;
+    }
+
+    bool IsFeetOnColliderTop(Collider2D col)
+    {
+        if (col == null)
+            return false;
+
+        Vector2 feet = GetFeetWorldPos();
+        Bounds b = col.bounds;
+        if (feet.x < b.min.x - TopSurfaceXSlop || feet.x > b.max.x + TopSurfaceXSlop)
+            return false;
+
+        float top = b.max.y;
+        return feet.y <= top + TopSurfaceAbove && feet.y >= top - TopSurfaceBelow;
+    }
+
+    static bool IsRideablePlatform(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        return col.GetComponent<IPlatformVelocityProvider>() != null
+            || col.GetComponentInParent<IPlatformVelocityProvider>() != null;
+    }
+
+    Collider2D FindOverlappingFeetGround(Vector2 origin)
+    {
+        int count = Physics2D.OverlapCircleNonAlloc(origin, FeetOverlapRadius, feetOverlapHits, groundLayer);
+        Collider2D best = null;
+        float bestTop = float.NegativeInfinity;
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = feetOverlapHits[i];
+            if (hit == null || !IsFeetOnColliderTop(hit))
+                continue;
+            if (!TryRegisterCollisionGround(hit, Vector2.up))
+                continue;
+            if (hit.bounds.max.y > bestTop)
+            {
+                bestTop = hit.bounds.max.y;
+                best = hit;
+            }
+        }
+
+        return best;
+    }
+
     static bool IsPickupCollider(Collider2D other)
     {
         if (other == null)
@@ -585,32 +657,55 @@ public class PhysicsCheck : MonoBehaviour
 
         Vector2 groundOrigin = (Vector2)transform.position
             + new Vector2(bottomOffset.x * facing, bottomOffset.y);
+        Vector2 castOrigin = groundOrigin + Vector2.up * FeetCastLift;
         RaycastHit2D groundHit = Physics2D.CircleCast(
-            groundOrigin, 0.08f, Vector2.down, checkRaduis, groundLayer);
+            castOrigin, 0.08f, Vector2.down, checkRaduis + FeetCastLift, groundLayer);
 
         bool rayGround = groundHit.collider != null && CountsAsGroundHit(groundHit);
-        bool rawGround = collisionGround || rayGround;
+        Collider2D overlapCol = null;
+        if (!collisionGround && !rayGround)
+            overlapCol = FindOverlappingFeetGround(groundOrigin);
+
+        bool overlapGround = overlapCol != null;
+        bool rawGround = collisionGround || rayGround || overlapGround;
         Vector2 bridgeNormal = Vector2.zero;
 
         if (!rawGround && (wasOnSlope || WasOnSlopeRecently))
         {
             RaycastHit2D slopeExitHit = Physics2D.CircleCast(
-                groundOrigin, 0.08f, Vector2.down, checkRaduis + SlopeTransitionCastExtra, groundLayer);
+                castOrigin, 0.08f, Vector2.down, checkRaduis + FeetCastLift + SlopeTransitionCastExtra, groundLayer);
             if (slopeExitHit.collider != null && CountsAsGroundHit(slopeExitHit))
             {
                 rawGround = true;
                 bridgeNormal = slopeExitHit.normal;
+                groundHit = slopeExitHit;
+                rayGround = true;
             }
         }
 
+        GroundCollider = null;
         if (rawGround)
         {
             if (collisionGround)
+            {
                 groundNormal = collisionGroundNormal;
+                GroundCollider = collisionGroundCollider;
+            }
             else if (rayGround)
+            {
                 groundNormal = groundHit.normal;
+                GroundCollider = groundHit.collider;
+            }
+            else if (overlapGround)
+            {
+                groundNormal = Vector2.up;
+                GroundCollider = overlapCol;
+            }
             else
+            {
                 groundNormal = bridgeNormal;
+                GroundCollider = groundHit.collider;
+            }
 
             lastGroundNormal = groundNormal;
             lastGroundFrame = Time.frameCount;
@@ -618,7 +713,7 @@ public class PhysicsCheck : MonoBehaviour
 
         isSolidGround = rawGround;
         isGround = rawGround || Time.frameCount - lastGroundFrame <= GroundCoyoteFrames;
-        UpdateOnPlatform(rawGround, rayGround, groundHit);
+        UpdateOnPlatform(rawGround, rayGround, overlapGround, groundHit, overlapCol);
         if (rawGround)
         {
             lastStandingWasSolid = !isOnPlatform;
@@ -643,6 +738,7 @@ public class PhysicsCheck : MonoBehaviour
         if (!isPlayer || Time.inFixedTimeStep)
         {
             collisionGround = false;
+            collisionGroundCollider = null;
             collisionOnSolidGround = false;
             collisionOnPlatform = false;
             collisionTouchLeft = false;
