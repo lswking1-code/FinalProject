@@ -1,8 +1,10 @@
+using FMODUnity;
 using UnityEngine;
 
 public class HealthPack : MonoBehaviour
 {
     [SerializeField] float amount = 50f;
+    [SerializeField] EventReference ammoGetEvent;
 
     PickupDelay pickupDelay;
 
@@ -31,6 +33,7 @@ public class HealthPack : MonoBehaviour
         if (!character.TryHeal(amount))
             return;
 
+        OtherSfx.PlayAmmoGet(ammoGetEvent);
         Destroy(gameObject);
     }
 }

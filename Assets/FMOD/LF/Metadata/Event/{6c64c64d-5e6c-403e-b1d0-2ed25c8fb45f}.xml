@@ -120,6 +120,9 @@
 		<property name="start">
 			<value>1</value>
 		</property>
+		<property name="volume">
+			<value>-6.5</value>
+		</property>
 		<relationship name="audioFile">
 			<destination>{15fc4673-3f4b-4e1c-ae9c-cecc8c74e54b}</destination>
 		</relationship>
@@ -167,6 +170,9 @@
 	<object class="SingleSound" id="{30069d2c-8bf1-4780-88c9-c02ae454137c}">
 		<property name="start">
 			<value>7</value>
+		</property>
+		<property name="volume">
+			<value>-4.5</value>
 		</property>
 		<relationship name="audioFile">
 			<destination>{1682a52c-73b4-4221-8f73-a350098d8b6c}</destination>

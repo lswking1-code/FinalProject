@@ -172,6 +172,7 @@ public class CharacterSelectUI : MonoBehaviour
         }
 
         confirmed = true;
+        UiSfx.PlayButtonPress();
         if (Mouse.current != null && Mouse.current.leftButton.isPressed)
             InputPromptDeviceTracker.Remember(Mouse.current);
         else

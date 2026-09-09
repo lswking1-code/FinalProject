@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -10,6 +11,7 @@ public class LifePack : MonoBehaviour, ISaveable
     [SerializeField] int amount = 1;
     [Tooltip("稳定 ID，同一关内不要重复。留空则用 场景名+物体名。")]
     [SerializeField] string persistId;
+    [SerializeField] EventReference ammoGetEvent;
 
     bool consumed;
 
@@ -40,6 +42,7 @@ public class LifePack : MonoBehaviour, ISaveable
             return;
 
         PlaySessionRecorder.Instance?.RecordLifePoint(amount);
+        OtherSfx.PlayAmmoGet(ammoGetEvent);
         consumed = true;
         PersistConsumed();
         DisablePickup();

@@ -13,6 +13,13 @@ public class BgmManager : MonoBehaviour
     }
 
     [SerializeField] SceneBgm[] sceneTracks = Array.Empty<SceneBgm>();
+    [SerializeField] EventReference menuEvent;
+
+    static readonly EventReference FallbackMenu = new EventReference
+    {
+        Guid = FMOD.GUID.Parse("{54c7770b-4859-415c-be27-5c351b3c4d80}"),
+        Path = "event:/Music/Menu",
+    };
 
     EventInstance currentInstance;
     EventReference currentEvent;
@@ -56,6 +63,9 @@ public class BgmManager : MonoBehaviour
             if (IsSameScene(track.scene, scene))
                 return track.bgmEvent;
         }
+
+        if (scene.sceneType == SceneType.Menu)
+            return menuEvent.IsNull ? FallbackMenu : menuEvent;
 
         return default;
     }

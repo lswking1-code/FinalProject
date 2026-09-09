@@ -1,9 +1,11 @@
+using FMODUnity;
 using UnityEngine;
 
 public class BulletBox : MonoBehaviour
 {
     [SerializeField] AmmoType ammoType = AmmoType.S;
     [SerializeField] int amount = 1;
+    [SerializeField] EventReference ammoGetEvent;
 
     public AmmoType AmmoType => ammoType;
 
@@ -69,6 +71,7 @@ public class BulletBox : MonoBehaviour
         if (!character.AddAmmo(ammoType, amount))
             return;
 
+        OtherSfx.PlayAmmoGet(ammoGetEvent);
         Destroy(gameObject);
     }
 }

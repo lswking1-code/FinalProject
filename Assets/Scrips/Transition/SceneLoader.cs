@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FMODUnity;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.InputSystem;
@@ -82,6 +83,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     [Header("音频")]
     public BgmManager bgmManager;
+    [SerializeField] EventReference transitionEvent;
 
     RunTimer runTimer;
 
@@ -542,6 +544,7 @@ public class SceneLoader : MonoBehaviour, ISaveable
         if (fadeScreen)
         {
             fadeEvent.FadeIn(fadeDuration);
+            OtherSfx.PlayTransition(transitionEvent);
         }
 
         bgmManager?.StopCurrent();

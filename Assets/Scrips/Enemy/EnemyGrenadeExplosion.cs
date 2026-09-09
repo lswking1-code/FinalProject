@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -9,6 +10,8 @@ public class EnemyGrenadeExplosion : MonoBehaviour
 {
     const string ExplosionStateName = "GrenadeExplosion";
 
+    [SerializeField] EventReference explodeEvent;
+
     Animator animator;
     bool isFinishing;
 
@@ -19,6 +22,8 @@ public class EnemyGrenadeExplosion : MonoBehaviour
 
     void Start()
     {
+        ScenePropAudio.PlayExplode01(explodeEvent);
+
         if (animator != null)
             animator.Play(ExplosionStateName, 0, 0f);
     }

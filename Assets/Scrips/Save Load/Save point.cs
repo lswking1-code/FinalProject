@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -32,6 +33,7 @@ public class Savepoint : MonoBehaviour, ISaveable
     public Sprite darkSprite;
     public Sprite lightSprite;
     public bool isDone;
+    [SerializeField] EventReference savepointEvent;
 
     void Awake()
     {
@@ -72,6 +74,7 @@ public class Savepoint : MonoBehaviour, ISaveable
 
         isDone = true;
         ApplyVisualState();
+        OtherSfx.PlaySavepoint(savepointEvent);
         saveDataEvent?.RaiseEvent();
     }
 

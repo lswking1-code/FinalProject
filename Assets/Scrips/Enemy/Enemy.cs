@@ -149,6 +149,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] EventReference shootEvent;
     [SerializeField] EventReference droneAttackEvent;
     [SerializeField] EventReference rocketLaunchEvent;
+    [SerializeField] EventReference hitTankEvent;
 
     static readonly EventReference FallbackHitNormal = CreateHitEvent(
         "{60e880cc-78e0-4433-9db5-a9f4aa57ed57}",
@@ -174,6 +175,9 @@ public class Enemy : MonoBehaviour
     static readonly EventReference FallbackRocketLaunch = CreateHitEvent(
         "{c404eb95-2501-4439-b688-720123ab0ba7}",
         "event:/Enemy/rocket_launch");
+    static readonly EventReference FallbackHitTank = CreateHitEvent(
+        "{b403e1f7-1784-4343-9fc3-78a62265b23a}",
+        "event:/Enemy/hit_tank");
 
     Vector3 returnStuckLastPos;
     float returnStuckTimer;
@@ -1188,9 +1192,12 @@ public class Enemy : MonoBehaviour
     protected virtual bool UseHurtStun => true;
 
     /// <summary>
-    /// 装甲车、无人机打金属受击；其余敌人打普通受击。盾牌挡刀由 EnemyShieldAbsorb 另播金属。
+    /// 无人机、AE-74 打金属受击；其余敌人打普通受击。盾牌挡刀由 EnemyShieldAbsorb 另播金属。
     /// </summary>
     protected virtual bool UseMetalHitSfx => false;
+
+    /// <summary>装甲车受击播 hit_tank，优先于金属/普通受击。</summary>
+    protected virtual bool UseTankHitSfx => false;
 
     /// <summary>
     /// 装甲车、无人机死亡播爆炸；其余敌人播 die。
@@ -1211,6 +1218,12 @@ public class Enemy : MonoBehaviour
 
     public void PlayHitSfx(bool metal)
     {
+        if (UseTankHitSfx)
+        {
+            PlayResolvedSfx(hitTankEvent, FallbackHitTank);
+            return;
+        }
+
         PlayResolvedSfx(
             metal ? hitMetalEvent : hitNormalEvent,
             metal ? FallbackHitMetal : FallbackHitNormal);
