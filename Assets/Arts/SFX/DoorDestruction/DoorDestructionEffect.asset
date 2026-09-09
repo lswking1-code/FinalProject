@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe31bd484a9649e3b9aa7abf3c84d9af, type: 3}
+  m_Name: DoorDestructionEffect
+  m_EditorClassIdentifier: 
+  playEffect: 1
+  frames:
+  - {fileID: 21300000, guid: 3843d800c62945ceb7b50c72250f6b4f, type: 3}
+  - {fileID: 21300000, guid: 8a18409aea7f4158acf7b432a7e20267, type: 3}
+  - {fileID: 21300000, guid: f87e1e9380a54158bac796cf2d175abd, type: 3}
+  - {fileID: 21300000, guid: aa90632a9ee84d5b820afe797cc34bb4, type: 3}
+  - {fileID: 21300000, guid: 32285ea4a8ce4b7d93cee87ba281fc16, type: 3}
+  - {fileID: 21300000, guid: cf88d7934764453791aa1450bd450c79, type: 3}
+  - {fileID: 21300000, guid: 10df4e86fb3d405d80a92038de25fcfa, type: 3}
+  - {fileID: 21300000, guid: 62d074e630cf4cd88aabac39e43fe283, type: 3}
+  - {fileID: 21300000, guid: 37076963de3746dab7f12c8dfa553ecb, type: 3}
+  - {fileID: 21300000, guid: 652918973de043a6965da298817485a8, type: 3}
+  - {fileID: 21300000, guid: fb15c6a4611747fabd379aae002b5d56, type: 3}
+  - {fileID: 21300000, guid: 5251fabacb0e4a01b7da0d9cdf8204cc, type: 3}
+  - {fileID: 21300000, guid: 2f914b1789d846299f68ae4bc6d3d06d, type: 3}
+  - {fileID: 21300000, guid: 834ddfe590b04061a9f7bc2aef30a3c0, type: 3}
+  - {fileID: 21300000, guid: f8e260a7e5da4f8daf69b74d6efceced, type: 3}
+  - {fileID: 21300000, guid: 8f4acab262cd4e61b335f34abb49f2e7, type: 3}
+  material: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  framesPerSecond: 24
+  burstSpacing: 1.75
+  burstDelay: 0.045
+  maximumBursts: 8
+  sortingLayer: Bullet
+  sortingOrder: 20

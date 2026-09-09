@@ -22,7 +22,7 @@ public class EnemyGrenadeExplosion : MonoBehaviour
 
     void Start()
     {
-        ScenePropAudio.PlayExplode01(explodeEvent);
+        ScenePropAudio.PlayExplode01(explodeEvent, transform.position);
 
         if (animator != null)
             animator.Play(ExplosionStateName, 0, 0f);

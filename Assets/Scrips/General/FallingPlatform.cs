@@ -269,7 +269,7 @@ public class FallingPlatform : MonoBehaviour
             return;
 
         isDestroying = true;
-        ScenePropAudio.PlayExplode01(explodeEvent);
+        ScenePropAudio.PlayExplode01(explodeEvent, transform.position);
         RestoreOriginalColors();
         PrepareVisualForDestroyAnimation();
 

@@ -1238,7 +1238,7 @@ public class Enemy : MonoBehaviour
     public void PlayRocketLaunchSfx() => PlayResolvedSfx(rocketLaunchEvent, FallbackRocketLaunch);
 
     void PlayResolvedSfx(EventReference evt, EventReference fallback)
-        => FmodAudio.Play(evt.IsNull ? fallback : evt);
+        => FmodAudio.Play(evt.IsNull ? fallback : evt, transform.position);
 
     void PlayDeathSfx()
     {
@@ -1249,7 +1249,7 @@ public class Enemy : MonoBehaviour
 
         if (UseExplodeDeathSfx)
         {
-            FmodAudio.Play(explodeEvent.IsNull ? FallbackExplode : explodeEvent);
+            FmodAudio.Play(explodeEvent.IsNull ? FallbackExplode : explodeEvent, transform.position);
             return;
         }
 
@@ -1258,9 +1258,9 @@ public class Enemy : MonoBehaviour
         float step = 1f / variantCount;
         float variant = Random.Range(0, variantCount) * step;
         if (string.IsNullOrEmpty(dieTypeParam))
-            FmodAudio.Play(evt);
+            FmodAudio.Play(evt, transform.position);
         else
-            FmodAudio.Play(evt, dieTypeParam, variant);
+            FmodAudio.Play(evt, dieTypeParam, variant, transform.position);
     }
 
     /// <summary>

@@ -92,7 +92,7 @@ public class EnergyNode : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
-        ScenePropAudio.PlayHitNormal(hitNormalEvent);
+        ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
 
         if (attacker != null && attacker.chargesEnergyNode)
         {

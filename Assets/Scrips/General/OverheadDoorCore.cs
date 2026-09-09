@@ -102,7 +102,7 @@ public class OverheadDoorCore : MonoBehaviour, IHitCountable
         int damage = attacker != null ? attacker.damage : 0;
         door.ApplyDamage(damage);
         BeginHitFlash();
-        ScenePropAudio.PlayHitNormal(hitNormalEvent);
+        ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
         return true;
     }
 

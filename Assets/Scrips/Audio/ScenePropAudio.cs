@@ -1,4 +1,5 @@
 using FMODUnity;
+using UnityEngine;
 
 /// <summary>
 /// 场景机关共用 FMOD：受击 hit_normal、破坏 explode_01。
@@ -14,11 +15,11 @@ public static class ScenePropAudio
         "{49332bbd-52af-4d5a-b699-e0701ebb7447}",
         "event:/Enemy/explode_01");
 
-    public static void PlayHitNormal(EventReference evt)
-        => FmodAudio.Play(evt.IsNull ? FallbackHitNormal : evt);
+    public static void PlayHitNormal(EventReference evt, Vector3 worldPosition)
+        => FmodAudio.Play(evt.IsNull ? FallbackHitNormal : evt, worldPosition);
 
-    public static void PlayExplode01(EventReference evt)
-        => FmodAudio.Play(evt.IsNull ? FallbackExplode01 : evt);
+    public static void PlayExplode01(EventReference evt, Vector3 worldPosition)
+        => FmodAudio.Play(evt.IsNull ? FallbackExplode01 : evt, worldPosition);
 
     static EventReference Create(string guid, string path)
     {

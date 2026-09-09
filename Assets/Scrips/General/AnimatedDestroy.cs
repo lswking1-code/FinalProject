@@ -23,6 +23,13 @@ public class AnimatedDestroy : MonoBehaviour
     [Tooltip("动画完全结束后隐藏视觉（不销毁物体），避免最后一帧遮挡。门请勾选此项")]
     [SerializeField] bool hideWhenFinished = true;
 
+    [Header("破坏特效")]
+    [Tooltip("关闭后本扇门不播爆炸，仍保留特效资源引用")]
+    [SerializeField] bool playDestructionEffect = true;
+    [SerializeField] DoorDestructionEffect destructionEffect;
+    [Tooltip("仅指定门体，不包含远处的控制节点；留空使用当前物体")]
+    [SerializeField] Transform destructionEffectRoot;
+
     [Header("位移开门")]
     [Tooltip("世界坐标位移。Stage2 竖门高度约 10，向上开填 (0, 10)。有 Animator 位移动画时请留 (0,0)")]
     [SerializeField] Vector2 openWorldOffset;
@@ -74,6 +81,8 @@ public class AnimatedDestroy : MonoBehaviour
             return;
 
         isDestroying = true;
+        if (playDestructionEffect && destructionEffect != null)
+            destructionEffect.Play(destructionEffectRoot != null ? destructionEffectRoot : transform);
         OnDestroyStarted?.Invoke();
         PrepareVisualForDestroyAnimation();
         DisableColliders();

@@ -53,6 +53,13 @@ public class BreakableProp : MonoBehaviour, IHitCountable
     [Tooltip("无 Animator 或状态名无效时的销毁延迟（秒）")]
     [SerializeField] float fallbackDestroyDelay = 0.5f;
 
+    [Header("破坏特效")]
+    [Tooltip("关闭后本扇门不播爆炸，仍保留特效资源引用")]
+    [SerializeField] bool playDestructionEffect = true;
+    [SerializeField] DoorDestructionEffect destructionEffect;
+    [Tooltip("仅指定门体，不包含远处的控制节点；留空使用当前物体")]
+    [SerializeField] Transform destructionEffectRoot;
+
     [Header("音效")]
     [SerializeField] EventReference hitNormalEvent;
 
@@ -126,7 +133,7 @@ public class BreakableProp : MonoBehaviour, IHitCountable
 
         currentHits++;
         BeginHitFlash();
-        ScenePropAudio.PlayHitNormal(hitNormalEvent);
+        ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
 
         if (currentHits < hitsToBreak)
             return true;
@@ -141,6 +148,8 @@ public class BreakableProp : MonoBehaviour, IHitCountable
             return;
 
         isBroken = true;
+        if (playDestructionEffect && destructionEffect != null)
+            destructionEffect.Play(destructionEffectRoot != null ? destructionEffectRoot : transform);
         RestoreOriginalColors();
         flashing = false;
 

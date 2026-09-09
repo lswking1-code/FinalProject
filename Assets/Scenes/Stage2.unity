@@ -2979,6 +2979,7 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
+  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
@@ -4315,6 +4316,7 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
+  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
@@ -11659,6 +11661,7 @@ MonoBehaviour:
   destroyStateName: 
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
+  playDestructionEffect: 1
   openWorldOffset: {x: 0, y: 10}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -14129,11 +14132,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a777ffe46bf6cba45881169ab4fcce86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
+  destructionEffectRoot: {fileID: 1989578864}
   visualRoot: {fileID: 736597193}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
+  playDestructionEffect: 1
   openWorldOffset: {x: 0, y: 0}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -16204,6 +16210,7 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
+  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
@@ -20624,6 +20631,7 @@ MonoBehaviour:
   destroyStateName: 
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
+  playDestructionEffect: 1
   openWorldOffset: {x: 0, y: 10}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -30265,6 +30273,9 @@ MonoBehaviour:
       m_Calls: []
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
+  playDestructionEffect: 1
+  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
+  destructionEffectRoot: {fileID: 1405772974}
   visualRoot: {fileID: 1405772974}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy

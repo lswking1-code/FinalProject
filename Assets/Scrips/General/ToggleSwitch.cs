@@ -62,7 +62,7 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
-        ScenePropAudio.PlayHitNormal(hitNormalEvent);
+        ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
 
         SetOn(!isOn, playSfx: true);
         return true;

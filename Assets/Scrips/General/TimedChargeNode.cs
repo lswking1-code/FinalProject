@@ -72,7 +72,7 @@ public class TimedChargeNode : MonoBehaviour, IHitCountable
 
         lastHitAttacker = attacker;
         lastHitFrame = Time.frameCount;
-        ScenePropAudio.PlayHitNormal(hitNormalEvent);
+        ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
 
         if (!isActive)
         {
