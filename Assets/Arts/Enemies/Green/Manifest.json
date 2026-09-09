@@ -1,0 +1,463 @@
+{
+  "palette": [
+    [
+      29,
+      42,
+      25
+    ],
+    [
+      60,
+      83,
+      49
+    ],
+    [
+      112,
+      129,
+      65
+    ],
+    [
+      151,
+      158,
+      82
+    ]
+  ],
+  "textures": [
+    {
+      "source": "Arts/Enemies/enemy_default.png",
+      "output": "Arts/Enemies/Green/enemy_default_green.png",
+      "size": [
+        64,
+        64
+      ],
+      "changed_pixels": 115,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_die.png",
+      "output": "Arts/Enemies/Green/enemy_default_die_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 2024,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_hurt.png",
+      "output": "Arts/Enemies/Green/enemy_default_hurt_green.png",
+      "size": [
+        256,
+        192
+      ],
+      "changed_pixels": 1358,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_idle.png",
+      "output": "Arts/Enemies/Green/enemy_default_idle_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1896,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_r.png",
+      "output": "Arts/Enemies/Green/enemy_default_r_green.png",
+      "size": [
+        64,
+        64
+      ],
+      "changed_pixels": 119,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_r_melee_run.png",
+      "output": "Arts/Enemies/Green/enemy_default_r_melee_run_green.png",
+      "size": [
+        256,
+        128
+      ],
+      "changed_pixels": 560,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_default_run.png",
+      "output": "Arts/Enemies/Green/enemy_default_run_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1975,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_grenade_attack.png",
+      "output": "Arts/Enemies/Green/enemy_grenade_attack_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1692,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun.png",
+      "output": "Arts/Enemies/Green/enemy_gun_green.png",
+      "size": [
+        64,
+        64
+      ],
+      "changed_pixels": 84,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_attack.png",
+      "output": "Arts/Enemies/Green/enemy_gun_attack_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 886,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_attack_pro.png",
+      "output": "Arts/Enemies/Green/enemy_gun_attack_pro_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1455,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_die.png",
+      "output": "Arts/Enemies/Green/enemy_gun_die_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1196,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_hurt.png",
+      "output": "Arts/Enemies/Green/enemy_gun_hurt_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1085,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_idle.png",
+      "output": "Arts/Enemies/Green/enemy_gun_idle_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1202,
+      "mask": "paired purple costume regions",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_run.png",
+      "output": "Arts/Enemies/Green/enemy_gun_run_green.png",
+      "size": [
+        256,
+        192
+      ],
+      "changed_pixels": 1031,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_melee_attack.png",
+      "output": "Arts/Enemies/Green/enemy_melee_attack_green.png",
+      "size": [
+        256,
+        128
+      ],
+      "changed_pixels": 1097,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_green.png",
+      "size": [
+        64,
+        64
+      ],
+      "changed_pixels": 72,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket_attack.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_attack_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 1338,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket_default.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_default_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 960,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket_die.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_die_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 614,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket_hit.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_hit_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 935,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_rocket_walk.png",
+      "output": "Arts/Enemies/Green/enemy_rocket_walk_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 829,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    },
+    {
+      "source": "Arts/Enemies/enemy_gun_attack_c_p.png",
+      "output": "Arts/Enemies/Green/enemy_gun_attack_c_p_green.png",
+      "size": [
+        256,
+        256
+      ],
+      "changed_pixels": 777,
+      "mask": "costume palette classification",
+      "alpha_identical": true,
+      "outside_mask_identical": true
+    }
+  ],
+  "texture_guid_map": {
+    "4cd8b4c6fee794ff5b1d257f6fc3c4a8": "27a7e6c1ac3545ba96fcc914a0559391",
+    "ba76c7efa0b3141caa46c74c85542ed3": "9b527af3e2244bb9bd96cf33de95ee51",
+    "bfa0926ef30bd4be19606bc04ef52561": "8823d94449c94b9e8c03cae60a16215c",
+    "796ad36fad986499a88cbfd73ca8a940": "145b8d7c673a4313b12e810fd01ad323",
+    "60187b95e5a44874ca89155257b23fbd": "01b7b62e29f246e7973a16e0e943dca7",
+    "41c42f561f352ba41a82442f6fea4643": "82f881d8f31c4239be695d51070feb66",
+    "f3c1c622a6fdb4aa88238d36187e4a8c": "c70cd92121de428ba0f7b12d6d723c1c",
+    "283587051450241ee888ef799d97834e": "43ca6f39650e4001bd7dc191302dc706",
+    "b6ff027e8518f48d2a5fad1afa806918": "922bfeb4a53d43b998a07edbe56d034a",
+    "886d9de2caab84574b81e956b1d74cde": "84196928189c4657b9281a0ca95c7d25",
+    "ad0d347366c0b4308bbbd18ee67a4789": "ebf3212ad7e7428e8c7bad072abb7e02",
+    "5cb061b03a7f445fb9042227da84137c": "bd42c23626874f799c3f91d757367ea0",
+    "d8746f3fcefa74e9889cbfcd7b8a7572": "a4e33210140e41b7939ba82bf2d41c45",
+    "d49c14d5988a14d789a048ef5a4bfb06": "f75c41a0a22549b3a4ade2acbb07f6a3",
+    "0ef924e1cbf6640da8d486d8267c0602": "8e9a514c41e145e893769c9ec8de68bd",
+    "7acac6955ded54af698e391d29ddc66f": "73152639d2a541679ab50d48143b2462",
+    "6b4a094a2f29de2439f493d77914013e": "b94f23322b244bfc8472b9653f50780d",
+    "5430822621c1a3d4aa7fc21a24a40485": "8e1e64937f284c89981774bb55151280",
+    "65f17d57ffb892a4da9c622f9ea3fe45": "d54deebc30d1492ca8fb17a96512233a",
+    "00702249b28d8354ebae43431a790dd5": "160562346717411f87de6a88c9df5322",
+    "182b4c866ac1f82449da05d214d0f874": "27b33ef4790348c39d8c943f8be759d7",
+    "45b8e75ac2ea1594a9ba596eb127b9b2": "3a797c223f26466c9cb9c31cf066b4a9",
+    "04121f248e99b8a409c6514f288fd25f": "8fbed5e2c31b45d29e9d52bca7fff2e8",
+    "093c6ab2b3e3d754a91ceae8b825edcc": "c67fa70faf184970a812ec39884ea5ba",
+    "4c7a892c049c2464ea0017e603253698": "ca0aef85d12d45abb4e3f7d2f028094c",
+    "ba2d82ccebb6a7f48be3c38992e00ade": "ff9a1df7e39d4bac956cf649315995d9",
+    "8291ed0a00714804fb0254b582274db6": "5d585a96ac3e4d5a9249eae95edea5d0",
+    "fc82da97c1fbbeb4bbf2f22cbc718c58": "4fa2df9e625e41fdbee021bd1da21ee2",
+    "38e154f4bb62ef049a6e54f18aefb399": "fce61f9b6ca847a3987a7650ce8f74e3",
+    "be907ea3928f5944d858d4c13b198ead": "7e4a4f28124c479e8c47125c114a938c",
+    "8bd4b8f60cacbdb468e30cad3c44a325": "95bb3a4ff89441a0bddea7fcca892744",
+    "3411b088f66eaab40a688c6bb43e1b41": "a662376b4d4b49ce8dd6a2d09af3decb",
+    "2690c79413db3a045b37b22e32b73166": "2c656c1d3a1843859f5ccc5ab97a47af",
+    "78b92136f26190e408187d302eac63d5": "8a81ae76812949fa8a4c0872ea131c40",
+    "6029f177c992fa44aac417c83fb9ca8b": "935af5f2e7da4cf9adb9b324925e8512",
+    "d2a4dedf18441044bbada37d19f5c53a": "2f24af20e61a495db3515f5578cd2cb8",
+    "21088cd6623b88640a20ce22d54cb8d8": "2ea631d16eb04bf59da2f573ec56709a",
+    "89f338c5a9b19ef4c9c9aaab3b9799df": "5b387591bcf1405b807851169ee235e2",
+    "3eee5fb37028c8c42ad81a12b5bb17e6": "0f0cb4f033944dd7809422e54e404837",
+    "cc56f80ded70d5f42bfe105b5f5aa763": "737417ccea2745adbcc6c0d214d1db9c",
+    "b8af932c1a952df4d9f3b98a42f1b07c": "4f3f5d2d7abc4e5098322c763b551bfe",
+    "fdd8247dd79723f4fb6eda828fad5fd0": "50b4024b8a8d4f65a61dfb3164eba54d",
+    "ca4dbf28eb7878543bc94fd0a7ad65b1": "d7c66ec70de449708b1fa3f3635bd179",
+    "c60c4a964d6133e42a237e8db8310faf": "572e364eb64b4b009d513e49ca1be963",
+    "733bb0cf872cd90438f14186f44d1b12": "8a098ad7bb234795aa7028de7f6f9224",
+    "d311968b9bc72ea44a3c1ac5801717c9": "c8f4b4d3e0894dab9bdfeabd45993f36",
+    "5a049bed5f03dba48b4957970d1bff33": "c842b195315e4af993e0ead1d37c7b97",
+    "ee8a71c581aabf24a993e191678bcfba": "6fd10fd28475466f8cd205ca3bbc3985",
+    "ce80807061d4a724a969bc38c3a7cceb": "07361a3a2b05409a8c8952ead5488f1a",
+    "e8a4c2b17f9d4e6a8b3c5d0e1f2a3b4c": "7825d775798e4b02827ae797e519943a",
+    "04e45a8de8d52084da50e3ea0951f3c2": "fb143a08e08f493484877a20ffd6d068",
+    "a481144a529d95c41b29efd5ce8f683a": "fc6a31b20cdc4761af17eb4bd59cdc30",
+    "4aeaf2b217ec41645bdd7e5c9156a123": "7d945764357748b6b463cc31c7b2fcca",
+    "bf4abb7533b42994daa297009090ae40": "39bfb2eaa94b4be9aefd3f9306ba1cb9",
+    "1c74f98589b577447b6806bab9cee279": "cc558aea006f4ff39faba48d30f80140",
+    "6d4e41db9cf176b44bd03bc8976ce258": "950d95b287b049448ee48d6f9c918115",
+    "4b3eb16f7a3f56740b4e581ba10c3527": "92135b38a23a4b4aa46373df5caa9552",
+    "1b7bfaa332a5d174ba1739cf6f201932": "19629ff0150c43639ab1c5a5c53b6908",
+    "b537c5befa7c47047b76a75a7b978e2c": "bba83fb2ea804c1c8e39efd507bd717e",
+    "a9e9573986a665643ba59dfaf536078d": "0e990c6537f549bd9d7f51d6e8c129b4",
+    "0a06000ce304d1e468d6304f8bb482d8": "b3ff1f05822a477bbd66c9d5819f4415",
+    "2adb9448a7ffd32418a2a768d30439c0": "7f32d34950834b5cb481f51c4e0e6f7f",
+    "42344b72622d22c4c8e2dc7dafdbe51b": "df537911d0c14c798a277dd9915c1754",
+    "897a23aaa1d5466488ec51d1b5d4dea9": "144ee7fbffc04a86968082b48a509004",
+    "700b8f8247ea46344b448daf8bc2df92": "3152f7743fb3476298c2ecfef4936e6d",
+    "c38e5c38712a4a04ab469aec2427fc48": "6e2e77ef6aea46579ecec9978c09b202"
+  },
+  "original_hashes": {
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default.png": "2a8391b4dee7b6e76c4e95d349bd1850a244423452b6c87703c192ae16e251de",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default.png.meta": "a0d63b9f8e89899c7f51ee259aa3741a9001d478eb587482dbfaec6aa41e6270",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_die.png": "7da7d8c4233f015868847a59ae2b1ed77b6dae03b7746b87b58d84d2d94d2b66",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_die.png.meta": "972ceeabee35097222099839b66f3faf807f908151cd521cb9c6953b5f974c91",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_hurt.png": "22c05742e3b210ba4e47cd369a86a3809fbb3c786e7f0477b26b3e8bcc80606f",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_hurt.png.meta": "347f1d36a94947fbca97d734622256bfdb00ed2558a958860adb1b2d6886981f",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_idle.png": "fdf24359b3cb66b2af4230514f60d2c737025adc614b2f164fd05694043e6161",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_idle.png.meta": "97487a3bb53f684270d9d45edc00348fd3c4cfcad6e70acaf1cdd79a218a312a",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_r.png": "6cd9ec7c5cf9bdb171e6d859b5cd9d5b77adbd7efb47c7b107e211add708cdae",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_r.png.meta": "b093cdb5ce939daafec852f00353b7be8b6742e548a416f2e6053dc1220f5bed",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_r_melee_run.png": "3454e03d16b3aff1ec80fb40f0bdb5b0aafe624de022d3179901a5fdccdc9882",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_r_melee_run.png.meta": "93f81fd1738a3c1e586e860d030dd97e9fd6172d82753611510692eb6480f26b",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_run.png": "4c9cb7a2e17e060982b4b2558290b8610bbe001300e49d0bf2eb1211a315db9b",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_default_run.png.meta": "32ceac378299c9a19080747930f1d2be5d121d77f6a3cc6dd92edd9c80086a55",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_grenade_attack.png": "adf5de2369827311c3b885cce8c0a532b3357915931e4fe31a666b07ddeee89e",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_grenade_attack.png.meta": "cb6279e71402d0d0fd3d1b72cb6d527bdc0aa0539ba73f72c1e3b1424546d360",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun.png": "6859f4fa2cf4994dda5be3ab6478c97f01e4ab7897a0b1f92565e5c05e4f9118",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun.png.meta": "8732e22970bbdac7a102ce9686ecfd8b7b7b26c5a2f1973603deff18a261f6c7",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack.png": "4e98ffe5ed2d0029e4391ed339b187d5e31fb5f9ad9340cf672c5d6711608d16",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack.png.meta": "743eea9277f4446e6e489c10f6edaaced67241cab66440409b64ef43569580b4",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack_pro.png": "2de92568c2d1a574c7a037eb6537f54b13fa7f5b7ab03cd709ce9e96e520d03b",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack_pro.png.meta": "439742a4949851a2c726529da0e008cac9431c79259f90569744b1b374045564",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_die.png": "176210dd14fd9bf14ab913e281cb6354ea6f163e4f79f42beed0b84472a4654f",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_die.png.meta": "2a00b97076a50c0089b6d029fe446a257233c6cff3b6ff4043dc29f995c2adaf",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_hurt.png": "ab5217e0257c952625d316b52e147becd2b5dc794ae48d14aba72275b0486150",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_hurt.png.meta": "ddc60c7eae19258dbd1aa0fde044829b9ac82fd28b10e2a7411bdc6cf75d0825",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_idle.png": "fba6b34729033197d9ea63896d933a1cb8559290da6b6943b0baa152de6ae164",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_idle.png.meta": "2d95cfddf788fe6b0d37ab19d95841844b0aa851dd6dd4a91ade7c9e03b5360c",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_run.png": "c787bd988ef16d7b567c3b23994c86ece7cd5fad9742d1403e1e787f9ccb02e0",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_run.png.meta": "25bd5e2d6025f6c2dede1f467a9cf1a94b1ad73211267e1f5a0ad0380ed0bf8f",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_melee_attack.png": "396decd8e9819306bbd2996450b2b13cf484a9d8adbf5b87efd4cf09cee60be9",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_melee_attack.png.meta": "e4b7513a49752dd658640d92d2128ceff478feb8c62647a123af5b0421833687",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket.png": "a8415094a820b515d91def60a98e15dad9579c30b70e0a9b1bcc3a25d609ccac",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket.png.meta": "313ba85c23c8d3c3c7dd8bf504d2b2822a4ea240d0957bb1ba210bda078b2e46",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_attack.png": "5aa6031b5faa669ba83596ecc41fb77e4c3d2d8ae19ead23c4b9a75944900e03",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_attack.png.meta": "d97dec41c169d0f9f09e680088d950d9ba62cd03bb12e328f95fe278c27f436c",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_default.png": "23e33faf6e58d7ba55e6da45a15967b4cd5d27e637c178ef651bdf121b26e632",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_default.png.meta": "fe0add4b9f9def800dd6b9f2472fca3207a2b818d604a0e5c813b73911bf0c96",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_die.png": "5a5c01d91604965cd0ac706b58ba9f33a31f5bf9c113a91f15711cc401bb04bb",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_die.png.meta": "653f6d22b39c1463ec71512e7faac4027aa4a2c9fa4bee781bd317133cbe2339",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_hit.png": "3d3d3d14ed245e2f8d6c7ae49cd8410d41c6715a88f7772796115b49620ab7b7",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_hit.png.meta": "b0706a285554a673eb47d0ae0c8f9090623dcafdc059bed73164221efdb0bf45",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_walk.png": "3499ee6af5bbcf2dafe7044d12816a8f8de1068356e8b5b98bffd83920208fd3",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_rocket_walk.png.meta": "7bc523142c42decb17458cd43c2081bceac52f1f86f23bb69109376b456a3ca1",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack_c_p.png": "96087c9e1a8a0c01b53cdf2ee3783e637f48cd4c0db06df39b652f0023d3bb26",
+    "E:\\Final Project\\FinalProject\\Assets\\Arts\\Enemies\\enemy_gun_attack_c_p.png.meta": "7c3584e6523ef31c59d9d01e5d850d176f1be94f6615cb3fd41f3649b7c1ace2"
+  },
+  "animation_variants": [
+    "Arts\\Enemies\\Green\\Animations\\Animation\\enemy_roket_green.controller",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_reload_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_crouch_shoot_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Shoot_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_preparation_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_idle_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\enemy_gun_hurt_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Dead_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Idel_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_die_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_crouch_end_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_hit_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Hurt_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_crouch_start_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_walk_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Run_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_crouch_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\enemy_gun_die_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\Rocket\\RocketEnemy_shoot_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animation\\enemy_rifle_green.controller",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\enemy_gun_c_preparation_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\enemy_gun_preparation_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_idle_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_reload_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_run_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_rifle_shoot_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animation\\enemy_melee_green.controller",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_melee_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_melee_run_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_run_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_die_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_attack_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_hit_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_idle_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_hit_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_die_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_run_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animations\\Enemy\\MeleeEnemy\\meleeenemy_idle_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Animation\\enemy_grenade_green.controller",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_fall_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_throw_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_land_green.anim",
+    "Arts\\Enemies\\Green\\Animations\\Arts\\Metal Slug\\enemy\\enemy_jump_green.anim"
+  ]
+}
