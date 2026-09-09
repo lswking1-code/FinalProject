@@ -31,6 +31,9 @@ public class FmodSfxDistanceSettings : ScriptableObject
     [Tooltip("scaleWithCamera 时的参考正交尺寸（项目默认相机约 5）")]
     [Min(0.01f)] public float referenceOrthographicSize = 5f;
 
+    [Tooltip("每帧最多创建这么多带位置的 one-shot（受击/死亡/射击等）。0 表示不限制")]
+    [Min(0)] public int maxWorldOneShotsPerFrame = 6;
+
     static FmodSfxDistanceSettings cached;
 
     public static FmodSfxDistanceSettings Resolve()

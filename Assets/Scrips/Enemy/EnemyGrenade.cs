@@ -46,10 +46,24 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
     [Tooltip("首次落地时保留的向上反弹比例（抑制轻飘回弹）")]
     [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.25f;
 
+    [Header("引信闪橙")]
+    [SerializeField] bool fuseFlashEnabled = true;
+    [Tooltip("掷出时的闪橙频率（次/秒）")]
+    [SerializeField, Min(0.1f)] float fuseFlashStartFrequency = 6f;
+    [Tooltip("接近爆炸时的闪橙频率（次/秒）")]
+    [SerializeField, Min(0.1f)] float fuseFlashEndFrequency = 14f;
+    [Tooltip("警示橙色")]
+    [SerializeField] Color fuseFlashColor = new Color(1f, 0.45f, 0.08f, 1f);
+
     Rigidbody2D rb;
     CircleCollider2D grenadeCollider;
     Animator animator;
     Transform visual;
+    SpriteRenderer visualRenderer;
+    Color originalVisualColor = Color.white;
+    bool fuseFlashActive;
+    bool fuseFlashOn;
+    float fuseFlashTimer;
     float spinDir = 1f;
     bool hasExploded;
     bool fuseExpired;
@@ -69,6 +83,10 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
         grenadeCollider = GetComponent<CircleCollider2D>();
         animator = GetComponent<Animator>();
         visual = transform.Find("Sprite");
+        if (visual != null)
+            visualRenderer = visual.GetComponent<SpriteRenderer>();
+        if (visualRenderer != null)
+            originalVisualColor = visualRenderer.color;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         SetupPassThroughFilter();
         ApplyPassThroughLayerFilter();
@@ -114,6 +132,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             animator.Play(RollingStateName, 0, 0f);
 
         SyncRollAnimSpeed();
+        BeginFuseFlash();
     }
 
     /// <summary>
@@ -151,9 +170,18 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             animator.Play(RollingStateName, 0, 0f);
 
         SyncRollAnimSpeed();
+        BeginFuseFlash();
 
         if (fuseExpired)
             Explode();
+    }
+
+    void Update()
+    {
+        if (hasExploded)
+            return;
+
+        TickFuseFlash();
     }
 
     void FixedUpdate()
@@ -279,6 +307,52 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             ? Mathf.Sign(rb.linearVelocity.x)
             : spinDir;
         visual.Rotate(0f, 0f, -dir * spinDegreesPerSecond * Time.fixedDeltaTime);
+    }
+
+    void BeginFuseFlash()
+    {
+        if (!fuseFlashEnabled || visualRenderer == null)
+            return;
+
+        fuseFlashActive = true;
+        fuseFlashOn = true;
+        fuseFlashTimer = 0f;
+        ApplyFuseFlash(true);
+    }
+
+    void TickFuseFlash()
+    {
+        if (!fuseFlashActive)
+            return;
+
+        float t = fuseTime > 0f ? Mathf.Clamp01(fuseElapsed / fuseTime) : 1f;
+        float frequency = Mathf.Lerp(fuseFlashStartFrequency, fuseFlashEndFrequency, t);
+        float interval = 1f / Mathf.Max(0.1f, frequency);
+        fuseFlashTimer += Time.deltaTime;
+        if (fuseFlashTimer < interval)
+            return;
+
+        fuseFlashTimer = 0f;
+        fuseFlashOn = !fuseFlashOn;
+        ApplyFuseFlash(fuseFlashOn);
+    }
+
+    void ApplyFuseFlash(bool on)
+    {
+        if (visualRenderer == null)
+            return;
+
+        visualRenderer.color = on ? fuseFlashColor : originalVisualColor;
+    }
+
+    void StopFuseFlash()
+    {
+        if (!fuseFlashActive)
+            return;
+
+        fuseFlashActive = false;
+        if (visualRenderer != null)
+            visualRenderer.color = originalVisualColor;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -636,6 +710,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return;
 
         hasExploded = true;
+        StopFuseFlash();
 
         if (explosionPrefab != null)
         {
@@ -654,6 +729,7 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
 
         // 抵销：直接销毁，不引爆
         hasExploded = true;
+        StopFuseFlash();
         Destroy(gameObject);
         return true;
     }

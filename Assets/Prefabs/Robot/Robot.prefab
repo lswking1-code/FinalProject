@@ -1006,7 +1006,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.066161156, y: 0.05600232}
+  m_Offset: {x: 0.066161156, y: 0.08099055}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -1016,7 +1016,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.1623223, y: 2.5436692}
+  m_Size: {x: 1.1623223, y: 2.4936929}
   m_EdgeRadius: 0
 --- !u!95 &2674022141129750081
 Animator:
@@ -1747,6 +1747,13 @@ MonoBehaviour:
       Data3: -1193730882
       Data4: -1925493843
     Path: event:/Robot/Laser
+  missileLaunchEvent:
+    Guid:
+      Data1: -455706802
+      Data2: 1226660536
+      Data3: -362910790
+      Data4: -1305503555
+    Path: event:/Robot/MissileLaunch
   pullExtendSpeed: 80
   pullSpeed: 20
   pullArriveThreshold: 0.1

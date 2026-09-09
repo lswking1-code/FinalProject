@@ -150,6 +150,10 @@ public class Enemy : MonoBehaviour
     [SerializeField] EventReference droneAttackEvent;
     [SerializeField] EventReference rocketLaunchEvent;
     [SerializeField] EventReference hitTankEvent;
+    [Tooltip("玩家子弹打盾；未赋值则不播（近战盾仍用 hitMetalEvent）")]
+    [SerializeField] EventReference hitShieldBulletEvent;
+    [Tooltip("玩家子弹打装甲（AE-74 / 无人机 / 装甲车）；未赋值则不播")]
+    [SerializeField] EventReference hitArmorBulletEvent;
 
     static readonly EventReference FallbackHitNormal = CreateHitEvent(
         "{60e880cc-78e0-4433-9db5-a9f4aa57ed57}",
@@ -1192,11 +1196,11 @@ public class Enemy : MonoBehaviour
     protected virtual bool UseHurtStun => true;
 
     /// <summary>
-    /// 无人机、AE-74 打金属受击；其余敌人打普通受击。盾牌挡刀由 EnemyShieldAbsorb 另播金属。
+    /// 无人机、AE-74 本体走装甲受击；其余敌人打普通受击。盾牌由 EnemyShieldAbsorb 另播。
     /// </summary>
     protected virtual bool UseMetalHitSfx => false;
 
-    /// <summary>装甲车受击播 hit_tank，优先于金属/普通受击。</summary>
+    /// <summary>装甲车近战受击播 hit_tank，优先于金属；子弹打装甲走 hitArmorBulletEvent。</summary>
     protected virtual bool UseTankHitSfx => false;
 
     /// <summary>
@@ -1216,17 +1220,43 @@ public class Enemy : MonoBehaviour
         };
     }
 
-    public void PlayHitSfx(bool metal)
+    public void PlayShieldHitSfx(Attack attacker)
     {
+        if (Attack.IsPlayerRangedHit(attacker))
+        {
+            PlayAssignedSfx(hitShieldBulletEvent);
+            return;
+        }
+
+        PlayResolvedSfx(hitMetalEvent, FallbackHitMetal);
+    }
+
+    public void PlayHitSfx(bool metal, Attack attacker)
+    {
+        if (UseTankHitSfx || metal)
+        {
+            PlayArmorHitSfx(attacker);
+            return;
+        }
+
+        PlayResolvedSfx(hitNormalEvent, FallbackHitNormal);
+    }
+
+    void PlayArmorHitSfx(Attack attacker)
+    {
+        if (Attack.IsPlayerRangedHit(attacker))
+        {
+            PlayAssignedSfx(hitArmorBulletEvent);
+            return;
+        }
+
         if (UseTankHitSfx)
         {
             PlayResolvedSfx(hitTankEvent, FallbackHitTank);
             return;
         }
 
-        PlayResolvedSfx(
-            metal ? hitMetalEvent : hitNormalEvent,
-            metal ? FallbackHitMetal : FallbackHitNormal);
+        PlayResolvedSfx(hitMetalEvent, FallbackHitMetal);
     }
 
     public void PlayMeleeAttackSfx() => PlayResolvedSfx(meleeAttackEvent, FallbackMeleeAttack);
@@ -1239,6 +1269,14 @@ public class Enemy : MonoBehaviour
 
     void PlayResolvedSfx(EventReference evt, EventReference fallback)
         => FmodAudio.Play(evt.IsNull ? fallback : evt, transform.position);
+
+    void PlayAssignedSfx(EventReference evt)
+    {
+        if (evt.IsNull)
+            return;
+
+        FmodAudio.Play(evt, transform.position);
+    }
 
     void PlayDeathSfx()
     {
@@ -1268,7 +1306,9 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void OnTakeDamage(Transform attackTrans)
     {
-        PlayHitSfx(UseMetalHitSfx);
+        Attack attack = attackTrans != null ? attackTrans.GetComponentInParent<Attack>() : null;
+        if (character == null || character.currentHealth > 0f)
+            PlayHitSfx(UseMetalHitSfx, attack);
 
         if (isReturning)
             return;

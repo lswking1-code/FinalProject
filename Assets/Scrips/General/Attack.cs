@@ -104,6 +104,20 @@ public class Attack : MonoBehaviour
     }
 
     /// <summary>
+    /// 玩家远程命中：弹药、激光、手雷爆炸。不依赖 AttackType
+    /// （部分子弹 prefab 仍标成 Melee）。
+    /// </summary>
+    public static bool IsPlayerRangedHit(Attack attacker)
+    {
+        if (attacker == null)
+            return false;
+
+        return attacker.GetComponentInParent<IPlayerAmmo>() != null
+            || attacker.GetComponentInParent<PlayerLaserBeam>() != null
+            || attacker.GetComponentInParent<GrenadeExplosion>() != null;
+    }
+
+    /// <summary>
     /// 敌人飞行物伤害：直线弹、可被近战抵销的导弹/手雷/冲击波，以及引爆后的爆炸盒。
     /// 不含挂在敌人本体上的近战、冲撞、自爆判定。
     /// </summary>

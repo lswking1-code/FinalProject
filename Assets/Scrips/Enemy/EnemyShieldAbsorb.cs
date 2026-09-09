@@ -53,7 +53,7 @@ public class EnemyShieldAbsorb : MonoBehaviour, IDamageAbsorb
             return false;
 
         attacker.ReportImpact(GetComponent<Collider2D>(), MachinistImpactKind.Shield);
-        enemy.PlayHitSfx(true);
+        enemy.PlayShieldHitSfx(attacker);
 
         // 正面 Blast 虽被盾吸收、不会进 Character.OnTakeDamage，但仍需引爆盾上标记炸弹
         TryDetonateMarkBombsFromBlast(attacker);

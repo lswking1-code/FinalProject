@@ -927,6 +927,13 @@ MonoBehaviour:
       Data3: 24283318
       Data4: -1492407517
     Path: event:/Enemy/rocket_launch
+  hitShieldBulletEvent:
+    Guid:
+      Data1: -408235328
+      Data2: 1210548977
+      Data3: 344379789
+      Data4: 391925075
+    Path: event:/Enemy/hit_shield_bullet
   meleeRange: 1.2
   idealRange: 5
   idealRangeSlack: 0.5

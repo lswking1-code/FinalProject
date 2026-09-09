@@ -9,8 +9,11 @@ public static class FmodAudio
     const float DefaultPanRange = 16f;
     const float DefaultReferenceOrtho = 5f;
     const float SilentVolume = 0.001f;
+    const int DefaultMaxWorldOneShotsPerFrame = 6;
 
     static Transform listenerCache;
+    static int worldOneShotFrame = -1;
+    static int worldOneShotsThisFrame;
 
     public static void Play(EventReference evt)
     {
@@ -78,6 +81,8 @@ public static class FmodAudio
         float pan = 0f;
         if (hasWorldPosition && !TryEvaluateSpatial(worldPosition, out volume, out pan))
             return;
+        if (hasWorldPosition && !TryConsumeWorldOneShotBudget())
+            return;
 
         EventInstance instance = CreateStarted(
             evt,
@@ -127,7 +132,7 @@ public static class FmodAudio
             instance.start();
 
             if (hasSpatial && Mathf.Abs(pan) > 0.001f)
-                TrySetPan(instance, pan);
+                TrySetChannelPan(instance, pan);
 
             return instance;
         }
@@ -242,13 +247,28 @@ public static class FmodAudio
         return true;
     }
 
-    static void TrySetPan(EventInstance instance, float pan)
+    static bool TryConsumeWorldOneShotBudget()
     {
-        if (TrySetChannelPan(instance, pan))
-            return;
+        int max = DefaultMaxWorldOneShotsPerFrame;
+        FmodSfxDistanceSettings settings = FmodSfxDistanceSettings.Resolve();
+        if (settings != null)
+            max = settings.maxWorldOneShotsPerFrame;
 
-        RuntimeManager.StudioSystem.flushCommands();
-        TrySetChannelPan(instance, pan);
+        if (max <= 0)
+            return true;
+
+        int frame = Time.frameCount;
+        if (worldOneShotFrame != frame)
+        {
+            worldOneShotFrame = frame;
+            worldOneShotsThisFrame = 0;
+        }
+
+        if (worldOneShotsThisFrame >= max)
+            return false;
+
+        worldOneShotsThisFrame++;
+        return true;
     }
 
     static bool TrySetChannelPan(EventInstance instance, float pan)

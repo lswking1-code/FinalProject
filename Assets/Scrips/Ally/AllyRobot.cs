@@ -267,6 +267,7 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] string attackTypeParam = "AttackType";
     [SerializeField] EventReference dashEvent;
     [SerializeField] EventReference laserEvent;
+    [SerializeField] EventReference missileLaunchEvent;
 
     [Header("牵引召回 (Ability2 短按)")]
     [Tooltip("钩爪伸出速度（单位/秒）")]
@@ -4121,6 +4122,7 @@ public class AllyRobot : MonoBehaviour
         var missile = Instantiate(accelerMissilePrefab, pos, Quaternion.identity);
         Collider2D playerCol = owner != null ? owner.GetComponent<Collider2D>() : null;
         missile.Init(bodyCollider, missileTarget, playerCol);
+        FmodAudio.Play(missileLaunchEvent, pos);
     }
 
     Transform FindClosestEnemyToPlayer()

@@ -3,6 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 机器人贯穿激光视觉：按钩锁式 TiledSpriteRope 分段排布，保留每段 Animator。
+/// 根节点与光束链节共用 Atan2(y, x) 朝向，起始段作为子物体继承该方向。
 /// </summary>
 public class AllyRobotPierceLaserVisual : MonoBehaviour
 {
@@ -16,6 +17,7 @@ public class AllyRobotPierceLaserVisual : MonoBehaviour
 
     SpriteRenderer headRenderer;
     SpriteRenderer blastRenderer;
+    Vector2 shotDir = Vector2.right;
 
     void Awake()
     {
@@ -34,6 +36,8 @@ public class AllyRobotPierceLaserVisual : MonoBehaviour
         else
             dir.Normalize();
 
+        shotDir = dir;
+
         Vector2 perp = new Vector2(-dir.y, dir.x);
         Vector2 spawn = origin + dir * spawnOffset.x + perp * spawnOffset.y;
 
@@ -42,7 +46,7 @@ public class AllyRobotPierceLaserVisual : MonoBehaviour
         float startAlong = Mathf.Clamp(beamStartOffset, 0f, safeLen);
         Vector2 beamStart = spawn + dir * startAlong;
 
-        transform.position = spawn;
+        ApplyShotRotation(spawn);
 
         if (tiledRope != null)
         {
@@ -50,38 +54,52 @@ public class AllyRobotPierceLaserVisual : MonoBehaviour
             tiledRope.SetEndpoints(beamStart, end);
         }
 
-        if (head != null)
-        {
-            head.localPosition = Vector3.zero;
-            ApplyEndpointFacing(head, headRenderer, dir);
-        }
+        AlignChildToShot(head, headRenderer, Vector3.zero);
 
         if (blast != null)
         {
-            blast.position = end;
-            ApplyEndpointFacing(blast, blastRenderer, dir);
+            if (blast.parent == transform)
+                AlignChildToShot(blast, blastRenderer, new Vector3(safeLen, 0f, 0f));
+            else
+            {
+                blast.SetPositionAndRotation(end, transform.rotation);
+                ClearSpriteFlip(blastRenderer);
+            }
         }
 
         StartCoroutine(DestroyAfter(Mathf.Max(0.01f, duration)));
     }
 
-    /// <summary>
-    /// 默认贴图朝 +X。朝左用 flipX 而非旋转 180°；俯仰用 Atan2(y, |x|)。
-    /// </summary>
-    static void ApplyEndpointFacing(Transform endpoint, SpriteRenderer renderer, Vector2 dir)
+    void LateUpdate()
     {
-        if (dir.sqrMagnitude < 0.0001f)
+        ApplyShotRotation(transform.position);
+        AlignChildToShot(head, headRenderer, Vector3.zero);
+    }
+
+    void ApplyShotRotation(Vector3 position)
+    {
+        float angle = Mathf.Atan2(shotDir.y, shotDir.x) * Mathf.Rad2Deg;
+        transform.SetPositionAndRotation(position, Quaternion.Euler(0f, 0f, angle));
+    }
+
+    static void AlignChildToShot(Transform child, SpriteRenderer renderer, Vector3 localPosition)
+    {
+        if (child == null)
             return;
 
-        bool faceLeft = dir.x < 0f;
-        if (renderer != null)
-        {
-            renderer.flipX = faceLeft;
-            renderer.flipY = false;
-        }
+        child.localPosition = localPosition;
+        child.localRotation = Quaternion.identity;
+        child.localScale = Vector3.one;
+        ClearSpriteFlip(renderer);
+    }
 
-        float angle = Mathf.Atan2(dir.y, Mathf.Abs(dir.x)) * Mathf.Rad2Deg;
-        endpoint.rotation = Quaternion.Euler(0f, 0f, angle);
+    static void ClearSpriteFlip(SpriteRenderer renderer)
+    {
+        if (renderer == null)
+            return;
+
+        renderer.flipX = false;
+        renderer.flipY = false;
     }
 
     IEnumerator DestroyAfter(float delay)

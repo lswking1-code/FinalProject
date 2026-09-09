@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{baf1be72-622a-426a-9c94-2a72483fb986}">
+		<property name="name">
+			<value>MeleeTypeM</value>
+		</property>
+		<relationship name="folder">
+			<destination>{9308ac1d-0409-497e-88a0-0849723f18f8}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{c2a6c03f-ad55-41be-998e-065ff4fe9e32}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{c2a6c03f-ad55-41be-998e-065ff4fe9e32}">
+		<property name="parameterType">
+			<value>2</value>
+		</property>
+		<property name="maximum">
+			<value>4</value>
+		</property>
+		<property name="enumerationLabels">
+			<value>Blast1</value>
+			<value>Blast2</value>
+			<value>Blast3</value>
+			<value>Explode</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

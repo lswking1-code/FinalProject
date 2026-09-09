@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -19,6 +20,7 @@ public class RobotHomingMissile : MonoBehaviour
     [Tooltip("追踪阶段每秒最大转角（度）。升空结束后按此速率弧线对准目标")]
     [SerializeField] float maxTurnRate = 270f;
     [SerializeField] GrenadeExplosion explosionPrefab;
+    [SerializeField] EventReference explodeEvent;
 
     Rigidbody2D rb;
     CircleCollider2D missileCollider;
@@ -221,8 +223,6 @@ public class RobotHomingMissile : MonoBehaviour
 
         if (IsEnemyCollider(other))
         {
-            if (!ascentEnded)
-                return;
             Explode();
             return;
         }
@@ -273,13 +273,14 @@ public class RobotHomingMissile : MonoBehaviour
         hasExploded = true;
         CancelInvoke(nameof(Despawn));
 
+        Vector3 explodePos = missileCollider != null
+            ? (Vector3)missileCollider.bounds.center
+            : transform.position;
+
+        FmodAudio.Play(explodeEvent, explodePos);
+
         if (explosionPrefab != null)
-        {
-            Vector3 explodePos = missileCollider != null
-                ? (Vector3)missileCollider.bounds.center
-                : transform.position;
             Instantiate(explosionPrefab, explodePos, Quaternion.identity);
-        }
 
         Destroy(gameObject);
     }

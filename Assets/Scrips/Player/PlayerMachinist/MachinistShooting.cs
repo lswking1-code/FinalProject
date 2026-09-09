@@ -117,6 +117,9 @@ public class MachinistShooting : MonoBehaviour
     [SerializeField] EventReference fireEvent;
     [Tooltip("FMOD Fire 事件上的标签参数名")]
     [SerializeField] string shotTypeParam = "FireType";
+    [SerializeField] EventReference meleeEvent;
+    [Tooltip("FMOD Melee 事件上的标签参数名")]
+    [SerializeField] string meleeTypeParam = "MeleeTypeM";
 
     InputSystem_Actions actions;
     PlayerAnim playerAnim;
@@ -858,6 +861,14 @@ public class MachinistShooting : MonoBehaviour
         }
 
         ammo.Init(dir, faceY, character);
+    }
+
+    public void PlayMeleeSfx(string meleeType)
+    {
+        if (string.IsNullOrEmpty(meleeType))
+            return;
+
+        FmodAudio.Play(meleeEvent, meleeTypeParam, meleeType);
     }
 
     void PlayFireSfx(string label) =>
