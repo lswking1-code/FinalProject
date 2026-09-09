@@ -1,0 +1,44 @@
+{
+  "slicing": [
+    {
+      "texture": "enemy_drone_idle_silver.png",
+      "sprites": 16,
+      "PPU": 16.0,
+      "original_import_settings_identical": true
+    },
+    {
+      "texture": "enemy_drone_hurt_silver.png",
+      "sprites": 16,
+      "PPU": 16.0,
+      "original_import_settings_identical": true
+    },
+    {
+      "texture": "enemy_drone_die_silver.png",
+      "sprites": 16,
+      "PPU": 16.0,
+      "original_import_settings_identical": true
+    },
+    {
+      "texture": "enemy_drone_bomb_silver.png",
+      "sprites": 9,
+      "PPU": 16.0,
+      "original_import_settings_identical": true
+    }
+  ],
+  "created_clips": [
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_hit_silver.anim",
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_fly_silver.anim",
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_die_silver.anim",
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_idle_silver.anim",
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_warning_silver.anim",
+    "Animations/Enemy/FlyEnemy/Silver/FlyEnemy_Bomb_silver.anim"
+  ],
+  "original_clips_reused": [
+    "Animations/Enemy/FlyEnemy/FlyEnemy_shoot.anim",
+    "Arts/Metal Slug/enemy/mobs.anim",
+    "Animations/Enemy/FlyEnemy/FlyEnemy_downshoot.anim"
+  ],
+  "controller": "Animation/enemy_air_silver.controller",
+  "source_assets_unchanged": true,
+  "animation_timing_events_curves_preserved": true
+}

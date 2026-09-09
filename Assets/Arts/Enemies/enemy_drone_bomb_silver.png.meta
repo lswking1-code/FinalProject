@@ -24,11 +24,23 @@ TextureImporter:
       213: 4986566448596076075
     second: enemy_drone_bomb_silver_6
   - first:
-      213: -6426455407144114189
-    second: enemy_drone_bomb_silver_7
+      213: 2435379712026453303
+    second: enemy_drone_bomb_7
   - first:
       213: 8462422011136740704
     second: enemy_drone_bomb_silver_8
+  - first:
+      213: 8349521995990848015
+    second: enemy_drone_bomb_9
+  - first:
+      213: 683236433374901741
+    second: enemy_drone_bomb_10
+  - first:
+      213: -8456851824857419020
+    second: enemy_drone_bomb_11
+  - first:
+      213: -5579523047809461573
+    second: enemy_drone_bomb_12
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -61,7 +73,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -75,7 +87,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -98,7 +110,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -153,12 +165,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 204
-        width: 52
-        height: 35
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -175,12 +187,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_1
       rect:
         serializedVersion: 2
-        x: 70
-        y: 204
-        width: 52
-        height: 35
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -197,12 +209,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_2
       rect:
         serializedVersion: 2
-        x: 134
-        y: 204
-        width: 52
-        height: 35
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -219,12 +231,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_3
       rect:
         serializedVersion: 2
-        x: 198
-        y: 204
-        width: 52
-        height: 35
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -241,12 +253,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_4
       rect:
         serializedVersion: 2
-        x: 6
-        y: 139
-        width: 52
-        height: 41
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -263,12 +275,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_5
       rect:
         serializedVersion: 2
-        x: 65
-        y: 138
-        width: 57
-        height: 51
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.21875}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -285,12 +297,12 @@ TextureImporter:
       name: enemy_drone_bomb_silver_6
       rect:
         serializedVersion: 2
-        x: 159
-        y: 116
-        width: 74
-        height: 73
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 160
+        y: 117
+        width: 72
+        height: 71
+      alignment: 9
+      pivot: {x: 0.5, y: 0.23943663}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -304,37 +316,15 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: enemy_drone_bomb_silver_7
-      rect:
-        serializedVersion: 2
-        x: 11
-        y: 18
-        width: 94
-        height: 91
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 3f769442bd4a0d6a0800000000000000
-      internalID: -6426455407144114189
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
       name: enemy_drone_bomb_silver_8
       rect:
         serializedVersion: 2
-        x: 133
-        y: 16
-        width: 101
-        height: 97
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 12
+        y: 19
+        width: 93
+        height: 89
+      alignment: 9
+      pivot: {x: 0.49462366, y: 0.29213482}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -347,11 +337,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: enemy_drone_bomb_silver_14
+      rect:
+        serializedVersion: 2
+        x: 133
+        y: 15
+        width: 103
+        height: 98
+      alignment: 9
+      pivot: {x: 0.49514565, y: 0.31632653}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cff90d5758814d528555196f9b71684a
+      internalID: 4586171573613254528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: f949ec507fff93148a20de62dfdb3062
     internalID: 0
     vertices: []
     indices: 
@@ -363,13 +375,20 @@ TextureImporter:
     nameFileIdTable:
       enemy_drone_bomb_silver_0: 3504742432345373683
       enemy_drone_bomb_silver_1: -6465428824587328374
+      enemy_drone_bomb_10: 683236433374901741
+      enemy_drone_bomb_11: -8456851824857419020
+      enemy_drone_bomb_12: -5579523047809461573
+      enemy_drone_bomb_13: -1179324366
+      enemy_drone_bomb_silver_14: 4586171573613254528
+      enemy_drone_bomb_15: 654720141
       enemy_drone_bomb_silver_2: -301705611163270021
       enemy_drone_bomb_silver_3: -7735039291968556858
       enemy_drone_bomb_silver_4: 9119444149926187635
       enemy_drone_bomb_silver_5: 3673139110683967462
       enemy_drone_bomb_silver_6: 4986566448596076075
-      enemy_drone_bomb_silver_7: -6426455407144114189
+      enemy_drone_bomb_7: 2435379712026453303
       enemy_drone_bomb_silver_8: 8462422011136740704
+      enemy_drone_bomb_9: 8349521995990848015
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

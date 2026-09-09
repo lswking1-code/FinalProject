@@ -51,20 +51,20 @@ TextureImporter:
       213: -7310346687014299883
     second: enemy_drone_die_silver_15
   - first:
-      213: -7515745905247197801
-    second: enemy_drone_die_silver_16
+      213: 5294291844698245879
+    second: enemy_drone_die_16
   - first:
-      213: 7662790813018436969
-    second: enemy_drone_die_silver_17
+      213: -4257131807100354361
+    second: enemy_drone_die_17
   - first:
-      213: 2914378656545515354
-    second: enemy_drone_die_silver_18
+      213: 9185087040342436565
+    second: enemy_drone_die_18
   - first:
-      213: -205220776175405079
-    second: enemy_drone_die_silver_19
+      213: -6414773477563230357
+    second: enemy_drone_die_19
   - first:
-      213: 8307530276467997981
-    second: enemy_drone_die_silver_20
+      213: -456320319642766083
+    second: enemy_drone_die_20
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -97,7 +97,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -111,7 +111,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -134,7 +134,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: -1
+    textureFormat: 4
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -145,19 +145,6 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 4
     buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -189,12 +176,12 @@ TextureImporter:
       name: enemy_drone_die_silver_0
       rect:
         serializedVersion: 2
-        x: 6
-        y: 204
-        width: 52
-        height: 35
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -211,12 +198,12 @@ TextureImporter:
       name: enemy_drone_die_silver_1
       rect:
         serializedVersion: 2
-        x: 70
-        y: 203
-        width: 53
-        height: 38
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -233,12 +220,12 @@ TextureImporter:
       name: enemy_drone_die_silver_2
       rect:
         serializedVersion: 2
-        x: 133
-        y: 202
-        width: 54
-        height: 40
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -255,12 +242,12 @@ TextureImporter:
       name: enemy_drone_die_silver_3
       rect:
         serializedVersion: 2
-        x: 197
-        y: 201
-        width: 55
-        height: 42
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 192
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -277,12 +264,12 @@ TextureImporter:
       name: enemy_drone_die_silver_4
       rect:
         serializedVersion: 2
-        x: 5
-        y: 136
-        width: 55
-        height: 43
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -299,12 +286,12 @@ TextureImporter:
       name: enemy_drone_die_silver_5
       rect:
         serializedVersion: 2
-        x: 68
-        y: 135
-        width: 56
-        height: 48
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -321,12 +308,12 @@ TextureImporter:
       name: enemy_drone_die_silver_6
       rect:
         serializedVersion: 2
-        x: 132
-        y: 135
-        width: 56
-        height: 50
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -343,12 +330,12 @@ TextureImporter:
       name: enemy_drone_die_silver_7
       rect:
         serializedVersion: 2
-        x: 196
-        y: 133
-        width: 56
-        height: 53
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 128
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -365,12 +352,12 @@ TextureImporter:
       name: enemy_drone_die_silver_8
       rect:
         serializedVersion: 2
-        x: 1
-        y: 65
-        width: 62
-        height: 57
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -387,12 +374,12 @@ TextureImporter:
       name: enemy_drone_die_silver_9
       rect:
         serializedVersion: 2
-        x: 68
-        y: 68
-        width: 57
-        height: 54
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -409,12 +396,12 @@ TextureImporter:
       name: enemy_drone_die_silver_10
       rect:
         serializedVersion: 2
-        x: 132
-        y: 68
-        width: 58
-        height: 55
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -431,12 +418,12 @@ TextureImporter:
       name: enemy_drone_die_silver_11
       rect:
         serializedVersion: 2
-        x: 195
-        y: 68
-        width: 59
-        height: 55
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 64
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -453,12 +440,12 @@ TextureImporter:
       name: enemy_drone_die_silver_12
       rect:
         serializedVersion: 2
-        x: 3
-        y: 3
-        width: 53
-        height: 57
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -475,12 +462,12 @@ TextureImporter:
       name: enemy_drone_die_silver_13
       rect:
         serializedVersion: 2
-        x: 67
-        y: 3
-        width: 52
-        height: 58
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -497,12 +484,12 @@ TextureImporter:
       name: enemy_drone_die_silver_14
       rect:
         serializedVersion: 2
-        x: 132
-        y: 3
-        width: 51
-        height: 59
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 128
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -519,12 +506,12 @@ TextureImporter:
       name: enemy_drone_die_silver_15
       rect:
         serializedVersion: 2
-        x: 199
-        y: 3
-        width: 47
-        height: 51
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 192
+        y: 0
+        width: 64
+        height: 64
+      alignment: 9
+      pivot: {x: 0.5, y: 0.22}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -537,121 +524,11 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
-    - serializedVersion: 2
-      name: enemy_drone_die_silver_16
-      rect:
-        serializedVersion: 2
-        x: 214
-        y: 48
-        width: 8
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 795e4a75be4b2b790800000000000000
-      internalID: -7515745905247197801
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_die_silver_17
-      rect:
-        serializedVersion: 2
-        x: 41
-        y: 8
-        width: 21
-        height: 24
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 965371e25a3b75a60800000000000000
-      internalID: 7662790813018436969
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_die_silver_18
-      rect:
-        serializedVersion: 2
-        x: 105
-        y: 8
-        width: 21
-        height: 22
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a57206472f3f17820800000000000000
-      internalID: 2914378656545515354
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_die_silver_19
-      rect:
-        serializedVersion: 2
-        x: 174
-        y: 15
-        width: 16
-        height: 14
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 9e7f8879ac8e62df0800000000000000
-      internalID: -205220776175405079
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: enemy_drone_die_silver_20
-      rect:
-        serializedVersion: 2
-        x: 240
-        y: 15
-        width: 13
-        height: 12
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: d1d7da175c64a4370800000000000000
-      internalID: 8307530276467997981
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 14a2406268050024eb4084d5eb229f67
     internalID: 0
     vertices: []
     indices: 
@@ -669,12 +546,7 @@ TextureImporter:
       enemy_drone_die_silver_13: -7640472666514564086
       enemy_drone_die_silver_14: 1206161019310190306
       enemy_drone_die_silver_15: -7310346687014299883
-      enemy_drone_die_silver_16: -7515745905247197801
-      enemy_drone_die_silver_17: 7662790813018436969
-      enemy_drone_die_silver_18: 2914378656545515354
-      enemy_drone_die_silver_19: -205220776175405079
       enemy_drone_die_silver_2: 8273609749503396577
-      enemy_drone_die_silver_20: 8307530276467997981
       enemy_drone_die_silver_3: 2062396986301841063
       enemy_drone_die_silver_4: -5077841976653179938
       enemy_drone_die_silver_5: -1283217248589655658

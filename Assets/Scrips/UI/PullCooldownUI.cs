@@ -1,19 +1,33 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// AbilityCD：按当前角色切换 Ability2 图标与冷却。
+/// 机械师未召唤显示机器人图标，已召唤显示钩锁 CD；枪手显示翻滚 CD；近战隐藏整块视觉。
+/// </summary>
 public class PullCooldownUI : MonoBehaviour
 {
     [SerializeField] Image cooldownFill;
     [SerializeField] Image icon;
-    [SerializeField, Range(0f, 1f)] float unavailableIconAlpha = 0.35f;
+    [SerializeField] GameObject visualRoot;
+    [SerializeField] Sprite hookIcon;
+    [SerializeField] Sprite robotIcon;
+    [SerializeField] Sprite rollIcon;
 
-    PlayerAbilities playerAbilities;
-    float availableIconAlpha = 1f;
+    SceneLoader sceneLoader;
+    Sprite fallbackIcon;
 
     void Awake()
     {
+        if (visualRoot == null && transform.childCount > 0)
+            visualRoot = transform.GetChild(0).gameObject;
+
         if (icon != null)
-            availableIconAlpha = icon.color.a;
+        {
+            fallbackIcon = icon.sprite;
+            if (hookIcon == null)
+                hookIcon = icon.sprite;
+        }
 
         ConfigureCooldownFill();
         Refresh();
@@ -21,8 +35,8 @@ public class PullCooldownUI : MonoBehaviour
 
     void LateUpdate()
     {
-        if (playerAbilities == null || !playerAbilities.isActiveAndEnabled)
-            playerAbilities = FindFirstObjectByType<PlayerAbilities>();
+        if (sceneLoader == null)
+            sceneLoader = FindFirstObjectByType<SceneLoader>();
 
         Refresh();
     }
@@ -41,20 +55,52 @@ public class PullCooldownUI : MonoBehaviour
 
     void Refresh()
     {
-        bool hasRobot = playerAbilities != null && playerAbilities.HasRobot;
-        float cooldown = hasRobot ? playerAbilities.PullCooldownNormalized : 0f;
+        Transform player = sceneLoader != null ? sceneLoader.playerTrans : null;
+        PlayerAbilities abilities = player != null ? player.GetComponent<PlayerAbilities>() : null;
+        PlayerRoll roll = player != null ? player.GetComponent<PlayerRoll>() : null;
 
-        if (cooldownFill != null)
+        if (abilities != null && abilities.isActiveAndEnabled)
         {
-            cooldownFill.fillAmount = cooldown;
-            cooldownFill.enabled = cooldown > 0f;
+            ShowVisuals(true);
+            bool hasRobot = abilities.HasRobot;
+            SetIcon(hasRobot ? hookIcon : robotIcon);
+            ApplyCooldown(hasRobot ? abilities.PullCooldownNormalized : 0f);
+            return;
         }
 
-        if (icon != null)
+        if (roll != null && roll.isActiveAndEnabled)
         {
-            Color color = icon.color;
-            color.a = hasRobot ? availableIconAlpha : unavailableIconAlpha;
-            icon.color = color;
+            ShowVisuals(true);
+            SetIcon(rollIcon);
+            ApplyCooldown(roll.CooldownNormalized);
+            return;
         }
+
+        ShowVisuals(false);
+    }
+
+    void ShowVisuals(bool visible)
+    {
+        if (visualRoot != null && visualRoot.activeSelf != visible)
+            visualRoot.SetActive(visible);
+    }
+
+    void SetIcon(Sprite sprite)
+    {
+        if (icon == null)
+            return;
+
+        Sprite next = sprite != null ? sprite : fallbackIcon;
+        if (icon.sprite != next)
+            icon.sprite = next;
+    }
+
+    void ApplyCooldown(float cooldown)
+    {
+        if (cooldownFill == null)
+            return;
+
+        cooldownFill.fillAmount = cooldown;
+        cooldownFill.enabled = cooldown > 0f;
     }
 }

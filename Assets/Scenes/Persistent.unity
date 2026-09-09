@@ -6023,7 +6023,7 @@ Transform:
   m_GameObject: {fileID: 1866780329}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7889528, y: 1.1304367, z: -2.0431862}
+  m_LocalPosition: {x: -1.58, y: 0.38, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6885,7 +6885,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cooldownFill: {fileID: 2250000004}
   icon: {fileID: 1566294862}
-  unavailableIconAlpha: 0.8
+  visualRoot: {fileID: 673708111}
+  hookIcon: {fileID: 7747190604827721102, guid: 41f3c8d3a27dbbe4eb9a5ddc486480d0, type: 3}
+  robotIcon: {fileID: 21300000, guid: b3335ed31091f8340a050f1feea8dfb9, type: 3}
+  rollIcon: {fileID: 21300000, guid: 75442438ad06d3d41bbc2be6f7d9e98c, type: 3}
 --- !u!114 &2251000040
 MonoBehaviour:
   m_ObjectHideFlags: 0
