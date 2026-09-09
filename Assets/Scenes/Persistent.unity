@@ -1163,7 +1163,7 @@ MonoBehaviour:
   bulletNumber: {fileID: 1577763056}
   weaponIcons:
   - weaponId: 0
-    icon: {fileID: 4850878575716177662, guid: bb72312c8d08da84ba8cf3c7089083a6, type: 3}
+    icon: {fileID: 1741651863, guid: 39e239e5c96fba94a8d04966b348ff35, type: 3}
   - weaponId: 1
     icon: {fileID: -8021775865167931992, guid: 39e239e5c96fba94a8d04966b348ff35, type: 3}
   - weaponId: 2
@@ -1542,7 +1542,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -59.3, y: -140}
+  m_AnchoredPosition: {x: -49, y: -52.1}
   m_SizeDelta: {x: 110, y: 110}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &673708113
@@ -3171,10 +3171,10 @@ RectTransform:
   - {fileID: 673708112}
   m_Father: {fileID: 1716451669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 303, y: 216}
-  m_SizeDelta: {x: 300, y: 300}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 867.0909, y: -164}
+  m_SizeDelta: {x: 220.0909, y: 144}
   m_Pivot: {x: 1, y: 0}
 --- !u!1001 &1221583059
 PrefabInstance:
@@ -3499,8 +3499,8 @@ MonoBehaviour:
     tutorialScene: {fileID: 11400000, guid: fa121d14202f8a14baed194144de73b2, type: 2}
     tutorialStartPosition: {x: -10, y: 0, z: 0}
   developMode: 1
-  testScene: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
-  testPosition: {x: -5, y: 35, z: 0}
+  testScene: {fileID: 11400000, guid: 7b38a00d04d7bba44b59a461d63ad0ce, type: 2}
+  testPosition: {x: 0, y: 2, z: 0}
   enableDevelopCharacterSwitch: 0
   enableFillAmmoCheat: 1
   enableFullHealthCheat: 0
@@ -6840,7 +6840,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.65}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.93333334}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

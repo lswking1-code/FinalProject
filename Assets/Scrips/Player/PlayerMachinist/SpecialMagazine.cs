@@ -102,6 +102,17 @@ public class SpecialMagazine : MonoBehaviour, ISaveable
     /// </summary>
     public IEnumerable<SpecialAmmoType> EnumerateRounds() => rounds;
 
+    public bool HasRound(SpecialAmmoType type)
+    {
+        foreach (var round in rounds)
+        {
+            if (round == type)
+                return true;
+        }
+
+        return false;
+    }
+
     public void Clear()
     {
         while (rounds.Count > 0)

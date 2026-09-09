@@ -17,6 +17,7 @@ public static class StageMechanismArtSetup
     const string ArtChild = "MechanismArt";
     // 32px source sprites displayed at 1.5 world units, without scaling colliders.
     const float ArtPixelsPerUnit = 32f / 1.5f;
+    const float DoorLampWorldSize = (32f / ArtPixelsPerUnit) * 0.75f;
     static string ReportDirectory => Path.GetFullPath(Path.Combine(Application.dataPath, "../Temp/StageMechanismArt"));
     static readonly string[] ChargeStates = { "Dormant", "Full", "Half", "Low" };
     static readonly string[] CoreStates = { "Intact", "Cracked", "Critical", "Broken" };
@@ -85,16 +86,18 @@ public static class StageMechanismArtSetup
         {
             string path = file.Replace('\\', '/');
             var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            bool isDoorLamp = Path.GetFileNameWithoutExtension(path).StartsWith("ChargeDoorLamp_", StringComparison.Ordinal);
             importer.textureType = TextureImporterType.Sprite;
             importer.spriteImportMode = SpriteImportMode.Single;
-            importer.spritePixelsPerUnit = ArtPixelsPerUnit;
+            // Door lamps are three quarters of the mechanism body's width.
+            importer.spritePixelsPerUnit = isDoorLamp ? 1254f / DoorLampWorldSize : ArtPixelsPerUnit;
             importer.filterMode = FilterMode.Point;
             importer.textureCompression = TextureImporterCompression.Uncompressed;
             importer.mipmapEnabled = false;
             importer.alphaIsTransparency = true;
             importer.npotScale = TextureImporterNPOTScale.None;
             importer.wrapMode = TextureWrapMode.Clamp;
-            importer.maxTextureSize = 256;
+            importer.maxTextureSize = isDoorLamp ? 2048 : 256;
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
             settings.spriteMeshType = SpriteMeshType.FullRect;

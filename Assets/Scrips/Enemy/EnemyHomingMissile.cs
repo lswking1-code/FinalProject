@@ -13,6 +13,8 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
     [SerializeField] float lifetime = 5f;
     [SerializeField] float detectRange = 30f;
     [SerializeField] float ascentSpreadAngle = 12f;
+    [Tooltip("追踪阶段每秒最大转角（度）。升空结束后按此速率弧线对准目标")]
+    [SerializeField] float maxTurnRate = 270f;
     [SerializeField] EnemyGrenadeExplosion explosionPrefab;
 
     Rigidbody2D rb;
@@ -100,7 +102,6 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         {
             lockedOn = true;
             lastTargetPos = GetTargetAimPoint();
-            flyDirection = DirectionTo(lastTargetPos);
             return;
         }
 
@@ -109,20 +110,24 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
         {
             lockedOn = true;
             lastTargetPos = GetTargetAimPoint();
-            flyDirection = DirectionTo(lastTargetPos);
         }
     }
 
     void UpdateHoming()
     {
-        if (!IsTargetValid())
-        {
-            flyDirection = DirectionTo(lastTargetPos);
-            return;
-        }
+        if (IsTargetValid())
+            lastTargetPos = GetTargetAimPoint();
 
-        lastTargetPos = GetTargetAimPoint();
-        flyDirection = DirectionTo(lastTargetPos);
+        SteerTowards(DirectionTo(lastTargetPos));
+    }
+
+    void SteerTowards(Vector2 desired)
+    {
+        if (desired.sqrMagnitude < 0.0001f)
+            return;
+
+        float maxRadians = Mathf.Max(0f, maxTurnRate) * Mathf.Deg2Rad * Time.fixedDeltaTime;
+        flyDirection = Vector3.RotateTowards(flyDirection, desired.normalized, maxRadians, 0f);
     }
 
     void ApplyVelocityAndRotation()
@@ -221,7 +226,9 @@ public class EnemyHomingMissile : MonoBehaviour, IHitCountable, IEnemyProjectile
             return;
         }
 
-        if (IsPlayerCollider(other) || Attack.IsProjectileBlockingCollider(other))
+        if (IsPlayerCollider(other)
+            || Attack.IsProjectileBlockingCollider(other)
+            || Attack.IsRobotShieldBlockingCollider(other))
             Explode();
     }
 

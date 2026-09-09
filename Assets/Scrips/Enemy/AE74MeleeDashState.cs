@@ -72,7 +72,6 @@ public class AE74MeleeDashState : BaseState
         }
 
         robot.UpdateDashPlatformPassThrough();
-        LockTargetFromPlayer();
 
         float dir = GetMoveDirTowardLocked();
         if (IsDashBlocked(dir))
@@ -129,6 +128,7 @@ public class AE74MeleeDashState : BaseState
         robot.SetAnimBool("dash", true);
         robot.SetBoostActive(true);
         robot.SetFlightPhysics(true);
+        // 冲刺目标只在起步时锁一次，之后不再跟踪玩家
         LockTargetFromPlayer();
     }
 
@@ -196,11 +196,9 @@ public class AE74MeleeDashState : BaseState
         lockedTarget = robot != null ? robot.GetCombatAimPoint() : (Vector2)currentEnemy.transform.position;
     }
 
+
     bool HasArrivedForMelee()
     {
-        if (robot.IsPlayerInMeleeRange())
-            return true;
-
         return robot.HasArrivedAt(lockedTarget, robot.dashArriveDistance);
     }
 

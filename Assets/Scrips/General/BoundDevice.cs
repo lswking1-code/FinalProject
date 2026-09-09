@@ -12,6 +12,9 @@ public class BoundDevice : MonoBehaviour
     [SerializeField] EnergyNode[] nodes;
     [Tooltip("与 nodes 一一对应的指示灯")]
     [SerializeField] SpriteRenderer[] lamps;
+    [Tooltip("可选的未充能／已充能图；两张均设置时使用原色显示")]
+    [SerializeField] Sprite lampOffSprite;
+    [SerializeField] Sprite lampOnSprite;
     [SerializeField] Color lampOnColor = new Color(0.35f, 0.75f, 1f, 1f);
     [SerializeField] Color lampOffColor = new Color(0.25f, 0.25f, 0.25f, 1f);
 
@@ -220,7 +223,7 @@ public class BoundDevice : MonoBehaviour
         for (int i = 0; i < lamps.Length; i++)
         {
             if (lamps[i] != null)
-                lamps[i].color = lampOnColor;
+                SetLampVisual(lamps[i], true);
         }
     }
 
@@ -238,7 +241,20 @@ public class BoundDevice : MonoBehaviour
                 continue;
 
             bool on = i < nodeCount && nodes[i] != null && nodes[i].IsCharged;
-            lamps[i].color = on ? lampOnColor : lampOffColor;
+            SetLampVisual(lamps[i], on);
+        }
+    }
+
+    void SetLampVisual(SpriteRenderer lamp, bool on)
+    {
+        if (lampOffSprite != null && lampOnSprite != null)
+        {
+            lamp.sprite = on ? lampOnSprite : lampOffSprite;
+            lamp.color = Color.white;
+        }
+        else
+        {
+            lamp.color = on ? lampOnColor : lampOffColor;
         }
     }
 

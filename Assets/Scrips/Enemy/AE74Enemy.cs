@@ -99,6 +99,10 @@ public class AE74Enemy : Enemy
     public float airScatterAngle = 35f;
     [Tooltip("空中射击结束后、开始飞向落点/下砸前的最短悬停时间（秒）")]
     public float airPostShootHold = 1f;
+    [Tooltip("飞向射击顶点超过此时长则放弃顶点，在当前位置进入空中射击")]
+    [Min(0.05f)] public float apexFlyTimeout = 2f;
+    [Tooltip("飞向落点或下砸超过此时长则放弃原目标，从当前位置正下方砸向最近地面/平台")]
+    [Min(0.05f)] public float stompTimeout = 2f;
     public float heightBiasThreshold = 1.8f;
     public float heightBiasDuration = 2.2f;
     [Min(1f)] public float heightBiasWeightMultiplier = 1.8f;
@@ -1160,24 +1164,40 @@ public class AE74Enemy : Enemy
         EnsurePlayerReference();
         float landingX = player != null ? player.position.x : transform.position.x;
         float startY = (player != null ? player.position.y : transform.position.y) + landingRayStartOffsetY;
+        bool locked = LockStompLandingFromRay(new Vector2(landingX, startY), transform.position.y);
+        hoverPoint = new Vector2(landingX, stompLandingY + stompHoverHeight);
+        return locked;
+    }
 
-        LayerMask mask = physicsCheck != null && physicsCheck.groundLayer.value != 0
-            ? physicsCheck.groundLayer
-            : (LayerMask)(LayerMask.GetMask("Ground") | LayerMask.GetMask("Platform"));
+    public bool TryLockStompLandingBelowSelf()
+    {
+        float feetY = GetFeetY();
+        return LockStompLandingFromRay(new Vector2(transform.position.x, feetY + 0.05f), feetY);
+    }
 
-        RaycastHit2D hit = Physics2D.Raycast(new Vector2(landingX, startY), Vector2.down, landingRayDistance, mask);
+    bool LockStompLandingFromRay(Vector2 origin, float fallbackY)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, landingRayDistance, GetLandingRayMask());
         if (hit.collider == null)
         {
             stompTargetCollider = null;
-            stompLandingY = transform.position.y;
-            hoverPoint = new Vector2(landingX, transform.position.y + stompHoverHeight);
+            stompLandingY = fallbackY;
             return false;
         }
 
         stompTargetCollider = hit.collider;
         stompLandingY = hit.point.y;
-        hoverPoint = new Vector2(hit.point.x, stompLandingY + stompHoverHeight);
         return true;
+    }
+
+    LayerMask GetLandingRayMask()
+    {
+        if (physicsCheck != null && physicsCheck.groundLayer.value != 0)
+            return physicsCheck.groundLayer;
+
+        return stompScanMask.value != 0
+            ? stompScanMask
+            : (LayerMask)(LayerMask.GetMask("Ground") | LayerMask.GetMask("Platform"));
     }
 
     public float GetStompLandingY() => stompLandingY;

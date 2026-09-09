@@ -36,6 +36,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     [Tooltip("下标对应 WeaponId：0 忽略；1/2/3 为每次装填装入的特殊弹数量")]
     [SerializeField] int[] reloadLoadCounts = { 0, 1, 2, 3 };
 
+    [Header("加速模式")]
+    [Tooltip("特殊弹 S 耗尽后，延迟多久退出机器人加速模式")]
+    [SerializeField] float accelerExitDelay = 3f;
+
     [Header("事件")]
     [SerializeField] VoidEventSO newGameEvent;
 
@@ -62,6 +66,9 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     AllyRobot activeRobotController;
     RobotCoreVisual returningCore;
     bool pendingRobotBlastMode;
+    bool pendingRobotShieldMode;
+    bool pendingRobotAccelerMode;
+    float accelerExitTimer;
 
     public bool HasRobot => HasActiveRobot();
     public float PullCooldownNormalized =>
@@ -94,6 +101,23 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     {
         actions.Player.Enable();
         ((ISaveable)this).RegisterSaveData();
+        if (specialMagazine != null)
+        {
+            specialMagazine.RoundLoaded += OnSpecialMagazineChangedForShield;
+            specialMagazine.RoundConsumed += OnSpecialMagazineChangedForShield;
+            specialMagazine.RoundLoaded += OnSpecialMagazineChangedForAcceler;
+            specialMagazine.RoundConsumed += OnSpecialMagazineChangedForAcceler;
+        }
+
+        PlayerMSustainBullet.LiveCountChanged += RefreshRobotShieldMode;
+        RefreshRobotShieldMode();
+        RefreshRobotAccelerMode();
+    }
+
+    void Start()
+    {
+        RefreshRobotShieldMode();
+        RefreshRobotAccelerMode();
     }
 
     void OnDisable()
@@ -107,6 +131,15 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         DestroyReturningCoreImmediate();
         actions.Player.Disable();
         ((ISaveable)this).UnregisterSaveData();
+        if (specialMagazine != null)
+        {
+            specialMagazine.RoundLoaded -= OnSpecialMagazineChangedForShield;
+            specialMagazine.RoundConsumed -= OnSpecialMagazineChangedForShield;
+            specialMagazine.RoundLoaded -= OnSpecialMagazineChangedForAcceler;
+            specialMagazine.RoundConsumed -= OnSpecialMagazineChangedForAcceler;
+        }
+
+        PlayerMSustainBullet.LiveCountChanged -= RefreshRobotShieldMode;
     }
 
     void OnDestroy()
@@ -130,11 +163,16 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         DestroyReturningCoreImmediate();
         DestroyActiveRobot();
         pendingRobotBlastMode = false;
+        pendingRobotShieldMode = false;
+        CancelAccelerExit();
+        pendingRobotAccelerMode = false;
         specialMagazine?.Clear();
     }
 
     void Update()
     {
+        UpdateAccelerModeExit();
+
         if (robotGeneratePoint == null)
             return;
 
@@ -260,6 +298,81 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     {
         pendingRobotBlastMode = enabled;
         activeRobotController?.SetBlastMode(enabled, allowIntro: enabled);
+    }
+
+    void OnSpecialMagazineChangedForShield(SpecialAmmoType _) => RefreshRobotShieldMode();
+
+    void OnSpecialMagazineChangedForAcceler(SpecialAmmoType _) => RefreshRobotAccelerMode();
+
+    void RefreshRobotAccelerMode()
+    {
+        bool hasS = specialMagazine != null && specialMagazine.HasRound(SpecialAmmoType.S);
+        if (hasS)
+        {
+            CancelAccelerExit();
+            pendingRobotAccelerMode = true;
+            if (!HasActiveRobot() || activeRobotController == null)
+                return;
+
+            bool allowIntro = !activeRobotController.IsAccelerMode;
+            activeRobotController.SetAccelerMode(true, allowIntro);
+            return;
+        }
+
+        if (!pendingRobotAccelerMode)
+            return;
+
+        if (accelerExitDelay <= 0f)
+        {
+            ExitRobotAccelerMode();
+            return;
+        }
+
+        if (accelerExitTimer <= 0f)
+            accelerExitTimer = accelerExitDelay;
+    }
+
+    void UpdateAccelerModeExit()
+    {
+        if (accelerExitTimer <= 0f)
+            return;
+
+        if (specialMagazine != null && specialMagazine.HasRound(SpecialAmmoType.S))
+        {
+            CancelAccelerExit();
+            return;
+        }
+
+        accelerExitTimer -= Time.deltaTime;
+        if (accelerExitTimer > 0f)
+            return;
+
+        ExitRobotAccelerMode();
+    }
+
+    void ExitRobotAccelerMode()
+    {
+        CancelAccelerExit();
+        pendingRobotAccelerMode = false;
+        activeRobotController?.SetAccelerMode(false, allowIntro: false);
+    }
+
+    void CancelAccelerExit()
+    {
+        accelerExitTimer = 0f;
+    }
+
+    void RefreshRobotShieldMode()
+    {
+        bool wantShield = (specialMagazine != null && specialMagazine.HasRound(SpecialAmmoType.M))
+            || PlayerMSustainBullet.PresenceCount > 0;
+        pendingRobotShieldMode = wantShield;
+
+        if (!HasActiveRobot() || activeRobotController == null)
+            return;
+
+        bool allowIntro = wantShield && !activeRobotController.IsShieldMode;
+        activeRobotController.SetShieldMode(wantShield, allowIntro);
     }
 
     void UpdateRobotManualMove()
@@ -477,6 +590,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         OnRobotSpawned(robot);
         if (pendingRobotBlastMode)
             robotController?.SetBlastMode(true, allowIntro: false);
+        if (pendingRobotShieldMode)
+            robotController?.SetShieldMode(true, allowIntro: false);
+        if (pendingRobotAccelerMode)
+            robotController?.SetAccelerMode(true, allowIntro: false);
         SpawnOpenCore(worldPos);
         PlaySessionRecorder.Instance?.RecordRobotSummon();
         PlaySessionRecorder.Instance?.RecordAbility2();
@@ -679,5 +796,8 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
 
         DestroyReturningCoreImmediate();
         DestroyActiveRobot();
+        CancelAccelerExit();
+        pendingRobotAccelerMode = false;
+        RefreshRobotAccelerMode();
     }
 }

@@ -227,6 +227,33 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] AnimationClip blastModeFallClip;
     [SerializeField] AnimationClip blastModeLandClip;
     [SerializeField] AnimationClip blastModePullClip;
+
+    [Header("持盾")]
+    [Tooltip("持盾视觉子物体；为空则按名称 Shield 查找")]
+    [SerializeField] GameObject shieldVisual;
+    [SerializeField] Animator shieldAnim;
+    [Tooltip("持盾时地面移速乘数")]
+    [SerializeField] [Range(0.1f, 1f)] float shieldMoveSpeedMultiplier = 0.7f;
+    [Tooltip("身体开盾 Animator 状态名")]
+    public string openShieldStateName = "Robot_OpenShield";
+    [Tooltip("Shield 子物体开盾 Animator 状态名")]
+    public string shieldOpenStateName = "RobotShield_Open";
+    [Tooltip("Shield 子物体关盾 Animator 状态名")]
+    public string shieldCloseStateName = "RobotShield_Close";
+
+    [Header("加速模式")]
+    [Tooltip("加速模式下地面移速乘数")]
+    [SerializeField] float accelerMoveSpeedMultiplier = 1.5f;
+    [Tooltip("加速模式下连携冲刺速度乘数")]
+    [SerializeField] float accelerDashSpeedMultiplier = 1.5f;
+    [Tooltip("进入加速模式时的开场 Animator 状态名")]
+    public string accelerModeStartStateName = "AccelerMode_start";
+    [SerializeField] RobotHomingMissile accelerMissilePrefab;
+    [SerializeField] Transform accelerMissileFirePoint1;
+    [SerializeField] Transform accelerMissileFirePoint2;
+    [Tooltip("连携导弹以玩家为原点的索敌半径")]
+    [SerializeField] float accelerMissileDetectRange = 20f;
+
     [Tooltip("普通攻击判定盒；留空则按 Attact1/Attack2/Attack3/Attack4 查找")]
     [SerializeField] Attack[] normalAttackHitboxes;
 
@@ -262,9 +289,12 @@ public class AllyRobot : MonoBehaviour
     [SerializeField] float pullStuckTimeout = 1.5f;
     [Tooltip("每帧向落点靠近少于此值（世界单位）视为无进展")]
     [SerializeField] float pullStuckProgressEpsilon = 0.02f;
+    [Tooltip("勾选后：钩锁抓住玩家后再次短按 Ability2 可中断并放下。取消勾选则必须拉到落点（卡住超时仍会自动放下）。")]
+    [SerializeField] bool allowInterruptPull = true;
 
     public bool IsPulling => pullInProgress;
     public bool IsPlayerHooked => playerHooked;
+    public bool AllowInterruptPull => allowInterruptPull;
     public bool IsManualMoving =>
         currentState == AllyState.ManualMove || pendingStationOnLand;
     public float PullCooldown => Mathf.Max(0f, pullCooldown);
@@ -285,7 +315,37 @@ public class AllyRobot : MonoBehaviour
 
     public bool IsBlastMode { get; private set; }
 
-    float CurrentMoveSpeed => IsBlastMode ? blastModeMoveSpeed : moveSpeed;
+    public bool IsShieldMode { get; private set; }
+
+    public bool IsAccelerMode { get; private set; }
+
+    /// <summary>
+    /// 该碰撞体是否为当前持盾状态下的 Shield 子物体（含其子节点）。
+    /// </summary>
+    public bool BlocksWithShield(Collider2D collider)
+    {
+        if (!IsShieldMode || shieldVisual == null || !shieldVisual.activeInHierarchy || collider == null)
+            return false;
+
+        Transform shieldTf = shieldVisual.transform;
+        return collider.transform == shieldTf || collider.transform.IsChildOf(shieldTf);
+    }
+
+    float CurrentMoveSpeed
+    {
+        get
+        {
+            float speed = IsBlastMode ? blastModeMoveSpeed : moveSpeed;
+            if (IsShieldMode)
+                speed *= shieldMoveSpeedMultiplier;
+            if (IsAccelerMode)
+                speed *= accelerMoveSpeedMultiplier;
+            return speed;
+        }
+    }
+
+    float CurrentDashSpeed =>
+        IsAccelerMode ? dashSpeed * accelerDashSpeedMultiplier : dashSpeed;
 
     bool IsAirborneBusy =>
         airPhase != RobotAirPhase.Ground || isLanding;
@@ -393,6 +453,17 @@ public class AllyRobot : MonoBehaviour
     Attack[] blastModeDamageTargets;
     int[] blastModeDamageBases;
     const float BlastModeIntroFallbackDuration = 0.35f;
+    const float ShieldIntroFallbackDuration = 0.35f;
+    const float ShieldCloseFallbackDuration = 0.35f;
+    bool shieldIntroPlaying;
+    float shieldIntroTimer;
+    bool shieldClosing;
+    bool shieldCloseAnimSeen;
+    float shieldCloseTimer;
+    bool accelerModeIntroPlaying;
+    float accelerModeIntroTimer;
+    bool accelerBoostLatched;
+    const float AccelerModeIntroFallbackDuration = 0.35f;
     const float MinAirTime = 0.05f;
     const float DescendVelocityThreshold = 0.01f;
     const float MicroAirHitchMaxTime = 0.25f;
@@ -412,6 +483,8 @@ public class AllyRobot : MonoBehaviour
         pullVisual = GetComponentInChildren<AllyRobotPullVisual>(true);
         ResolveBoostVisual();
         ResolveLightingVisual();
+        ResolveShieldVisual();
+        ResolveAccelerMissileFirePoints();
 
         if (jumpObstacleMask.value == 0 && physicsCheck != null)
             jumpObstacleMask = physicsCheck.groundLayer;
@@ -432,6 +505,23 @@ public class AllyRobot : MonoBehaviour
         SetBoostActive(false);
     }
 
+    void ResolveAccelerMissileFirePoints()
+    {
+        if (accelerMissileFirePoint1 == null)
+        {
+            Transform point = transform.Find("MissileFirePoint1");
+            if (point != null)
+                accelerMissileFirePoint1 = point;
+        }
+
+        if (accelerMissileFirePoint2 == null)
+        {
+            Transform point = transform.Find("MissileFirePoint2");
+            if (point != null)
+                accelerMissileFirePoint2 = point;
+        }
+    }
+
     void ResolveLightingVisual()
     {
         if (lightingVisual == null)
@@ -445,6 +535,19 @@ public class AllyRobot : MonoBehaviour
             lightingAnimator = lightingVisual.GetComponent<Animator>();
 
         SetLightingActive(false);
+    }
+
+    void ResolveShieldVisual()
+    {
+        if (shieldVisual == null)
+        {
+            Transform shieldTf = transform.Find("Shield");
+            if (shieldTf != null)
+                shieldVisual = shieldTf.gameObject;
+        }
+
+        if (shieldVisual != null && shieldAnim == null)
+            shieldAnim = shieldVisual.GetComponent<Animator>();
     }
 
     void Start()
@@ -508,6 +611,9 @@ public class AllyRobot : MonoBehaviour
             UpdateAirAndLanding();
 
         UpdateBlastModeIntro();
+        UpdateShieldIntro();
+        UpdateShieldClose();
+        UpdateAccelerModeIntro();
 
         // 并行钩锁（Blast 等忙碌态）需在原状态 Update 之外单独推进
         if (pullInProgress && currentState != AllyState.Pulling)
@@ -607,7 +713,7 @@ public class AllyRobot : MonoBehaviour
                         moveDir = Mathf.Sign(rb.linearVelocity.x);
                     }
                     else if (TryGetChaseMoveDir(out moveDir)
-                        && ApplyHorizontalMove(moveDir, dashSpeed))
+                        && ApplyHorizontalMove(moveDir, CurrentDashSpeed))
                     {
                         movingHorizontally = true;
                     }
@@ -995,6 +1101,7 @@ public class AllyRobot : MonoBehaviour
 
         currentTarget = target;
         pendingBlastFinisher = false;
+        TryFireAccelerComboMissiles();
 
         if (IsWithinDashDecideRange(currentTarget))
         {
@@ -1644,7 +1751,7 @@ public class AllyRobot : MonoBehaviour
 
     public bool TryReleasePulledPlayer()
     {
-        if (!playerHooked)
+        if (!allowInterruptPull || !playerHooked)
             return false;
 
         ReleasePulledPlayer();
@@ -2762,7 +2869,7 @@ public class AllyRobot : MonoBehaviour
             return true;
         }
 
-        rb.linearVelocity = toTarget.normalized * dashSpeed;
+        rb.linearVelocity = toTarget.normalized * CurrentDashSpeed;
         FaceTarget(aim);
         return true;
     }
@@ -2970,7 +3077,7 @@ public class AllyRobot : MonoBehaviour
             && NeedsVerticalComboDash(currentTarget)
             && (currentState == AllyState.ComboDashWindup || currentState == AllyState.ComboDashing);
 
-        SetBoostActive(airComboBoostLatched || groundVerticalDashBoost);
+        SetBoostActive(accelerBoostLatched || airComboBoostLatched || groundVerticalDashBoost);
     }
 
     void SetBoostActive(bool active)
@@ -3396,7 +3503,7 @@ public class AllyRobot : MonoBehaviour
             gravity = Mathf.Abs(Physics2D.gravity.y);
 
         float jumpVelocity = Mathf.Sqrt(2f * gravity * Mathf.Max(0.01f, jumpHeight));
-        float speed = currentState == AllyState.ComboDashing ? dashSpeed : CurrentMoveSpeed;
+        float speed = currentState == AllyState.ComboDashing ? CurrentDashSpeed : CurrentMoveSpeed;
 
         if (physicsCheck != null && physicsCheck.isOnSlope)
         {
@@ -3656,6 +3763,8 @@ public class AllyRobot : MonoBehaviour
         && !IsBusyWithCombo
         && !IsAirborneBusy;
 
+    bool CanPlayShieldIntro => CanPlayBlastModeIntro;
+
     public void SetBlastMode(bool enabled, bool allowIntro)
     {
         if (IsBlastMode == enabled)
@@ -3860,7 +3969,8 @@ public class AllyRobot : MonoBehaviour
 
     void RefreshLocomotionVisual()
     {
-        if (anim == null || IsAirborneBusy || SuppressAirAnim || blastModeIntroPlaying)
+        if (anim == null || IsAirborneBusy || SuppressAirAnim
+            || blastModeIntroPlaying || shieldIntroPlaying || accelerModeIntroPlaying)
             return;
 
         if (IsBusyWithCombo
@@ -3879,5 +3989,365 @@ public class AllyRobot : MonoBehaviour
         anim.SetBool(walkBoolName, walking);
         anim.Play(walking ? "Walk" : "Idle", 0, 0f);
         anim.Update(0f);
+    }
+
+    bool CanPlayAccelerIntro => CanPlayBlastModeIntro;
+
+    public void SetAccelerMode(bool enabled, bool allowIntro)
+    {
+        if (enabled)
+        {
+            if (IsAccelerMode)
+                return;
+
+            IsAccelerMode = true;
+            if (allowIntro && CanPlayAccelerIntro)
+            {
+                BeginAccelerModeIntro();
+                return;
+            }
+
+            LatchAccelerBoost();
+            return;
+        }
+
+        if (!IsAccelerMode && !accelerModeIntroPlaying)
+            return;
+
+        CancelAccelerModeIntro();
+        IsAccelerMode = false;
+        accelerBoostLatched = false;
+        UpdateComboBoostVisual();
+    }
+
+    void BeginAccelerModeIntro()
+    {
+        accelerModeIntroPlaying = true;
+        accelerModeIntroTimer = AccelerModeIntroFallbackDuration;
+        if (anim == null || string.IsNullOrEmpty(accelerModeStartStateName))
+        {
+            LatchAccelerBoost();
+            return;
+        }
+
+        anim.SetBool(walkBoolName, false);
+        anim.ResetTrigger(attackTriggerName);
+        anim.Play(accelerModeStartStateName, 0, 0f);
+        anim.Update(0f);
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (IsAccelerModeStartState(info) && info.length > 0.01f)
+            accelerModeIntroTimer = info.length;
+    }
+
+    void UpdateAccelerModeIntro()
+    {
+        if (!accelerModeIntroPlaying)
+            return;
+
+        if (IsAirborneBusy || IsBusyWithCombo || currentState == AllyState.Recalling || IsPulling)
+        {
+            EndAccelerModeIntro();
+            return;
+        }
+
+        accelerModeIntroTimer -= Time.deltaTime;
+
+        bool animDone = false;
+        if (anim != null)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (IsAccelerModeStartState(info))
+                animDone = info.normalizedTime >= 0.99f;
+        }
+
+        if (accelerModeIntroTimer > 0f && !animDone)
+            return;
+
+        EndAccelerModeIntro();
+    }
+
+    void EndAccelerModeIntro()
+    {
+        accelerModeIntroPlaying = false;
+        accelerModeIntroTimer = 0f;
+        LatchAccelerBoost();
+        RefreshLocomotionVisual();
+    }
+
+    void CancelAccelerModeIntro()
+    {
+        accelerModeIntroPlaying = false;
+        accelerModeIntroTimer = 0f;
+    }
+
+    void LatchAccelerBoost()
+    {
+        accelerBoostLatched = true;
+        SetBoostActive(true);
+    }
+
+    bool IsAccelerModeStartState(AnimatorStateInfo info)
+    {
+        return !string.IsNullOrEmpty(accelerModeStartStateName)
+            && (info.IsName(accelerModeStartStateName)
+                || info.IsName("Base Layer." + accelerModeStartStateName));
+    }
+
+    void TryFireAccelerComboMissiles()
+    {
+        if (!IsAccelerMode || accelerMissilePrefab == null)
+            return;
+
+        Transform missileTarget = FindClosestEnemyToPlayer();
+        if (missileTarget == null)
+            return;
+
+        FireOneAccelerMissile(GetAccelerMissileSpawnPos(), missileTarget);
+    }
+
+    Vector3 GetAccelerMissileSpawnPos()
+    {
+        if (accelerMissileFirePoint1 != null)
+            return accelerMissileFirePoint1.position;
+        if (accelerMissileFirePoint2 != null)
+            return accelerMissileFirePoint2.position;
+
+        return transform.position + Vector3.up * 0.5f;
+    }
+
+    void FireOneAccelerMissile(Vector3 pos, Transform missileTarget)
+    {
+        var missile = Instantiate(accelerMissilePrefab, pos, Quaternion.identity);
+        Collider2D playerCol = owner != null ? owner.GetComponent<Collider2D>() : null;
+        missile.Init(bodyCollider, missileTarget, playerCol);
+    }
+
+    Transform FindClosestEnemyToPlayer()
+    {
+        Vector2 origin = owner != null ? (Vector2)OwnerRangeCenter : (Vector2)transform.position;
+        float range = Mathf.Max(0.01f, accelerMissileDetectRange);
+        float rangeSq = range * range;
+
+        Transform closest = null;
+        float closestSq = rangeSq;
+        ConsiderClosestEnemyToOrigin("Enemy", origin, rangeSq, ref closest, ref closestSq);
+        ConsiderClosestEnemyToOrigin(AirEnemyTag, origin, rangeSq, ref closest, ref closestSq);
+        return closest;
+    }
+
+    void ConsiderClosestEnemyToOrigin(
+        string tag,
+        Vector2 origin,
+        float rangeSq,
+        ref Transform closest,
+        ref float closestSq)
+    {
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag(tag);
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            GameObject e = enemies[i];
+            if (e == null || !e.activeInHierarchy)
+                continue;
+
+            Enemy enemy = e.GetComponent<Enemy>();
+            if (enemy == null)
+                enemy = e.GetComponentInParent<Enemy>();
+            if (enemy != null && !enemy.IsHittable)
+                continue;
+
+            Vector2 aim = GetCombatAimPoint(e.transform);
+            if (!IsAllowedByActiveEncounter(aim))
+                continue;
+
+            float sq = (aim - origin).sqrMagnitude;
+            if (sq > closestSq)
+                continue;
+
+            closestSq = sq;
+            closest = e.transform;
+        }
+    }
+
+    public void SetShieldMode(bool enabled, bool allowIntro)
+    {
+        if (IsShieldMode == enabled)
+            return;
+
+        if (enabled)
+        {
+            BeginShield(allowIntro);
+            return;
+        }
+
+        BeginShieldClose();
+    }
+
+    void BeginShield(bool allowIntro)
+    {
+        CancelShieldClose();
+        ResolveShieldVisual();
+        IsShieldMode = true;
+
+        if (shieldVisual != null)
+            shieldVisual.SetActive(true);
+
+        if (shieldAnim != null && !string.IsNullOrEmpty(shieldOpenStateName))
+        {
+            shieldAnim.Play(shieldOpenStateName, 0, 0f);
+            shieldAnim.Update(0f);
+        }
+
+        if (allowIntro && CanPlayShieldIntro)
+        {
+            BeginShieldIntro();
+            return;
+        }
+
+        CancelShieldIntro();
+    }
+
+    void BeginShieldIntro()
+    {
+        shieldIntroPlaying = true;
+        shieldIntroTimer = ShieldIntroFallbackDuration;
+        if (anim == null || string.IsNullOrEmpty(openShieldStateName))
+            return;
+
+        anim.SetBool(walkBoolName, false);
+        anim.ResetTrigger(attackTriggerName);
+        anim.Play(openShieldStateName, 0, 0f);
+        anim.Update(0f);
+
+        var info = anim.GetCurrentAnimatorStateInfo(0);
+        if (IsOpenShieldState(info) && info.length > 0.01f)
+            shieldIntroTimer = info.length;
+    }
+
+    void UpdateShieldIntro()
+    {
+        if (!shieldIntroPlaying)
+            return;
+
+        if (IsAirborneBusy || IsBusyWithCombo || currentState == AllyState.Recalling || IsPulling)
+        {
+            CancelShieldIntro();
+            return;
+        }
+
+        shieldIntroTimer -= Time.deltaTime;
+
+        bool animDone = false;
+        if (anim != null)
+        {
+            var info = anim.GetCurrentAnimatorStateInfo(0);
+            if (IsOpenShieldState(info))
+                animDone = info.normalizedTime >= 0.99f;
+        }
+
+        if (shieldIntroTimer > 0f && !animDone)
+            return;
+
+        EndShieldIntro();
+    }
+
+    void EndShieldIntro()
+    {
+        shieldIntroPlaying = false;
+        shieldIntroTimer = 0f;
+        RefreshLocomotionVisual();
+    }
+
+    void CancelShieldIntro()
+    {
+        shieldIntroPlaying = false;
+        shieldIntroTimer = 0f;
+    }
+
+    bool IsOpenShieldState(AnimatorStateInfo info)
+    {
+        return !string.IsNullOrEmpty(openShieldStateName)
+            && (info.IsName(openShieldStateName)
+                || info.IsName("Base Layer." + openShieldStateName));
+    }
+
+    void BeginShieldClose()
+    {
+        CancelShieldIntro();
+        IsShieldMode = false;
+        ResolveShieldVisual();
+
+        if (shieldVisual == null || !shieldVisual.activeSelf)
+        {
+            FinishShieldClose();
+            return;
+        }
+
+        shieldClosing = true;
+        shieldCloseAnimSeen = false;
+        shieldCloseTimer = ShieldCloseFallbackDuration;
+
+        if (shieldAnim != null && !string.IsNullOrEmpty(shieldCloseStateName))
+        {
+            shieldAnim.Play(shieldCloseStateName, 0, 0f);
+            shieldAnim.Update(0f);
+            var info = shieldAnim.GetCurrentAnimatorStateInfo(0);
+            if (IsShieldCloseState(info) && info.length > 0.01f)
+                shieldCloseTimer = info.length;
+        }
+    }
+
+    void UpdateShieldClose()
+    {
+        if (!shieldClosing)
+            return;
+
+        if (shieldAnim == null || shieldVisual == null || !shieldVisual.activeSelf || !shieldAnim.isActiveAndEnabled)
+        {
+            FinishShieldClose();
+            return;
+        }
+
+        shieldCloseTimer -= Time.deltaTime;
+
+        var info = shieldAnim.GetCurrentAnimatorStateInfo(0);
+        if (IsShieldCloseState(info))
+        {
+            shieldCloseAnimSeen = true;
+            if (info.normalizedTime >= 1f)
+            {
+                FinishShieldClose();
+                return;
+            }
+        }
+        else if (shieldCloseAnimSeen)
+        {
+            FinishShieldClose();
+            return;
+        }
+
+        if (shieldCloseTimer <= 0f)
+            FinishShieldClose();
+    }
+
+    void CancelShieldClose()
+    {
+        shieldClosing = false;
+        shieldCloseAnimSeen = false;
+        shieldCloseTimer = 0f;
+    }
+
+    void FinishShieldClose()
+    {
+        CancelShieldClose();
+        if (shieldVisual != null)
+            shieldVisual.SetActive(false);
+    }
+
+    bool IsShieldCloseState(AnimatorStateInfo info)
+    {
+        return !string.IsNullOrEmpty(shieldCloseStateName)
+            && (info.IsName(shieldCloseStateName)
+                || info.IsName("Base Layer." + shieldCloseStateName));
     }
 }

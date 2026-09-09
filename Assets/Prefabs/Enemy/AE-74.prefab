@@ -449,7 +449,7 @@ MonoBehaviour:
   meleeDashWeight: 0.25
   machineGunWeight: 0.25
   tacticalJumpWeight: 0.2
-  actionCooldown: 3
+  actionCooldown: 2
   engageRange: 8
   moveSpeed: 3.5
   cannonMissilePrefab: {fileID: 6100000000000000006, guid: a07b24d5e10672912d4f8a3b5c6170e9, type: 3}
@@ -472,12 +472,12 @@ MonoBehaviour:
   gunBase: {fileID: 4996112632473263932}
   firePoint: {fileID: 9100000000000000002}
   projectilePrefab: {fileID: 1207313983663696913, guid: 504c5d92d03bea14b9beba43ecef18e9, type: 3}
-  mgAimDuration: 2
+  mgAimDuration: 1.5
   mgBurstCount: 3
   mgCycleMin: 3
   mgCycleMax: 5
   mgFireInterval: 0.35
-  mgReloadStun: 2
+  mgReloadStun: 1
   mgAimHeightOffset: 0
   jumpHeight: 8
   jumpTakeoffDuration: 0.25
@@ -491,6 +491,8 @@ MonoBehaviour:
   airFireInterval: 0.25
   airScatterAngle: 35
   airPostShootHold: 1
+  apexFlyTimeout: 5
+  stompTimeout: 4
   heightBiasThreshold: 1.8
   heightBiasDuration: 2.2
   heightBiasWeightMultiplier: 1.8
@@ -1050,7 +1052,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &9100000000000000014
 Transform:
   m_ObjectHideFlags: 0

@@ -1,0 +1,5 @@
+Mode: built-in image_gen edit of ChargeDoorLamp_Off.png.
+Source: exec-fca9c264-3716-496e-aa7f-ae1c4795f585.png.
+Production: crop generated red lens, nearest-neighbor downsample to 6x7 and quantize to 8 colors; composite into original 16x16 OFF sprite at (5,5), preserving all housing pixels and original alpha. ON asset and GUIDs unchanged.
+
+Edit the provided tiny 16x16 pixel-art industrial door indicator lamp. Change ONLY the recessed amber/brown central glass lens to RED: dark crimson shadows, clearly red midtones, restrained red highlights. Keep the dark lightning-bolt pictogram recognizable. Preserve every pixel block of the square dark slate metal casing, brass/gold rim, corner rivets, outline and transparent margin. Do not recolor brass rim red. Return the exact same sprite geometry as a nearest-neighbor enlarged representation of a 16x16 logical pixel grid, with transparent background. No added detail, no blur, no text, no checkerboard. The central lamp must read unmistakably red for uncharged state. This is an edit of the sole input image, not a redesign.

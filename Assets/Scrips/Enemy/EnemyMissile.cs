@@ -129,7 +129,9 @@ public class EnemyMissile : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
-        if (IsPlayerCollider(other) || Attack.IsProjectileBlockingCollider(other))
+        if (IsPlayerCollider(other)
+            || Attack.IsProjectileBlockingCollider(other)
+            || Attack.IsRobotShieldBlockingCollider(other))
             Explode();
     }
 

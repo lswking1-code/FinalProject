@@ -205,7 +205,9 @@ public class EnemyRocketHomingMissile : MonoBehaviour, IHitCountable, IEnemyProj
             return;
         }
 
-        if (IsPlayerCollider(other) || Attack.IsProjectileBlockingCollider(other))
+        if (IsPlayerCollider(other)
+            || Attack.IsProjectileBlockingCollider(other)
+            || Attack.IsRobotShieldBlockingCollider(other))
             Explode();
     }
 

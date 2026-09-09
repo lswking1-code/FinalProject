@@ -103,6 +103,15 @@ public class Attack : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 敌人飞行物伤害：直线弹、可被近战抵销的导弹/手雷/冲击波，以及引爆后的爆炸盒。
+    /// 不含挂在敌人本体上的近战、冲撞、自爆判定。
+    /// </summary>
+    public bool IsEnemyFlyingHazard =>
+        attackType == AttackType.Projectile
+        || GetComponentInParent<IEnemyProjectileCancelable>() != null
+        || GetComponentInParent<EnemyGrenadeExplosion>() != null;
+
     void Awake()
     {
         deferSpawnOverlap = ShouldDeferSpawnOverlap();
@@ -236,6 +245,18 @@ public class Attack : MonoBehaviour
     }
 
     /// <summary>
+    /// 机器人持盾挡弹：仅识别 Shield 子物体，不把 PlayerShield 层加入全局墙体挡弹。
+    /// </summary>
+    public static bool IsRobotShieldBlockingCollider(Collider2D collider)
+    {
+        if (collider == null)
+            return false;
+
+        var robot = collider.GetComponentInParent<AllyRobot>();
+        return robot != null && robot.BlocksWithShield(collider);
+    }
+
+    /// <summary>
     /// 场景物击退：Blast 用默认大冲量；已勾击退用 knockbackForce；其余玩家射击/近战用轻推。
     /// </summary>
     public static float EffectivePropKnockbackForce(Attack attacker, float resistance)
@@ -345,6 +366,14 @@ public class Attack : MonoBehaviour
             ReportImpact(collision, MachinistImpactKind.Surface);
             if (attackType == AttackType.Projectile)
                 Destroy(gameObject);
+            return;
+        }
+
+        if (attackType == AttackType.Projectile
+            && IsRobotShieldBlockingCollider(collision))
+        {
+            ReportImpact(collision, MachinistImpactKind.Shield);
+            Destroy(gameObject);
             return;
         }
 

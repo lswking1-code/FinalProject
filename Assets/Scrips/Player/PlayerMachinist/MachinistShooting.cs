@@ -289,9 +289,11 @@ public class MachinistShooting : MonoBehaviour
         if (!hasPendingFire || Time.time < pendingFireAt)
             return;
 
+        var fireDir = pendingFireDir;
+        var prefab = pendingProjectilePrefab;
         hasPendingFire = false;
-        FireProjectile(pendingFireDir, pendingProjectilePrefab);
         pendingProjectilePrefab = null;
+        FireProjectile(fireDir, prefab);
     }
 
     void TrySpawnMachineBurstProjectile()
@@ -622,8 +624,10 @@ public class MachinistShooting : MonoBehaviour
 
         if (isElectric)
         {
+            PlayerMSustainBullet.AddPendingSpawn();
             if (!TryConsumeSpecial(SpecialAmmoType.M))
             {
+                PlayerMSustainBullet.RemovePendingSpawn();
                 Debug.LogWarning("MachinistShooting: ElectricShoot 消耗特殊弹 M 失败，取消出弹。", this);
                 playerAnim.CancelMachinistShootAnim();
                 return;
@@ -732,21 +736,21 @@ public class MachinistShooting : MonoBehaviour
 
     void CancelPendingFire()
     {
+        if (hasPendingFire && pendingProjectilePrefab == specialProjectilePrefabM)
+            PlayerMSustainBullet.RemovePendingSpawn();
+
         hasPendingFire = false;
         pendingProjectilePrefab = null;
     }
 
     void ScheduleFire(FireDir dir, GameObject prefab, float delay)
     {
+        CancelPendingFire();
         if (prefab == null)
-        {
-            CancelPendingFire();
             return;
-        }
 
         if (delay <= 0f)
         {
-            CancelPendingFire();
             FireProjectile(dir, prefab);
             return;
         }

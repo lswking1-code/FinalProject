@@ -20,6 +20,8 @@ public class AE74TacticalJumpState : BaseState
     AE74Enemy robot;
     Phase phase;
     float timer;
+    float apexPhaseTimer;
+    float stompPhaseTimer;
     int cyclesRemaining;
     int shotsRemaining;
     Vector2 apexTarget;
@@ -137,13 +139,20 @@ public class AE74TacticalJumpState : BaseState
         robot.SetAnimBool("fly", true);
         robot.SetBoostActive(true);
         phase = Phase.FlyToApex;
+        apexPhaseTimer = Mathf.Max(0.05f, robot.apexFlyTimeout);
     }
 
     void UpdateFlyToApex()
     {
-        if (!robot.HasArrivedAt(apexTarget, 0.2f))
+        apexPhaseTimer -= Time.deltaTime;
+        if (!robot.HasArrivedAt(apexTarget, 0.2f) && apexPhaseTimer > 0f)
             return;
 
+        BeginAirAttackFromCurrentPosition();
+    }
+
+    void BeginAirAttackFromCurrentPosition()
+    {
         robot.SetBoostActive(true);
         robot.SetAnimBool("fly", false);
         robot.SetAnimBool("airAttack", true);
@@ -261,13 +270,26 @@ public class AE74TacticalJumpState : BaseState
         robot.SetBoostActive(true);
         currentEnemy.ApplyFacing(hoverTarget.x - currentEnemy.transform.position.x);
         phase = Phase.FlyToHover;
+        stompPhaseTimer = Mathf.Max(0.05f, robot.stompTimeout);
     }
 
     void UpdateFlyToHover()
     {
+        stompPhaseTimer -= Time.deltaTime;
+        if (stompPhaseTimer <= 0f)
+        {
+            ForceDropFromCurrentPosition();
+            return;
+        }
+
         if (!robot.HasArrivedAt(hoverTarget, 0.2f))
             return;
 
+        EnterDropFromHover();
+    }
+
+    void EnterDropFromHover()
+    {
         robot.SetBoostActive(false);
         robot.SetAnimBool("fly", false);
         robot.SetAnimBool("landStart", true);
@@ -275,11 +297,44 @@ public class AE74TacticalJumpState : BaseState
         phase = Phase.Drop;
     }
 
+    void ForceDropFromCurrentPosition()
+    {
+        bool locked = robot.TryLockStompLandingBelowSelf();
+        robot.SetBoostActive(false);
+        robot.SetAnimBool("fly", false);
+        robot.SetAnimBool("landStart", true);
+
+        if (!locked || robot.HasReachedStompLanding() || phase == Phase.Drop)
+        {
+            EnterImpact();
+            return;
+        }
+
+        robot.BeginStompFall();
+        phase = Phase.Drop;
+        stompPhaseTimer = 0.5f;
+    }
+
     void UpdateDrop()
     {
-        if (!robot.HasReachedStompLanding())
+        if (robot.HasReachedStompLanding())
+        {
+            EnterImpact();
+            return;
+        }
+
+        if (stompPhaseTimer <= 0f)
             return;
 
+        stompPhaseTimer -= Time.deltaTime;
+        if (stompPhaseTimer > 0f)
+            return;
+
+        ForceDropFromCurrentPosition();
+    }
+
+    void EnterImpact()
+    {
         robot.SnapOntoLanding();
         robot.RestoreStompPlatformIgnores();
         robot.RestoreGroundPhysics();

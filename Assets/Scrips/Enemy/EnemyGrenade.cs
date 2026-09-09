@@ -293,7 +293,8 @@ public class EnemyGrenade : MonoBehaviour, IEnemyProjectileCancelable
             return;
         }
 
-        if (IsPlayerCollider(collision.collider))
+        if (IsPlayerCollider(collision.collider)
+            || Attack.IsRobotShieldBlockingCollider(collision.collider))
         {
             Explode();
             return;

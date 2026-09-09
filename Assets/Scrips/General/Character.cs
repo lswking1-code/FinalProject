@@ -49,6 +49,7 @@ public class Character : MonoBehaviour,ISaveable
     int initialBulletM;
     int initialBulletL;
     PlayerWeaponController weaponController;
+    PlayerAnimBase playerAnim;
 
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
@@ -120,6 +121,7 @@ public class Character : MonoBehaviour,ISaveable
         initialBulletM = BulletM;
         initialBulletL = BulletL;
         weaponController = GetComponent<PlayerWeaponController>();
+        playerAnim = GetComponent<PlayerAnimBase>();
 
         // 玩家回菜单时会被禁用，newGame 需在禁用期间仍能收到
         if (newGameEvent != null)
@@ -219,6 +221,11 @@ public class Character : MonoBehaviour,ISaveable
             return false;
 
         if (attacker == null)
+            return false;
+
+        if (playerAnim != null
+            && playerAnim.IsMachinistMeleeAttacking
+            && attacker.IsEnemyFlyingHazard)
             return false;
 
         if (isDead)

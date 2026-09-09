@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -13,6 +14,11 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
     [SerializeField] float lifetime = 5f;
     [SerializeField] float damageInterval = 0.5f;
     [SerializeField] float abilityPowerRestore = 5f;
+
+    public static int LiveCount { get; private set; }
+    public static int PendingSpawnCount { get; private set; }
+    public static int PresenceCount => LiveCount + PendingSpawnCount;
+    public static event Action LiveCountChanged;
 
     Rigidbody2D rb;
     Attack attack;
@@ -30,6 +36,35 @@ public class PlayerMSustainBullet : MonoBehaviour, IPlayerAmmo
         attack.attackRate = damageInterval > 0f ? 1f / damageInterval : 0f;
         attack.ignoreTag = "Player";
         attack.chargesEnergyNode = true;
+    }
+
+    void OnEnable()
+    {
+        if (PendingSpawnCount > 0)
+            PendingSpawnCount--;
+        LiveCount++;
+        LiveCountChanged?.Invoke();
+    }
+
+    void OnDisable()
+    {
+        LiveCount = Mathf.Max(0, LiveCount - 1);
+        LiveCountChanged?.Invoke();
+    }
+
+    public static void AddPendingSpawn()
+    {
+        PendingSpawnCount++;
+        LiveCountChanged?.Invoke();
+    }
+
+    public static void RemovePendingSpawn()
+    {
+        if (PendingSpawnCount <= 0)
+            return;
+
+        PendingSpawnCount--;
+        LiveCountChanged?.Invoke();
     }
 
     void Start()
