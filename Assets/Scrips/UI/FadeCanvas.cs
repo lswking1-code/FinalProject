@@ -10,6 +10,7 @@ public class FadeCanvas : MonoBehaviour
     public Image fadeImage;
 
     private Coroutine fadeCoroutine;
+    private int fadeGeneration;
 
     private void Awake()
     {
@@ -28,38 +29,52 @@ public class FadeCanvas : MonoBehaviour
 
     private void OnFadeEvent(Color target, float duration, bool fadeIn)
     {
+        fadeGeneration++;
+        int generation = fadeGeneration;
+
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
 
         if (fadeImage != null && target.a > 0.01f)
             fadeImage.raycastTarget = true;
 
-        fadeCoroutine = StartCoroutine(FadeRoutine(target, duration));
+        fadeCoroutine = StartCoroutine(FadeRoutine(target, duration, generation));
     }
 
-    private IEnumerator FadeRoutine(Color target, float duration)
+    private IEnumerator FadeRoutine(Color target, float duration, int generation)
     {
-        if (fadeImage == null)
-            yield break;
-
-        Color start = fadeImage.color;
-        float elapsed = 0f;
-
-        if (duration <= 0f)
+        try
         {
+            if (fadeImage == null)
+                yield break;
+
+            Color start = fadeImage.color;
+            float elapsed = 0f;
+
+            if (duration <= 0f)
+            {
+                fadeImage.color = target;
+                yield break;
+            }
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                fadeImage.color = Color.Lerp(start, target, Mathf.Clamp01(elapsed / duration));
+                yield return null;
+            }
+
             fadeImage.color = target;
-            yield break;
         }
-
-        while (elapsed < duration)
+        finally
         {
-            elapsed += Time.deltaTime;
-            fadeImage.color = Color.Lerp(start, target, elapsed / duration);
-            yield return null;
+            if (generation == fadeGeneration)
+            {
+                fadeCoroutine = null;
+                UpdateRaycastBlocking();
+                fadeEvent?.NotifyCompleted();
+            }
         }
-
-        fadeImage.color = target;
-        UpdateRaycastBlocking();
     }
 
     private void UpdateRaycastBlocking()

@@ -520,44 +520,44 @@ public class SceneLoader : MonoBehaviour, ISaveable
         sceneToLoad = locationToLoad;
         positionToGo = posToGo;
         this.fadeScreen = fadeScreen;
-        if (currentLoadedScene != null)
-        {
-            StartCoroutine(UnLoadPreviousScene());
-        }
-        else
-        {
-            LoadNewScene();
-        }
+        StartCoroutine(TransitionRoutine());
     }
 
-    private IEnumerator UnLoadPreviousScene()
+    private IEnumerator TransitionRoutine()
     {
-        if (playerTrans != null)
-        {
-            if (playerTrans.gameObject.activeInHierarchy)
-                playerTrans.GetComponent<PlayerMovement>()?.BeginExternalControl(false);
-            PlacePlayerAt(positionToGo);
-        }
+        if (playerTrans != null && playerTrans.gameObject.activeInHierarchy)
+            playerTrans.GetComponent<PlayerMovement>()?.BeginExternalControl(false);
 
         GrantPlayerSpawnInvulnerability();
 
-        if (fadeScreen)
+        // 必须先盖住画面，再传送玩家 / Snap 镜头。
+        // 否则相机会立刻跟到下一关坐标，当前场景没有地块，露出 Persistent 相机的蓝色清空色。
+        if (fadeScreen && fadeEvent != null)
         {
-            fadeEvent.FadeIn(fadeDuration);
-            OtherSfx.PlayTransition(transitionEvent);
+            // 首次进入（还没有可卸载的玩法场景）没有旧画面可过渡，直接盖黑。
+            float coverDuration = currentLoadedScene != null ? fadeDuration : 0f;
+            fadeEvent.FadeIn(coverDuration);
+            if (coverDuration > 0f)
+                OtherSfx.PlayTransition(transitionEvent);
+            yield return fadeEvent.WaitUntilCompleted();
         }
 
         bgmManager?.StopCurrent();
 
-        yield return new WaitForSeconds(fadeDuration);
+        if (playerTrans != null)
+            PlacePlayerAt(positionToGo);
 
-        unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
+        if (currentLoadedScene != null)
+        {
+            unloadedSceneEvent.RaiseLoadRequestEvent(sceneToLoad, positionToGo, true);
 
-        // 子弹 / 机器人可能落在 Persistent，卸载关卡前统一清掉
-        EnemySceneCleanup.ClearAll();
-        playerTrans?.GetComponent<PlayerAbilities>()?.DismissRobotImmediate();
+            // 子弹 / 机器人可能落在 Persistent，卸载关卡前统一清掉
+            EnemySceneCleanup.ClearAll();
+            playerTrans?.GetComponent<PlayerAbilities>()?.DismissRobotImmediate();
 
-        yield return currentLoadedScene.sceneReference.UnLoadScene();
+            yield return currentLoadedScene.sceneReference.UnLoadScene();
+        }
+
         if (playerTrans != null)
             playerTrans.gameObject.SetActive(false);
 
@@ -572,6 +572,11 @@ public class SceneLoader : MonoBehaviour, ISaveable
 
     private void OnLoadCompleted(AsyncOperationHandle<SceneInstance> obj)
     {
+        StartCoroutine(FinalizeLoadedScene());
+    }
+
+    private IEnumerator FinalizeLoadedScene()
+    {
         currentLoadedScene = sceneToLoad;
 
         ApplyPlayerSelection();
@@ -584,7 +589,9 @@ public class SceneLoader : MonoBehaviour, ISaveable
             pendingRecordEntry = false;
             pendingSaveAfterRestart = false;
             restoringFromSave = false;
-            return;
+            if (fadeScreen && fadeEvent != null)
+                fadeEvent.FadeOut(fadeDuration);
+            yield break;
         }
 
         PlacePlayerAt(positionToGo);
@@ -593,11 +600,6 @@ public class SceneLoader : MonoBehaviour, ISaveable
         // OnEnable 可能改过 Transform，启用后再钉一次传送点坐标
         PlacePlayerAt(positionToGo);
         BindCameraToPlayer();
-
-        if (fadeScreen)
-        {
-            fadeEvent.FadeOut(fadeDuration);
-        }
 
         bgmManager?.PlayForScene(currentLoadedScene);
 
@@ -631,6 +633,14 @@ public class SceneLoader : MonoBehaviour, ISaveable
             pendingSaveAfterRestart = false;
             runTimer?.Stop();
         }
+
+        // 先套新关 Bounds / Snap，再揭开黑屏，避免淡出第一帧仍是蓝底+角色
+        cameraControl?.SnapCameraToFollowTarget();
+        yield return null;
+        yield return null;
+
+        if (fadeScreen && fadeEvent != null)
+            fadeEvent.FadeOut(fadeDuration);
     }
 
     void NotifyRunTimerSceneLoaded()
@@ -715,10 +725,8 @@ public class SceneLoader : MonoBehaviour, ISaveable
             positionToGo = data.characterPosDict[playerID].ToVector3();
             sceneToLoad = data.GetSavedScene();
 
-            // Character 可能已瞬移，也可能还没轮到；先放到存档点并 Snap。
-            // 否则坠崖读档会先淡出 0.5s，镜头仍停在坑底，视差采到错误基线。
-            PlacePlayerAt(positionToGo);
-
+            // 不要在淡入完成前 Snap：镜头会先跳到存档点/空场景，露出蓝底穿帮。
+            // 黑屏后再 PlacePlayerAt，视差会在遮罩下重新对齐。
             OnLoadRequestEvent(sceneToLoad, positionToGo, true);
         }
     }

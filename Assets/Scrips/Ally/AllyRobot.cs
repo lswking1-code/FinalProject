@@ -1252,9 +1252,9 @@ public class AllyRobot : MonoBehaviour
     void FirePierceLaserNow()
     {
         Transform aimTarget = null;
-        if (IsValidCombatTarget(currentTarget, allowAirEnemy: true))
+        if (IsValidLaserTarget(currentTarget))
             aimTarget = currentTarget;
-        else if (TryAcquireTarget(out Transform acquired, includeAirEnemy: true))
+        else if (TryAcquireTarget(out Transform acquired, includeAirEnemy: true, requireAlive: true))
         {
             // 空中敌不写入 currentTarget，避免激光后误入追击/近战；下层地面敌可以转入普通追击
             if (CanPersistAsChaseTarget(acquired))
@@ -2273,8 +2273,38 @@ public class AllyRobot : MonoBehaviour
         if (!IsAllowedByActiveEncounter(GetCombatAimPoint(target)))
             return false;
 
-        Enemy enemy = target.GetComponent<Enemy>();
+        Enemy enemy = ResolveEnemy(target);
         return enemy == null || enemy.IsHittable;
+    }
+
+    /// <summary>激光只锁还活着的敌人，不含濒死窗口 / 死亡动画中的尸体。</summary>
+    bool IsValidLaserTarget(Transform target)
+    {
+        return IsValidCombatTarget(target, allowAirEnemy: true) && IsEnemyAlive(target);
+    }
+
+    static Enemy ResolveEnemy(Transform target)
+    {
+        if (target == null)
+            return null;
+
+        Enemy enemy = target.GetComponent<Enemy>();
+        return enemy != null ? enemy : target.GetComponentInParent<Enemy>();
+    }
+
+    static bool IsEnemyAlive(Transform target)
+    {
+        if (target == null || !target.gameObject.activeInHierarchy)
+            return false;
+
+        Enemy enemy = ResolveEnemy(target);
+        if (enemy != null && enemy.isDead)
+            return false;
+
+        Character character = target.GetComponent<Character>();
+        if (character == null)
+            character = target.GetComponentInParent<Character>();
+        return character == null || !character.IsDead;
     }
 
     /// <summary>
@@ -2285,9 +2315,13 @@ public class AllyRobot : MonoBehaviour
         return EncounterZone.IsAllyTargetingAllowed(worldPoint);
     }
 
-    bool TryAcquireTarget(out Transform target, bool includeAirEnemy = false, bool nearestToSelf = false)
+    bool TryAcquireTarget(
+        out Transform target,
+        bool includeAirEnemy = false,
+        bool nearestToSelf = false,
+        bool requireAlive = false)
     {
-        target = FindClosestEnemy(includeAirEnemy, nearestToSelf: nearestToSelf);
+        target = FindClosestEnemy(includeAirEnemy, nearestToSelf: nearestToSelf, requireAlive: requireAlive);
         return target != null;
     }
 
@@ -3554,7 +3588,8 @@ public class AllyRobot : MonoBehaviour
         bool includeAirEnemy = false,
         float rangeX = -1f,
         float rangeY = -1f,
-        bool nearestToSelf = false)
+        bool nearestToSelf = false,
+        bool requireAlive = false)
     {
         Transform closestMarked = null;
         Transform closestUnmarked = null;
@@ -3575,6 +3610,7 @@ public class AllyRobot : MonoBehaviour
             groundMaxY,
             !includeAirEnemy,
             nearestToSelf,
+            requireAlive,
             ref closestMarked, ref closestUnmarked,
             ref minMarkedDistY, ref minMarkedDistX,
             ref minUnmarkedDistY, ref minUnmarkedDistX,
@@ -3587,6 +3623,7 @@ public class AllyRobot : MonoBehaviour
                 comboMaxY,
                 false,
                 nearestToSelf,
+                requireAlive,
                 ref closestMarked, ref closestUnmarked,
                 ref minMarkedDistY, ref minMarkedDistX,
                 ref minUnmarkedDistY, ref minUnmarkedDistX,
@@ -3630,6 +3667,7 @@ public class AllyRobot : MonoBehaviour
         float maxDistY,
         bool skipUnreachableAbove,
         bool nearestToSelf,
+        bool requireAlive,
         ref Transform closestMarked,
         ref Transform closestUnmarked,
         ref float minMarkedDistY,
@@ -3645,8 +3683,10 @@ public class AllyRobot : MonoBehaviour
             if (e == null || !e.activeInHierarchy)
                 continue;
 
-            Enemy enemy = e.GetComponent<Enemy>();
+            Enemy enemy = ResolveEnemy(e.transform);
             if (enemy != null && !enemy.IsHittable)
+                continue;
+            if (requireAlive && !IsEnemyAlive(e.transform))
                 continue;
 
             Vector2 aim = GetCombatAimPoint(e.transform);
