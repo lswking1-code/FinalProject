@@ -198,6 +198,13 @@ MonoBehaviour:
   landBounceRetain: 0.25
   fuseTime: 1.5
   explosionPrefab: {fileID: 1000000000000000006, guid: c7d9e1f2a3b4456789abcdef01234567, type: 3}
+  explodeEvent:
+    Guid:
+      Data1: 1591001451
+      Data2: 1218121441
+      Data3: 2097374865
+      Data4: 442677654
+    Path: event:/Player/Gunner/Grenade
   playerHorizontalInherit: 0.5
   playerVerticalInherit: 0
   rollSpeedReference: 12

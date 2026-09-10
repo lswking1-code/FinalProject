@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -25,6 +26,8 @@ public class PlayerGrenade : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float landBounceRetain = 0.25f;
     [SerializeField] float fuseTime = 2.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
+    [Header("音效")]
+    [SerializeField] EventReference explodeEvent;
     [SerializeField, Range(0f, 1f)] float playerHorizontalInherit = 0.5f;
     [SerializeField, Range(0f, 1f)] float playerVerticalInherit = 0f;
     [SerializeField] float rollSpeedReference = 12f;
@@ -192,8 +195,12 @@ public class PlayerGrenade : MonoBehaviour
         hasExploded = true;
         CancelInvoke(nameof(Explode));
 
+        Vector3 explodePos = GetExplosionPosition();
+        if (!explodeEvent.IsNull)
+            FmodAudio.Play(explodeEvent, explodePos);
+
         if (explosionPrefab != null)
-            Instantiate(explosionPrefab, GetExplosionPosition(), Quaternion.identity);
+            Instantiate(explosionPrefab, explodePos, Quaternion.identity);
 
         Destroy(gameObject);
     }

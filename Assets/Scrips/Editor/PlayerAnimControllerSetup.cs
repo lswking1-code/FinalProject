@@ -25,14 +25,15 @@ public static class PlayerAnimControllerSetup
         "Idle", "Run", "Jump", "Fall", "Leap", "LeapAir",
     };
 
-    const string LookUpEndClipPath = "Assets/Arts/Metal Slug/lookup_end.anim";
-    const string LookDownEndClipPath = "Assets/Arts/Metal Slug/lookdown_end.anim";
+    // End 状态用 start clip 倒放（AnimatorState.m_Speed = -1），勿再强制写回 Metal Slug。
+    const string LookUpEndClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-lookup-start.anim";
+    const string LookDownEndClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-lookdown-start.anim";
     const string FullBodyPath = "Assets/Animation/fullbody.controller";
     const string MeleeFullBodyPath = "Assets/Animation/meleeFullBody.controller";
-    const string CrouchShootClipPath = "Assets/Arts/Metal Slug/crouch_shoot.anim";
-    const string ThrowClipPath = "Assets/Arts/Metal Slug/throw.anim";
-    const string AirThrowClipPath = "Assets/Arts/Metal Slug/air_throw.anim";
-    const string CrouchThrowClipPath = "Assets/Arts/Metal Slug/crouch_throw.anim";
+    const string CrouchShootClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-crouch-shoot.anim";
+    const string ThrowClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-throw.anim";
+    const string AirThrowClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-throw.anim";
+    const string CrouchThrowClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-crouch-throw.anim";
     const string MeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-melee.anim";
     const string AirMeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-melee.anim";
     const string CrouchMeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-crouch-melee.anim";
@@ -93,8 +94,9 @@ public static class PlayerAnimControllerSetup
         var sm = controller.layers[0].stateMachine;
         var states = BuildStateMap(sm);
 
-        changed |= EnsureStateMotion(states, "LookUpEnd", LookUpEndClipPath);
-        changed |= EnsureStateMotion(states, "LookDownEnd", LookDownEndClipPath);
+        // 只在 Motion 为空时补默认 Gunner clip，不覆盖手工配置
+        changed |= EnsureStateMotionIfMissing(states, "LookUpEnd", LookUpEndClipPath);
+        changed |= EnsureStateMotionIfMissing(states, "LookDownEnd", LookDownEndClipPath);
 
         changed |= EnsureStartLoopTransition(states, "LookUpStart", "LookUp");
         changed |= EnsureStartLoopTransition(states, "LookDownStart", "LookDown");
@@ -338,17 +340,19 @@ public static class PlayerAnimControllerSetup
 
         var sm = controller.layers[0].stateMachine;
         var states = BuildStateMap(sm);
-        bool changed = EnsureStateMotion(states, "CrouchShoot", CrouchShootClipPath);
+        bool changed = false;
 
         if (!states.ContainsKey("CrouchShoot"))
         {
             var state = sm.AddState("CrouchShoot", new Vector3(600f, 300f, 0f));
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(CrouchShootClipPath);
             if (clip != null)
-            {
                 state.motion = clip;
-                changed = true;
-            }
+            changed = true;
+        }
+        else
+        {
+            changed |= EnsureStateMotionIfMissing(states, "CrouchShoot", CrouchShootClipPath);
         }
 
         if (changed)
@@ -691,8 +695,9 @@ public static class PlayerAnimControllerSetup
         }
 
         // clipPath 为空：只建状态占位，不挂 motion（后续补剪辑）
+        // 已有 motion 不覆盖，避免自动 fixup 把手工配置改回去
         if (!string.IsNullOrEmpty(clipPath))
-            changed |= EnsureStateMotion(states, stateName, clipPath);
+            changed |= EnsureStateMotionIfMissing(states, stateName, clipPath);
         return changed;
     }
 
@@ -774,7 +779,7 @@ public static class PlayerAnimControllerSetup
         if (changed)
         {
             AssetDatabase.SaveAssets();
-            Debug.Log("已为 up/fullbody.controller 配置投掷动画状态。");
+            Debug.Log("已为 up/fullbody.controller 补全缺失的投掷状态（已有 Throw 不会被覆盖）。");
         }
     }
 
@@ -806,7 +811,7 @@ public static class PlayerAnimControllerSetup
         if (changed)
         {
             AssetDatabase.SaveAssets();
-            Debug.Log("已为 fullbody.controller 配置全身近战动画状态（Melee / AirMelee / CrouchMelee）。");
+            Debug.Log("已为 fullbody.controller 补全缺失的近战状态（已有 Melee / AirMelee / CrouchMelee 不会被覆盖）。");
         }
     }
 
@@ -821,6 +826,7 @@ public static class PlayerAnimControllerSetup
             return;
 
         var states = BuildStateMap(controller.layers[0].stateMachine);
+        // 菜单显式执行时写入 Gunner 默认 end clip；自动 fixup 不会强制覆盖
         bool changed = EnsureStateMotion(states, "LookUpEnd", LookUpEndClipPath);
         changed |= EnsureStateMotion(states, "LookDownEnd", LookDownEndClipPath);
 
@@ -828,6 +834,7 @@ public static class PlayerAnimControllerSetup
         {
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
+            Debug.Log("已将 LookUpEnd / LookDownEnd 设为 Gunner start clip（请保持 Speed = -1 倒放）。");
         }
     }
 
@@ -1206,17 +1213,20 @@ public static class PlayerAnimControllerSetup
         Vector3 position)
     {
         var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
-        if (clip == null)
-            return false;
-
         var states = BuildStateMap(sm);
+
         if (states.TryGetValue(stateName, out var existing))
         {
-            if (existing.motion == clip && existing.transitions.Length == 0)
+            // 状态已存在：绝不删重建，也不覆盖已有 motion（手工改的近战/投掷会被保留）
+            if (existing.motion != null || clip == null)
                 return false;
 
-            sm.RemoveState(existing);
+            existing.motion = clip;
+            return true;
         }
+
+        if (clip == null)
+            return false;
 
         var state = sm.AddState(stateName, position);
         state.motion = clip;
@@ -1265,6 +1275,17 @@ public static class PlayerAnimControllerSetup
 
         state.motion = clip;
         return true;
+    }
+
+    static bool EnsureStateMotionIfMissing(Dictionary<string, AnimatorState> states, string stateName, string clipPath)
+    {
+        if (!states.TryGetValue(stateName, out var state))
+            return false;
+
+        if (state.motion != null)
+            return false;
+
+        return EnsureStateMotion(states, stateName, clipPath);
     }
 
     static bool EnsureParameter(string assetPath, string name, AnimatorControllerParameterType type)

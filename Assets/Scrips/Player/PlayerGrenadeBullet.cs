@@ -1,3 +1,4 @@
+using FMODUnity;
 using UnityEngine;
 
 /// <summary>
@@ -13,6 +14,8 @@ public class PlayerGrenadeBullet : MonoBehaviour
     [SerializeField] float speed = 10f;
     [SerializeField] float fuseTime = 1.5f;
     [SerializeField] GrenadeExplosion explosionPrefab;
+    [Header("音效")]
+    [SerializeField] EventReference explodeEvent;
 
     Rigidbody2D rb;
     CircleCollider2D bulletCollider;
@@ -91,8 +94,12 @@ public class PlayerGrenadeBullet : MonoBehaviour
         hasExploded = true;
         CancelInvoke(nameof(Explode));
 
+        Vector3 explodePos = transform.position;
+        if (!explodeEvent.IsNull)
+            FmodAudio.Play(explodeEvent, explodePos);
+
         if (explosionPrefab != null)
-            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+            Instantiate(explosionPrefab, explodePos, Quaternion.identity);
 
         Destroy(gameObject);
     }
