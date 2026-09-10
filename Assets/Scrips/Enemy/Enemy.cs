@@ -1212,13 +1212,7 @@ public class Enemy : MonoBehaviour
     protected virtual bool UseDroneAttackSfx => false;
 
     static EventReference CreateHitEvent(string guid, string path)
-    {
-        return new EventReference
-        {
-            Guid = FMOD.GUID.Parse(guid),
-            Path = path,
-        };
-    }
+        => FmodAudio.Create(guid, path);
 
     public void PlayShieldHitSfx(Attack attacker)
     {

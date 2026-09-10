@@ -22,11 +22,5 @@ public static class ScenePropAudio
         => FmodAudio.Play(evt.IsNull ? FallbackExplode01 : evt, worldPosition);
 
     static EventReference Create(string guid, string path)
-    {
-        return new EventReference
-        {
-            Guid = FMOD.GUID.Parse(guid),
-            Path = path,
-        };
-    }
+        => FmodAudio.Create(guid, path);
 }

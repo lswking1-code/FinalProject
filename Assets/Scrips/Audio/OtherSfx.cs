@@ -27,11 +27,5 @@ public static class OtherSfx
         => FmodAudio.Play(evt.IsNull ? FallbackTransition : evt);
 
     static EventReference Create(string guid, string path)
-    {
-        return new EventReference
-        {
-            Guid = FMOD.GUID.Parse(guid),
-            Path = path,
-        };
-    }
+        => FmodAudio.Create(guid, path);
 }

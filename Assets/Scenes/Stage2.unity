@@ -2979,11 +2979,13 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
-  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+  playDestructionEffect: 1
+  destructionEffect: {fileID: 0}
+  destructionEffectRoot: {fileID: 0}
   hitNormalEvent:
     Guid:
       Data1: 0
@@ -4316,11 +4318,13 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
-  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+  playDestructionEffect: 1
+  destructionEffect: {fileID: 0}
+  destructionEffectRoot: {fileID: 0}
   hitNormalEvent:
     Guid:
       Data1: 0
@@ -11662,6 +11666,8 @@ MonoBehaviour:
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
   playDestructionEffect: 1
+  destructionEffect: {fileID: 0}
+  destructionEffectRoot: {fileID: 0}
   openWorldOffset: {x: 0, y: 10}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -13299,6 +13305,71 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1001 &667711767
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 15.34094
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.6891341
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7677709745587300971, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: isPatrol
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7963831275336051305, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: enableFocusMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8190837749373279148, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
+      propertyPath: m_Name
+      value: EnemyRifleAdvanced (2)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0e29ebfefaf60ef419fba8b64700a643, type: 3}
 --- !u!1 &683362771
 GameObject:
   m_ObjectHideFlags: 0
@@ -14132,14 +14203,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a777ffe46bf6cba45881169ab4fcce86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
-  destructionEffectRoot: {fileID: 1989578864}
   visualRoot: {fileID: 736597193}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
   playDestructionEffect: 1
+  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
+  destructionEffectRoot: {fileID: 1989578864}
   openWorldOffset: {x: 0, y: 0}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -15933,7 +16004,6 @@ Transform:
   - {fileID: 1807324537}
   - {fileID: 1126948444}
   - {fileID: 1713448290}
-  - {fileID: 1107243509}
   - {fileID: 1651573454}
   - {fileID: 300907284}
   - {fileID: 1926720661}
@@ -16210,11 +16280,13 @@ MonoBehaviour:
         m_CallState: 2
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
-  playDestructionEffect: 1
   visualRoot: {fileID: 0}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+  playDestructionEffect: 1
+  destructionEffect: {fileID: 0}
+  destructionEffectRoot: {fileID: 0}
   hitNormalEvent:
     Guid:
       Data1: 0
@@ -20632,6 +20704,8 @@ MonoBehaviour:
   fallbackDestroyDelay: 0.5
   hideWhenFinished: 1
   playDestructionEffect: 1
+  destructionEffect: {fileID: 0}
+  destructionEffectRoot: {fileID: 0}
   openWorldOffset: {x: 0, y: 10}
   openMoveDuration: 0.5
   OnDestroyStarted:
@@ -22011,88 +22085,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 16041bbf81834c84f9eb2295aec15725, type: 3}
---- !u!1001 &1107243508
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 850409019}
-    m_Modifications:
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 9.047209
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.365185
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.4128247
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: isPatrol
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: ammoDropPrefab
-      value: 
-      objectReference: {fileID: 1925841936692377135, guid: 1459b11664fa4f742b90654f93d53300, type: 3}
-    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: dropAmmoOnDeath
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: enableFocusMode
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7963831275336051305, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: enableCrouchActions
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8190837749373279148, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-      propertyPath: m_Name
-      value: EnemyRifle
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
---- !u!4 &1107243509 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7677709745587300971, guid: b3a8ce51c37ebb5488c4c495fd54934b, type: 3}
-  m_PrefabInstance: {fileID: 1107243508}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1111828086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30273,13 +30265,13 @@ MonoBehaviour:
       m_Calls: []
   hitFlashColor: {r: 1, g: 0.35, b: 0.35, a: 1}
   hitFlashDuration: 0.08
-  playDestructionEffect: 1
-  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
-  destructionEffectRoot: {fileID: 1405772974}
   visualRoot: {fileID: 1405772974}
   destroyVisualWorldScale: 1
   destroyStateName: Destroy
   fallbackDestroyDelay: 0.5
+  playDestructionEffect: 1
+  destructionEffect: {fileID: 11400000, guid: 91aefdfef01248a5bb169c438119df88, type: 2}
+  destructionEffectRoot: {fileID: 1405772974}
   hitNormalEvent:
     Guid:
       Data1: 0
@@ -170930,3 +170922,4 @@ SceneRoots:
   - {fileID: 1390365948}
   - {fileID: 1834752429}
   - {fileID: 1905437040}
+  - {fileID: 667711767}

@@ -15,6 +15,21 @@ public static class FmodAudio
     static int worldOneShotFrame = -1;
     static int worldOneShotsThisFrame;
 
+    /// <summary>
+    /// EventReference.Path 仅在 Editor 存在，Player Build 只能赋 Guid。
+    /// </summary>
+    public static EventReference Create(string guid, string path)
+    {
+        var evt = new EventReference
+        {
+            Guid = FMOD.GUID.Parse(guid),
+        };
+#if UNITY_EDITOR
+        evt.Path = path;
+#endif
+        return evt;
+    }
+
     public static void Play(EventReference evt)
     {
         PlayInternal(evt, null, null, 0f, false, false, default);

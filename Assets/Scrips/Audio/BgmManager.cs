@@ -15,11 +15,9 @@ public class BgmManager : MonoBehaviour
     [SerializeField] SceneBgm[] sceneTracks = Array.Empty<SceneBgm>();
     [SerializeField] EventReference menuEvent;
 
-    static readonly EventReference FallbackMenu = new EventReference
-    {
-        Guid = FMOD.GUID.Parse("{54c7770b-4859-415c-be27-5c351b3c4d80}"),
-        Path = "event:/Music/Menu",
-    };
+    static readonly EventReference FallbackMenu = FmodAudio.Create(
+        "{54c7770b-4859-415c-be27-5c351b3c4d80}",
+        "event:/Music/Menu");
 
     EventInstance currentInstance;
     EventReference currentEvent;

@@ -9,11 +9,9 @@ using UnityEngine.UI;
 /// </summary>
 public static class UiSfx
 {
-    public static readonly EventReference FallbackButtonPress01 = new EventReference
-    {
-        Guid = FMOD.GUID.Parse("{d54cf69e-bec2-4758-bd9b-26893e54bc2f}"),
-        Path = "event:/UI/button_press_01",
-    };
+    public static readonly EventReference FallbackButtonPress01 = FmodAudio.Create(
+        "{d54cf69e-bec2-4758-bd9b-26893e54bc2f}",
+        "event:/UI/button_press_01");
 
     static readonly UnityAction PlayClick = PlayButtonPress;
 
