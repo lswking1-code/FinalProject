@@ -9,7 +9,7 @@ using UnityEngine;
 public class HelicopterEnemy : FlyingEnemy
 {
     protected override bool UseMetalHitSfx => false;
-    protected override bool UseExplodeDeathSfx => false;
+    protected override bool UseExplodeDeathSfx => true;
     protected override bool UseDroneAttackSfx => false;
 
     [Header("直升机")]
@@ -24,6 +24,7 @@ public class HelicopterEnemy : FlyingEnemy
     bool hasStarted;
     bool subscribedDie;
     bool isDeparting;
+    bool summonDoorOpen;
     Collider2D[] departDisabledColliders;
 
     protected override void Awake()
@@ -36,6 +37,7 @@ public class HelicopterEnemy : FlyingEnemy
             RecacheSpriteRendererFromChild("Visual");
 
         summonGenerator = GetComponent<EnemyGenerate>();
+        summonGenerator?.SetSummonSpawnGate(CanGenerateSummonedEnemy);
         var generatePoint = transform.Find("GeneratePoint");
         summonGenerator?.SetFallbackSpawnPoint(generatePoint);
         EnsureSummonProfileApplied();
@@ -63,7 +65,43 @@ public class HelicopterEnemy : FlyingEnemy
     {
         if (CurrentState == null)
             return;
+        // Infinite refresh waits for the same door sequence as the first batch.
+        if (!isDead && !isHurt && !isDeparting && !isReturning && !isApproachingSpawnTarget
+            && isAggro && CurrentState != shotState
+            && summonGenerator != null && summonGenerator.IsSummonAttackBusy)
+            SwitchState(NPCState.Shot);
         base.Update();
+    }
+
+    bool CanGenerateSummonedEnemy()
+    {
+        if (!summonDoorOpen || isDead || isHurt || !isActiveAndEnabled)
+            return false;
+        int state = Animator.StringToHash("Base Layer.HoverOpen");
+        return anim == null || !anim.isActiveAndEnabled || anim.runtimeAnimatorController == null
+            || !anim.HasState(0, state) || anim.GetCurrentAnimatorStateInfo(0).fullPathHash == state;
+    }
+
+    public void SetSummonDoorOpen(bool open) => summonDoorOpen = open;
+
+    public void PlaySummonAnimation(string stateName)
+    {
+        if (anim == null || !anim.isActiveAndEnabled || anim.runtimeAnimatorController == null)
+            return;
+        int state = Animator.StringToHash("Base Layer." + stateName);
+        if (anim.HasState(0, state))
+            anim.Play(state, 0, 0f);
+    }
+
+    public bool IsSummonAnimationFinished(string stateName)
+    {
+        if (anim == null || !anim.isActiveAndEnabled || anim.runtimeAnimatorController == null)
+            return true;
+        int state = Animator.StringToHash("Base Layer." + stateName);
+        if (!anim.HasState(0, state))
+            return true;
+        var current = anim.GetCurrentAnimatorStateInfo(0);
+        return !anim.IsInTransition(0) && current.fullPathHash == state && current.normalizedTime >= 1f;
     }
 
     protected override void FixedUpdate()
@@ -169,6 +207,7 @@ public class HelicopterEnemy : FlyingEnemy
 
     public void StopSummonAttack()
     {
+        summonDoorOpen = false;
         summonGenerator?.StopSummon();
     }
 

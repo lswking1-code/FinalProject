@@ -1,0 +1,23 @@
+{
+  "result": "PASS",
+  "sequence": [
+    "OpenDoor",
+    "HoverOpen + spawn",
+    "CloseDoor",
+    "Reload or Depart"
+  ],
+  "frames_per_clip": 16,
+  "fps": 8,
+  "duration_seconds": 2,
+  "binding": "Sprite",
+  "runtime_compile": "PASS",
+  "editor_compile": "PASS",
+  "state_tests": [
+    "normal",
+    "depart",
+    "empty configuration",
+    "interruption",
+    "death"
+  ],
+  "unity_play_mode_tested": false
+}

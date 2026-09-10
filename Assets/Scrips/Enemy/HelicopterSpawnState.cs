@@ -1,69 +1,88 @@
 using UnityEngine;
 
-/// <summary>
-/// 直升机攻击：原地召唤小兵，本批 Instantiate 完成前保持静止，随后进入后摇。
-/// 无限刷新在后台等本批清光后再按间隔补刷，不挡住走位。
-/// </summary>
+/// <summary>开舱完成后悬停召唤，本批生成完毕后关舱，再进入原有后摇或离场判断。</summary>
 public class HelicopterSpawnState : BaseState
 {
+    enum Phase { Opening, Summoning, Closing, Complete }
     HelicopterEnemy helicopter;
-    bool summonStarted;
+    Phase phase;
 
     public override void OnEnter(Enemy enemy)
     {
         currentEnemy = enemy;
         helicopter = enemy as HelicopterEnemy;
-        summonStarted = false;
-
+        phase = Phase.Opening;
         if (helicopter == null)
             return;
 
+        helicopter.SetSummonDoorOpen(false);
         helicopter.FacePlayer();
         helicopter.StopHorizontalMotion();
+        helicopter.blockSeparation = true;
+        helicopter.SetAnimBool("walk", false);
+        helicopter.SetAnimBool("shoot", false);
+        helicopter.SetAnimBool("shootDown", false);
+        helicopter.SetAnimBool("summoning", true);
+        helicopter.anim?.ResetTrigger("hurt");
 
-        if (currentEnemy.anim != null)
+        // Reserve the session with its gate closed, including zero-interval waves.
+        if (!helicopter.StartSummonAttack())
         {
-            currentEnemy.SetAnimBool("walk", false);
-            currentEnemy.SetAnimBool("shoot", true);
-            currentEnemy.SetAnimBool("shootDown", false);
-        }
-
-        summonStarted = helicopter.StartSummonAttack();
-        if (!summonStarted)
+            phase = Phase.Complete;
             helicopter.SwitchState(NPCState.Reload);
+            return;
+        }
+        helicopter.PlaySummonAnimation("OpenDoor");
     }
 
     public override void LogicUpdate()
     {
-        if (helicopter == null || currentEnemy.isDead)
+        if (helicopter == null || helicopter.isDead)
             return;
-
-        if (!summonStarted)
+        switch (phase)
         {
-            helicopter.SwitchState(NPCState.Reload);
-            return;
+            case Phase.Opening:
+                if (!helicopter.IsSummonAnimationFinished("OpenDoor"))
+                    return;
+                phase = Phase.Summoning;
+                helicopter.PlaySummonAnimation("HoverOpen");
+                helicopter.SetSummonDoorOpen(true);
+                break;
+            case Phase.Summoning:
+                if (!helicopter.IsSummonFinished)
+                    return;
+                helicopter.SetSummonDoorOpen(false);
+                phase = Phase.Closing;
+                helicopter.PlaySummonAnimation("CloseDoor");
+                break;
+            case Phase.Closing:
+                if (!helicopter.IsSummonAnimationFinished("CloseDoor"))
+                    return;
+                phase = Phase.Complete;
+                helicopter.SwitchState(helicopter.ShouldDepartAfterSummon ? NPCState.Depart : NPCState.Reload);
+                break;
         }
-
-        if (!helicopter.IsSummonFinished)
-            return;
-
-        helicopter.SwitchState(helicopter.ShouldDepartAfterSummon ? NPCState.Depart : NPCState.Reload);
     }
 
     public override void PhysicsUpdate()
     {
-        if (helicopter == null || currentEnemy.isHurt || currentEnemy.isDead)
-            return;
-
-        helicopter.StopHorizontalMotion();
+        if (helicopter != null && !helicopter.isDead && !helicopter.isHurt)
+            helicopter.StopHorizontalMotion();
     }
 
     public override void OnExit()
     {
-        if (currentEnemy?.anim == null)
+        if (helicopter == null)
             return;
-
-        currentEnemy.SetAnimBool("shoot", false);
-        currentEnemy.SetAnimBool("shootDown", false);
+        helicopter.SetSummonDoorOpen(false);
+        helicopter.blockSeparation = false;
+        if (phase != Phase.Complete)
+            helicopter.StopSummonAttack();
+        helicopter.SetAnimBool("summoning", false);
+        helicopter.SetAnimBool("shoot", false);
+        helicopter.SetAnimBool("shootDown", false);
+        helicopter.anim?.ResetTrigger("hurt");
+        if (!helicopter.isDead && helicopter.isActiveAndEnabled)
+            helicopter.PlaySummonAnimation("Idle");
     }
 }

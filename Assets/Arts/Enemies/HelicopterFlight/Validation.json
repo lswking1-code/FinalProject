@@ -1,0 +1,37 @@
+{
+  "animations": [
+    {
+      "animation": "Fly",
+      "frames": 16,
+      "fps": 8,
+      "duration": 2,
+      "loop": true
+    },
+    {
+      "animation": "OpenDoor",
+      "frames": 16,
+      "fps": 8,
+      "duration": 2,
+      "loop": false
+    },
+    {
+      "animation": "DoorOpenFly",
+      "frames": 16,
+      "fps": 8,
+      "duration": 2,
+      "loop": true
+    }
+  ],
+  "body_pixels_unchanged_outside_rotors_and_door": true,
+  "closed_to_open_start_matches": true,
+  "open_to_hold_phase_matches": true,
+  "canvas": [
+    256,
+    256
+  ],
+  "hover_pixels": 2,
+  "alpha_values": [
+    0,
+    255
+  ]
+}

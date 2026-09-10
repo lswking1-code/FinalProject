@@ -20,6 +20,9 @@ public static class HelicopterAnimControllerSetup
     const string ShootDownClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_downshoot.anim";
     const string HitClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_hit.anim";
     const string DieClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_die.anim";
+    const string OpenClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_OpenDoor.anim";
+    const string HoverClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_HoverOpen.anim";
+    const string CloseClipPath = "Assets/Animations/Enemy/Helicopter/Helicopter_CloseDoor.anim";
 
     [InitializeOnLoadMethod]
     static void AutoEnsure()
@@ -29,7 +32,12 @@ public static class HelicopterAnimControllerSetup
             if (EditorApplication.isPlayingOrWillChangePlaymode)
                 return;
 
-            if (AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath) == null)
+            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            bool hasCloseDoor = false;
+            if (existing != null)
+                foreach (var child in existing.layers[0].stateMachine.states)
+                    hasCloseDoor |= child.state != null && child.state.name == "CloseDoor";
+            if (existing == null || !hasCloseDoor)
                 CreateOrRebuildController(silent: true, assignPrefab: true);
         };
     }
@@ -61,6 +69,7 @@ public static class HelicopterAnimControllerSetup
         EnsureParameter(controller, "shootDown", AnimatorControllerParameterType.Bool);
         EnsureParameter(controller, "hurt", AnimatorControllerParameterType.Trigger);
         EnsureParameter(controller, "dead", AnimatorControllerParameterType.Bool);
+        EnsureParameter(controller, "summoning", AnimatorControllerParameterType.Bool);
 
         var sm = controller.layers[0].stateMachine;
         var states = EnsureStates(sm);
@@ -70,6 +79,9 @@ public static class HelicopterAnimControllerSetup
         states["ShootDown"].motion = shootDown;
         states["Hit"].motion = hit;
         states["Die"].motion = die;
+        states["OpenDoor"].motion = AssetDatabase.LoadAssetAtPath<AnimationClip>(OpenClipPath);
+        states["HoverOpen"].motion = AssetDatabase.LoadAssetAtPath<AnimationClip>(HoverClipPath);
+        states["CloseDoor"].motion = AssetDatabase.LoadAssetAtPath<AnimationClip>(CloseClipPath);
         sm.defaultState = states["Idle"];
 
         EnsureBoolTransition(states["Idle"], states["Fly"], "walk", true);
@@ -86,6 +98,19 @@ public static class HelicopterAnimControllerSetup
         EnsureAnyStateTrigger(sm, states["Hit"], "hurt");
         EnsureExitTimeTransition(states["Hit"], states["Idle"], 0.9f);
         EnsureAnyStateBool(sm, states["Die"], "dead", true, canTransitionToSelf: false);
+
+        // Door progression is owned by HelicopterSpawnState. Hit feedback still flashes/shakes,
+        // but an AnyState hit/shoot animation must not interrupt the summon sequence.
+        foreach (var transition in sm.anyStateTransitions)
+        {
+            if (transition.destinationState == states["Hit"]
+                || transition.destinationState == states["Shoot"]
+                || transition.destinationState == states["ShootDown"])
+            {
+                if (!HasBoolCondition(transition, "summoning", false))
+                    transition.AddCondition(AnimatorConditionMode.IfNot, 0f, "summoning");
+            }
+        }
 
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
@@ -138,7 +163,7 @@ public static class HelicopterAnimControllerSetup
             _ => new Vector3(200f, 200f, 0f)
         };
 
-        foreach (var name in new[] { "Idle", "Fly", "Shoot", "ShootDown", "Hit", "Die" })
+        foreach (var name in new[] { "Idle", "Fly", "Shoot", "ShootDown", "Hit", "Die", "OpenDoor", "HoverOpen", "CloseDoor" })
         {
             if (!map.ContainsKey(name))
                 map[name] = sm.AddState(name, Pos(name));

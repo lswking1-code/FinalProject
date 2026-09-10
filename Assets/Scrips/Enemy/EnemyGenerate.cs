@@ -160,6 +160,11 @@ public class EnemyGenerate : MonoBehaviour
     bool summonSession;
     bool summonInstantiateCompleted;
     int infiniteSpawnLocks;
+    System.Func<bool> summonSpawnGate;
+
+    // Only summon sessions consult this gate; ordinary encounter generators are unchanged.
+    public void SetSummonSpawnGate(System.Func<bool> gate) => summonSpawnGate = gate;
+    bool IsSummonSpawnBlocked => summonSession && summonSpawnGate != null && !summonSpawnGate();
 
     public int WaveCount => waves != null ? waves.Length : 0;
     public int TotalSpawned => totalSpawned;
@@ -556,6 +561,14 @@ public class EnemyGenerate : MonoBehaviour
                     yield break;
                 }
 
+                while (isSpawningActive && IsSummonSpawnBlocked)
+                    yield return null;
+                if (!isSpawningActive)
+                {
+                    ReleaseSpawnLock();
+                    yield break;
+                }
+
                 var instance = SpawnEnemyAt(
                     entry.enemyPrefab,
                     wave,
@@ -664,6 +677,11 @@ public class EnemyGenerate : MonoBehaviour
 
             for (int i = 0; i < countThisEntry; i++)
             {
+                if (!isSpawningActive)
+                    yield break;
+
+                while (isSpawningActive && IsSummonSpawnBlocked)
+                    yield return null;
                 if (!isSpawningActive)
                     yield break;
 
