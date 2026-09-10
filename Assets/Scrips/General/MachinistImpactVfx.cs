@@ -60,7 +60,8 @@ public class MachinistImpactVfx : MonoBehaviour
         bool ammo = attack.GetComponentInParent<PlayerMNormalBullet>(true) != null
             || attack.GetComponentInParent<PlayerMChargeBullet>(true) != null
             || attack.GetComponentInParent<PlayerMLChargeBullet>(true) != null
-            || attack.GetComponentInParent<PlayerMSustainBullet>(true) != null;
+            || attack.GetComponentInParent<PlayerMSustainBullet>(true) != null
+            || attack.GetComponentInParent<PlayerProjectile>(true) != null;
         bool bomb = attack.GetComponentInParent<EnemyMarkBomb>(true) != null
             || attack.GetComponentInParent<BombBlastExplosion>(true) != null;
         if (!melee && !ammo && !bomb) return MachinistImpactKind.None;

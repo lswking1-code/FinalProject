@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -76,7 +77,12 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] WeaponFirePointSet[] firePointSets;
 
     [Header("音效")]
+    [SerializeField] EventReference fireEvent;
+    [SerializeField] string shotTypeParam = "FireType";
     [SerializeField] WeaponFireSfx[] fireEvents;
+    FMOD.Studio.EventInstance laserFireInstance;
+    FMOD.Studio.EventInstance machineFireInstance;
+    bool machineFireLooping;
 
     InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
@@ -84,6 +90,25 @@ public class PlayerShooting : MonoBehaviour
     PlayerMelee playerMelee;
     PlayerWeaponController weaponController;
     Character character;
+    GunnerBodyAlignment bodyAlignment;
+    readonly Queue<Action> pendingShots = new Queue<Action>();
+    Action pendingLaserStart;
+    bool updateLaserLate;
+    FireDir lateLaserDirection;
+    bool UseCalibratedMuzzle => bodyAlignment != null && bodyAlignment.isActiveAndEnabled;
+
+    // Animator has evaluated the current shooting sprite before LateUpdate.
+    void LateUpdate()
+    {
+        while (pendingShots.Count != 0) pendingShots.Dequeue().Invoke();
+        var start = pendingLaserStart;
+        pendingLaserStart = null;
+        if (start != null) start();
+        else if (updateLaserLate && activeLaser != null && !activeLaser.IsEnding)
+            activeLaser.UpdateBeam(GetFirePoint(lateLaserDirection), lateLaserDirection,
+                playerMovement.FaceDirection > 0f ? 0f : 180f);
+        updateLaserLate = false;
+    }
 
     Coroutine burstRoutine;
     float lastSpreadOffset;
@@ -112,6 +137,7 @@ public class PlayerShooting : MonoBehaviour
         playerMelee = GetComponent<PlayerMelee>();
         weaponController = GetComponent<PlayerWeaponController>();
         character = GetComponent<Character>();
+        bodyAlignment = GetComponent<GunnerBodyAlignment>();
     }
 
     void OnEnable()
@@ -136,6 +162,7 @@ public class PlayerShooting : MonoBehaviour
 
     public void ResetCombatState()
     {
+        pendingShots.Clear();
         StopBurst();
         ExitSpinUp();
         CancelChargeShot(playRelease: false);
@@ -155,6 +182,9 @@ public class PlayerShooting : MonoBehaviour
 
     void Update()
     {
+        if (activeLaser == null && laserFireInstance.isValid())
+            FmodAudio.Stop(ref laserFireInstance);
+
         if (ShouldIgnoreHeldAttack())
             return;
 
@@ -465,7 +495,7 @@ public class PlayerShooting : MonoBehaviour
 
         if (!actions.Player.Attack.IsPressed())
         {
-            attackHeld = false;
+            ExitSpinUp(finishTapSound: true);
             return;
         }
 
@@ -486,7 +516,7 @@ public class PlayerShooting : MonoBehaviour
 
         if (playerMovement != null && playerMovement.IsActionLocked)
             return true;
-        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead))
+        if (playerAnim != null && (playerAnim.IsRolling || playerAnim.IsSwitchingWeapon || playerAnim.IsDead || playerAnim.IsMelee))
             return true;
 
         int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
@@ -517,8 +547,16 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    void ExitSpinUp()
+    void ExitSpinUp(bool finishTapSound = false)
     {
+        if (finishTapSound && !machineFireLooping && machineFireInstance.isValid())
+        {
+            machineFireInstance.release();
+            machineFireInstance.clearHandle();
+        }
+        else
+            FmodAudio.Stop(ref machineFireInstance);
+        machineFireLooping = false;
         bool wasSpinning = isSpinningUp;
         isSpinningUp = false;
         attackHeld = false;
@@ -621,9 +659,13 @@ public class PlayerShooting : MonoBehaviour
         }
 
         FireDir dir = ResolveFireDir();
-        Transform point = GetFirePoint(dir);
-        float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
-        activeLaser.UpdateBeam(point, dir, faceY);
+        if (UseCalibratedMuzzle) { updateLaserLate = true; lateLaserDirection = dir; }
+        else
+        {
+            Transform point = GetFirePoint(dir);
+            float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
+            activeLaser.UpdateBeam(point, dir, faceY);
+        }
 
         if (dir == FireDir.Down)
             playerMovement.NotifyAirHangFromDownShot();
@@ -650,6 +692,16 @@ public class PlayerShooting : MonoBehaviour
         if (dir == FireDir.Down)
             playerMovement.NotifyAirHangFromDownShot();
 
+        if (UseCalibratedMuzzle)
+        {
+            pendingLaserStart = () => BeginLaserAtPoint(config, prefab, dir);
+            return true;
+        }
+        return BeginLaserAtPoint(config, prefab, dir);
+    }
+
+    bool BeginLaserAtPoint(WeaponFireConfig config, GameObject prefab, FireDir dir)
+    {
         Transform point = GetFirePoint(dir);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var instance = Instantiate(prefab, point.position, Quaternion.identity);
@@ -665,7 +717,11 @@ public class PlayerShooting : MonoBehaviour
         activeLaser.Begin(point, dir, faceY, character);
         float holdInterval = config != null ? Mathf.Max(0f, config.holdAmmoInterval) : 0f;
         laserNextAmmoTime = holdInterval > 0f ? Time.time + holdInterval : float.PositiveInfinity;
-        PlayFireSfx(config);
+        FmodAudio.Stop(ref laserFireInstance);
+        if (!fireEvent.IsNull)
+            laserFireInstance = FmodAudio.PlayHeld(fireEvent, shotTypeParam, "Laser");
+        else
+            PlayFireSfx(config);
         return true;
     }
 
@@ -688,6 +744,9 @@ public class PlayerShooting : MonoBehaviour
 
     void EndLaser(bool immediate)
     {
+        FmodAudio.Stop(ref laserFireInstance);
+        pendingLaserStart = null;
+        updateLaserLate = false;
         if (playerAnim != null)
             playerAnim.SetSustainShoot(false);
 
@@ -733,7 +792,9 @@ public class PlayerShooting : MonoBehaviour
             if (playerAnim != null && playerAnim.IsRolling)
                 break;
 
-            if (!FireOnce(spreadOffset, config))
+            // A machine-gun burst is one trigger action, even when it emits several bullets.
+            bool playSound = i == 0 || config == null || config.weaponId != 1;
+            if (!FireOnce(spreadOffset, config, playSound))
                 break;
 
             if (i < burstCount - 1 && burstInterval > 0f)
@@ -752,7 +813,7 @@ public class PlayerShooting : MonoBehaviour
         burstRoutine = null;
     }
 
-    bool FireOnce(float spreadOffset, WeaponFireConfig config)
+    bool FireOnce(float spreadOffset, WeaponFireConfig config, bool playSound = true)
     {
         if (!TryConsumeAmmo(config))
             return false;
@@ -760,7 +821,8 @@ public class PlayerShooting : MonoBehaviour
         FireDir dir = ResolveFireDir();
         float offset = NextSpreadOffset(spreadOffset);
         Fire(dir, offset, config);
-        PlayFireSfx(config);
+        if (playSound)
+            PlayFireSfx(config);
         return true;
     }
 
@@ -769,6 +831,34 @@ public class PlayerShooting : MonoBehaviour
         int weaponId = config != null
             ? config.weaponId
             : weaponController != null ? weaponController.CurrentWeaponId : 0;
+
+        if (weaponId == 1 && !fireEvent.IsNull)
+        {
+            // Start once on the first successful shot, then keep the held loop alive.
+            if (isSpinningUp && machineFireLooping && machineFireInstance.isValid())
+                return;
+
+            FmodAudio.Stop(ref machineFireInstance);
+            machineFireLooping = isSpinningUp;
+            machineFireInstance = FmodAudio.PlayHeld(
+                fireEvent, shotTypeParam, machineFireLooping ? "MachineLoop" : "Machine");
+            return;
+        }
+
+        if (!fireEvent.IsNull)
+        {
+            string label = weaponId switch
+            {
+                0 => "Handgun",
+                1 => "Machine",
+                2 => "Laser",
+                3 => "Shotgun",
+                _ => null
+            };
+            if (label != null)
+                FmodAudio.Play(fireEvent, shotTypeParam, label);
+            return;
+        }
 
         EventReference evt = ResolveFireEvent(weaponId);
         if (!evt.IsNull)
@@ -833,6 +923,14 @@ public class PlayerShooting : MonoBehaviour
 
     void Fire(FireDir dir, float spreadOffset, WeaponFireConfig config, GameObject prefabOverride = null)
     {
+        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        if (UseCalibratedMuzzle)
+            pendingShots.Enqueue(() => FireAtPoint(dir, spreadOffset, config, prefabOverride, weaponId));
+        else FireAtPoint(dir, spreadOffset, config, prefabOverride, weaponId);
+    }
+
+    void FireAtPoint(FireDir dir, float spreadOffset, WeaponFireConfig config, GameObject prefabOverride, int weaponId)
+    {
         GameObject prefab = prefabOverride;
         if (prefab == null)
             prefab = config != null ? config.projectilePrefab : null;
@@ -841,7 +939,7 @@ public class PlayerShooting : MonoBehaviour
         if (prefab == null)
             return;
 
-        Transform point = GetFirePoint(dir);
+        Transform point = GetFirePoint(dir, weaponId);
         Vector3 spawnPos = point.position + SpreadPositionDelta(dir, spreadOffset);
         float faceY = playerMovement.FaceDirection > 0f ? 0f : 180f;
         var instance = Instantiate(prefab, spawnPos, Quaternion.identity);
@@ -915,9 +1013,9 @@ public class PlayerShooting : MonoBehaviour
         return null;
     }
 
-    Transform GetFirePoint(FireDir dir)
+    Transform GetFirePoint(FireDir dir, int weaponOverride = -1)
     {
-        int weaponId = weaponController != null ? weaponController.CurrentWeaponId : 0;
+        int weaponId = weaponOverride >= 0 ? weaponOverride : weaponController != null ? weaponController.CurrentWeaponId : 0;
         WeaponFirePointSet set = ResolveFirePointSet(weaponId);
 
         Transform point = dir switch
@@ -929,7 +1027,10 @@ public class PlayerShooting : MonoBehaviour
             _ => null,
         };
 
-        return point != null ? point : transform;
+        var fallback = point != null ? point : transform;
+        return UseCalibratedMuzzle
+            ? bodyAlignment.ResolveMuzzle(weaponId, (GunnerBodyCalibration.MuzzleDirection)dir, fallback)
+            : fallback;
     }
 
     WeaponFirePointSet ResolveFirePointSet(int weaponId)

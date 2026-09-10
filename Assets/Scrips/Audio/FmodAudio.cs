@@ -65,6 +65,11 @@ public static class FmodAudio
         return CreateStarted(evt, null, null, 0f, false, false, 1f, 0f);
     }
 
+    public static EventInstance PlayHeld(EventReference evt, string paramName, string label)
+    {
+        return CreateStarted(evt, paramName, label, 0f, false);
+    }
+
     public static void Stop(ref EventInstance instance)
     {
         Stop(ref instance, FMOD.Studio.STOP_MODE.IMMEDIATE);

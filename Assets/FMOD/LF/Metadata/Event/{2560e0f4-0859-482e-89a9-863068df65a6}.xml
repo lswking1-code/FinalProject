@@ -28,12 +28,9 @@
 		<relationship name="timeline">
 			<destination>{84e4c411-982d-41de-9d5f-992c3855ed65}</destination>
 		</relationship>
-<<<<<<< Updated upstream
 		<relationship name="banks">
 			<destination>{902fbfc7-740f-4b03-82fa-396f8b8a1735}</destination>
 		</relationship>
-=======
->>>>>>> Stashed changes
 	</object>
 	<object class="EventMixer" id="{7f23e9da-9261-4e73-a4a5-5b7d04535fe0}">
 		<relationship name="masterBus">
@@ -58,15 +55,7 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{9b40db9d-c11a-4e53-91cd-9e28582e564b}" />
 	<object class="MarkerTrack" id="{8d4b44e4-4c10-484a-be5a-d07d45df95d8}" />
-<<<<<<< Updated upstream
 	<object class="Timeline" id="{84e4c411-982d-41de-9d5f-992c3855ed65}" />
-=======
-	<object class="Timeline" id="{84e4c411-982d-41de-9d5f-992c3855ed65}">
-		<property name="isProxyEnabled">
-			<value>false</value>
-		</property>
-	</object>
->>>>>>> Stashed changes
 	<object class="EventMixerMaster" id="{b645aa94-3cce-4e5e-a8ae-e9376b4adad5}">
 		<relationship name="effectChain">
 			<destination>{2d6e3dea-4838-4d79-9f71-28b78d934503}</destination>

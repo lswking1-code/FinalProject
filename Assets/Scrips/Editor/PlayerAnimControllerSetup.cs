@@ -33,9 +33,9 @@ public static class PlayerAnimControllerSetup
     const string ThrowClipPath = "Assets/Arts/Metal Slug/throw.anim";
     const string AirThrowClipPath = "Assets/Arts/Metal Slug/air_throw.anim";
     const string CrouchThrowClipPath = "Assets/Arts/Metal Slug/crouch_throw.anim";
-    const string MeleeClipPath = "Assets/Arts/Metal Slug/melee.anim";
-    const string AirMeleeClipPath = "Assets/Arts/Metal Slug/air_melee.anim";
-    const string CrouchMeleeClipPath = "Assets/Arts/Metal Slug/crouch_melee.anim";
+    const string MeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-melee.anim";
+    const string AirMeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-melee.anim";
+    const string CrouchMeleeClipPath = "Assets/Arts/PlayerG/jane the gunner/gunner-crouch-melee.anim";
 
     [InitializeOnLoadMethod]
     static void ScheduleFixup()
@@ -786,22 +786,15 @@ public static class PlayerAnimControllerSetup
 
         bool changed = false;
 
-        var upController = AssetDatabase.LoadAssetAtPath<AnimatorController>(UpPath);
-        if (upController != null)
-        {
-            var upSm = upController.layers[0].stateMachine;
-            changed |= EnsureDirectPlayState(upSm, "Melee", MeleeClipPath, new Vector3(900f, 400f, 0f));
-            changed |= EnsureDirectPlayState(upSm, "AirMelee", AirMeleeClipPath, new Vector3(900f, 500f, 0f));
-
-            if (changed)
-                EditorUtility.SetDirty(upController);
-        }
-
+        // 站立/空中近战已改为全身动画，挂在 fullbody；up 不再维护 Melee/AirMelee
         var fullBodyController = AssetDatabase.LoadAssetAtPath<AnimatorController>(FullBodyPath);
         if (fullBodyController != null)
         {
             var sm = fullBodyController.layers[0].stateMachine;
-            bool fullBodyChanged = EnsureDirectPlayState(sm, "CrouchMelee", CrouchMeleeClipPath, new Vector3(600f, 500f, 0f));
+            bool fullBodyChanged = false;
+            fullBodyChanged |= EnsureDirectPlayState(sm, "Melee", MeleeClipPath, new Vector3(600f, 600f, 0f));
+            fullBodyChanged |= EnsureDirectPlayState(sm, "AirMelee", AirMeleeClipPath, new Vector3(600f, 700f, 0f));
+            fullBodyChanged |= EnsureDirectPlayState(sm, "CrouchMelee", CrouchMeleeClipPath, new Vector3(600f, 500f, 0f));
 
             if (fullBodyChanged)
             {
@@ -813,7 +806,7 @@ public static class PlayerAnimControllerSetup
         if (changed)
         {
             AssetDatabase.SaveAssets();
-            Debug.Log("已为 up/fullbody.controller 配置近战动画状态。");
+            Debug.Log("已为 fullbody.controller 配置全身近战动画状态（Melee / AirMelee / CrouchMelee）。");
         }
     }
 

@@ -135,9 +135,9 @@ TextureImporter:
         x: 16
         y: 32
         width: 16
-        height: 16
+        height: 14
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -156,10 +156,10 @@ TextureImporter:
         serializedVersion: 2
         x: 48
         y: 32
-        width: 16
-        height: 16
+        width: 15
+        height: 15
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -168,6 +168,28 @@ TextureImporter:
       bones: []
       spriteID: ceda5c49bc3ec5a00800000000000000
       internalID: 746722101750509036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PlayerAvatars_2
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 32
+        width: 16
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b8ef4e2c8f619446871430a0857dd5d
+      internalID: 908515624
       vertices: []
       indices: 
       edges: []
@@ -188,6 +210,7 @@ TextureImporter:
     nameFileIdTable:
       PlayerAvatars_0: 8592066377331726578
       PlayerAvatars_1: 746722101750509036
+      PlayerAvatars_2: 908515624
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

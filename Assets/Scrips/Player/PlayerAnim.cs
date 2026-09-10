@@ -335,6 +335,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             TryAutoExitFullBody(); // normalizedTime 兜底退出，配合 Animation Event
             MaintainChargeCompletion();
             MaintainDispatchCompletion();
+            MaintainMeleeCompletion(); // 站立/空中全身近战
             MaintainWeaponSwitchCompletion();
             MaintainRecallCompletion();
             wasGrounded = grounded;
@@ -1917,7 +1918,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         return true;
     }
 
-    public override bool TryPlayMeleeAnim() // 近战可打断射击/投掷；站立/空中/蹲伏对应不同动画
+    public override bool TryPlayMeleeAnim() // 近战可打断射击/投掷；蹲伏播 CrouchMelee，站立/空中切全身 Melee/AirMelee
     {
         if (isSwitchingWeapon || isRecalling || isRolling)
             return false;
@@ -1946,38 +1947,29 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             ResetFullBodyParams();
         }
 
-        string stateName;
-        Animator animator;
+        if (crouchAnimator == null)
+            return false;
 
+        string stateName;
         if (isCrouching)
         {
             stateName = CrouchMeleeStateName;
-            animator = crouchAnimator;
-            if (crouchAnimator != null)
-                crouchAnimator.SetBool("IsRun", false);
+            crouchAnimator.SetBool("IsRun", false);
+            crouchAnimator.Play(stateName, 0, 0f);
         }
         else
         {
-            if (upperAnimator == null)
-                return false;
-
-            animator = upperAnimator;
+            // 站立/空中近战已改为全身片：切 FullBody 显示层播 Melee/AirMelee
             if (IsUpperLookActive())
                 StopLook();
 
             stateName = airPhase == AirPhaseType.Ground ? MeleeStateName : AirMeleeStateName;
+            EnterFullBody(stateName, autoExitOnComplete: false);
         }
-
-        if (animator == null)
-            return false;
 
         isMelee = true;
         activeMeleeStateName = stateName;
-        activeMeleeAnimator = animator;
-        animator.Play(stateName, 0, 0f);
-        // 与射击/上看相同：挡住 AnyState Ground→Idle，避免出刀被 0.25s 混合掐掉
-        if (animator == upperAnimator)
-            BlockUpperAirPhaseForHorizontalShoot();
+        activeMeleeAnimator = crouchAnimator;
         return true;
     }
 
@@ -3474,6 +3466,14 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                 return;
             }
 
+            // 全身近战刚切入 FullBody 时可能仍报旧态；仅当仍锁定近战 FullBody 态时钉回
+            if (activeMeleeAnimator == crouchAnimator
+                && activeFullBodyState == activeMeleeStateName)
+            {
+                activeMeleeAnimator.Play(activeMeleeStateName, 0, 0f);
+                return;
+            }
+
             CompleteMelee();
             return;
         }
@@ -3559,6 +3559,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     void CompleteMelee()
     {
         bool restoreLower = lowerMeleePlayed;
+        string finishedState = activeMeleeStateName;
         isMelee = false;
         isMachinistMeleeAttacking = false;
         CurrentMachinistMeleeStep = -1;
@@ -3590,7 +3591,24 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
         }
 
-            RestoreUpperLocomotion();
+        // 站立/空中全身近战：仅当 FullBody 仍停在近战态时才切回 Split（Land 等已接管则勿 Exit）
+        if (displayMode == BodyDisplayMode.FullBody
+            && (activeFullBodyState == MeleeStateName
+                || activeFullBodyState == AirMeleeStateName
+                || activeFullBodyState == finishedState))
+        {
+            // FullBody 期间未推进空中相位：落地后出刀结束时对齐地面，避免回到 Jump/Fall
+            if (wasGrounded)
+            {
+                airPhase = AirPhaseType.Ground;
+                airTrack = AirTrack.None;
+            }
+
+            ExitFullBody();
+            return;
+        }
+
+        RestoreUpperLocomotion();
     }
 
     void RestoreLowerLocomotionAfterMelee()

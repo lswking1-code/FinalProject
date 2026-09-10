@@ -167,6 +167,8 @@ public class WeaponDefinition : ScriptableObject
             case "s_crouch_shoot": return crouchChargeStart != null ? crouchChargeStart : crouchShoot;
             case "melee": return melee;
             case "air_melee": return airMelee;
+            case "gunner-melee": return melee;
+            case "gunner-air-melee": return airMelee != null ? airMelee : melee;
             case "throw": return throwClip;
             case "air_throw": return airThrow;
             case "stand_draw": return weaponSwitch;
@@ -191,6 +193,7 @@ public class WeaponDefinition : ScriptableObject
             case "crouch_turn": return crouchTurn;
             case "crouch_shoot": return crouchShoot;
             case "crouch_melee": return null; // 与 default_down_melee 同为共用滑行，勿替换成各武器 melee
+            case "gunner-crouch-melee": return crouchMelee;
             case "crouch_throw": return crouchThrow;
             case "crouch_draw": return crouchWeaponSwitch;
             case "stop": return land;

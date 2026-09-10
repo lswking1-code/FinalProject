@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+  <object class="ParameterPreset" id="{64c758b0-5acc-460c-9df5-855059cbf62d}">
+    <property name="name">
+      <value>FireType</value>
+    </property>
+    <relationship name="folder">
+      <destination>{313956a8-dc28-4cd2-9916-5c14f7341619}</destination>
+    </relationship>
+    <relationship name="parameter">
+      <destination>{083acd86-7c5c-4fdf-be59-a772531ed229}</destination>
+    </relationship>
+  </object>
+  <object class="GameParameter" id="{083acd86-7c5c-4fdf-be59-a772531ed229}">
+    <property name="parameterType">
+      <value>2</value>
+    </property>
+    <property name="maximum">
+      <value>5</value>
+    </property>
+    <property name="enumerationLabels">
+      <value>Handgun</value>
+      <value>Machine</value>
+      <value>Laser</value>
+      <value>Shotgun</value>
+      <value>MachineLoop</value>
+    </property>
+  </object>
+</objects>

@@ -42,7 +42,7 @@ public class Attack : MonoBehaviour
     [SerializeField] float hitCameraShakeForce = 0.12f;
 
     [Header("机械师命中特效")]
-    [Tooltip("Auto 自动识别机械师子弹/近战/机器人；None 关闭；其他值手动指定风格")]
+    [Tooltip("Auto 自动识别机械师/枪手飞行弹/近战/机器人；None 关闭；其他值手动指定风格")]
     public MachinistImpactKind impactKind = MachinistImpactKind.Auto;
     [Min(0.1f)] public float impactScale = 1f;
     readonly Dictionary<int, float> nextImpactTime = new();

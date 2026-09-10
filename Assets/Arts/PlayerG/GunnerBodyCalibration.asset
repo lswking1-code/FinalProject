@@ -1,0 +1,159 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 389ded84009e48f0beae07e30a56bf3a, type: 3}
+  m_Name: GunnerBodyCalibration
+  m_EditorClassIdentifier: 
+  muzzles:
+  - sprite: {fileID: -1699397989058246190, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 33, y: 14}
+  - sprite: {fileID: 2029206013704033595, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 33, y: 14}
+  - sprite: {fileID: 5429197540603541561, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 33, y: 14}
+  - sprite: {fileID: 4637686459543447306, guid: 2cebfed5c982d6147bdf6856cc4f3439, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 13, y: 17}
+  - sprite: {fileID: 4563632865165510088, guid: 2cebfed5c982d6147bdf6856cc4f3439, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 13, y: 17}
+  - sprite: {fileID: -2858866333528786374, guid: 2cebfed5c982d6147bdf6856cc4f3439, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 13, y: 17}
+  - sprite: {fileID: -3132004009275683268, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 7, y: 42}
+  - sprite: {fileID: -7975679525596232905, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 7, y: 42}
+  - sprite: {fileID: -7051622088348378712, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    weaponId: 0
+    direction: 0
+    pixel: {x: 7, y: 42}
+  referenceUpper: {fileID: -1699397989058246190, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+  referenceLower: {fileID: -2686248833934887984, guid: a732afb60347c9645aecaf4d1cf34559, type: 3}
+  upperOffsets:
+  - sprite: {fileID: 4774989906211701594, guid: a732afb60347c9645aecaf4d1cf34559, type: 3}
+    offset: {x: 0.0625, y: 0}
+  - sprite: {fileID: 5886405625457484029, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.375, y: -0.375}
+  - sprite: {fileID: 5970068015517850559, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.3125, y: -0.375}
+  - sprite: {fileID: -7091594463713679760, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.3125, y: -0.25}
+  - sprite: {fileID: 6709826170790160612, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.375, y: -0.3125}
+  - sprite: {fileID: 6025087587199759131, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.3125, y: -0.25}
+  - sprite: {fileID: -7783217441721149309, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.3125, y: -0.1875}
+  - sprite: {fileID: -1699397989058246190, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  - sprite: {fileID: 2029206013704033595, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  - sprite: {fileID: 5429197540603541561, guid: 9a7fda58def9daa45af18ecd1f8fe2e1, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  - sprite: {fileID: -3132004009275683268, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    offset: {x: 0.125, y: -0.0625}
+  - sprite: {fileID: -7975679525596232905, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    offset: {x: 0.0625, y: -0.0625}
+  - sprite: {fileID: -7051622088348378712, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    offset: {x: 0.0625, y: -0.0625}
+  - sprite: {fileID: -2386361255473481756, guid: ecac67ddb5503e940939ea9ce8e4885d, type: 3}
+    offset: {x: 0.25, y: -0.0625}
+  - sprite: {fileID: 6044624421750433817, guid: d363c9eb443af9343be80d87aaa50946, type: 3}
+    offset: {x: 0.0625, y: 0.125}
+  - sprite: {fileID: -3735464710097499104, guid: d363c9eb443af9343be80d87aaa50946, type: 3}
+    offset: {x: 0.0625, y: 0.125}
+  - sprite: {fileID: -2197684882654565915, guid: d363c9eb443af9343be80d87aaa50946, type: 3}
+    offset: {x: 0.0625, y: 0.125}
+  - sprite: {fileID: -7980907808355833646, guid: d363c9eb443af9343be80d87aaa50946, type: 3}
+    offset: {x: 0.0625, y: 0.125}
+  - sprite: {fileID: 1354487962585833794, guid: fe08b4bc0d8571d4cab568f8eb024cbe, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  - sprite: {fileID: -1739209753947221274, guid: fe08b4bc0d8571d4cab568f8eb024cbe, type: 3}
+    offset: {x: 0.125, y: 0.0625}
+  - sprite: {fileID: 8854456363786959365, guid: fe08b4bc0d8571d4cab568f8eb024cbe, type: 3}
+    offset: {x: 0.125, y: 0.0625}
+  - sprite: {fileID: -1746709932613518225, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0.0625, y: -0.0625}
+  - sprite: {fileID: 2587191992709993110, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0.0625, y: 0.0625}
+  - sprite: {fileID: -8454996817650695104, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0, y: 0.125}
+  - sprite: {fileID: 6605279492109467261, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0.0625, y: 0.1875}
+  - sprite: {fileID: -8265241010297768998, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0, y: 0.1875}
+  - sprite: {fileID: -4655768038695097987, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: 0, y: 0.1875}
+  - sprite: {fileID: 1251489519, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0.0625, y: -0.4375}
+  - sprite: {fileID: -1351857190, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0.0625, y: -0.4375}
+  - sprite: {fileID: -1993311666, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0, y: -0.4375}
+  - sprite: {fileID: 1615843681, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0.0625, y: -0.625}
+  - sprite: {fileID: 494580691, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0, y: -0.4375}
+  - sprite: {fileID: -715033319, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: 0.0625, y: -0.3125}
+  - sprite: {fileID: -4209432580125678787, guid: fe08b4bc0d8571d4cab568f8eb024cbe, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  - sprite: {fileID: -4583378322926281252, guid: fe08b4bc0d8571d4cab568f8eb024cbe, type: 3}
+    offset: {x: 0.125, y: 0.125}
+  lowerOffsets:
+  - sprite: {fileID: 8419694448722416407, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0.0625, y: 0.0625}
+  - sprite: {fileID: 419232446604880701, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: -0.0625, y: 0.125}
+  - sprite: {fileID: -6445999096339323663, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0, y: 0.0625}
+  - sprite: {fileID: 6634835881227900511, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0, y: 0}
+  - sprite: {fileID: 8091154136575981637, guid: a9ec1bfae9b5b7946a43437d244a94d8, type: 3}
+    offset: {x: 0, y: 0.125}
+  - sprite: {fileID: -7995835175048534505, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.25, y: -0.125}
+  - sprite: {fileID: 1925725775542122441, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.25, y: 0.0625}
+  - sprite: {fileID: -1069195834241318112, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.1875, y: 0.25}
+  - sprite: {fileID: -7600055347590176534, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.1875, y: 0.3125}
+  - sprite: {fileID: -7796988547437300649, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.125, y: 0.3125}
+  - sprite: {fileID: 2229915938349460254, guid: 40f48f9961b34ca4ba17c610c009e7f7, type: 3}
+    offset: {x: -0.125, y: 0.3125}
+  - sprite: {fileID: 811731715, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.25, y: 0}
+  - sprite: {fileID: 1829527570, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.1875, y: -0.0625}
+  - sprite: {fileID: -949839657, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.3125, y: 0.125}
+  - sprite: {fileID: 1937489619, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.1875, y: -0.25}
+  - sprite: {fileID: -1067071664, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.0625, y: -0.25}
+  - sprite: {fileID: -668989586, guid: 78c9a8c508a73e8428dbc0cc80c025cd, type: 3}
+    offset: {x: -0.0625, y: -0.125}

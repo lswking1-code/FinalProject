@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -78,9 +78,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1401127153
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8191937077164327482, guid: bb72312c8d08da84ba8cf3c7089083a6, type: 3}
+  m_Sprite: {fileID: 1588918758720023409, guid: 5b0c09fff04b3144da30cefce7cf4c48, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -186,11 +186,16 @@ MonoBehaviour:
   attackRange: 0
   attackRate: 0
   attackType: 1
+  chargesEnergyNode: 0
   requireTag: 
   ignoreTag: 
   enableKnockback: 0
   knockbackForce: 0
   knockbackDuration: 0.15
+  shieldDamageMultiplier: 1
+  cancelEnemyProjectiles: 0
   enableHitCameraShake: 0
   hitCameraShakeEvent: {fileID: 0}
   hitCameraShakeForce: 0.12
+  impactKind: 2
+  impactScale: 1

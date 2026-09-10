@@ -28,12 +28,9 @@
 		<relationship name="timeline">
 			<destination>{4212cf5b-f81e-4a44-9098-2e8a5b3c5493}</destination>
 		</relationship>
-<<<<<<< Updated upstream
 		<relationship name="banks">
 			<destination>{902fbfc7-740f-4b03-82fa-396f8b8a1735}</destination>
 		</relationship>
-=======
->>>>>>> Stashed changes
 	</object>
 	<object class="EventMixer" id="{1cb7102c-36cb-4e8c-b73e-f6bc99d3cc80}">
 		<relationship name="masterBus">
@@ -41,6 +38,9 @@
 		</relationship>
 	</object>
 	<object class="MasterTrack" id="{96c49536-ee26-4bd2-bbdf-00fbdef11f67}">
+		<relationship name="modules">
+			<destination>{e55f66a7-1882-4993-daa4-bb5566778899}</destination>
+		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{9efb0ff1-f190-480f-aae7-44ea2f29a084}</destination>
 		</relationship>
@@ -58,15 +58,11 @@
 	</object>
 	<object class="EventAutomatableProperties" id="{11615d0c-b032-46a3-ad04-4a6a21e95445}" />
 	<object class="MarkerTrack" id="{1bc76ab0-74f2-46c2-bbd2-8e84d5ed0c55}" />
-<<<<<<< Updated upstream
-	<object class="Timeline" id="{4212cf5b-f81e-4a44-9098-2e8a5b3c5493}" />
-=======
 	<object class="Timeline" id="{4212cf5b-f81e-4a44-9098-2e8a5b3c5493}">
-		<property name="isProxyEnabled">
-			<value>false</value>
-		</property>
+		<relationship name="modules">
+			<destination>{e55f66a7-1882-4993-daa4-bb5566778899}</destination>
+		</relationship>
 	</object>
->>>>>>> Stashed changes
 	<object class="EventMixerMaster" id="{9efb0ff1-f190-480f-aae7-44ea2f29a084}">
 		<relationship name="effectChain">
 			<destination>{b6148e81-9315-457c-aa15-83b513a023ad}</destination>
@@ -76,6 +72,14 @@
 		</relationship>
 		<relationship name="mixer">
 			<destination>{1cb7102c-36cb-4e8c-b73e-f6bc99d3cc80}</destination>
+		</relationship>
+	</object>
+	<object class="SingleSound" id="{e55f66a7-1882-4993-daa4-bb5566778899}">
+		<property name="length">
+			<value>1.121</value>
+		</property>
+		<relationship name="audioFile">
+			<destination>{cef11a4f-4416-4470-a936-5a167549ef9d}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusEffectChain" id="{b23cd61b-5938-4e85-b6a9-10eef20c300d}">

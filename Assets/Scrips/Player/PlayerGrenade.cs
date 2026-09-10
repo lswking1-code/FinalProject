@@ -86,6 +86,7 @@ public class PlayerGrenade : MonoBehaviour
         if (animator != null)
             animator.Play(RollingStateName, 0, 0f);
 
+        rb.SetRotation(0f);
         SyncRollAnimSpeed();
         Invoke(nameof(Explode), fuseTime);
     }
@@ -94,6 +95,12 @@ public class PlayerGrenade : MonoBehaviour
     {
         if (!hasExploded)
             SyncRollAnimSpeed();
+    }
+
+    void LateUpdate()
+    {
+        if (!hasExploded)
+            SyncHalfTurnRotation();
     }
 
     void SyncRollAnimSpeed()
@@ -105,6 +112,22 @@ public class PlayerGrenade : MonoBehaviour
             ? Mathf.Clamp01(Mathf.Abs(rb.linearVelocity.x) / rollSpeedReference)
             : 1f;
         animator.speed = Mathf.Lerp(minRollAnimSpeed, maxRollAnimSpeed, t);
+    }
+
+    // 16 帧美术只覆盖 180°：clip 前半 0°，后半同一套帧 + 转 180°，拼成完整 360° 循环
+    void SyncHalfTurnRotation()
+    {
+        if (animator == null || rb == null)
+            return;
+
+        var info = animator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(RollingStateName))
+            return;
+
+        float cycleT = info.normalizedTime - Mathf.Floor(info.normalizedTime);
+        float z = cycleT < 0.5f ? 0f : 180f;
+        if (!Mathf.Approximately(rb.rotation, z))
+            rb.SetRotation(z);
     }
 
     void OnCollisionEnter2D(Collision2D collision)

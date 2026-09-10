@@ -118,6 +118,7 @@ GameObject:
   - component: {fileID: 8012345678901234520}
   - component: {fileID: 9123456789012345678}
   - component: {fileID: 8134567890123456789}
+  - component: {fileID: 7228234809107681330}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -422,6 +423,14 @@ MonoBehaviour:
     crouchPoint: {fileID: 3480843724505779087}
     upPoint: {fileID: 8590570490092612770}
     downPoint: {fileID: 2800417885547717695}
+  fireEvent:
+    Guid:
+      Data1: -1899960633
+      Data2: 1252113322
+      Data3: -2006205256
+      Data4: -1974435737
+    Path: event:/Player/Gunner/Fire
+  shotTypeParam: FireType
   fireEvents:
   - weaponId: 0
     fireEvent:
@@ -693,6 +702,22 @@ MonoBehaviour:
   rollSpeed: 7
   rollCooldown: 1
   rollRotations: 1
+--- !u!114 &7228234809107681330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3670684932593068974}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a667316c2452490ca20ae6d2b0d22fd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  calibration: {fileID: 11400000, guid: 3f4499f9a0a94a1290e6269b5194fb97, type: 2}
+  upperRenderer: {fileID: 1023164809671827214}
+  lowerRenderer: {fileID: 8363412531166404644}
+  fullBody: {fileID: 6077945265886347755}
 --- !u!1 &3708017859273649367
 GameObject:
   m_ObjectHideFlags: 0
@@ -802,7 +827,7 @@ SpriteRenderer:
   m_SortingLayerID: -624170957
   m_SortingLayer: 4
   m_SortingOrder: 1
-  m_Sprite: {fileID: -6585611207321660851, guid: 679d7b52bb6d77b48a78d2fd622f2a35, type: 3}
+  m_Sprite: {fileID: 5861036338467439589, guid: a732afb60347c9645aecaf4d1cf34559, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1006,7 +1031,7 @@ SpriteRenderer:
   m_SortingLayerID: -624170957
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1454891065, guid: 679d7b52bb6d77b48a78d2fd622f2a35, type: 3}
+  m_Sprite: {fileID: 6169156223758080463, guid: c7166cc8ad7684a4a9e21dd7278520b2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1128,7 +1153,7 @@ SpriteRenderer:
   m_SortingLayerID: -624170957
   m_SortingLayer: 4
   m_SortingOrder: 0
-  m_Sprite: {fileID: -1187161852, guid: 679d7b52bb6d77b48a78d2fd622f2a35, type: 3}
+  m_Sprite: {fileID: -2686248833934887984, guid: a732afb60347c9645aecaf4d1cf34559, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -1354,7 +1379,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.1, y: 0}
+  m_Offset: {x: -0.03699857, y: 0.19926596}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1364,7 +1389,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.9, y: 1.2}
+  m_Size: {x: 1.1739973, y: 1.4207492}
   m_EdgeRadius: 0
 --- !u!114 &7012345678901234508
 MonoBehaviour:
