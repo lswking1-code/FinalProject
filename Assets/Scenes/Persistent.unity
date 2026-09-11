@@ -3618,7 +3618,7 @@ MonoBehaviour:
   - character: {fileID: 11400000, guid: 7c3d4e5f67890123456789abcdef0123, type: 2}
     tutorialScene: {fileID: 11400000, guid: fa121d14202f8a14baed194144de73b2, type: 2}
     tutorialStartPosition: {x: -20, y: 1, z: 0}
-  developMode: 1
+  developMode: 0
   testScene: {fileID: 11400000, guid: 7b38a00d04d7bba44b59a461d63ad0ce, type: 2}
   testPosition: {x: -50, y: 1, z: 0}
   enableDevelopCharacterSwitch: 0
@@ -3736,9 +3736,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7e4c91a2f8d4e6b9c1d0a3e5f7b8c2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  goldMaxMinutes: 9
-  silverMaxMinutes: 12
-  bronzeMaxMinutes: 15
+  goldMaxMinutes: 20
+  silverMaxMinutes: 25
+  bronzeMaxMinutes: 30
   goldColor: {r: 1, g: 0.84, b: 0, a: 1}
   silverColor: {r: 0.75, g: 0.75, b: 0.78, a: 1}
   bronzeColor: {r: 0.8, g: 0.5, b: 0.2, a: 1}
