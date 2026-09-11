@@ -7,6 +7,7 @@ Shader "Combat/Machinist Ballistic Pixel Impact"
         _AlphaCutoff ("Remove soft fringe", Range(0,1)) = 0.65
         _PixelStep ("Source pixels per visible pixel", Float) = 4
         [HideInInspector] _PixelPivot ("Pixel grid anchor", Vector) = (0,0,0,0)
+        [HideInInspector] _SourceTextureSize ("Source texture size", Vector) = (1,1,1,1)
     }
     SubShader
     {
@@ -40,7 +41,7 @@ Shader "Combat/Machinist Ballistic Pixel Impact"
             SAMPLER(sampler_MainTex);
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
-                float4 _MainTex_TexelSize;
+                float4 _SourceTextureSize;
                 float _AlphaCutoff;
                 float _PixelStep;
                 float4 _PixelPivot;
@@ -61,13 +62,13 @@ Shader "Combat/Machinist Ballistic Pixel Impact"
             {
                 // Quantized sampling and alpha cutout keep the generated source crisp in motion.
                 float step = max(1.0, _PixelStep);
-                float2 pixel = i.uv * _MainTex_TexelSize.zw;
+                float2 pixel = i.uv * _SourceTextureSize.zw;
                 float2 center = (floor((pixel - _PixelPivot.xy) / step) + 0.5) * step + _PixelPivot.xy;
-                float2 uv = center * _MainTex_TexelSize.xy;
+                float2 uv = center * _SourceTextureSize.xy;
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 // Preserve thin sparks when reducing detail: retain the strongest covered sample
                 // in each coarse cell, while the output remains one flat, hard-edged pixel.
-                float2 offset = _MainTex_TexelSize.xy * step * 0.3;
+                float2 offset = _SourceTextureSize.xy * step * 0.3;
                 float4 a = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + offset);
                 float4 b = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv - offset);
                 float4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv + float2(offset.x, -offset.y));

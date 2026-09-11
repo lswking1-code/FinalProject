@@ -292,6 +292,7 @@ public class MachinistImpactVfx : MonoBehaviour
             Vector2 pivot = sprite.rect.position + sprite.pivot;
             b.properties.SetFloat("_PixelStep", b.pixelStep);
             b.properties.SetVector("_PixelPivot", new Vector4(pivot.x, pivot.y, 0f, 0f));
+            SetSourceTextureSize(b.properties, sprite);
             b.core.SetPropertyBlock(b.properties);
         }
         else if (!b.ballistic && !b.legacyPixelGrid) b.core.SetPropertyBlock(null);
@@ -304,6 +305,7 @@ public class MachinistImpactVfx : MonoBehaviour
             b.accentProperties.SetFloat("_PixelStep", Mathf.Max(1f,
                 library.ballisticWorldPixelSize * 24f / b.accentScale));
             b.accentProperties.SetVector("_PixelPivot", new Vector4(pivot.x, pivot.y, 0f, 0f));
+            SetSourceTextureSize(b.accentProperties, b.accent.sprite);
             b.accent.SetPropertyBlock(b.accentProperties);
         }
         else if (!b.legacyPixelGrid) b.accent.SetPropertyBlock(null);
@@ -324,9 +326,18 @@ public class MachinistImpactVfx : MonoBehaviour
                 b.debrisProperties.SetFloat("_PixelStep", Mathf.Max(1f,
                     library.ballisticWorldPixelSize * ppu / b.debrisScale));
                 b.debrisProperties.SetVector("_PixelPivot", new Vector4(pivot.x, pivot.y, 0f, 0f));
+                SetSourceTextureSize(b.debrisProperties, b.debris.sprite);
                 b.debris.SetPropertyBlock(b.debrisProperties);
             }
         }
+    }
+
+    static void SetSourceTextureSize(MaterialPropertyBlock properties, Sprite sprite)
+    {
+        // Use the actual texture (including an atlas), without Unity's reserved _TexelSize property.
+        Texture texture = sprite.texture;
+        properties.SetVector("_SourceTextureSize",
+            new Vector4(1f / texture.width, 1f / texture.height, texture.width, texture.height));
     }
 
     static void SetFrame(SpriteRenderer renderer, Sprite[] frames, int frame, float scale, float pixelsPerUnit)

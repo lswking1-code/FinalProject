@@ -175,6 +175,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isLookingUp;
     bool isLookingDown;
     bool isEndingLookUp;
+    string initializedUpperLookEndState;
     bool isEndingLookDown;
     bool jumpInvokedThisFrame; // 本帧是否起跳，防止同帧误判为走出平台
     bool wasGrounded;          // 上一帧是否在地面
@@ -292,6 +293,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     void LateUpdate() // 每帧末尾清零 jumpInvokedThisFrame
     {
         jumpInvokedThisFrame = false;
+        ApplyPendingWeaponIds();
     }
 
     public override void UpdateAirState(bool grounded) // PlayerMovement 传入地面检测结果
@@ -1982,10 +1984,10 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         ApplyOverridesToController(upperOverrideController, def);
         ApplyOverridesToController(crouchOverrideController, def);
 
-        if (upperAnimator != null && HasAnimatorParam(upperAnimator, WeaponIdParam))
-            upperAnimator.SetInteger(WeaponIdParam, def.weaponId);
-        if (crouchAnimator != null && HasAnimatorParam(crouchAnimator, WeaponIdParam))
-            crouchAnimator.SetInteger(WeaponIdParam, def.weaponId);
+        pendingWeaponId = def.weaponId;
+        upperWeaponIdPending = true;
+        crouchWeaponIdPending = true;
+        ApplyPendingWeaponIds();
 
         InvalidateUpperLocomotionCache();
     }
@@ -2225,6 +2227,9 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     public override void SetLookUp(bool active)
     {
+        if (isSwitchingWeapon)
+            return;
+
         if (isCharging || machinistMeleeStance || isMachinistMeleeAttacking)
         {
             if (machinistMeleeStance && IsUpperLookActive())
@@ -2266,6 +2271,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             }
 
             isLookingUp = false;
+            initializedUpperLookEndState = null;
             isEndingLookUp = true;
             SetUpperLookBool(IsLookUpParam, false);
             if (isShooting && IsUpperBodyLookShootState(activeShootStateName))
@@ -2278,13 +2284,16 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                     || info.IsName(LookUpElectricShootStateName)
                     || info.IsName(LookUpMachineShootStateName)
                     || info.IsName(LookUpShootStateName))
-                    upperAnimator.Play(LookUpEndStateName, 0, 0f);
+                    PlayUpperLookEnd(LookUpEndStateName);
             }
         }
     }
 
     public override void SetLookDown(bool active)
     {
+        if (isSwitchingWeapon)
+            return;
+
         if (isCharging || machinistMeleeStance || isMachinistMeleeAttacking)
         {
             if (machinistMeleeStance && IsUpperLookActive())
@@ -2326,6 +2335,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             }
 
             isLookingDown = false;
+            initializedUpperLookEndState = null;
             isEndingLookDown = true;
             SetUpperLookBool(IsLookDownParam, false);
             if (isShooting && IsUpperBodyLookShootState(activeShootStateName))
@@ -2338,7 +2348,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
                     || info.IsName(LookDownElectricShootStateName)
                     || info.IsName(LookDownMachineShootStateName)
                     || info.IsName(LookDownShootStateName))
-                    upperAnimator.Play(LookDownEndStateName, 0, 0f);
+                    PlayUpperLookEnd(LookDownEndStateName);
             }
         }
     }
@@ -2954,7 +2964,10 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     void SyncUpperLocomotionViaPlay()
     {
-        if (upperAnimator == null)
+        // Full-body actions may finish before ExitFullBody reactivates the split objects.
+        // Leave the cache untouched so activation can perform the pending synchronization.
+        if (upperAnimator == null || !upperAnimator.isActiveAndEnabled
+            || !upperAnimator.isInitialized || upperAnimator.runtimeAnimatorController == null)
             return;
 
         int phase = (int)airPhase;
@@ -3102,24 +3115,40 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (upperAnimator == null)
             return;
 
-        var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
+        string stateName = isEndingLookUp ? LookUpEndStateName
+            : isEndingLookDown ? LookDownEndStateName : null;
+        if (stateName == null)
+            return;
 
-        if (isEndingLookUp)
+        var info = upperAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!info.IsName(stateName))
         {
-            if (info.IsName(LookUpEndStateName) && info.normalizedTime >= 1f)
-                CompleteUpperLookEnd();
-            else if (!isShooting && !info.IsName(LookUpEndStateName))
-                upperAnimator.Play(LookUpEndStateName, 0, 0f);
+            if (!isShooting)
+                PlayUpperLookEnd(stateName);
             return;
         }
 
-        if (isEndingLookDown)
+        bool reverse = info.speed * info.speedMultiplier < 0f;
+        if (initializedUpperLookEndState != stateName)
         {
-            if (info.IsName(LookDownEndStateName) && info.normalizedTime >= 1f)
-                CompleteUpperLookEnd();
-            else if (!isShooting && !info.IsName(LookDownEndStateName))
-                upperAnimator.Play(LookDownEndStateName, 0, 0f);
+            initializedUpperLookEndState = stateName;
+            // Gunner reuses the look-start clip at speed -1. Seed its last frame
+            // once, after Play has taken effect and the state's speed is available.
+            if (reverse && info.length > 0.001f)
+            {
+                upperAnimator.Play(stateName, 0, 1f);
+                return;
+            }
         }
+
+        if (info.length <= 0.001f || (reverse ? info.normalizedTime <= 0f : info.normalizedTime >= 1f))
+            CompleteUpperLookEnd();
+    }
+
+    void PlayUpperLookEnd(string stateName)
+    {
+        initializedUpperLookEndState = null;
+        upperAnimator.Play(stateName, 0, 0f);
     }
 
     void CompleteUpperLookEnd()
@@ -3144,9 +3173,10 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         {
             pendingLookUpReleaseAfterCombo = false;
             isLookingUp = false;
+            initializedUpperLookEndState = null;
             isEndingLookUp = true;
             SetUpperLookBool(IsLookUpParam, false);
-            upperAnimator.Play(LookUpEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookUpEndStateName);
             return;
         }
 
@@ -3154,21 +3184,22 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         {
             pendingLookDownReleaseAfterCombo = false;
             isLookingDown = false;
+            initializedUpperLookEndState = null;
             isEndingLookDown = true;
             SetUpperLookBool(IsLookDownParam, false);
-            upperAnimator.Play(LookDownEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookDownEndStateName);
             return;
         }
 
         if (isEndingLookUp)
         {
-            upperAnimator.Play(LookUpEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookUpEndStateName);
             return;
         }
 
         if (isEndingLookDown)
         {
-            upperAnimator.Play(LookDownEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookDownEndStateName);
             return;
         }
 
@@ -3198,18 +3229,20 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (isLookingUp)
         {
             isLookingUp = false;
+            initializedUpperLookEndState = null;
             isEndingLookUp = true;
             SetUpperLookBool(IsLookUpParam, false);
-            upperAnimator.Play(LookUpEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookUpEndStateName);
             return;
         }
 
         if (isLookingDown)
         {
             isLookingDown = false;
+            initializedUpperLookEndState = null;
             isEndingLookDown = true;
             SetUpperLookBool(IsLookDownParam, false);
-            upperAnimator.Play(LookDownEndStateName, 0, 0f);
+            PlayUpperLookEnd(LookDownEndStateName);
             return;
         }
 
@@ -3489,6 +3522,12 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (!isSwitchingWeapon || activeWeaponSwitchAnimator == null || string.IsNullOrEmpty(activeWeaponSwitchStateName))
             return;
 
+        if (!activeWeaponSwitchAnimator.isActiveAndEnabled)
+        {
+            CompleteWeaponSwitch();
+            return;
+        }
+
         var info = activeWeaponSwitchAnimator.GetCurrentAnimatorStateInfo(0);
         if (!info.IsName(activeWeaponSwitchStateName))
         {
@@ -3496,7 +3535,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
             return;
         }
 
-        if (info.normalizedTime < 1f)
+        if (info.length > 0.001f && info.normalizedTime < 1f)
             return;
 
         CompleteWeaponSwitch();
@@ -3737,7 +3776,11 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
     void ResetFullBodyParams()
     {
-        if (crouchAnimator == null)
+        // FullBody 默认关闭；未激活时 SetBool 会刷 "Animator is not playing an AnimatorController"
+        if (crouchAnimator == null
+            || !crouchAnimator.isActiveAndEnabled
+            || !crouchAnimator.isInitialized
+            || crouchAnimator.runtimeAnimatorController == null)
             return;
 
         crouchAnimator.SetBool("IsRun", false);
@@ -3819,9 +3862,33 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         overrideController.ApplyOverrides(pairs);
     }
 
+    int pendingWeaponId;
+    bool upperWeaponIdPending;
+    bool crouchWeaponIdPending;
+
+    void ApplyPendingWeaponIds()
+    {
+        ApplyPendingWeaponId(upperAnimator, ref upperWeaponIdPending);
+        ApplyPendingWeaponId(crouchAnimator, ref crouchWeaponIdPending);
+    }
+
+    void ApplyPendingWeaponId(Animator animator, ref bool pending)
+    {
+        // The full-body Animator can be inactive when the starting weapon is assigned.
+        // Preserve the assignment until its controller is initialized after activation.
+        if (!pending || animator == null || !animator.isActiveAndEnabled
+            || !animator.isInitialized || animator.runtimeAnimatorController == null)
+            return;
+
+        if (HasAnimatorParam(animator, WeaponIdParam))
+            animator.SetInteger(WeaponIdParam, pendingWeaponId);
+        pending = false;
+    }
+
     static bool HasAnimatorParam(Animator animator, string paramName)
     {
-        if (animator == null || string.IsNullOrEmpty(paramName))
+        if (animator == null || !animator.isInitialized
+            || animator.runtimeAnimatorController == null || string.IsNullOrEmpty(paramName))
             return false;
 
         foreach (var param in animator.parameters)

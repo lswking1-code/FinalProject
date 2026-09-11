@@ -7,6 +7,7 @@ Shader "Combat/Machinist Pixel Impact"
         [HideInInspector] _PreserveSpriteColor ("Preserve sprite color", Float) = 0
         [HideInInspector] _PixelStep ("Source pixels per visible pixel", Float) = 0
         [HideInInspector] _PixelPivot ("Pixel grid anchor", Vector) = (0,0,0,0)
+        [HideInInspector] _SourceTextureSize ("Source texture size", Vector) = (1,1,1,1)
     }
     SubShader
     {
@@ -41,7 +42,7 @@ Shader "Combat/Machinist Pixel Impact"
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 float _PreserveSpriteColor;
-                float4 _MainTex_TexelSize;
+                float4 _SourceTextureSize;
                 float _PixelStep;
                 float4 _PixelPivot;
             CBUFFER_END
@@ -62,10 +63,10 @@ Shader "Combat/Machinist Pixel Impact"
                 float2 uv = i.uv;
                 if (_PixelStep > 0.0)
                 {
-                    float2 pixel = uv * _MainTex_TexelSize.zw;
+                    float2 pixel = uv * _SourceTextureSize.zw;
                     pixel = (floor((pixel - _PixelPivot.xy) / _PixelStep) + 0.5)
                         * _PixelStep + _PixelPivot.xy;
-                    uv = pixel * _MainTex_TexelSize.xy;
+                    uv = pixel * _SourceTextureSize.xy;
                 }
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
                 if (_PreserveSpriteColor > 0.5) return tex * i.color;
