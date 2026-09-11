@@ -319,11 +319,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     public void ApplyCompletedState(bool invokeEndedEvent, bool restoreBoundsSmooth)
     {
-        ApplyCompletedState(invokeEndedEvent, restoreBoundsSmooth, persistProgress: true);
-    }
-
-    void ApplyCompletedState(bool invokeEndedEvent, bool restoreBoundsSmooth, bool persistProgress)
-    {
         if (hasCompleted && !isActive)
         {
             if (triggerOnce)
@@ -331,7 +326,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return;
         }
 
-        bool newlyCompleted = !hasCompleted;
         isActive = false;
         hasCompleted = true;
         lockReleased = false;
@@ -351,9 +345,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
         SetEncounterBoundsVisible(false);
         if (triggerOnce)
             SetEnterTriggerEnabled(false);
-
-        if (newlyCompleted && persistProgress)
-            PersistCompletedProgress();
 
         if (invokeEndedEvent)
             OnEncounterEnded?.Invoke();
@@ -1371,20 +1362,6 @@ public class EncounterZone : MonoBehaviour, ISaveable
             && saved;
     }
 
-    void PersistCompletedProgress()
-    {
-        if (!triggerOnce || !hasCompleted)
-            return;
-
-        var manager = DataManager.instance;
-        var data = manager != null ? manager.CurrentData : null;
-        if (data?.boolSavedData == null)
-            return;
-
-        data.boolSavedData[ProgressKey("completed")] = true;
-        manager.PersistTransientProgress();
-    }
-
     public void GetSaveData(Data data)
     {
         if (data?.boolSavedData == null)
@@ -1394,8 +1371,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (!triggerOnce)
             return;
 
-        // 本区仍在进行中时不要把 completed 写成 false，以免盖掉已写入的完成旗标。
-        // 其它遭遇进行中不应阻止本区写入。
+        // 只在存档点采集：完成旗标随读档回滚，不能当生命点/拾取物立刻写盘。
+        // 进行中的遭遇不写 false，避免盖掉本区上次存档时的完成状态。
         if (isActive && !hasCompleted)
             return;
 
@@ -1418,7 +1395,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return;
 
         if (IsCompletedInData(data))
-            ApplyCompletedState(invokeEndedEvent: true, restoreBoundsSmooth: false, persistProgress: false);
+            ApplyCompletedState(invokeEndedEvent: true, restoreBoundsSmooth: false);
         else
             ResetIncompleteEncounter();
     }
