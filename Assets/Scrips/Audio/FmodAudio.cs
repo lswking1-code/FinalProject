@@ -35,6 +35,11 @@ public static class FmodAudio
         PlayInternal(evt, null, null, 0f, false, false, default);
     }
 
+    public static bool TryPlay(EventReference evt)
+    {
+        return PlayInternal(evt, null, null, 0f, false, false, default);
+    }
+
     public static void Play(EventReference evt, Vector3 worldPosition)
     {
         PlayInternal(evt, null, null, 0f, false, true, worldPosition);
@@ -88,7 +93,7 @@ public static class FmodAudio
         instance.clearHandle();
     }
 
-    static void PlayInternal(
+    static bool PlayInternal(
         EventReference evt,
         string paramName,
         string label,
@@ -100,9 +105,9 @@ public static class FmodAudio
         float volume = 1f;
         float pan = 0f;
         if (hasWorldPosition && !TryEvaluateSpatial(worldPosition, out volume, out pan))
-            return;
+            return false;
         if (hasWorldPosition && !TryConsumeWorldOneShotBudget())
-            return;
+            return false;
 
         EventInstance instance = CreateStarted(
             evt,
@@ -114,9 +119,10 @@ public static class FmodAudio
             volume,
             pan);
         if (!instance.isValid())
-            return;
+            return false;
 
         instance.release();
+        return true;
     }
 
     static EventInstance CreateStarted(

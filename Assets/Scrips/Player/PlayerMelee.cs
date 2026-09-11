@@ -17,6 +17,11 @@ public class PlayerMelee : MonoBehaviour
     [Header("音效")]
     [SerializeField] EventReference meleeEvent;
 
+    // 未配置或旧引用失效时，仍使用 Gunner 自己的近战音效。
+    static readonly EventReference FallbackMelee = FmodAudio.Create(
+        "{d1decc31-d82a-4911-88c2-d052e1dc81ba}",
+        "event:/Player/Gunner/Melee");
+
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
     Attack attack;
@@ -85,7 +90,15 @@ public class PlayerMelee : MonoBehaviour
             return false;
 
         if (!meleeEvent.IsNull)
-            FmodAudio.Play(meleeEvent);
+        {
+            if (!FmodAudio.TryPlay(meleeEvent))
+                FmodAudio.TryPlay(FallbackMelee);
+        }
+        else
+        {
+            FmodAudio.TryPlay(FallbackMelee);
+        }
+
         return true;
     }
 
