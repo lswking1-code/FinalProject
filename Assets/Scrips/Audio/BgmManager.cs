@@ -21,6 +21,7 @@ public class BgmManager : MonoBehaviour
 
     EventInstance currentInstance;
     EventReference currentEvent;
+    bool outputYielded;
 
     public void PlayForScene(GameSceneSO scene)
     {
@@ -37,6 +38,51 @@ public class BgmManager : MonoBehaviour
         StopCurrent();
         currentInstance = FmodAudio.PlayHeld(next);
         currentEvent = currentInstance.isValid() ? next : default;
+    }
+
+    public void PauseCurrent()
+    {
+        if (currentInstance.isValid())
+            currentInstance.setPaused(true);
+    }
+
+    public bool ResumeCurrent()
+    {
+        if (!currentInstance.isValid())
+            return false;
+
+        currentInstance.setPaused(false);
+        return true;
+    }
+
+    /// <summary>
+    /// 把 WASAPI 让给 VideoPlayer，避免 FMOD 报 Device was unplugged 后彻底无声。
+    /// </summary>
+    public void YieldAudioDevice()
+    {
+        PauseCurrent();
+        if (outputYielded || !RuntimeManager.IsInitialized)
+            return;
+
+        RuntimeManager.CoreSystem.mixerSuspend();
+        outputYielded = true;
+    }
+
+    public void RestoreAudioDevice()
+    {
+        if (!outputYielded)
+            return;
+
+        outputYielded = false;
+        if (RuntimeManager.IsInitialized)
+            RuntimeManager.CoreSystem.mixerResume();
+    }
+
+    public void RestartForScene(GameSceneSO scene)
+    {
+        RestoreAudioDevice();
+        StopCurrent();
+        PlayForScene(scene);
     }
 
     public void StopCurrent()
