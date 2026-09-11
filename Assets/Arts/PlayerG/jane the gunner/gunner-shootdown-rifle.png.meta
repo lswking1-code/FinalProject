@@ -1,0 +1,250 @@
+fileFormatVersion: 2
+guid: 3fe3afe299d4ecb4d87f283df5cd88a5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -8268176014991291218
+    second: gunner-shootdown-rifle_0
+  - first:
+      213: 5721493995287407537
+    second: gunner-shootdown-rifle_1
+  - first:
+      213: 2367070584714891399
+    second: gunner-shootdown-rifle_2
+  - first:
+      213: 2353591005116925103
+    second: gunner-shootdown-rifle_3
+  - first:
+      213: 5257329130347321136
+    second: gunner-shootdown-rifle_4
+  - first:
+      213: 4872429790648992881
+    second: gunner-shootdown-rifle_5
+  - first:
+      213: 9025456903523731391
+    second: gunner-shootdown-rifle_6
+  - first:
+      213: -2644066035127466439
+    second: gunner-shootdown-rifle_7
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 16
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: 4
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: gunner-shootdown-rifle_0
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 22
+        width: 30
+        height: 65
+      alignment: 9
+      pivot: {x: 0.40000004, y: 0.6769231}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eac0a0698b9814d80800000000000000
+      internalID: -8268176014991291218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-shootdown-rifle_1
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 24
+        width: 30
+        height: 63
+      alignment: 9
+      pivot: {x: 0.36666667, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bbe2a59974d66f40800000000000000
+      internalID: 5721493995287407537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-shootdown-rifle_2
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 21
+        width: 30
+        height: 66
+      alignment: 9
+      pivot: {x: 0.36666667, y: 0.6666667}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7801530d72689d020800000000000000
+      internalID: 2367070584714891399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-shootdown-rifle_3
+      rect:
+        serializedVersion: 2
+        x: 214
+        y: 22
+        width: 30
+        height: 65
+      alignment: 9
+      pivot: {x: 0.40000004, y: 0.6615385}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa48c8e9c82a9a020800000000000000
+      internalID: 2353591005116925103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 4e0c0d505a7bde849908ddd54f2be86c
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      gunner-shootdown-rifle_0: -8268176014991291218
+      gunner-shootdown-rifle_1: 5721493995287407537
+      gunner-shootdown-rifle_2: 2367070584714891399
+      gunner-shootdown-rifle_3: 2353591005116925103
+      gunner-shootdown-rifle_4: 5257329130347321136
+      gunner-shootdown-rifle_5: 4872429790648992881
+      gunner-shootdown-rifle_6: 9025456903523731391
+      gunner-shootdown-rifle_7: -2644066035127466439
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

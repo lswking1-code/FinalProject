@@ -413,6 +413,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeFullBodyState = CrouchTurnStateName;
         fullBodyAutoExit = true;
         crouchAnimator.Play(CrouchTurnStateName, 0, 0f);
+        crouchAnimator.Update(0f); // 同帧生效，避免仍读到上一状态的 length/normalizedTime
         return true;
     }
 
@@ -3791,8 +3792,37 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         if (crouchAnimator == null)
             return true;
 
+        // 过渡中仍可能读到上一状态，不能当成本状态播完
+        if (crouchAnimator.IsInTransition(layer))
+            return false;
+
         var info = crouchAnimator.GetCurrentAnimatorStateInfo(layer);
-        return info.IsName(stateName) && info.normalizedTime >= 1f;
+        if (!info.IsName(stateName))
+            return false;
+
+        // 以实际播放 clip 时长为准。Turn/CrouchTurn 曾用空占位（stopTime=1 + Loop），
+        // 会把 IsTurning 锁死约 1 秒并清零水平速度，体感就是蹲转卡顿。
+        var clipInfo = crouchAnimator.GetCurrentAnimatorClipInfo(layer);
+        if (clipInfo != null && clipInfo.Length > 0 && clipInfo[0].clip != null)
+        {
+            float clipLen = clipInfo[0].clip.length;
+            bool isTurn = stateName == TurnStateName || stateName == CrouchTurnStateName;
+            if (isTurn && clipLen >= 0.99f)
+                clipLen = 1f / 12f; // 与 gunner turn 的 12fps 单帧一致
+
+            if (clipLen > 0.0001f)
+            {
+                float elapsed = info.normalizedTime * info.length;
+                return elapsed >= clipLen;
+            }
+        }
+        else if (stateName == TurnStateName || stateName == CrouchTurnStateName)
+        {
+            // 无 clip 时 Animator 默认 length=1，按单帧退出
+            return info.normalizedTime * info.length >= (1f / 12f);
+        }
+
+        return info.normalizedTime >= 1f;
     }
 
     void EnsureOverrideControllers()
