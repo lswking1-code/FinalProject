@@ -31799,7 +31799,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saveDataEvent: {fileID: 11400000, guid: 8bfd9c794ad715c4e8bf3300c4083246, type: 2}
-  restoreFullHealthOnSave: 0
+  restoreFullHealthOnSave: 1
   ensureMinAmmoOnSave: 0
   minBulletM: 3
   minBulletS: 0
@@ -42413,7 +42413,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadEventSO: {fileID: 11400000, guid: 2c203c89dbbbeaa4ca10886558811755, type: 2}
   sceneToGo: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
-  positionToGo: {x: -42, y: 1, z: 0}
+  positionToGo: {x: -45, y: 1, z: 0}
 --- !u!61 &1460001991
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -46154,6 +46154,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2662111771785462640, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
+      propertyPath: restoreFullHealthOnSave
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5376560405586235159, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
       propertyPath: m_Name
       value: Savepoint (2)
@@ -47465,6 +47469,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2662111771785462640, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
+      propertyPath: restoreFullHealthOnSave
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5376560405586235159, guid: 6dde2c6c7469174429a03b2c1a12c520, type: 3}
       propertyPath: m_Name
       value: Savepoint
