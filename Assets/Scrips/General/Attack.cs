@@ -447,6 +447,11 @@ public class Attack : MonoBehaviour
                 RaiseHitCameraShakeIfEnabled();
                 CharacterDamaged?.Invoke(target, damage);
             }
+            else if (ShouldPlayInvulnerableImpact(target))
+            {
+                ReportImpact(collision, point: impactPoint);
+                target.GetComponent<Enemy>()?.PlayHitSfx(this);
+            }
 
             hitSomething = true;
         }
@@ -504,8 +509,35 @@ public class Attack : MonoBehaviour
         var body = GetComponent<Rigidbody2D>();
         Vector2 facing = body != null && body.linearVelocity.sqrMagnitude > 0.001f
             ? body.linearVelocity.normalized : (Vector2)transform.right;
-        MachinistImpactVfx.Play(kind == MachinistImpactKind.Auto ? sourceKind : kind,
-            point ?? MachinistImpactVfx.ContactPoint(this, collision), direction ?? facing, impactScale, sourceKind);
+        Vector2 impactPoint = point ?? MachinistImpactVfx.ContactPoint(this, collision);
+        MachinistImpactKind resolvedKind = kind == MachinistImpactKind.Auto ? sourceKind : kind;
+        MachinistImpactVfx.Play(resolvedKind, impactPoint, direction ?? facing, impactScale, sourceKind);
+        PlayProjectileImpactSfx(collision, resolvedKind, impactPoint);
+    }
+
+    bool ShouldPlayInvulnerableImpact(Character target)
+    {
+        if (target == null || target.IsDead || target.IsForcedInvulnerable || !target.invulnerable)
+            return false;
+        return attackType == AttackType.Projectile || IsPlayerRangedHit(this);
+    }
+
+    void PlayProjectileImpactSfx(Collider2D collision, MachinistImpactKind kind, Vector2 point)
+    {
+        if (attackType != AttackType.Projectile && !IsPlayerRangedHit(this))
+            return;
+
+        if (kind == MachinistImpactKind.Surface
+            && collision.GetComponentInParent<IHitCountable>() == null
+            && collision.GetComponentInParent<Character>() == null)
+        {
+            ScenePropAudio.PlayBulletSurface(point);
+            return;
+        }
+
+        if (kind == MachinistImpactKind.Shield
+            && collision.GetComponentInParent<Enemy>() == null)
+            ScenePropAudio.PlayBulletShield(point);
     }
 
     bool TryApplyPropKnockback(Collider2D collision)

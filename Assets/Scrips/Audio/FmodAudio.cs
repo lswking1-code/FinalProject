@@ -45,6 +45,11 @@ public static class FmodAudio
         PlayInternal(evt, null, null, 0f, false, true, worldPosition);
     }
 
+    public static bool TryPlay(EventReference evt, Vector3 worldPosition)
+    {
+        return PlayInternal(evt, null, null, 0f, false, true, worldPosition);
+    }
+
     public static void Play(EventReference evt, string paramName, string label)
     {
         PlayInternal(evt, paramName, label, 0f, false, false, default);
@@ -151,6 +156,14 @@ public static class FmodAudio
                 else if (hasNumeric)
                     instance.setParameterByName(paramName, numericValue);
             }
+
+            // Editor CreateInstance parks 3D events at 1e17 until set3DAttributes.
+            // Pin to the listener so 3D events (hit_shield_bullet etc.) stay audible;
+            // this project does distance with setVolume / pan, not FMOD rolloff.
+            Vector3 fmodPos = Vector3.zero;
+            if (TryGetListenerPosition(out Vector2 listener))
+                fmodPos = listener;
+            instance.set3DAttributes(fmodPos.To3DAttributes());
 
             if (hasSpatial)
                 instance.setVolume(volume);

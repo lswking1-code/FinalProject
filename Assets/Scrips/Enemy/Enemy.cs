@@ -150,9 +150,9 @@ public class Enemy : MonoBehaviour
     [SerializeField] EventReference droneAttackEvent;
     [SerializeField] EventReference rocketLaunchEvent;
     [SerializeField] EventReference hitTankEvent;
-    [Tooltip("玩家子弹打盾；未赋值则不播（近战盾仍用 hitMetalEvent）")]
+    [Tooltip("玩家子弹打盾；未赋值则回退 hit_shield_bullet")]
     [SerializeField] EventReference hitShieldBulletEvent;
-    [Tooltip("玩家子弹打装甲（AE-74 / 无人机 / 装甲车）；未赋值则不播")]
+    [Tooltip("玩家子弹打装甲（AE-74 / 无人机 / 装甲车）；未赋值则回退 hit_armor_bullet")]
     [SerializeField] EventReference hitArmorBulletEvent;
 
     static readonly EventReference FallbackHitNormal = CreateHitEvent(
@@ -182,6 +182,12 @@ public class Enemy : MonoBehaviour
     static readonly EventReference FallbackHitTank = CreateHitEvent(
         "{b403e1f7-1784-4343-9fc3-78a62265b23a}",
         "event:/Enemy/hit_tank");
+    static readonly EventReference FallbackHitArmorBullet = CreateHitEvent(
+        "{b73df57c-a407-4a73-8053-d7eef36097c6}",
+        "event:/Enemy/hit_armor_bullet");
+    static readonly EventReference FallbackHitShieldBullet = CreateHitEvent(
+        "{e7aad2c0-82f1-4827-8dd1-8614534d5c17}",
+        "event:/Enemy/hit_shield_bullet");
 
     Vector3 returnStuckLastPos;
     float returnStuckTimer;
@@ -1218,12 +1224,18 @@ public class Enemy : MonoBehaviour
     {
         if (Attack.IsPlayerRangedHit(attacker))
         {
-            PlayAssignedSfx(hitShieldBulletEvent);
+            EventReference bulletEvt = hitShieldBulletEvent.IsNull
+                ? FallbackHitShieldBullet
+                : hitShieldBulletEvent;
+            if (!FmodAudio.TryPlay(bulletEvt, transform.position))
+                PlayResolvedSfx(hitMetalEvent, FallbackHitMetal);
             return;
         }
 
         PlayResolvedSfx(hitMetalEvent, FallbackHitMetal);
     }
+
+    public void PlayHitSfx(Attack attacker) => PlayHitSfx(UseMetalHitSfx, attacker);
 
     public void PlayHitSfx(bool metal, Attack attacker)
     {
@@ -1240,7 +1252,7 @@ public class Enemy : MonoBehaviour
     {
         if (Attack.IsPlayerRangedHit(attacker))
         {
-            PlayAssignedSfx(hitArmorBulletEvent);
+            PlayResolvedSfx(hitArmorBulletEvent, FallbackHitArmorBullet);
             return;
         }
 
@@ -1262,14 +1274,12 @@ public class Enemy : MonoBehaviour
     public void PlayRocketLaunchSfx() => PlayResolvedSfx(rocketLaunchEvent, FallbackRocketLaunch);
 
     void PlayResolvedSfx(EventReference evt, EventReference fallback)
-        => FmodAudio.Play(evt.IsNull ? fallback : evt, transform.position);
-
-    void PlayAssignedSfx(EventReference evt)
     {
-        if (evt.IsNull)
+        EventReference primary = evt.IsNull ? fallback : evt;
+        if (FmodAudio.TryPlay(primary, transform.position))
             return;
-
-        FmodAudio.Play(evt, transform.position);
+        if (!fallback.IsNull && !primary.Guid.Equals(fallback.Guid))
+            FmodAudio.Play(fallback, transform.position);
     }
 
     void PlayDeathSfx()
@@ -1301,8 +1311,7 @@ public class Enemy : MonoBehaviour
     public virtual void OnTakeDamage(Transform attackTrans)
     {
         Attack attack = attackTrans != null ? attackTrans.GetComponentInParent<Attack>() : null;
-        if (character == null || character.currentHealth > 0f)
-            PlayHitSfx(UseMetalHitSfx, attack);
+        PlayHitSfx(UseMetalHitSfx, attack);
 
         if (isReturning)
             return;

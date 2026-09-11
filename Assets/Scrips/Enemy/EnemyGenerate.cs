@@ -21,6 +21,7 @@ public class EnemyInstanceDropConfig
 /// 波内一种敌人：预制体 + 数量 + 可选专用刷怪点。
 /// waitUntilBatchCleared：有限条目本批清光后再刷同波下一类（不循环）。
 /// unlockEncounterOnCleared：有限条目本批清光后只解开遭遇锁区，不结束遭遇。
+/// endsEncounterOnDeath：该条目任一实例死亡立即结束遭遇，不要求清场。
 /// infiniteRefresh 已自带等本批清光，再勾选 waitUntilBatchCleared / unlockEncounterOnCleared 无效。
 /// </summary>
 [System.Serializable]
@@ -48,6 +49,8 @@ public class EnemyWaveEntry
     public bool waitUntilBatchCleared;
     [Tooltip("有限条目本批清光后只解开遭遇锁区（空气墙/镜头），不结束遭遇、不停刷。无限刷新条目无效")]
     public bool unlockEncounterOnCleared;
+    [Tooltip("勾选后：该条目任一实例死亡立即结束遭遇（停刷并解锁），不要求清场或刷怪完成。无限刷新条目也生效")]
+    public bool endsEncounterOnDeath;
     [Tooltip("每个生成实例的弹药/血包掉落；长度随 count 自动对齐。Element 0 对应本条目第 1 个刷出的敌人")]
     public EnemyInstanceDropConfig[] drops;
 }
@@ -92,6 +95,7 @@ public class EnemyWaveConfig
 /// OnEncounterEnded 调用 StopSpawning。条目勾选 infiniteRefresh 则循环刷且不登记遭遇结算。
 /// 有限波可勾选 waitUntilCleared（整波清光再下一波）与条目 waitUntilBatchCleared（本批清光再刷同波下一类）。
 /// 条目勾选 unlockEncounterOnCleared 则该批清光后只解锁锁区，不停刷、不结束遭遇。
+/// 条目勾选 endsEncounterOnDeath 则该实例死亡立即结束遭遇，无限刷新条目也会登记。
 /// </summary>
 public class EnemyGenerate : MonoBehaviour
 {
@@ -135,7 +139,7 @@ public class EnemyGenerate : MonoBehaviour
     [SerializeField] bool alwaysDrawSpawnPoints = true;
 
     [Header("遭遇战（可选）")]
-    [Tooltip("若指定，有限生成的敌人会 RegisterEnemy 到该遭遇区。无限刷新敌人不登记")]
+    [Tooltip("若指定，有限生成的敌人会 RegisterEnemy 到该遭遇区。无限刷新敌人不登记清敌。勾选 endsEncounterOnDeath 的条目会额外登记为关键敌人")]
     [SerializeField] EncounterZone encounterZone;
 
     [Header("启动")]
@@ -807,6 +811,8 @@ public class EnemyGenerate : MonoBehaviour
             if (registerWithZone)
                 encounterZone.RegisterEnemy(instance);
             encounterZone.PrepareSpawnedEnemy(instance);
+            if (entry != null && entry.endsEncounterOnDeath)
+                encounterZone.RegisterEndEncounterEnemy(instance);
         }
 
         ApplyEncounterBehavior(instance, entry, position);

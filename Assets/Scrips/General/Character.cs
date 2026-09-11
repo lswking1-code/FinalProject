@@ -219,9 +219,6 @@ public class Character : MonoBehaviour,ISaveable
     /// <returns>true 表示本次确实扣血或击杀；无敌/吸收等情况返回 false。</returns>
     public bool TakeDamage(Attack attacker)
     {
-        if (invulnerable || IsForcedInvulnerable)
-            return false;
-
         if (attacker == null)
             return false;
 
@@ -243,6 +240,9 @@ public class Character : MonoBehaviour,ISaveable
 
         var absorb = GetComponentInChildren<IDamageAbsorb>();
         if (absorb != null && absorb.TryAbsorb(attacker))
+            return false;
+
+        if (invulnerable || IsForcedInvulnerable)
             return false;
 
         if (currentHealth - attacker.damage > 0)

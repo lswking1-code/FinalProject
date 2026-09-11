@@ -7,6 +7,8 @@ using UnityEngine.Events;
 /// 遭遇战锁区：玩家进入后限制相机 Bounds 并启用空气墙。
 /// 刷怪由外部脚本负责；通过 RegisterEnemy 登记的有限敌人清光后可自动结束。
 /// EnemyGenerate 中勾选 infiniteRefresh 的敌人不会登记，不影响清敌结算。
+/// 关键敌人（场景列表或波次 endsEncounterOnDeath）死亡后立即 EndEncounter，
+/// 不要求清场或刷怪完成；区域原本存在的关键敌人不计入清敌人数。
 /// 机关/独立事件等可 UnityEvent 调用 EndEncounter() 强制结算；
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
 /// UnlockLock() 只解开空气墙与镜头，不结束遭遇、不停刷。
@@ -43,6 +45,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] bool delaySealAirWalls = true;
     [Tooltip("允许敌人从区外单向穿入空气墙；主体中心进入后按墙恢复碰撞，不可再穿出")]
     [SerializeField] bool allowEnemiesThroughAirWalls = true;
+    [Tooltip("场景预置的关键敌人（如 BOSS）。开战时订阅 OnDie；任一死亡立即结束遭遇，不计入清敌人数。空槽忽略。")]
+    [SerializeField] Character[] endEncounterOnDeathEnemies;
 
     [Header("弹药援助")]
     [Tooltip("开启后：遭遇中每隔一段时间检测玩家 S/M/L 是否全空，是则在固定点位刷弹药包")]
@@ -77,6 +81,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     readonly HashSet<Character> aliveRegistered = new();
     readonly Dictionary<Character, UnityAction> dieHandlers = new();
+    readonly HashSet<Character> endEncounterOnDeathSet = new();
+    readonly Dictionary<Character, UnityAction> endEncounterDieHandlers = new();
+    string[] cachedEndEncounterProgressKeys;
     readonly List<Collider2D> airWallColliders = new();
     readonly List<int> airWallOriginalExcludeBits = new();
     readonly List<GameObject> assistSpawned = new();
@@ -174,6 +181,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
         // 先关触发器，避免读档落点叠在区内时，完成旗标尚未套上就开战。
         if (triggerOnce)
             SetEnterTriggerEnabled(false);
+
+        CacheEndEncounterProgressKeys();
     }
 
     void OnEnable()
@@ -186,6 +195,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     {
         // Additive 加载时 OnEnable 里 scene.name 可能仍为空，补一次以免完成旗标对不上。
         TryApplySaveProgress();
+        RefreshEndEncounterProgressKeysIfNeeded();
         saveProgressReady = true;
         if (triggerOnce && !hasCompleted)
             SetEnterTriggerEnabled(true);
@@ -245,6 +255,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
         // 机器人若未进入遭遇锁区，开战时收回，避免锁区外残留
         TryRecallRobotOutsideEncounter();
 
+        if (HasSatisfiedSceneKeyEnemy())
+        {
+            EndEncounter();
+            return;
+        }
+
+        SubscribeSceneKeyEnemies();
         OnEncounterStarted?.Invoke();
         StartAmmoAssist();
     }
@@ -260,8 +277,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
-    /// 结束遭遇战（清敌自动结束或机关/Timeline 等外部事件均可调用）。
-    /// 触发 OnEncounterEnded（通常用于 StopSpawning 停刷）。
+    /// 结束遭遇战（清敌自动结束、关键敌人死亡或机关/Timeline 等外部事件均可调用）。
+    /// 触发 OnEncounterEnded（通常用于 StopSpawning 停刷）。场上其余敌人保留。
     /// </summary>
     public void EndEncounter()
     {
@@ -808,16 +825,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     /// </summary>
     public void RegisterEnemy(GameObject enemyObject)
     {
-        if (enemyObject == null)
-            return;
-
-        var character = enemyObject.GetComponent<Character>();
-        if (character == null)
-            character = enemyObject.GetComponentInChildren<Character>();
-        if (character == null)
-            character = enemyObject.GetComponentInParent<Character>();
-
-        RegisterEnemy(character);
+        RegisterEnemy(ResolveCharacter(enemyObject));
     }
 
     /// <summary>
@@ -837,11 +845,40 @@ public class EncounterZone : MonoBehaviour, ISaveable
         UnityAction handler = () => OnRegisteredEnemyDied(character);
         dieHandlers[character] = handler;
         character.OnDie.AddListener(handler);
+        EnsureEnemyTracker(character);
+    }
 
-        var tracker = character.gameObject.GetComponent<EncounterEnemyTracker>();
-        if (tracker == null)
-            tracker = character.gameObject.AddComponent<EncounterEnemyTracker>();
-        tracker.Bind(this, character);
+    /// <summary>
+    /// 登记关键敌人：死亡或销毁后立即结束遭遇，不计入清敌人数。
+    /// 供 EnemyGenerate 波次 endsEncounterOnDeath 调用；场景预置敌人由列表开战时订阅。
+    /// </summary>
+    public void RegisterEndEncounterEnemy(GameObject enemyObject)
+    {
+        RegisterEndEncounterEnemy(ResolveCharacter(enemyObject));
+    }
+
+    /// <summary>
+    /// 登记关键敌人：死亡或销毁后立即结束遭遇，不计入清敌人数。
+    /// </summary>
+    public void RegisterEndEncounterEnemy(Character character)
+    {
+        if (!isActive)
+            return;
+        if (character == null)
+            return;
+        if (character.IsDead)
+        {
+            EndEncounter();
+            return;
+        }
+
+        if (!endEncounterOnDeathSet.Add(character))
+            return;
+
+        UnityAction handler = () => OnEndEncounterEnemyDied(character);
+        endEncounterDieHandlers[character] = handler;
+        character.OnDie.AddListener(handler);
+        EnsureEnemyTracker(character);
     }
 
     void OnRegisteredEnemyDied(Character character)
@@ -850,12 +887,32 @@ public class EncounterZone : MonoBehaviour, ISaveable
         TryAutoEnd();
     }
 
+    void OnEndEncounterEnemyDied(Character character)
+    {
+        UnregisterEndEncounterEnemy(character);
+        EndEncounter();
+    }
+
     internal void NotifyEnemyDestroyed(Character character)
     {
-        if (!aliveRegistered.Contains(character) && (character == null || !dieHandlers.ContainsKey(character)))
+        bool wasKey = character != null
+            && (endEncounterOnDeathSet.Contains(character) || endEncounterDieHandlers.ContainsKey(character));
+        bool wasRegistered = aliveRegistered.Contains(character)
+            || (character != null && dieHandlers.ContainsKey(character));
+
+        if (!wasKey && !wasRegistered)
             return;
 
-        UnregisterEnemy(character);
+        if (wasRegistered)
+            UnregisterEnemy(character);
+
+        if (wasKey)
+        {
+            UnregisterEndEncounterEnemy(character);
+            EndEncounter();
+            return;
+        }
+
         TryAutoEnd();
     }
 
@@ -870,12 +927,54 @@ public class EncounterZone : MonoBehaviour, ISaveable
             dieHandlers.Remove(character);
         }
 
-        if (character != null)
+        TryUnbindEnemyTracker(character);
+    }
+
+    void UnregisterEndEncounterEnemy(Character character)
+    {
+        endEncounterOnDeathSet.Remove(character);
+
+        if (endEncounterDieHandlers.TryGetValue(character, out var handler))
         {
-            var tracker = character.GetComponent<EncounterEnemyTracker>();
-            if (tracker != null)
-                tracker.Unbind(this);
+            if (character != null)
+                character.OnDie.RemoveListener(handler);
+            endEncounterDieHandlers.Remove(character);
         }
+
+        TryUnbindEnemyTracker(character);
+    }
+
+    void TryUnbindEnemyTracker(Character character)
+    {
+        if (character == null)
+            return;
+        if (aliveRegistered.Contains(character) || endEncounterOnDeathSet.Contains(character))
+            return;
+
+        var tracker = character.GetComponent<EncounterEnemyTracker>();
+        if (tracker != null)
+            tracker.Unbind(this);
+    }
+
+    static Character ResolveCharacter(GameObject enemyObject)
+    {
+        if (enemyObject == null)
+            return null;
+
+        var character = enemyObject.GetComponent<Character>();
+        if (character == null)
+            character = enemyObject.GetComponentInChildren<Character>();
+        if (character == null)
+            character = enemyObject.GetComponentInParent<Character>();
+        return character;
+    }
+
+    void EnsureEnemyTracker(Character character)
+    {
+        var tracker = character.gameObject.GetComponent<EncounterEnemyTracker>();
+        if (tracker == null)
+            tracker = character.gameObject.AddComponent<EncounterEnemyTracker>();
+        tracker.Bind(this, character);
     }
 
     void TryAutoEnd()
@@ -900,10 +999,115 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
         dieHandlers.Clear();
         aliveRegistered.Clear();
+
+        var keySnapshot = new List<Character>(endEncounterOnDeathSet);
+        foreach (var character in keySnapshot)
+            UnregisterEndEncounterEnemy(character);
+
+        endEncounterDieHandlers.Clear();
+        endEncounterOnDeathSet.Clear();
+    }
+
+    void CacheEndEncounterProgressKeys()
+    {
+        if (endEncounterOnDeathEnemies == null)
+        {
+            cachedEndEncounterProgressKeys = System.Array.Empty<string>();
+            return;
+        }
+
+        cachedEndEncounterProgressKeys = new string[endEncounterOnDeathEnemies.Length];
+        for (int i = 0; i < endEncounterOnDeathEnemies.Length; i++)
+        {
+            var character = endEncounterOnDeathEnemies[i];
+            if (character == null)
+                continue;
+
+            cachedEndEncounterProgressKeys[i] = EnemyDeathPersist.BuildProgressKey(character.transform);
+        }
+    }
+
+    void RefreshEndEncounterProgressKeysIfNeeded()
+    {
+        if (endEncounterOnDeathEnemies == null)
+            return;
+
+        if (cachedEndEncounterProgressKeys == null
+            || cachedEndEncounterProgressKeys.Length != endEncounterOnDeathEnemies.Length)
+        {
+            CacheEndEncounterProgressKeys();
+            return;
+        }
+
+        for (int i = 0; i < endEncounterOnDeathEnemies.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(cachedEndEncounterProgressKeys[i]))
+                continue;
+
+            var character = endEncounterOnDeathEnemies[i];
+            if (character == null)
+                continue;
+
+            cachedEndEncounterProgressKeys[i] = EnemyDeathPersist.BuildProgressKey(character.transform);
+        }
+    }
+
+    bool HasSatisfiedSceneKeyEnemy()
+    {
+        if (endEncounterOnDeathEnemies == null || endEncounterOnDeathEnemies.Length == 0)
+            return false;
+
+        RefreshEndEncounterProgressKeysIfNeeded();
+
+        for (int i = 0; i < endEncounterOnDeathEnemies.Length; i++)
+        {
+            if (IsSceneKeyEnemyAlreadySatisfied(i, endEncounterOnDeathEnemies[i]))
+                return true;
+        }
+
+        return false;
+    }
+
+    bool IsSceneKeyEnemyAlreadySatisfied(int slot, Character character)
+    {
+        if (character != null && character.IsDead)
+            return true;
+
+        string key = SceneKeyEnemyProgressKey(slot, character);
+        return EnemyDeathProgress.IsSavedDead(DataManager.instance?.CurrentData, key);
+    }
+
+    string SceneKeyEnemyProgressKey(int slot, Character character)
+    {
+        if (cachedEndEncounterProgressKeys != null
+            && slot >= 0
+            && slot < cachedEndEncounterProgressKeys.Length
+            && !string.IsNullOrEmpty(cachedEndEncounterProgressKeys[slot]))
+            return cachedEndEncounterProgressKeys[slot];
+
+        return character != null
+            ? EnemyDeathPersist.BuildProgressKey(character.transform)
+            : string.Empty;
+    }
+
+    void SubscribeSceneKeyEnemies()
+    {
+        if (endEncounterOnDeathEnemies == null)
+            return;
+
+        for (int i = 0; i < endEncounterOnDeathEnemies.Length; i++)
+        {
+            var character = endEncounterOnDeathEnemies[i];
+            if (character == null || character.IsDead)
+                continue;
+
+            RegisterEndEncounterEnemy(character);
+        }
     }
 
     /// <summary>
-    /// 敌人销毁时通知遭遇区，避免未走 OnDie 时存活计数卡住。
+    /// 敌人销毁时通知遭遇区，避免未走 OnDie 时存活计数卡住，
+    /// 或关键敌人未走 OnDie 时遭遇无法结束。
     /// </summary>
     class EncounterEnemyTracker : MonoBehaviour
     {

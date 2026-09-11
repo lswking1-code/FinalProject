@@ -64,6 +64,7 @@ public class PlayerLaserBeam : MonoBehaviour
         attackSource.ignoreTag = "Player";
         attackSource.damage = damage;
         attackSource.chargesEnergyNode = true;
+        attackSource.impactKind = MachinistImpactKind.Bullet;
         attackSource.enabled = false; // 仅作 TakeDamage 数据源，不做 Trigger 碰撞
     }
 
@@ -173,7 +174,7 @@ public class PlayerLaserBeam : MonoBehaviour
             bool isEliteBlock = enemy != null && enemy.blocksLaser;
 
             if (dealDamage && enemy != null && character != null && character != owner)
-                TryTickDamage(character);
+                TryTickDamage(character, col, hit.point, direction);
 
             if (dealDamage && hitCountable != null)
                 TryTickHitCountable(hitCountable);
@@ -182,6 +183,8 @@ public class PlayerLaserBeam : MonoBehaviour
             {
                 stopDistance = hit.distance;
                 tip = hit.point;
+                if (dealDamage && (character == null || character == owner))
+                    attackSource.ReportImpact(col, MachinistImpactKind.Surface, hit.point, direction);
                 break;
             }
         }
@@ -226,7 +229,7 @@ public class PlayerLaserBeam : MonoBehaviour
         return false;
     }
 
-    void TryTickDamage(Character target)
+    void TryTickDamage(Character target, Collider2D hitCollider, Vector2 hitPoint, Vector2 direction)
     {
         if (target == null || !target.CanReceiveHits)
             return;
@@ -238,8 +241,19 @@ public class PlayerLaserBeam : MonoBehaviour
         bool damaged = target.TakeDamage(attackSource);
         nextHitTime[target] = Time.time + Mathf.Max(0.01f, tickInterval);
 
-        if (damaged && owner != null && abilityPowerRestore > 0f)
-            owner.RestoreAbilityPower(abilityPowerRestore);
+        if (damaged)
+        {
+            attackSource.ReportImpact(hitCollider, MachinistImpactKind.Bullet, hitPoint, direction);
+            if (owner != null && abilityPowerRestore > 0f)
+                owner.RestoreAbilityPower(abilityPowerRestore);
+            return;
+        }
+
+        if (!target.IsDead && target.invulnerable && !target.IsForcedInvulnerable)
+        {
+            attackSource.ReportImpact(hitCollider, MachinistImpactKind.Bullet, hitPoint, direction);
+            target.GetComponent<Enemy>()?.PlayHitSfx(attackSource);
+        }
     }
 
     void TryTickHitCountable(IHitCountable target)
