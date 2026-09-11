@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum MachinistImpactKind { Auto, None, Bullet, Heavy, Electric, Slash, BlastSlash, Shield, Surface }
+public enum MachinistImpactKind { Auto, None, Bullet, Heavy, Electric, Slash, BlastSlash, Shield, Surface, EnemyDroneBullet, EnemyBullet }
 
 /// <summary>Shared pixel-art frames and tuning for machinist hit feedback.</summary>
 [CreateAssetMenu(menuName = "Combat/Machinist Impact Library")]
@@ -12,6 +12,13 @@ public class MachinistImpactLibrary : ScriptableObject
     public Sprite[] electric;
     public Sprite[] ring;
     public Sprite[] slash;
+    [Header("敌人子弹命中玩家")]
+    public Sprite[] enemyDroneBullet;
+    [Min(1f)] public float enemyDroneFramesPerSecond = 26f;
+    [Min(0.1f)] public float enemyDroneSize = 1f;
+    public Sprite[] enemyBullet;
+    [Min(1f)] public float enemyBulletFramesPerSecond = 26f;
+    [Min(0.1f)] public float enemyBulletSize = 1f;
     [Header("原创像素弹着 V2")]
     public Shader ballisticShader;
     public Sprite[] ballistic;
@@ -31,6 +38,9 @@ public class MachinistImpactLibrary : ScriptableObject
     public Color heavyColor = new Color(0.08f, 0.4f, 1f, 1f);
     public Color metal = new Color(0.62f, 0.78f, 1f, 1f);
 
+    public static bool IsEnemyBullet(MachinistImpactKind kind) =>
+        kind == MachinistImpactKind.EnemyDroneBullet || kind == MachinistImpactKind.EnemyBullet;
+
     public bool UsesBallistic(MachinistImpactKind kind) => ballisticShader != null
         && ballistic != null && ballistic.Length > 0
         && (kind == MachinistImpactKind.Bullet || kind == MachinistImpactKind.Shield
@@ -38,6 +48,8 @@ public class MachinistImpactLibrary : ScriptableObject
 
     public Sprite[] Frames(MachinistImpactKind kind) => UsesBallistic(kind) ? ballistic : kind switch
     {
+        MachinistImpactKind.EnemyDroneBullet => enemyDroneBullet,
+        MachinistImpactKind.EnemyBullet => enemyBullet,
         MachinistImpactKind.Heavy => heavy,
         MachinistImpactKind.BlastSlash => slash,
         MachinistImpactKind.Electric => electric,

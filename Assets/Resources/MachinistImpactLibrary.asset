@@ -55,6 +55,22 @@ MonoBehaviour:
   - {fileID: 21300008, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
   - {fileID: 21300010, guid: 09e1c001b9a748cdb61f20f27ca78ce5, type: 3}
   ballisticFramesPerSecond: 28
+  enemyDroneBullet:
+  - {fileID: 2897420167362219100, guid: 6fc8940f50685e744a60dc9ca3c95d5c, type: 3}
+  - {fileID: -1153366451679860821, guid: 6fc8940f50685e744a60dc9ca3c95d5c, type: 3}
+  - {fileID: -2214618244355069792, guid: 6fc8940f50685e744a60dc9ca3c95d5c, type: 3}
+  - {fileID: 1507744578869241842, guid: 6fc8940f50685e744a60dc9ca3c95d5c, type: 3}
+  - {fileID: 851337370, guid: 6fc8940f50685e744a60dc9ca3c95d5c, type: 3}
+  enemyDroneFramesPerSecond: 26
+  enemyDroneSize: 1
+  enemyBullet:
+  - {fileID: 665855611164307017, guid: db17409c666b6394a8c954d4e490d26d, type: 3}
+  - {fileID: 4403199338221692913, guid: db17409c666b6394a8c954d4e490d26d, type: 3}
+  - {fileID: -8126186032356920335, guid: db17409c666b6394a8c954d4e490d26d, type: 3}
+  - {fileID: 9040608608994537904, guid: db17409c666b6394a8c954d4e490d26d, type: 3}
+  - {fileID: -6985196437239441179, guid: db17409c666b6394a8c954d4e490d26d, type: 3}
+  enemyBulletFramesPerSecond: 26
+  enemyBulletSize: 1
   ballisticSize: 1
   ballisticWorldPixelSize: 0.0625
   ballisticPixelsPerUnit: 256

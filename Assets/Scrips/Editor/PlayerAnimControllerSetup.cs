@@ -43,12 +43,42 @@ public static class PlayerAnimControllerSetup
     {
         EditorApplication.delayCall += () =>
         {
+            // 只补参数 + 清理损坏过渡。
+            // 不要在这里改 Look/Throw/Melee 的 Motion 或过渡，否则会覆盖 Animator 里的手工配置。
             EnsureAirPhaseParameters();
-            EnsureLookAnimatorParamDrivenTransitions();
-            EnsureLookShootAnimatorTransitions();
-            EnsurePlayerChargeAnimatorStates();
-            RepairAnimatorControllers();
+            RepairBrokenTransitionsOnly();
         };
+    }
+
+    /// <summary>仅移除损坏过渡，不触碰 Throw/Melee/Look 状态。</summary>
+    static void RepairBrokenTransitionsOnly()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            return;
+
+        bool changed = false;
+        foreach (var path in RepairControllerPaths)
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (controller == null)
+                continue;
+
+            bool controllerChanged = false;
+            foreach (var layer in controller.layers)
+                controllerChanged |= RepairStateMachine(layer.stateMachine, path);
+
+            if (controllerChanged)
+            {
+                EditorUtility.SetDirty(controller);
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            AssetDatabase.SaveAssets();
+            Debug.Log("已修复 Animator Controller 中的无效过渡。");
+        }
     }
 
     [MenuItem("Lost Division/Fix Player AirPhase Animator Parameters")]
@@ -94,9 +124,7 @@ public static class PlayerAnimControllerSetup
         var sm = controller.layers[0].stateMachine;
         var states = BuildStateMap(sm);
 
-        // 只在 Motion 为空时补默认 Gunner clip，不覆盖手工配置
-        changed |= EnsureStateMotionIfMissing(states, "LookUpEnd", LookUpEndClipPath);
-        changed |= EnsureStateMotionIfMissing(states, "LookDownEnd", LookDownEndClipPath);
+        // 不自动改 LookUpEnd / LookDownEnd 的 Motion；仅在菜单 Ensure Player Look End Motion Clips 时写入
 
         changed |= EnsureStartLoopTransition(states, "LookUpStart", "LookUp");
         changed |= EnsureStartLoopTransition(states, "LookDownStart", "LookDown");
@@ -740,7 +768,7 @@ public static class PlayerAnimControllerSetup
         if (changed)
         {
             AssetDatabase.SaveAssets();
-            Debug.Log("已修复 Animator Controller 中的无效过渡。");
+            Debug.Log("已修复 Animator Controller 中的无效过渡，并检查 Throw/Melee 状态是否存在。");
         }
     }
 

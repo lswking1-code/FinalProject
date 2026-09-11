@@ -489,8 +489,12 @@ public class Attack : MonoBehaviour
     {
         var sourceKind = MachinistImpactVfx.ResolveKind(this);
         if (sourceKind == MachinistImpactKind.None || collision == null) return;
-        if (attackType == AttackType.Projectile && projectileImpactShown) return;
         var target = collision.GetComponentInParent<Character>();
+        // Enemy dissolve frames belong only to accepted player damage, never blocking contacts.
+        if (MachinistImpactLibrary.IsEnemyBullet(sourceKind)
+            && (kind != MachinistImpactKind.Auto
+                || target == null || !target.CompareTag("Player"))) return;
+        if (attackType == AttackType.Projectile && projectileImpactShown) return;
         int key = target != null ? target.GetInstanceID()
             : collision.attachedRigidbody != null ? collision.attachedRigidbody.GetInstanceID()
             : collision.GetInstanceID();

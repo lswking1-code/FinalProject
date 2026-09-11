@@ -44,6 +44,7 @@ public class MachinistImpactVfx : MonoBehaviour
     MachinistImpactLibrary library;
     Material material;
     Material ballisticMaterial;
+    Material enemyMaterial;
     Burst[] pool;
     int cursor;
 
@@ -134,6 +135,8 @@ public class MachinistImpactVfx : MonoBehaviour
     {
         library = data;
         material = new Material(data.shader) { name = "Machinist Impact (runtime)" };
+        enemyMaterial = new Material(data.shader) { name = "Enemy Bullet Impact (runtime)" };
+        enemyMaterial.SetFloat("_PreserveSpriteColor", 1f);
         if (data.ballisticShader != null)
             ballisticMaterial = new Material(data.ballisticShader) { name = "Machinist Ballistic V2 (runtime)" };
         pool = new Burst[Mathf.Clamp(data.poolCapacity, 8, 96)];
@@ -182,6 +185,7 @@ public class MachinistImpactVfx : MonoBehaviour
         Burst b = pool[slot] ?? (pool[slot] = CreateBurst());
         cursor = (slot + 1) % pool.Length;
         b.frames = frames;
+        bool enemyBullet = MachinistImpactLibrary.IsEnemyBullet(kind);
         b.ballistic = library.UsesBallistic(kind);
         bool bulletAccent = kind == MachinistImpactKind.Bullet && b.ballistic;
         b.legacyPixelGrid = kind == MachinistImpactKind.Heavy || bulletAccent;
@@ -197,6 +201,14 @@ public class MachinistImpactVfx : MonoBehaviour
             * (heavy ? 1.1f : kind == MachinistImpactKind.Surface ? 0.5f
                 : kind == MachinistImpactKind.Bullet ? 0.65f
                 : kind == MachinistImpactKind.Shield ? 0.75f : 1f);
+        if (enemyBullet)
+        {
+            bool drone = kind == MachinistImpactKind.EnemyDroneBullet;
+            b.frameRate = Mathf.Max(1f, drone ? library.enemyDroneFramesPerSecond : library.enemyBulletFramesPerSecond);
+            b.pixelsPerUnit = 16f;
+            b.scale = Mathf.Clamp(size, 0.1f, 4f)
+                * Mathf.Max(0.1f, drone ? library.enemyDroneSize : library.enemyBulletSize);
+        }
         // The Electric-shaped bullet accent follows the normal-hit size, independent of Ballistic art scaling.
         b.accentScale = b.scale * (bulletAccent ? 1f : b.slash ? 1.15f * 1.15f : 1.1f);
         b.accentFrameRate = bulletAccent ? Mathf.Max(1f, library.framesPerSecond) : b.frameRate;
@@ -224,6 +236,11 @@ public class MachinistImpactVfx : MonoBehaviour
             : kind == MachinistImpactKind.Heavy ? library.heavyColor
             : kind == MachinistImpactKind.Shield || kind == MachinistImpactKind.Surface ? library.metal : library.warm;
         b.core.sharedMaterial = b.ballistic ? ballisticMaterial : material;
+        if (enemyBullet)
+        {
+            b.core.sharedMaterial = enemyMaterial;
+            b.core.color = Color.white;
+        }
         if (b.ballistic)
         {
             // Surface/Shield determine the contact size, but retain the ammunition's palette.
@@ -326,6 +343,7 @@ public class MachinistImpactVfx : MonoBehaviour
         SceneManager.activeSceneChanged -= OnSceneChanged;
         if (material != null) Destroy(material);
         if (ballisticMaterial != null) Destroy(ballisticMaterial);
+        if (enemyMaterial != null) Destroy(enemyMaterial);
         if (instance == this) instance = null;
     }
 }

@@ -1,43 +1,31 @@
 fileFormatVersion: 2
-guid: 79705896fb665c2408f1ee56f7bc9aef
+guid: ab25c75a063f0004f97b74a0ee8d7284
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5320067225289464264
-    second: gunner-run-rifle_0
+      213: -2689960242570974297
+    second: gunner_shoot_rifle_0
   - first:
-      213: -2785235779174120709
-    second: gunner-run-rifle_1
+      213: -4857801253631347152
+    second: gunner_shoot_rifle_1
   - first:
-      213: 2713159048948933067
-    second: gunner-run-rifle_2
+      213: 8820739979838819295
+    second: gunner_shoot_rifle_2
   - first:
-      213: -8901258953377000470
-    second: gunner-run-rifle_3
+      213: 9151859832837324066
+    second: gunner_shoot_rifle_3
   - first:
-      213: -2976224922716693063
-    second: gunner-run-rifle_4
+      213: -8774122673601446618
+    second: gunner_shoot_rifle_4
   - first:
-      213: -478084699936810810
-    second: gunner-run-rifle_5
+      213: 3838233440163792762
+    second: gunner_shoot_rifle_5
   - first:
-      213: -5595932602598198137
-    second: gunner-run-rifle_6
+      213: -4872551488986620394
+    second: gunner_shoot_rifle_6
   - first:
-      213: 7199817067265945520
-    second: gunner-run-rifle_7
-  - first:
-      213: 1312228261228152587
-    second: gunner-run-rifle_8
-  - first:
-      213: 4247570156534917110
-    second: gunner-run-rifle_9
-  - first:
-      213: -1231624849436218340
-    second: gunner-run-rifle_10
-  - first:
-      213: -4411844675560553912
-    second: gunner-run-rifle_11
+      213: 7215114094285816050
+    second: gunner_shoot_rifle_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -146,23 +134,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: gunner-run-rifle_0
+      name: gunner_shoot_rifle_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 0
-        height: 0
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 16
+        y: 16
+        width: 50
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8c9939854fca4d940800000000000000
-      internalID: 5320067225289464264
+      spriteID: 7ab22a159675baad0800000000000000
+      internalID: -2689960242570974297
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner_shoot_rifle_2
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 16
+        width: 51
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fdb01620740996a70800000000000000
+      internalID: 8820739979838819295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner_shoot_rifle_4
+      rect:
+        serializedVersion: 2
+        x: 177
+        y: 16
+        width: 49
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 62df8486aed0c3680800000000000000
+      internalID: -8774122673601446618
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner_shoot_rifle_6
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 16
+        width: 52
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61ed6259c38316cb0800000000000000
+      internalID: -4872551488986620394
       vertices: []
       indices: 
       edges: []
@@ -171,7 +225,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 3ff9de253f099ef4093cb1d7d8860e50
     internalID: 0
     vertices: []
     indices: 
@@ -181,7 +235,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      gunner-run-rifle_0: 5320067225289464264
+      gunner_shoot_rifle_0: -2689960242570974297
+      gunner_shoot_rifle_1: -4857801253631347152
+      gunner_shoot_rifle_2: 8820739979838819295
+      gunner_shoot_rifle_3: 9151859832837324066
+      gunner_shoot_rifle_4: -8774122673601446618
+      gunner_shoot_rifle_5: 3838233440163792762
+      gunner_shoot_rifle_6: -4872551488986620394
+      gunner_shoot_rifle_7: 7215114094285816050
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

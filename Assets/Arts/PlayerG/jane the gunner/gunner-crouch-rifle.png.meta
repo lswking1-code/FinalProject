@@ -1,43 +1,19 @@
 fileFormatVersion: 2
-guid: 79705896fb665c2408f1ee56f7bc9aef
+guid: b27d5a25c04f82c4ea2d6dcbd001d22f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5320067225289464264
-    second: gunner-run-rifle_0
+      213: 5810698656801987874
+    second: gunner-crouch-rifle_0
   - first:
-      213: -2785235779174120709
-    second: gunner-run-rifle_1
+      213: 6712538736391048113
+    second: gunner-crouch-rifle_1
   - first:
-      213: 2713159048948933067
-    second: gunner-run-rifle_2
+      213: -3039618677502186561
+    second: gunner-crouch-rifle_2
   - first:
-      213: -8901258953377000470
-    second: gunner-run-rifle_3
-  - first:
-      213: -2976224922716693063
-    second: gunner-run-rifle_4
-  - first:
-      213: -478084699936810810
-    second: gunner-run-rifle_5
-  - first:
-      213: -5595932602598198137
-    second: gunner-run-rifle_6
-  - first:
-      213: 7199817067265945520
-    second: gunner-run-rifle_7
-  - first:
-      213: 1312228261228152587
-    second: gunner-run-rifle_8
-  - first:
-      213: 4247570156534917110
-    second: gunner-run-rifle_9
-  - first:
-      213: -1231624849436218340
-    second: gunner-run-rifle_10
-  - first:
-      213: -4411844675560553912
-    second: gunner-run-rifle_11
+      213: -8327606085205569993
+    second: gunner-crouch-rifle_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -146,23 +122,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: gunner-run-rifle_0
+      name: gunner-crouch-rifle_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 0
-        height: 0
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 16
+        y: 16
+        width: 32
+        height: 27
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8c9939854fca4d940800000000000000
-      internalID: 5320067225289464264
+      spriteID: 22d958754afb3a050800000000000000
+      internalID: 5810698656801987874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-crouch-rifle_1
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 16
+        width: 33
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bb43ab8a6ab72d50800000000000000
+      internalID: 6712538736391048113
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-crouch-rifle_2
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 16
+        width: 32
+        height: 26
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fbbe6dadaea11d5d0800000000000000
+      internalID: -3039618677502186561
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-crouch-rifle_3
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 16
+        width: 32
+        height: 27
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73ec0f513666e6c80800000000000000
+      internalID: -8327606085205569993
       vertices: []
       indices: 
       edges: []
@@ -171,7 +213,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: a5aff3331cff4944f9a638e38fdb50ef
     internalID: 0
     vertices: []
     indices: 
@@ -181,7 +223,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      gunner-run-rifle_0: 5320067225289464264
+      gunner-crouch-rifle_0: 5810698656801987874
+      gunner-crouch-rifle_1: 6712538736391048113
+      gunner-crouch-rifle_2: -3039618677502186561
+      gunner-crouch-rifle_3: -8327606085205569993
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

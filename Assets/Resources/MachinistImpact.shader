@@ -4,6 +4,7 @@ Shader "Combat/Machinist Pixel Impact"
     {
         [PerRendererData] _MainTex ("Sprite", 2D) = "white" {}
         [HideInInspector] _Color ("Tint", Color) = (1,1,1,1)
+        [HideInInspector] _PreserveSpriteColor ("Preserve sprite color", Float) = 0
         [HideInInspector] _PixelStep ("Source pixels per visible pixel", Float) = 0
         [HideInInspector] _PixelPivot ("Pixel grid anchor", Vector) = (0,0,0,0)
     }
@@ -39,6 +40,7 @@ Shader "Combat/Machinist Pixel Impact"
             SAMPLER(sampler_MainTex);
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
+                float _PreserveSpriteColor;
                 float4 _MainTex_TexelSize;
                 float _PixelStep;
                 float4 _PixelPivot;
@@ -66,6 +68,7 @@ Shader "Combat/Machinist Pixel Impact"
                     uv = pixel * _MainTex_TexelSize.xy;
                 }
                 float4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+                if (_PreserveSpriteColor > 0.5) return tex * i.color;
                 // White-hot centres remain white; cyan edges take the weapon palette.
                 float white = smoothstep(0.55, 0.95, min(tex.r, min(tex.g, tex.b)));
                 float value = max(tex.r, max(tex.g, tex.b));

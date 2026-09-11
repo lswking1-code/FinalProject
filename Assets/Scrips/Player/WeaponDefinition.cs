@@ -129,21 +129,51 @@ public class WeaponDefinition : ScriptableObject
 
         switch (original.name)
         {
-            case "idle_up": return idle;
-            case "run_up": return run;
-            case "jump_up": return jump;
-            case "fall_up": return fall;
-            case "leap_up": return leap;
-            case "leapair_up": return leapAir;
-            case "lookup_start": return lookUpStart;
-            case "lookup": return lookUp;
-            case "lookup_end": return lookUpEnd;
-            case "lookdown_start": return lookDownStart;
-            case "lookdown": return lookDown;
-            case "lookdown_end": return lookDownEnd;
-            case "shoot": return shoot;
-            case "lookup_shoot": return lookUpShoot;
-            case "lookdown_shoot": return lookDownShoot;
+            case "idle_up":
+            case "gunner-idle-upper":
+                return idle;
+            case "run_up":
+            case "gunner-run-upper":
+                return run;
+            case "jump_up":
+            case "gunner-jump-upper":
+                return jump;
+            case "fall_up":
+            case "gunner-fall-upper":
+                return fall;
+            case "leap_up":
+            case "gunner-leapup-upper":
+                return leap;
+            case "leapair_up":
+            case "gunner-leapdown-upper":
+                return leapAir;
+            case "lookup_start":
+            case "gunner-lookup-start":
+                // LookUpStart / LookUpEnd 若共用同一基座 clip，只能一起被替换
+                return lookUpStart != null ? lookUpStart : lookUpEnd;
+            case "lookup":
+            case "gunner-lookup":
+                return lookUp;
+            case "lookup_end":
+                return lookUpEnd;
+            case "lookdown_start":
+            case "gunner-lookdown-start":
+                // LookDownStart / LookDownEnd 若共用同一基座 clip，只能一起被替换
+                return lookDownStart != null ? lookDownStart : lookDownEnd;
+            case "lookdown":
+            case "gunner-lookdown":
+                return lookDown;
+            case "lookdown_end":
+                return lookDownEnd;
+            case "shoot":
+            case "gunner-shoot":
+                return shoot;
+            case "lookup_shoot":
+            case "gunner-shootup":
+                return lookUpShoot;
+            case "lookdown_shoot":
+            case "gunner-shootdown":
+                return lookDownShoot;
             case "charge_start": return chargeStart;
             case "charge_loop": return chargeLoop;
             case "charge_shoot": return chargeShoot;
@@ -165,13 +195,20 @@ public class WeaponDefinition : ScriptableObject
             case "s_lookup_shoot": return lookUpChargeStart != null ? lookUpChargeStart : lookUpShoot;
             case "s_lookdown_shoot": return lookDownChargeStart != null ? lookDownChargeStart : lookDownShoot;
             case "s_crouch_shoot": return crouchChargeStart != null ? crouchChargeStart : crouchShoot;
-            case "melee": return melee;
-            case "air_melee": return airMelee;
-            case "gunner-melee": return melee;
-            case "gunner-air-melee": return airMelee != null ? airMelee : melee;
-            case "throw": return throwClip;
-            case "air_throw": return airThrow;
-            case "stand_draw": return weaponSwitch;
+            case "melee":
+            case "gunner-melee":
+                return melee;
+            case "air_melee":
+            case "gunner-air-melee":
+                return airMelee != null ? airMelee : melee;
+            case "throw":
+            case "air_throw":
+            case "gunner-throw":
+                // Throw / AirThrow 当前共用 gunner-throw 时只能一起替换
+                return throwClip != null ? throwClip : airThrow;
+            case "stand_draw":
+            case "gunner-change-upper":
+                return weaponSwitch;
             // Bob / melee_full 基座
             case "default_switch": return weaponSwitch;
             case "default_idle": return idle;
@@ -187,19 +224,37 @@ public class WeaponDefinition : ScriptableObject
             case "default_jump_downattack": return null;
             case "default_special": return special;
             case "default_attack": return melee;
-            case "crouch": return crouch;
-            case "crouch_start": return crouchStart;
-            case "crouch_move": return crouchMove;
-            case "crouch_turn": return crouchTurn;
-            case "crouch_shoot": return crouchShoot;
+            case "crouch":
+            case "gunner-crouch":
+                return crouch;
+            case "crouch_start":
+            case "gunner-crouch-start":
+                return crouchStart;
+            case "crouch_move":
+            case "gunner-crouch-move":
+                return crouchMove;
+            case "crouch_turn":
+            case "gunner-crouch-turn":
+                return crouchTurn;
+            case "crouch_shoot":
+            case "gunner-crouch-shoot":
+                return crouchShoot;
             case "crouch_melee": return null; // 与 default_down_melee 同为共用滑行，勿替换成各武器 melee
             case "gunner-crouch-melee": return crouchMelee;
-            case "crouch_throw": return crouchThrow;
-            case "crouch_draw": return crouchWeaponSwitch;
-            case "stop": return land;
-            case "stand_turn": return turn;
+            case "crouch_throw":
+            case "gunner-crouch-throw":
+                return crouchThrow;
+            case "crouch_draw":
+            case "gunner-crouch-change":
+                return crouchWeaponSwitch;
+            case "stop":
+            case "gunner-land":
+                return land;
+            case "stand_turn":
+            case "gunner-turn":
+            case "idle_turning":
+                return turn;
             case "die": return die;
-            case "idle_turning": return turn;
             default: return null;
         }
     }

@@ -1,19 +1,25 @@
 fileFormatVersion: 2
-guid: 413f0b5baa744e247a65b085f57ac18c
+guid: 20f45da91ccb268439aca186f123b824
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3454799840021707287
-    second: gunner-idle-rifle_0
+      213: -5358824278836208168
+    second: gunner-leap-rifle_0
   - first:
-      213: -7100080479648483966
-    second: gunner-idle-rifle_1
+      213: -8634985126362651238
+    second: gunner-leap-rifle_1
   - first:
-      213: -1488681787510879620
-    second: gunner-idle-rifle_2
+      213: -7745944876197812600
+    second: gunner-leap-rifle_2
   - first:
-      213: 2015565484985328470
-    second: gunner-idle-rifle_3
+      213: 2194335372503903753
+    second: gunner-leap-rifle_3
+  - first:
+      213: 4202331236457717326
+    second: gunner-leap-rifle_4
+  - first:
+      213: 946787431697266914
+    second: gunner-leap-rifle_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -122,89 +128,133 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: gunner-idle-rifle_0
+      name: gunner-leap-rifle_0
       rect:
         serializedVersion: 2
-        x: 23
-        y: 12
-        width: 27
-        height: 27
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 15
+        y: 15
+        width: 29
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 71af192762ae1ff20800000000000000
-      internalID: 3454799840021707287
+      spriteID: 8dd9a3ee5b1a1a5b0800000000000000
+      internalID: -5358824278836208168
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: gunner-idle-rifle_1
+      name: gunner-leap-rifle_1
       rect:
         serializedVersion: 2
-        x: 87
-        y: 11
-        width: 27
-        height: 27
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 79
+        y: 14
+        width: 30
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 8f59f7fdbe3082d4caab5638b6ee94c8
-      internalID: 60562772
+      spriteID: a956f5617ce5a2880800000000000000
+      internalID: -8634985126362651238
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: gunner-idle-rifle_2
+      name: gunner-leap-rifle_2
       rect:
         serializedVersion: 2
-        x: 151
-        y: 11
-        width: 27
-        height: 27
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 143
+        y: 14
+        width: 31
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 6499478cf551a4848babddd3383814ba
-      internalID: -669173150
+      spriteID: 886e874cc20e08490800000000000000
+      internalID: -7745944876197812600
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: gunner-idle-rifle_3
+      name: gunner-leap-rifle_3
       rect:
         serializedVersion: 2
-        x: 215
-        y: 12
-        width: 27
-        height: 27
-      alignment: 7
-      pivot: {x: 0.5, y: 0}
+        x: 207
+        y: 14
+        width: 31
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 1adb68930385edc4181f09b6385a878f
-      internalID: 1230197019
+      spriteID: 90e6b2c2568d37e10800000000000000
+      internalID: 2194335372503903753
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-leap-rifle_4
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 15
+        width: 29
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e4e1791aefda15a30800000000000000
+      internalID: 4202331236457717326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: gunner-leap-rifle_5
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 14
+        width: 29
+        height: 31
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2e8be10272aa32d00800000000000000
+      internalID: 946787431697266914
       vertices: []
       indices: 
       edges: []
@@ -213,7 +263,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 3d2dc495f3ecfd542afffa3a81df9eb3
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -223,10 +273,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      gunner-idle-rifle_0: 3454799840021707287
-      gunner-idle-rifle_1: 60562772
-      gunner-idle-rifle_2: -669173150
-      gunner-idle-rifle_3: 1230197019
+      gunner-leap-rifle_0: -5358824278836208168
+      gunner-leap-rifle_1: -8634985126362651238
+      gunner-leap-rifle_2: -7745944876197812600
+      gunner-leap-rifle_3: 2194335372503903753
+      gunner-leap-rifle_4: 4202331236457717326
+      gunner-leap-rifle_5: 946787431697266914
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
