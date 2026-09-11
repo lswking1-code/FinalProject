@@ -199,22 +199,15 @@ public static class WeaponDefinitionSetup
     {
         ClearAll(d);
         // 完整姿态在 asset 中已维护；forceFill 时至少恢复射击 + 蓄力
-        d.shoot = Clip("s_stand_up_shoot");
-        d.lookUpShoot = Clip("s_lookup_shoot");
-        d.lookDownShoot = Clip("s_lookdown_shoot");
-        d.crouchShoot = Clip("s_crouch_shoot");
-        d.chargeStart = Clip("s_stand_up_shoot");
-        d.chargeLoop = Clip("s_stand_up_shoot");
-        d.chargeShoot = Clip("f_stand_shoot");
-        d.lookUpChargeStart = Clip("s_lookup_shoot");
-        d.lookUpChargeLoop = Clip("s_lookup_shoot");
-        d.lookUpChargeShoot = Clip("f_lookup_shoot");
-        d.lookDownChargeStart = Clip("s_lookdown_shoot");
-        d.lookDownChargeLoop = Clip("s_lookdown_shoot");
-        d.lookDownChargeShoot = Clip("f_lookdown_shoot");
-        d.crouchChargeStart = Clip("s_crouch_shoot");
-        d.crouchChargeLoop = Clip("s_crouch_shoot");
-        d.crouchChargeShoot = Clip("f_crouch_shoot");
+        const string gunnerRoot = "Assets/Arts/PlayerG/jane the gunner";
+        d.shoot = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{gunnerRoot}/gunner-shoot-shotgun.anim");
+        d.lookUpShoot = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{gunnerRoot}/gunner-shootup-shotgun.anim");
+        d.lookDownShoot = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{gunnerRoot}/gunner-shootdown-shotgun.anim");
+        d.crouchShoot = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{gunnerRoot}/gunner-crouch-shoot-shotgun.anim");
+        d.chargeStart = d.chargeLoop = d.chargeShoot = d.shoot;
+        d.lookUpChargeStart = d.lookUpChargeLoop = d.lookUpChargeShoot = d.lookUpShoot;
+        d.lookDownChargeStart = d.lookDownChargeLoop = d.lookDownChargeShoot = d.lookDownShoot;
+        d.crouchChargeStart = d.crouchChargeLoop = d.crouchChargeShoot = d.crouchShoot;
     }
 
     static void FillLaser(WeaponDefinition d)
