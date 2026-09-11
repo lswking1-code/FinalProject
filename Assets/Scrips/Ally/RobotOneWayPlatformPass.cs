@@ -188,6 +188,9 @@ public class RobotOneWayPlatformPass : MonoBehaviour
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
 
+        if (IsInsideDescendingPlatform(platform, feet, platformTop))
+            return false;
+
         if (feet < platformBottom - surfaceMargin)
             return false;
 
@@ -198,6 +201,15 @@ public class RobotOneWayPlatformPass : MonoBehaviour
             return true;
 
         return feet >= platformTop - surfaceMargin;
+    }
+
+    bool IsInsideDescendingPlatform(Collider2D platform, float feetY, float platformTop)
+    {
+        var provider = platform.GetComponent<IPlatformVelocityProvider>()
+            ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
+        if (provider == null || provider.PlatformVelocity.y >= -0.01f)
+            return false;
+        return feetY < platformTop - surfaceMargin;
     }
 
     void SetCollisionIgnored(Collider2D platform, bool ignore)

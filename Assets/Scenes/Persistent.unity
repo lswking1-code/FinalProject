@@ -3543,8 +3543,8 @@ MonoBehaviour:
     tutorialScene: {fileID: 11400000, guid: fa121d14202f8a14baed194144de73b2, type: 2}
     tutorialStartPosition: {x: -20, y: 1, z: 0}
   developMode: 1
-  testScene: {fileID: 11400000, guid: 6b0070dd1b5cf9a47bdb8f7f384e8190, type: 2}
-  testPosition: {x: 252, y: 35, z: 0}
+  testScene: {fileID: 11400000, guid: 7b38a00d04d7bba44b59a461d63ad0ce, type: 2}
+  testPosition: {x: -50, y: 1, z: 0}
   enableDevelopCharacterSwitch: 0
   enableFillAmmoCheat: 1
   enableFullHealthCheat: 0
@@ -3633,6 +3633,14 @@ MonoBehaviour:
         Data3: -1817752129
         Data4: -1007286674
       Path: event:/Music/Tutorial
+  - scene: {fileID: 11400000, guid: 7b38a00d04d7bba44b59a461d63ad0ce, type: 2}
+    bgmEvent:
+      Guid:
+        Data1: 1598983772
+        Data2: 1165293647
+        Data3: 257591483
+        Data4: -500984553
+      Path: event:/Music/Stage4
   menuEvent:
     Guid:
       Data1: 0

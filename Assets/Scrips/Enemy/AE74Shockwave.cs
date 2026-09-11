@@ -11,6 +11,12 @@ public class AE74Shockwave : MonoBehaviour, IEnemyProjectileCancelable
     [SerializeField] float lifetime = 0.45f;
     [SerializeField] int damage = 12;
 
+    [Header("落地冲击波美术")]
+    [SerializeField] SpriteRenderer artwork;
+    [SerializeField] Sprite[] animationFrames;
+    float visualElapsed;
+    bool initialized;
+
     Rigidbody2D rb;
     Attack attack;
     Collider2D body;
@@ -34,6 +40,9 @@ public class AE74Shockwave : MonoBehaviour, IEnemyProjectileCancelable
 
     public void Init(Vector2 flyDirection, float moveSpeed, float life, Collider2D thrower)
     {
+        visualElapsed = 0f;
+        initialized = true;
+        ApplyAnimationFrame(0);
         direction = flyDirection.sqrMagnitude > 0.0001f ? flyDirection.normalized : Vector2.right;
         if (moveSpeed > 0f)
             speed = moveSpeed;
@@ -51,6 +60,23 @@ public class AE74Shockwave : MonoBehaviour, IEnemyProjectileCancelable
         }
 
         Destroy(gameObject, lifetime);
+    }
+
+    void Update()
+    {
+        if (!initialized || destroyed || animationFrames == null || animationFrames.Length == 0)
+            return;
+
+        visualElapsed += Time.deltaTime;
+        int frame = Mathf.Min(animationFrames.Length - 1,
+            Mathf.FloorToInt(visualElapsed / Mathf.Max(0.01f, lifetime) * animationFrames.Length));
+        ApplyAnimationFrame(frame);
+    }
+
+    void ApplyAnimationFrame(int frame)
+    {
+        if (artwork != null && animationFrames != null && frame < animationFrames.Length)
+            artwork.sprite = animationFrames[frame];
     }
 
     void FixedUpdate()

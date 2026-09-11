@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 招式 B：近距直接近战；否则 Dash_Start 发射两枚追踪导弹后二维冲刺（穿 Platform、开 Boost），到位再近战。
+/// 招式 B：近距直接近战；否则 Dash_Start 发射两枚追踪导弹后二维冲刺（穿 Platform、开 Boost），到达目标点立即近战。
 /// </summary>
 public class AE74MeleeDashState : BaseState
 {
@@ -73,16 +73,23 @@ public class AE74MeleeDashState : BaseState
 
         robot.UpdateDashPlatformPassThrough();
 
+        if (HasReachedDashTarget())
+        {
+            EnterSlash();
+            return;
+        }
+
         float dir = GetMoveDirTowardLocked();
         if (IsDashBlocked(dir))
         {
-            EndDashFlight();
             EnterSlash();
             return;
         }
 
         currentEnemy.ApplyFacing(dir);
         robot.MoveKinematicToward(lockedTarget, robot.dashSpeed);
+        if (HasReachedDashTarget())
+            EnterSlash();
     }
 
     public override void OnExit()
@@ -106,6 +113,7 @@ public class AE74MeleeDashState : BaseState
         robot.SetAnimBool("dash", false);
         robot.SetAnimBool("dashStart", true);
         robot.SetBoostActive(true);
+        robot.IsDashPassing = true;
         timer = Mathf.Max(0.05f, robot.dashStartDuration);
         FireMissilesOnce();
     }
@@ -135,22 +143,20 @@ public class AE74MeleeDashState : BaseState
     void UpdateDash()
     {
         timer -= Time.deltaTime;
-        if (timer <= 0f || HasArrivedForMelee())
-        {
-            EndDashFlight();
+        if (timer <= 0f)
             EnterSlash();
-        }
     }
 
     void EnterSlash()
     {
+        if (phase == Phase.Slash)
+            return;
+
         phase = Phase.Slash;
         EndDashFlight();
         robot.StopAllMotion();
         currentEnemy.ApplyFacing(lockedTarget.x - currentEnemy.transform.position.x);
-        robot.SetAnimBool("dashStart", false);
-        robot.SetAnimBool("dash", false);
-        robot.SetAnimBool("melee", true);
+        robot.PlayMeleeAnim();
         robot.PlayMeleeAttackSfx();
     }
 
@@ -180,6 +186,7 @@ public class AE74MeleeDashState : BaseState
         robot.SetBoostActive(false);
         robot.RestoreGroundPhysics();
         robot.RestoreStompPlatformIgnores();
+        robot.IsDashPassing = false;
     }
 
     void FireMissilesOnce()
@@ -197,9 +204,20 @@ public class AE74MeleeDashState : BaseState
     }
 
 
-    bool HasArrivedForMelee()
+    bool HasReachedDashTarget()
     {
-        return robot.HasArrivedAt(lockedTarget, robot.dashArriveDistance);
+        Vector2 pos = currentEnemy.Rb != null
+            ? currentEnemy.Rb.position
+            : (Vector2)currentEnemy.transform.position;
+        float remaining = Vector2.Distance(pos, lockedTarget);
+        float step = robot.dashSpeed * Time.fixedDeltaTime;
+        if (remaining <= Mathf.Max(0.001f, step))
+            return true;
+
+        // 身体已贴上目标才砍：只用水平近战距离，避免还在目标上方 1.6 就挥空
+        float dx = Mathf.Abs(pos.x - lockedTarget.x);
+        float dy = Mathf.Abs(pos.y - lockedTarget.y);
+        return dx <= robot.meleeRange && dy <= 1.25f;
     }
 
     float GetMoveDirTowardLocked()

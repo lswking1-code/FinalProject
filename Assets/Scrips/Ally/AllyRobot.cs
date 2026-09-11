@@ -549,6 +549,24 @@ public class AllyRobot : MonoBehaviour
 
         if (shieldVisual != null && shieldAnim == null)
             shieldAnim = shieldVisual.GetComponent<Animator>();
+
+        EnsureShieldCollidersAreTriggers();
+    }
+
+    /// <summary>
+    /// 盾只挡弹，不参与 Robot 刚体对地面/平台的实体碰撞。
+    /// </summary>
+    void EnsureShieldCollidersAreTriggers()
+    {
+        if (shieldVisual == null)
+            return;
+
+        var colliders = shieldVisual.GetComponentsInChildren<Collider2D>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            if (colliders[i] != null && !colliders[i].isTrigger)
+                colliders[i].isTrigger = true;
+        }
     }
 
     void Start()
@@ -2071,6 +2089,23 @@ public class AllyRobot : MonoBehaviour
             return col.bounds.center;
 
         return target.position;
+    }
+
+    /// <summary>
+    /// 索敌高度用脚底，避免大体型敌人因碰撞体中心偏高被当成「上方不可达」。
+    /// </summary>
+    float GetCombatFeetY(Transform target)
+    {
+        if (target == null)
+            return 0f;
+
+        Collider2D col = target.GetComponent<Collider2D>();
+        if (col == null)
+            col = target.GetComponentInChildren<Collider2D>();
+        if (col != null)
+            return col.bounds.min.y;
+
+        return target.position.y;
     }
 
     bool IsAirEnemyTarget(Transform target)
@@ -3602,7 +3637,7 @@ public class AllyRobot : MonoBehaviour
 
         float maxX = rangeX > 0f ? rangeX : detectRangeX;
         float comboMaxY = rangeY > 0f ? rangeY : detectRangeY;
-        // 普通索敌：发现用 detectRangeY；过高的上方地面敌仍过滤。连携/激光放宽到完整 Y 并含空中敌。
+        // 普通索敌：发现用 detectRangeY；脚底明显高于自身的地面敌仍过滤。连携/激光放宽到完整 Y 并含空中敌。
         float groundMaxY = includeAirEnemy ? comboMaxY : detectRangeY;
         ConsiderEnemiesWithTag(
             "Enemy",
@@ -3694,7 +3729,7 @@ public class AllyRobot : MonoBehaviour
             float distY = Mathf.Abs(transform.position.y - aim.y);
             if (distX > maxDistX || distY > maxDistY)
                 continue;
-            if (skipUnreachableAbove && aim.y > transform.position.y + airAttackDistanceY)
+            if (skipUnreachableAbove && GetCombatFeetY(e.transform) > GetFootY() + airAttackDistanceY)
                 continue;
 
             if (!IsAllowedByActiveEncounter(aim))

@@ -45,6 +45,10 @@ public class AE74Enemy : Enemy
     public float cannonWindup = 0.6f;
     [Tooltip("仅当与玩家 |ΔY| 低于此值时火炮进入掷骰池")]
     public float cannonMaxYDelta = 1.6f;
+    public Transform cannonFirePoint1;
+    public Transform cannonFirePoint2;
+    [Tooltip("两发直射导弹之间的间隔（秒）")]
+    [Min(0f)] public float cannonBurstInterval = 0.2f;
 
     [Header("招式 B · 近战 / 冲刺")]
     public float meleeRange = 1.6f;
@@ -121,6 +125,14 @@ public class AE74Enemy : Enemy
     [Header("Hitbox")]
     public GameObject meleeAttacker;
 
+    [Header("单向平台")]
+    [Tooltip("移动/冲刺时不把单向板当障碍；仍可站在板顶")]
+    public bool passOneWayPlatformsWhileMoving = true;
+    [Tooltip("脚底需高于平台顶面多少才算越过表面，避免贴边抖动")]
+    [SerializeField] float oneWaySurfaceMargin = 0.05f;
+    [Tooltip("冲刺时相对身体扩大的预扫描，避免高速撞板前未 Ignore")]
+    [SerializeField] float oneWayDashScanPadding = 1.25f;
+
     [HideInInspector] public Dictionary<EnemyAction, float> actionProbabilities = new();
     [HideInInspector] public EnemyAction? lastAction;
     [HideInInspector] public Vector2 lockedFireDir = Vector2.right;
@@ -147,9 +159,13 @@ public class AE74Enemy : Enemy
     Collider2D stompTargetCollider;
     float stompLandingY;
     readonly HashSet<Collider2D> ignoredStompPlatforms = new();
+    readonly HashSet<Collider2D> trackedMoveOneWayPlatforms = new();
+    readonly HashSet<Collider2D> ignoredMoveOneWayPlatforms = new();
     readonly Collider2D[] platformOverlapBuffer = new Collider2D[PlatformOverlapBufferSize];
     ContactFilter2D platformFilter;
     LayerMask stompScanMask;
+
+    public bool IsDashPassing { get; set; }
 
     protected override void Awake()
     {
@@ -240,6 +256,11 @@ public class AE74Enemy : Enemy
                 firePoint = fp;
         }
 
+        if (cannonFirePoint1 == null)
+            cannonFirePoint1 = transform.Find("CannonFirePoint1");
+        if (cannonFirePoint2 == null)
+            cannonFirePoint2 = transform.Find("CannonFirePoint2");
+
         CacheGunRestPose();
 
         if (meleeAttacker != null)
@@ -292,6 +313,8 @@ public class AE74Enemy : Enemy
         isReturning = false;
         RestoreGroundPhysics();
         RestoreStompPlatformIgnores();
+        RestoreMoveOneWayPlatformIgnores();
+        IsDashPassing = false;
         SetMeleeAttackerActive(false);
         SetStompHitboxActive(false);
         SetBoostActive(false);
@@ -311,11 +334,13 @@ public class AE74Enemy : Enemy
     protected override void OnDisable()
     {
         RestoreStompPlatformIgnores();
+        RestoreMoveOneWayPlatformIgnores();
         RestoreGroundPhysics();
         RestoreGunPose();
         SetBoostActive(false);
         SetMeleeAttackerActive(false);
         SetStompHitboxActive(false);
+        IsDashPassing = false;
         base.OnDisable();
     }
 
@@ -331,6 +356,16 @@ public class AE74Enemy : Enemy
     protected override bool ShouldRunTimeCounter() => false;
 
     protected override bool ShouldAutoMove() => false;
+
+    protected override void FixedUpdate()
+    {
+        if (passOneWayPlatformsWhileMoving)
+            UpdateMoveOneWayPlatformPass();
+        else
+            RestoreMoveOneWayPlatformIgnores();
+
+        base.FixedUpdate();
+    }
 
     public override bool IsPlayerInCombatRange()
     {
@@ -354,9 +389,11 @@ public class AE74Enemy : Enemy
             gunHoldLocked = false;
             gunApplyAim = false;
             RestoreStompPlatformIgnores();
+            RestoreMoveOneWayPlatformIgnores();
             SetBoostActive(false);
             SetMeleeAttackerActive(false);
             SetStompHitboxActive(false);
+            IsDashPassing = false;
         }
     }
 
@@ -788,6 +825,21 @@ public class AE74Enemy : Enemy
             return;
 
         meleeAttacker.SetActive(active);
+        if (!active)
+            return;
+
+        if (meleeAttack == null)
+            meleeAttack = meleeAttacker.GetComponent<Attack>();
+        meleeAttack?.NotifyHitboxEnabled();
+    }
+
+    public void PlayMeleeAnim()
+    {
+        SetAnimBool("dashStart", false);
+        SetAnimBool("dash", false);
+        SetAnimBool("melee", true);
+        if (anim != null && !string.IsNullOrEmpty(meleeStateName))
+            anim.Play(meleeStateName, 0, 0f);
     }
 
     public void SetStompHitboxActive(bool active)
@@ -1035,13 +1087,25 @@ public class AE74Enemy : Enemy
         PlayShootSfx();
     }
 
-    public void FireCannonMissile()
+    public void GetCannonFirePoints(out Transform first, out Transform second)
+    {
+        Transform fallback = cannonFirePoint1 != null
+            ? cannonFirePoint1
+            : (cannonFirePoint2 != null ? cannonFirePoint2 : firePoint);
+        first = cannonFirePoint1 != null ? cannonFirePoint1 : fallback;
+        second = cannonFirePoint2 != null ? cannonFirePoint2 : fallback;
+    }
+
+    public void FireCannonMissileFrom(Transform point)
     {
         if (cannonMissilePrefab == null)
             return;
 
         Vector2 dir = new Vector2(Mathf.Approximately(faceDir.x, 0f) ? 1f : Mathf.Sign(faceDir.x), 0f);
-        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position + (Vector3)(dir * 0.8f);
+        Transform spawn = point != null ? point : firePoint;
+        Vector3 spawnPos = spawn != null
+            ? spawn.position
+            : transform.position + (Vector3)(dir * 0.8f);
         var missile = Instantiate(cannonMissilePrefab, spawnPos, Quaternion.identity);
         EnemySceneCleanup.PlaceInSourceScene(missile.gameObject, this);
         missile.Init(dir, GetComponent<Collider2D>());
@@ -1276,8 +1340,8 @@ public class AE74Enemy : Enemy
                 continue;
 
             keep.Add(platform);
-            if (ignoredStompPlatforms.Add(platform))
-                Physics2D.IgnoreCollision(bodyCollider, platform, true);
+            ignoredStompPlatforms.Add(platform);
+            Physics2D.IgnoreCollision(bodyCollider, platform, true);
         }
 
         if (ignoredStompPlatforms.Count == 0)
@@ -1293,7 +1357,7 @@ public class AE74Enemy : Enemy
 
         for (int i = 0; i < stale.Count; i++)
         {
-            if (stale[i] != null)
+            if (stale[i] != null && !ignoredMoveOneWayPlatforms.Contains(stale[i]))
                 Physics2D.IgnoreCollision(bodyCollider, stale[i], false);
             ignoredStompPlatforms.Remove(stale[i]);
         }
@@ -1335,12 +1399,169 @@ public class AE74Enemy : Enemy
 
         foreach (var platform in ignoredStompPlatforms)
         {
-            if (platform != null && bodyCollider != null)
+            if (platform != null && bodyCollider != null && !ignoredMoveOneWayPlatforms.Contains(platform))
                 Physics2D.IgnoreCollision(bodyCollider, platform, false);
         }
 
         ignoredStompPlatforms.Clear();
         stompTargetCollider = null;
+    }
+
+    void UpdateMoveOneWayPlatformPass()
+    {
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<CapsuleCollider2D>();
+        if (bodyCollider == null || Rb == null)
+            return;
+
+        platformFilter.layerMask = stompScanMask;
+        float feet = bodyCollider.bounds.min.y;
+        Vector2 feetPos = new Vector2(bodyCollider.bounds.center.x, feet);
+        float vy = Rb.linearVelocity.y;
+        bool forcePass = IsDashPassing;
+        int count = CollectNearbyMoveOneWayPlatforms(forcePass);
+
+        var activeThisFrame = new HashSet<Collider2D>();
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D col = platformOverlapBuffer[i];
+            if (col == null || col == bodyCollider)
+                continue;
+            if (col.transform != null && col.transform.IsChildOf(transform))
+                continue;
+            if (!FallingPlatform.IsOneWayPlatformCollider(col))
+                continue;
+            if (IsLayeredSlope(col))
+                continue;
+
+            activeThisFrame.Add(col);
+            bool shouldCollide = !forcePass && ShouldCollideWithOneWay(col, feet, feetPos, vy);
+            // 践踏已锁定落点时，中间的单向板必须继续穿透，避免下落站板卡住
+            if (stompTargetCollider != null && col != stompTargetCollider)
+                shouldCollide = false;
+            SetMoveOneWayIgnored(col, !shouldCollide);
+            trackedMoveOneWayPlatforms.Add(col);
+        }
+
+        if (trackedMoveOneWayPlatforms.Count == 0)
+            return;
+
+        var stale = new List<Collider2D>();
+        foreach (Collider2D tracked in trackedMoveOneWayPlatforms)
+        {
+            if (tracked == null)
+            {
+                stale.Add(tracked);
+                ignoredMoveOneWayPlatforms.Remove(tracked);
+                continue;
+            }
+
+            if (activeThisFrame.Contains(tracked))
+                continue;
+
+            SetMoveOneWayIgnored(tracked, false);
+            stale.Add(tracked);
+        }
+
+        for (int i = 0; i < stale.Count; i++)
+            trackedMoveOneWayPlatforms.Remove(stale[i]);
+    }
+
+    int CollectNearbyMoveOneWayPlatforms(bool forcePass)
+    {
+        if (!forcePass || oneWayDashScanPadding <= 0.001f)
+            return bodyCollider.Overlap(platformFilter, platformOverlapBuffer);
+
+        Vector2 size = (Vector2)bodyCollider.bounds.size + Vector2.one * (oneWayDashScanPadding * 2f);
+        return Physics2D.OverlapBox(
+            bodyCollider.bounds.center,
+            size,
+            0f,
+            platformFilter,
+            platformOverlapBuffer);
+    }
+
+    bool ShouldCollideWithOneWay(Collider2D platform, float feet, Vector2 feetPos, float vy)
+    {
+        var slope = platform.GetComponent<SlopeOneWayPlatform>();
+        if (slope != null)
+        {
+            float slopeMargin = slope.SurfaceMargin;
+            float standMargin = slope.StandMargin;
+            float signedDist = slope.GetSignedDistanceToSurface(feetPos);
+
+            if (signedDist < -(slopeMargin + standMargin))
+                return false;
+            if (signedDist >= -standMargin)
+                return true;
+            if (vy > 0.15f)
+                return false;
+            return true;
+        }
+
+        float platformTop = platform.bounds.max.y;
+        float platformBottom = platform.bounds.min.y;
+        float margin = Mathf.Max(0.01f, oneWaySurfaceMargin);
+
+        if (IsInsideDescendingPlatform(platform, feet, platformTop, margin))
+            return false;
+        if (feet < platformBottom - margin)
+            return false;
+        if (vy > 0f && feet < platformTop - margin)
+            return false;
+        if (vy <= 0f && feet >= platformBottom - margin)
+            return true;
+
+        return feet >= platformTop - margin;
+    }
+
+    static bool IsInsideDescendingPlatform(Collider2D platform, float feetY, float platformTop, float margin)
+    {
+        var provider = platform.GetComponent<IPlatformVelocityProvider>()
+            ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
+        if (provider == null || provider.PlatformVelocity.y >= -0.01f)
+            return false;
+        return feetY < platformTop - margin;
+    }
+
+    static bool IsLayeredSlope(Collider2D col)
+    {
+        if (col == null)
+            return false;
+        return col.GetComponent<SlopePathSegment>() != null
+            || col.GetComponentInParent<SlopePathSegment>() != null;
+    }
+
+    void SetMoveOneWayIgnored(Collider2D platform, bool ignore)
+    {
+        if (bodyCollider == null || platform == null)
+            return;
+
+        if (ignore)
+        {
+            Physics2D.IgnoreCollision(bodyCollider, platform, true);
+            ignoredMoveOneWayPlatforms.Add(platform);
+            return;
+        }
+
+        if (!ignoredStompPlatforms.Contains(platform))
+            Physics2D.IgnoreCollision(bodyCollider, platform, false);
+        ignoredMoveOneWayPlatforms.Remove(platform);
+    }
+
+    void RestoreMoveOneWayPlatformIgnores()
+    {
+        if (bodyCollider == null)
+            bodyCollider = GetComponent<CapsuleCollider2D>();
+
+        foreach (var platform in trackedMoveOneWayPlatforms)
+        {
+            if (platform != null && bodyCollider != null && !ignoredStompPlatforms.Contains(platform))
+                Physics2D.IgnoreCollision(bodyCollider, platform, false);
+        }
+
+        trackedMoveOneWayPlatforms.Clear();
+        ignoredMoveOneWayPlatforms.Clear();
     }
 
     public void SpawnShockwaves()

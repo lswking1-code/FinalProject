@@ -443,6 +443,8 @@ public static class AE74AnimControllerSetup
 
             robot.missileFirePoint1 = EnsureChild(root.transform, "MissileFirePoint1", new Vector3(-0.45f, 0.95f, 0f));
             robot.missileFirePoint2 = EnsureChild(root.transform, "MissileFirePoint2", new Vector3(0.45f, 0.95f, 0f));
+            robot.cannonFirePoint1 = EnsureChild(root.transform, "CannonFirePoint1", new Vector3(1.2f, 0.7f, 0f));
+            robot.cannonFirePoint2 = EnsureChild(root.transform, "CannonFirePoint2", new Vector3(1.2f, -0.3f, 0f));
             robot.shockwavePoint = EnsureChild(root.transform, "ShockwavePoint", new Vector3(0f, -1.2f, 0f));
 
             robot.meleeAttacker = EnsureHitbox(

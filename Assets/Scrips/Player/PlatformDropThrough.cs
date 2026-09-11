@@ -249,6 +249,8 @@ public class PlatformDropThrough : MonoBehaviour
         float platformTop = platform.bounds.max.y;
         float platformBottom = platform.bounds.min.y;
 
+        if (IsInsideDescendingPlatform(platform, playerFeet, platformTop))
+            return false;
         if (playerFeet < platformBottom - surfaceMargin)
             return false;
         if (vy > 0f && playerFeet < platformTop - surfaceMargin)
@@ -256,6 +258,15 @@ public class PlatformDropThrough : MonoBehaviour
         if (vy <= 0f && playerFeet >= platformBottom - surfaceMargin)
             return true;
         return playerFeet >= platformTop - surfaceMargin;
+    }
+
+    bool IsInsideDescendingPlatform(Collider2D platform, float feetY, float platformTop)
+    {
+        var provider = platform.GetComponent<IPlatformVelocityProvider>()
+            ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
+        if (provider == null || provider.PlatformVelocity.y >= -0.01f)
+            return false;
+        return feetY < platformTop - surfaceMargin;
     }
 
     /// <summary>

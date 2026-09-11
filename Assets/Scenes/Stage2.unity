@@ -30162,7 +30162,7 @@ GameObject:
   - component: {fileID: 1388572463}
   - component: {fileID: 1388572462}
   m_Layer: 0
-  m_Name: Teleporter
+  m_Name: NextLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30182,7 +30182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadEventSO: {fileID: 11400000, guid: 2c203c89dbbbeaa4ca10886558811755, type: 2}
   sceneToGo: {fileID: 11400000, guid: 7b38a00d04d7bba44b59a461d63ad0ce, type: 2}
-  positionToGo: {x: -10, y: 1, z: 0}
+  positionToGo: {x: -50, y: 1, z: 0}
 --- !u!61 &1388572463
 BoxCollider2D:
   m_ObjectHideFlags: 0

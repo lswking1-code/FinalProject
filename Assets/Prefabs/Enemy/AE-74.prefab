@@ -31,6 +31,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9100000000000000002}
+  - {fileID: 9100000000000000018}
+  - {fileID: 9100000000000000020}
   m_Father: {fileID: 9202979072455168784}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -59.277}
 --- !u!212 &7688955603847520133
@@ -441,6 +443,20 @@ MonoBehaviour:
       Data3: 24283318
       Data4: -1492407517
     Path: event:/Enemy/rocket_launch
+  hitTankEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  hitShieldBulletEvent:
+    Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
   hitArmorBulletEvent:
     Guid:
       Data1: -1220676228
@@ -462,6 +478,9 @@ MonoBehaviour:
   cannonMissilePrefab: {fileID: 6100000000000000006, guid: a07b24d5e10672912d4f8a3b5c6170e9, type: 3}
   cannonWindup: 0.8
   cannonMaxYDelta: 1.6
+  cannonFirePoint1: {fileID: 9100000000000000018}
+  cannonFirePoint2: {fileID: 9100000000000000020}
+  cannonBurstInterval: 0.2
   meleeRange: 1.6
   meleeWeightRange: 5
   meleeCloseWeightMultiplier: 1.5
@@ -483,13 +502,13 @@ MonoBehaviour:
   mgBurstCount: 3
   mgCycleMin: 3
   mgCycleMax: 5
-  mgFireInterval: 0.35
+  mgFireInterval: 0.2
   mgReloadStun: 1
   mgAimHeightOffset: 0
-  jumpHeight: 8
+  jumpHeight: 7
   jumpTakeoffDuration: 0.25
-  flySpeed: 7
-  stompHoverHeight: 10
+  flySpeed: 9
+  stompHoverHeight: 6
   stompFallSpeed: 20
   airAimDuration: 2
   airBurstCount: 3
@@ -515,6 +534,9 @@ MonoBehaviour:
   landingRayStartOffsetY: 2
   landingRayDistance: 30
   meleeAttacker: {fileID: 9100000000000000009}
+  passOneWayPlatformsWhileMoving: 1
+  oneWaySurfaceMargin: 0.05
+  oneWayDashScanPadding: 1.25
   lockedFireDir: {x: 1, y: 0}
 --- !u!114 &8713665319221946291
 MonoBehaviour:
@@ -530,8 +552,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   newGameEvent: {fileID: 11400000, guid: 82f96565ace5263438e4f72d0e22174a, type: 2}
   healthEvent: {fileID: 0}
-  maxHealth: 2500
-  currentHealth: 2500
+  maxHealth: 2800
+  currentHealth: 2800
   maxPower: 0
   currentPower: 0
   powerRecoverSpeed: 0
@@ -945,7 +967,7 @@ GameObject:
   - component: {fileID: 9100000000000000010}
   - component: {fileID: 9100000000000000011}
   - component: {fileID: 9100000000000000012}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: Attacker1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1025,7 +1047,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bd8c1428324ccc47a84bc96a4402ead, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 18
+  damage: 20
   attackRange: 0
   attackRate: 0
   attackType: 0
@@ -1053,7 +1075,7 @@ GameObject:
   - component: {fileID: 9100000000000000014}
   - component: {fileID: 9100000000000000015}
   - component: {fileID: 9100000000000000016}
-  m_Layer: 8
+  m_Layer: 7
   m_Name: StompHitbox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1150,3 +1172,65 @@ MonoBehaviour:
   hitCameraShakeForce: 0.12
   impactKind: 0
   impactScale: 1
+--- !u!1 &9100000000000000017
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9100000000000000018}
+  m_Layer: 8
+  m_Name: CannonFirePoint1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9100000000000000018
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9100000000000000017}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.49452978, w: 0.8691607}
+  m_LocalPosition: {x: 0.87, y: 0.53, z: 0}
+  m_LocalScale: {x: 0.8333333, y: 0.8333333, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4996112632473263932}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9100000000000000019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9100000000000000020}
+  m_Layer: 8
+  m_Name: CannonFirePoint2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9100000000000000020
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9100000000000000019}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: 0.49452978, w: 0.8691607}
+  m_LocalPosition: {x: 0.86, y: -0.32, z: 0}
+  m_LocalScale: {x: 0.8333333, y: 0.8333333, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4996112632473263932}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

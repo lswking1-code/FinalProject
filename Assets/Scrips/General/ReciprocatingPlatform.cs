@@ -27,7 +27,14 @@ public class ReciprocatingPlatform : MonoBehaviour
     [Tooltip("不勾选 = 持续移动：ON 往复循环，OFF 停在当前位置，不回落。勾选 = 单次开合：ON 到终点，OFF 移回初始位置。")]
     [SerializeField] bool oneShot;
 
+    [Header("单向平台")]
+    [Tooltip("开启后同单向平台：从上压下穿过玩家/敌人，可上穿与主动下穿")]
+    [SerializeField] bool oneWay = true;
+    [Tooltip("PlatformEffector2D 表面弧角（度）；180 为常见单向平台顶部")]
+    [SerializeField, Range(1f, 360f)] float surfaceArc = 180f;
+
     Rigidbody2D rb;
+    PlatformEffector2D platformEffector;
     Vector2 bottomPos;
     Vector2 topPos;
     Vector2 homePos;
@@ -42,6 +49,8 @@ public class ReciprocatingPlatform : MonoBehaviour
 
     void Awake()
     {
+        ApplyOneWayMode();
+
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.gravityScale = 0f;
@@ -232,6 +241,54 @@ public class ReciprocatingPlatform : MonoBehaviour
 
         rb.MovePosition(previousPos + toTarget / distance * step);
         platformVelocity = (rb.position - previousPos) / Time.fixedDeltaTime;
+    }
+
+#if UNITY_EDITOR
+    void OnValidate()
+    {
+        ApplyOneWayMode();
+    }
+#endif
+
+    void ApplyOneWayMode()
+    {
+        platformEffector = GetComponent<PlatformEffector2D>();
+        if (platformEffector == null)
+        {
+            // 仅运行时自动补组件；编辑器请在 Prefab 上预挂 PlatformEffector2D
+            if (!Application.isPlaying || !oneWay)
+            {
+                SetRootCollidersUsedByEffector(false);
+                return;
+            }
+
+            platformEffector = gameObject.AddComponent<PlatformEffector2D>();
+        }
+
+        if (oneWay)
+        {
+            platformEffector.enabled = true;
+            platformEffector.useOneWay = true;
+            platformEffector.surfaceArc = surfaceArc;
+            platformEffector.useOneWayGrouping = false;
+            SetRootCollidersUsedByEffector(true);
+        }
+        else
+        {
+            platformEffector.useOneWay = false;
+            platformEffector.enabled = false;
+            SetRootCollidersUsedByEffector(false);
+        }
+    }
+
+    void SetRootCollidersUsedByEffector(bool used)
+    {
+        var rootColliders = GetComponents<Collider2D>();
+        for (int i = 0; i < rootColliders.Length; i++)
+        {
+            if (rootColliders[i] != null)
+                rootColliders[i].usedByEffector = used;
+        }
     }
 
 #if UNITY_EDITOR

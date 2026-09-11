@@ -377,6 +377,10 @@ public class PhysicsCheck : MonoBehaviour
             if (IsSlopeSurfaceHit(collision.collider))
                 continue;
 
+            // 与 CheckSideOverlap 一致：单向板侧面不是墙
+            if (IsOneWayPlatformCollider(collision.collider))
+                continue;
+
             // 可推物顶面在 Ground 层供站立，侧面接触不能当墙，否则站立推箱会被清速度
             if (IsPushablePropSurface(collision.collider))
                 continue;
