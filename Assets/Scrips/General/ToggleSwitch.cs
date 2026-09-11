@@ -9,6 +9,8 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
 {
     [Header("状态")]
     [SerializeField] bool isOn;
+    [Tooltip("勾选后只能被翻转一次，之后命中不再改变状态。")]
+    [SerializeField] bool singleUse;
     [Tooltip("同一攻击实例同一帧内去重（Bob Trigger + Overlap 双路径）")]
     [SerializeField] bool dedupeSameAttackSameFrame = true;
 
@@ -34,8 +36,10 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
 
     Attack lastHitAttacker;
     int lastHitFrame = -1;
+    bool hasToggled;
 
     public bool IsOn => isOn;
+    public bool IsSingleUseLocked => singleUse && hasToggled;
 
     void Awake()
     {
@@ -64,13 +68,14 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
         lastHitFrame = Time.frameCount;
         ScenePropAudio.PlayHitNormal(hitNormalEvent, transform.position);
 
-        SetOn(!isOn, playSfx: true);
+        if (!IsSingleUseLocked)
+            SetOn(!isOn, playSfx: true);
         return true;
     }
 
     public void SetOn(bool on, bool playSfx = false)
     {
-        if (isOn == on)
+        if (isOn == on || IsSingleUseLocked)
         {
             ApplyVisual();
             SyncTargets();
@@ -78,6 +83,7 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
         }
 
         isOn = on;
+        hasToggled = true;
         ApplyVisual();
         SyncTargets();
         onToggled?.Invoke(isOn);
@@ -86,7 +92,13 @@ public class ToggleSwitch : MonoBehaviour, IHitCountable
             PlayToggleSfx();
     }
 
-    public void Toggle() => SetOn(!isOn, playSfx: true);
+    public void Toggle()
+    {
+        if (IsSingleUseLocked)
+            return;
+
+        SetOn(!isOn, playSfx: true);
+    }
 
     void SyncTargets()
     {

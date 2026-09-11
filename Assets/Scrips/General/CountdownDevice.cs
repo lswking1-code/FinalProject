@@ -1,9 +1,11 @@
+﻿using FMODUnity;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 
 /// <summary>
 /// 倒计时装置：ToggleSwitch 打开后启动倒计时并程序触发遭遇战；
-/// 期间按电梯楼层音效提示进度；结束后开门并 UnlockLock（不停刷怪）。
+/// 期间按电梯楼层音效提示进度；结束后开门并 EndEncounter（停刷，场上敌人保留）。
 /// </summary>
 [RequireComponent(typeof(DataDefination))]
 public class CountdownDevice : MonoBehaviour, ISaveable
@@ -24,15 +26,24 @@ public class CountdownDevice : MonoBehaviour, ISaveable
     [SerializeField] EncounterZone encounterZone;
     [Tooltip("倒计时结束后开门（AnimatedDestroy.BeginDestroy）")]
     [SerializeField] AnimatedDestroy doorOnComplete;
+    [Tooltip("倒计时结束后结束遭遇并停刷；关闭则只 UnlockLock，刷怪继续")]
+    [SerializeField] bool endEncounterOnComplete = true;
 
-    [Header("音效")]
-    [SerializeField] AudioSource sfxSource;
-    [SerializeField] AudioClip startClip;
-    [SerializeField, Range(0f, 1f)] float startVolume = 0.8f;
-    [SerializeField] AudioClip floorDingClip;
-    [SerializeField, Range(0f, 1f)] float floorDingVolume = 0.85f;
-    [SerializeField] AudioClip completeClip;
-    [SerializeField, Range(0f, 1f)] float completeVolume = 0.9f;
+    [Header("FMOD 音效")]
+    [SerializeField] EventReference startEvent;
+    [SerializeField] EventReference tickEvent;
+    [SerializeField] EventReference floorDingEvent;
+    [SerializeField] EventReference completeEvent;
+
+    [Header("门上倒计时")]
+    [SerializeField] bool showCountdown;
+    [SerializeField] Vector3 displayWorldOffset = new Vector3(-1.5f, -6.5f, -0.1f);
+    [SerializeField] Sprite[] chargeSprites;
+    [SerializeField] TMP_FontAsset countdownFont;
+    [SerializeField] Transform displayRoot;
+    [SerializeField] SpriteRenderer chargeVisual;
+    [SerializeField] TextMeshPro countdownText;
+    int lastDisplayedSecond = -1;
 
     [Header("事件")]
     [SerializeField] UnityEvent onStarted;
@@ -51,17 +62,10 @@ public class CountdownDevice : MonoBehaviour, ISaveable
 
     void Awake()
     {
-        if (sfxSource == null)
-            sfxSource = GetComponent<AudioSource>();
-        if (sfxSource != null)
-        {
-            sfxSource.playOnAwake = false;
-            sfxSource.loop = false;
-            sfxSource.spatialBlend = 0f;
-        }
-
         if (doorOnComplete == null)
             doorOnComplete = GetComponent<AnimatedDestroy>();
+        CreateDisplay();
+        UpdateDisplay();
     }
 
     void OnEnable()
@@ -71,6 +75,8 @@ public class CountdownDevice : MonoBehaviour, ISaveable
 
         ((ISaveable)this).RegisterSaveData();
         DataManager.instance?.ApplyLoadedData(this);
+        if (listenToSwitch && activationSwitch != null && activationSwitch.IsOn)
+            Begin();
     }
 
     void Start()
@@ -89,11 +95,21 @@ public class CountdownDevice : MonoBehaviour, ISaveable
 
     void Update()
     {
+        AdvanceCountdown(Time.deltaTime);
+    }
+
+    void AdvanceCountdown(float deltaTime)
+    {
         if (!running || completed)
             return;
 
-        remain -= Time.deltaTime;
+        int previousSecond = Mathf.CeilToInt(remain);
+        remain = Mathf.Max(0f, remain - deltaTime);
+        int currentSecond = Mathf.CeilToInt(Mathf.Max(0f, remain));
+        if (currentSecond > 0 && currentSecond != previousSecond)
+            FmodAudio.Play(tickEvent, transform.position);
         TickFloorDings();
+        UpdateDisplay();
 
         if (remain <= 0f)
         {
@@ -120,7 +136,8 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         floorsPassed = 0;
         secondsPerFloor = floorCount > 0 ? countdownDuration / floorCount : countdownDuration;
 
-        PlaySfx(startClip, startVolume);
+        FmodAudio.Play(startEvent, transform.position);
+        UpdateDisplay();
 
         if (encounterZone != null && !encounterZone.IsActive)
             encounterZone.StartEncounter();
@@ -133,7 +150,7 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         if (secondsPerFloor <= 0f || floorCount <= 0)
             return;
 
-        // 启动不叮；每跨过一层边界叮一次；最后一层到达交给 completeClip。
+        // 启动不叮；每跨过一层边界叮一次；最后一层到达交给 completeEvent。
         int maxDingFloors = Mathf.Max(0, floorCount - 1);
         float elapsed = countdownDuration - remain;
         int shouldHavePassed = Mathf.Min(maxDingFloors, Mathf.FloorToInt(elapsed / secondsPerFloor));
@@ -141,7 +158,7 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         while (floorsPassed < shouldHavePassed)
         {
             floorsPassed++;
-            PlaySfx(floorDingClip, floorDingVolume);
+            FmodAudio.Play(floorDingEvent, transform.position);
         }
     }
 
@@ -154,13 +171,13 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         completed = true;
         remain = 0f;
 
-        PlaySfx(completeClip, completeVolume);
+        FmodAudio.Play(completeEvent, transform.position);
+        UpdateDisplay();
 
         if (doorOnComplete != null)
             doorOnComplete.BeginDestroy();
 
-        if (encounterZone != null && encounterZone.IsActive)
-            encounterZone.UnlockLock();
+        FinishLinkedEncounter();
 
         onCompleted?.Invoke();
     }
@@ -175,16 +192,83 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         if (doorOnComplete != null)
             doorOnComplete.BeginDestroy();
 
+        FinishLinkedEncounter();
+
+        UpdateDisplay();
         if (activationSwitch != null)
             activationSwitch.SetOn(true, playSfx: false);
     }
 
-    void PlaySfx(AudioClip clip, float volume)
+    void FinishLinkedEncounter()
     {
-        if (sfxSource == null || clip == null)
+        if (encounterZone == null || !encounterZone.IsActive)
             return;
 
-        sfxSource.PlayOneShot(clip, volume);
+        if (endEncounterOnComplete)
+            encounterZone.EndEncounter();
+        else
+            encounterZone.UnlockLock();
+    }
+
+    void CreateDisplay()
+    {
+        if (!showCountdown || (displayRoot != null && chargeVisual != null && countdownText != null)) return;
+        SpriteRenderer artwork = null;
+        foreach (var candidate in GetComponentsInChildren<SpriteRenderer>())
+        {
+            if (candidate.enabled && (artwork == null ||
+                SortingLayer.GetLayerValueFromID(candidate.sortingLayerID) >
+                SortingLayer.GetLayerValueFromID(artwork.sortingLayerID)))
+                artwork = candidate;
+        }
+        displayRoot = new GameObject("ElevatorCountdownDisplay").transform;
+        displayRoot.position = transform.position + displayWorldOffset;
+        // Preserve world orientation and size under the rotated, stretched door.
+        displayRoot.SetParent(transform, true);
+        var icon = new GameObject("ChargeIndicator");
+        icon.transform.SetParent(displayRoot, false);
+        icon.transform.localPosition = new Vector3(-1.4f, 0f, 0f);
+        chargeVisual = icon.AddComponent<SpriteRenderer>();
+        chargeVisual.sortingLayerID = SortingLayer.NameToID("Default");
+        chargeVisual.sortingOrder = 100;
+        var label = new GameObject("SecondsRemaining");
+        label.transform.SetParent(displayRoot, false);
+        label.transform.localPosition = new Vector3(0.6f, 0f, -0.01f);
+        countdownText = label.AddComponent<TextMeshPro>();
+        countdownText.font = countdownFont != null ? countdownFont : TMP_Settings.defaultFontAsset;
+        countdownText.fontSize = 9;
+        countdownText.alignment = TextAlignmentOptions.Center;
+        countdownText.rectTransform.sizeDelta = new Vector2(3.2f, 1.4f);
+        countdownText.GetComponent<MeshRenderer>().sortingOrder = 101;
+        // Use the same sorting layer as the door artwork, above its renderers.
+        if (artwork != null)
+        {
+            chargeVisual.sortingLayerID = artwork.sortingLayerID;
+            chargeVisual.sortingOrder = Mathf.Max(100, artwork.sortingOrder + 1);
+            countdownText.GetComponent<MeshRenderer>().sortingLayerID = artwork.sortingLayerID;
+            countdownText.GetComponent<MeshRenderer>().sortingOrder = chargeVisual.sortingOrder + 1;
+        }
+    }
+
+    void UpdateDisplay()
+    {
+        if (countdownText == null) return;
+        int seconds = Mathf.CeilToInt(running ? remain : completed ? 0f : countdownDuration);
+        if (seconds != lastDisplayedSecond || !running)
+        {
+            lastDisplayedSecond = seconds;
+            countdownText.text = completed ? "OPEN" : seconds.ToString("00");
+            countdownText.color = completed ? Color.green : running && seconds <= 10
+                ? new Color(1f, 0.35f, 0.15f) : new Color(0.4f, 0.9f, 1f);
+        }
+        int state = !running ? (completed ? 3 : 0) : NormalizedRemaining > 0.66f ? 3
+            : NormalizedRemaining > 0.33f ? 2 : 1;
+        if (chargeSprites != null && state < chargeSprites.Length && chargeSprites[state] != null)
+        {
+            chargeVisual.sprite = chargeSprites[state];
+            float size = Mathf.Max(chargeVisual.sprite.bounds.size.x, chargeVisual.sprite.bounds.size.y);
+            chargeVisual.transform.localScale = Vector3.one * (1.5f / Mathf.Max(size, 0.01f));
+        }
     }
 
     public DataDefination GetDataID() => GetComponent<DataDefination>();
@@ -220,8 +304,7 @@ public class CountdownDevice : MonoBehaviour, ISaveable
         if (dataId == null || string.IsNullOrEmpty(dataId.ID))
             return;
 
-        bool wasCompleted = data.boolSavedData.TryGetValue(ProgressKey(CompletedKeySuffix), out bool saved)
-            && saved;
+        bool hasSavedState = data.boolSavedData.TryGetValue(ProgressKey(CompletedKeySuffix), out bool wasCompleted);
 
         if (wasCompleted)
         {
@@ -229,9 +312,23 @@ public class CountdownDevice : MonoBehaviour, ISaveable
             return;
         }
 
+        // Additive scene setup can apply the same checkpoint more than once.
+        // Never cancel a live countdown after its single-use switch has fired.
+        if (running || completed || !hasSavedState)
+            return;
+
         completed = false;
         running = false;
         remain = 0f;
         floorsPassed = 0;
+        UpdateDisplay();
     }
+
+#if UNITY_EDITOR
+    public void BakeDisplay()
+    {
+        CreateDisplay();
+        UpdateDisplay();
+    }
+#endif
 }

@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -44,7 +44,7 @@ public static class CountdownDeviceSetupEditor
         EditorSceneManager.SaveScene(scene);
         Selection.activeGameObject = device.gameObject;
         Debug.Log(
-            $"Stage2 CountdownDevice 已接线：开关={sw.name}，门={door.name}，遭遇区={zone.name}（startOnPlayerEnter=false）。音效请在 Inspector 挂 clip。",
+            $"Stage2 CountdownDevice 已接线：开关={sw.name}，门={door.name}，遭遇区={zone.name}（startOnPlayerEnter=false）。音效请在 Inspector 指定 FMOD Event。",
             device);
     }
 
@@ -211,14 +211,6 @@ public static class CountdownDeviceSetupEditor
             dso.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        if (root.GetComponent<AudioSource>() == null)
-        {
-            var src = root.AddComponent<AudioSource>();
-            src.playOnAwake = false;
-            src.loop = false;
-            src.spatialBlend = 0f;
-        }
-
         var device = root.GetComponent<CountdownDevice>();
         if (device == null)
             device = root.AddComponent<CountdownDevice>();
@@ -229,7 +221,6 @@ public static class CountdownDeviceSetupEditor
         so.FindProperty("doorOnComplete").objectReferenceValue = door;
         so.FindProperty("countdownDuration").floatValue = 15f;
         so.FindProperty("floorCount").intValue = 5;
-        so.FindProperty("sfxSource").objectReferenceValue = root.GetComponent<AudioSource>();
         so.ApplyModifiedPropertiesWithoutUndo();
         return device;
     }
