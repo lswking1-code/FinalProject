@@ -3337,8 +3337,20 @@ PrefabInstance:
       value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8134567890123456789, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
-      propertyPath: rollSpeed
-      value: 10
+      propertyPath: rollHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8134567890123456789, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: rollCooldown
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8134567890123456789, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: rollDistance
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8134567890123456789, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
+      propertyPath: rollDuration
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8426311522068214211, guid: 59f1afa2d2fb0fd4ba1ab8b40f9c7b24, type: 3}
       propertyPath: m_Sprite

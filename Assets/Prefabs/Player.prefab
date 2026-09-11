@@ -691,10 +691,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8b9c0d1e2f34567890123456789abcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rollDuration: 0.35
-  rollSpeed: 7
+  rollDuration: 0.4166667
+  rollDistance: 2.45
+  rollHeight: 0.25
   rollCooldown: 1
-  rollRotations: 1
 --- !u!114 &7228234809107681330
 MonoBehaviour:
   m_ObjectHideFlags: 0

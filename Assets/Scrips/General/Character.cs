@@ -42,6 +42,7 @@ public class Character : MonoBehaviour,ISaveable
     private float invulnerableCounter;// 无敌剩余时间
     public bool invulnerable;
     bool forcedInvulnerable;
+    PlayerRoll playerRoll;
     bool isDead;
     bool skipDeathDelay;
     Coroutine knockbackRoutine;
@@ -54,7 +55,7 @@ public class Character : MonoBehaviour,ISaveable
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
     public bool IsDead => isDead;
-    public bool IsForcedInvulnerable => forcedInvulnerable;
+    public bool IsForcedInvulnerable => forcedInvulnerable || (playerRoll != null && playerRoll.IsRolling);
     /// <summary>逻辑死亡后仍允许受击（敌人濒死窗口）。</summary>
     [HideInInspector] public bool allowHitsWhileDead;
     public bool CanReceiveHits => !isDead || allowHitsWhileDead;
@@ -122,6 +123,7 @@ public class Character : MonoBehaviour,ISaveable
         initialBulletL = BulletL;
         weaponController = GetComponent<PlayerWeaponController>();
         playerAnim = GetComponent<PlayerAnimBase>();
+        playerRoll = GetComponent<PlayerRoll>();
 
         // 玩家回菜单时会被禁用，newGame 需在禁用期间仍能收到
         if (newGameEvent != null)
@@ -207,7 +209,7 @@ public class Character : MonoBehaviour,ISaveable
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        if (forcedInvulnerable)
+        if (IsForcedInvulnerable)
             return;
 
         if (other.CompareTag("Water"))
@@ -217,7 +219,7 @@ public class Character : MonoBehaviour,ISaveable
     /// <returns>true 表示本次确实扣血或击杀；无敌/吸收等情况返回 false。</returns>
     public bool TakeDamage(Attack attacker)
     {
-        if (invulnerable || forcedInvulnerable)
+        if (invulnerable || IsForcedInvulnerable)
             return false;
 
         if (attacker == null)
@@ -274,7 +276,7 @@ public class Character : MonoBehaviour,ISaveable
     {
         killed = false;
 
-        if (isDead || invulnerable || forcedInvulnerable)
+        if (isDead || invulnerable || IsForcedInvulnerable)
             return false;
 
         if (attacker == null)

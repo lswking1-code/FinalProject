@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 枪械 Player 翻滚：按 Ability2(I) 触发，全身动画 + Z 轴旋转，水平位移且保留重力，期间强制无敌。
+/// 枪械 Player 翻滚：全身动画、带实体碰撞的短抛物线，期间无敌。
 /// 仅挂在 Player prefab，勿挂到 PlayerMachinist。
 /// </summary>
 [DefaultExecutionOrder(100)]
@@ -14,10 +14,10 @@ using UnityEngine.InputSystem;
 public class PlayerRoll : MonoBehaviour
 {
     [Header("翻滚")]
-    [SerializeField] float rollDuration = 0.35f;
-    [SerializeField] float rollSpeed = 7f;
+    [SerializeField, Min(0.01f)] float rollDuration = 5f / 12f;
+    [SerializeField, Min(0f)] float rollDistance = 2.45f;
+    [SerializeField, Min(0f)] float rollHeight = 0.25f;
     [SerializeField] float rollCooldown = 1f;
-    [SerializeField] float rollRotations = 1f;
 
     InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
@@ -29,6 +29,10 @@ public class PlayerRoll : MonoBehaviour
     float cooldownTimer;
     float rollTimer;
     float rollFaceDir = 1f;
+    float duration;
+    float acceleration;
+    float savedGravity;
+    CollisionDetectionMode2D savedCollisionMode;
 
     public bool IsRolling { get; private set; }
 
@@ -51,7 +55,7 @@ public class PlayerRoll : MonoBehaviour
     void OnDisable()
     {
         if (IsRolling)
-            EndRoll(startCooldown: false);
+            EndRoll(startCooldown: false, completed: false);
 
         actions.Player.Disable();
     }
@@ -65,7 +69,11 @@ public class PlayerRoll : MonoBehaviour
 
         if (IsRolling)
         {
-            UpdateRolling();
+            if (playerAnim.IsDead || character.IsDead || !playerAnim.IsRolling
+                || playerMovement.IsExternallyControlled)
+                EndRoll(startCooldown: true, completed: false);
+            else if (!GameplayPause.IsPaused && rollTimer >= duration && playerAnim.IsRollAnimationComplete)
+                EndRoll(startCooldown: true, completed: true);
             return;
         }
 
@@ -80,21 +88,31 @@ public class PlayerRoll : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!IsRolling)
+        if (!IsRolling || playerMovement.IsActionLocked || playerAnim.IsDead || character.IsDead)
             return;
 
-        rb.linearVelocity = new Vector2(rollFaceDir * rollSpeed, rb.linearVelocity.y);
+        float step = Mathf.Min(Time.fixedDeltaTime, Mathf.Max(0f, duration - rollTimer));
+        physicsCheck.Check();
+        bool wall = rollFaceDir > 0f ? physicsCheck.touchRightWall : physicsCheck.touchLeftWall;
+        float speed = wall ? 0f : rollFaceDir * rollDistance / duration;
+        // Integrate velocity, not position: the collision solver can stop ascent at ceilings.
+        float velocityY = rb.linearVelocity.y - acceleration * step;
+        rb.linearVelocity = new Vector2(speed * step / Time.fixedDeltaTime, velocityY);
+        rollTimer += step;
     }
 
     bool CanStartRoll()
     {
-        if (playerMovement.IsActionLocked || playerAnim.IsDead)
+        if (playerMovement.IsActionLocked || playerAnim.IsDead || character.IsDead)
             return false;
 
         if (cooldownTimer > 0f)
             return false;
 
-        if (!physicsCheck.isGround)
+        physicsCheck.Check();
+        if (!physicsCheck.isSolidGround || playerMovement.DidGroundJumpThisFixedUpdate
+            || actions.Player.Jump.WasPressedThisFrame()
+            || (rb.linearVelocity.y > 0.01f && !playerMovement.CanLandOnSlopeWhileAscending))
             return false;
 
         if (playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsSwitchingWeapon || playerAnim.IsRecalling)
@@ -109,7 +127,8 @@ public class PlayerRoll : MonoBehaviour
 
     void StartRoll()
     {
-        if (!playerAnim.TryPlayRollAnim())
+        duration = Mathf.Max(0.01f, rollDuration);
+        if (!playerAnim.TryPlayRollAnim(duration))
             return;
 
         IsRolling = true;
@@ -120,35 +139,18 @@ public class PlayerRoll : MonoBehaviour
 
         PlaySessionRecorder.Instance?.RecordAbility2();
 
-        character.SetForcedInvulnerable(true);
-        ApplyRollRotation(0f);
+        playerMovement.PrepareRollPhysics();
+        savedGravity = rb.gravityScale;
+        savedCollisionMode = rb.collisionDetectionMode;
+        rb.gravityScale = 0f;
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        acceleration = 8f * Mathf.Max(0f, rollHeight) / (duration * duration);
+        // Half-step correction for the semi-implicit physics integration.
+        rb.linearVelocity = new Vector2(0f, 4f * Mathf.Max(0f, rollHeight) / duration
+            + acceleration * Mathf.Min(Time.fixedDeltaTime, duration) * 0.5f);
     }
 
-    void UpdateRolling()
-    {
-        if (playerAnim.IsDead)
-        {
-            EndRoll(startCooldown: true);
-            return;
-        }
-
-        rollTimer += Time.deltaTime;
-        float duration = Mathf.Max(0.01f, rollDuration);
-        float t = Mathf.Clamp01(rollTimer / duration);
-        ApplyRollRotation(t);
-
-        if (t >= 1f)
-            EndRoll(startCooldown: true);
-    }
-
-    void ApplyRollRotation(float normalizedTime)
-    {
-        // 面朝右时顺时针（负 Z），面朝左时逆时针，形成向前翻滚观感
-        float degrees = -rollFaceDir * 360f * rollRotations * normalizedTime;
-        playerAnim.SetRollRotation(degrees);
-    }
-
-    void EndRoll(bool startCooldown)
+    void EndRoll(bool startCooldown, bool completed)
     {
         if (!IsRolling)
             return;
@@ -156,11 +158,14 @@ public class PlayerRoll : MonoBehaviour
         IsRolling = false;
         rollTimer = 0f;
 
-        playerAnim.EndRollAnim();
-
-        // 死亡流程会自行维持 forcedInvulnerable，翻滚结束时不要清掉
-        if (!playerAnim.IsDead)
-            character.SetForcedInvulnerable(false);
+        rb.collisionDetectionMode = savedCollisionMode;
+        if (!playerMovement.IsExternallyControlled)
+        {
+            rb.gravityScale = savedGravity;
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+        }
+        physicsCheck.Check();
+        playerAnim.EndRollAnim(completed, physicsCheck.isSolidGround && rb.linearVelocity.y <= 0.01f);
 
         if (startCooldown)
             cooldownTimer = Mathf.Max(0f, rollCooldown);

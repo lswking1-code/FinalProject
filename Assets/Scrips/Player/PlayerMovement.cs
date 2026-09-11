@@ -77,6 +77,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     bool actionLocked;
     public bool IsActionLocked => actionLocked || GameplayPause.IsPaused;
+    public bool IsExternallyControlled => actionLocked;
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
     /// <summary>已贴在斜坡上且未处于起跳脱离：上坡切向 Y&gt;0 也应算落地。</summary>
@@ -225,14 +226,15 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         physicsCheck.Check();
         UpdateCoyoteTime();
-        UpdateSlopeGravity();
-        UpdateAirHang();
 
         if (playerAnim.IsRolling)
         {
             jumpBufferCounter = 0f;
             return;
         }
+
+        UpdateSlopeGravity();
+        UpdateAirHang();
 
         if (actions.Player.Jump.WasPressedThisFrame()) // Fixed 里也读一次，覆盖同帧时序差
             jumpBufferCounter = jumpBufferTime;
@@ -258,7 +260,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     /// </summary>
     public void BeginKnockback(Vector2 impulse, float duration)
     {
-        if (IsActionLocked)
+        if (IsActionLocked || playerAnim.IsRolling)
             return;
 
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
@@ -369,9 +371,18 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.gravityScale = normalGravityScale;
     }
 
+    public void PrepareRollPhysics()
+    {
+        ClearAirHang(restoreGravity: false);
+        jumpPressed = false;
+        jumpBufferCounter = 0f;
+        coyoteCounter = 0f;
+        rb.gravityScale = normalGravityScale;
+    }
+
     void OnCollisionStay2D(Collision2D collision)
     {
-        if (IsActionLocked || IsSlopeDetached)
+        if (IsActionLocked || IsSlopeDetached || playerAnim.IsRolling)
             return;
 
         if (platformDropThrough != null && platformDropThrough.IsDroppingThrough)
@@ -988,6 +999,8 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     public void FaceTowardWorldX(float worldX)
     {
+        if (playerAnim.IsRolling)
+            return;
         float newDir = worldX >= transform.position.x ? 1f : -1f;
         if (Mathf.Approximately(newDir, faceDir))
             return;

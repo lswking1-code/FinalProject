@@ -170,8 +170,8 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     bool isRecalling;
     bool isDead;
     bool isRolling;
-    bool rollPoseActive;
-    Vector3 fullBodyRestLocalPos;
+    bool rollPlaybackActive;
+    float preRollAnimatorSpeed;
     bool isLookingUp;
     bool isLookingDown;
     bool isEndingLookUp;
@@ -2151,7 +2151,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     {
         isDead = true;
         isRolling = false;
-        ResetRollRotation();
+        ResetRollPlayback();
         isCrouching = false;
         isRunning = false;
         isShooting = false;
@@ -2219,7 +2219,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
     {
         isDead = false;
         isRolling = false;
-        ResetRollRotation();
+        ResetRollPlayback();
         activeFullBodyState = null;
         fullBodyAutoExit = false;
         ExitFullBody();
@@ -2549,7 +2549,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeFullBodyState = null;
         fullBodyAutoExit = false;
         isRolling = false;
-        ResetRollRotation();
+        ResetRollPlayback();
 
         if (crouchBody != null)
             crouchBody.SetActive(false);
@@ -2706,7 +2706,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         return true;
     }
 
-    public override bool TryPlayRollAnim()
+    public override bool TryPlayRollAnim(float duration = 5f / 12f)
     {
         if (isDead || isRolling)
             return false;
@@ -2733,86 +2733,59 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
 
         ClearLookState();
         EnterFullBody(RollStateName, autoExitOnComplete: false);
-        if (crouchAnimator != null)
-            crouchAnimator.Update(0f); // 立刻切到 roll 精灵，再按真实尺寸抬升旋转轴
-        BeginRollPose();
+        if (crouchAnimator == null)
+        {
+            ExitFullBody();
+            return false;
+        }
+        crouchAnimator.Update(0f);
+        var state = crouchAnimator.GetCurrentAnimatorStateInfo(0);
+        if (!state.IsName(RollStateName) || state.length <= 0f)
+        {
+            ExitFullBody();
+            return false;
+        }
+        preRollAnimatorSpeed = crouchAnimator.speed;
+        rollPlaybackActive = true;
+        crouchAnimator.speed = state.length / Mathf.Max(0.01f, duration);
         isRolling = true;
         return true;
     }
 
-    public override void EndRollAnim()
+    public override bool IsRollAnimationComplete =>
+        crouchAnimator != null && crouchAnimator.GetCurrentAnimatorStateInfo(0).IsName(RollStateName)
+        && crouchAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f;
+
+    public override void EndRollAnim(bool completed = false, bool grounded = false)
     {
-        if (!isRolling && activeFullBodyState != RollStateName)
+        bool wasRolling = isRolling || activeFullBodyState == RollStateName;
+        ResetRollPlayback();
+        if (!wasRolling)
             return;
-
         isRolling = false;
-        ResetRollRotation();
-
+        if (isDead)
+            return;
+        if (completed)
+        {
+            airPhase = grounded ? AirPhaseType.Ground : AirPhaseType.Fall;
+            airTrack = grounded ? AirTrack.None : AirTrack.Jump;
+            if (grounded)
+            {
+                EnterFullBodyLand();
+                return;
+            }
+        }
         if (displayMode == BodyDisplayMode.FullBody && activeFullBodyState == RollStateName)
             ExitFullBody();
     }
 
-    public override void SetRollRotation(float degreesZ)
+    void ResetRollPlayback()
     {
-        if (crouchBody == null)
+        if (!rollPlaybackActive)
             return;
-
-        crouchBody.transform.localRotation = Quaternion.Euler(0f, 0f, degreesZ);
-    }
-
-    public override void ResetRollRotation()
-    {
-        if (crouchBody == null)
-        {
-            rollPoseActive = false;
-            return;
-        }
-
-        crouchBody.transform.localRotation = Quaternion.identity;
-        if (rollPoseActive)
-        {
-            crouchBody.transform.localPosition = fullBodyRestLocalPos;
-            rollPoseActive = false;
-        }
-    }
-
-    /// <summary>
-    /// roll 切片 pivot 在中心，直接绕 FullBody 原点转会有一半扎进地。
-    /// 开始翻滚时把旋转中心抬到约半身高度，使翻滚圆贴地。
-    /// </summary>
-    void BeginRollPose()
-    {
-        if (crouchBody == null)
-            return;
-
-        if (!rollPoseActive)
-        {
-            fullBodyRestLocalPos = crouchBody.transform.localPosition;
-            rollPoseActive = true;
-        }
-
-        float lift = EstimateRollPivotLift();
-        Vector3 pos = fullBodyRestLocalPos;
-        pos.y += lift;
-        crouchBody.transform.localPosition = pos;
-        crouchBody.transform.localRotation = Quaternion.identity;
-    }
-
-    float EstimateRollPivotLift()
-    {
-        var sr = crouchBody != null ? crouchBody.GetComponent<SpriteRenderer>() : null;
-        if (sr == null || sr.sprite == null)
-            return 0.6f;
-
-        // sprite.bounds 为本地尺寸；再乘 FullBody 本地缩放
-        Vector3 extents = sr.sprite.bounds.extents;
-        float scaleY = Mathf.Abs(crouchBody.transform.localScale.y);
-        float scaleX = Mathf.Abs(crouchBody.transform.localScale.x);
-        // 用外接圆半径，避免 45° 时边角穿地
-        float radius = Mathf.Sqrt(
-            extents.x * extents.x * scaleX * scaleX +
-            extents.y * extents.y * scaleY * scaleY);
-        return radius;
+        if (crouchAnimator != null)
+            crouchAnimator.speed = preRollAnimatorSpeed;
+        rollPlaybackActive = false;
     }
 
     void TryAutoExitCrouchTurn() // 蹲伏转身结束，回 Crouch 循环
@@ -3329,7 +3302,7 @@ public class PlayerAnim : PlayerAnimBase // 玩家动画：下半身 AirPhase �
         activeFullBodyState = null;
         fullBodyAutoExit = false;
         isRolling = false;
-        ResetRollRotation();
+        ResetRollPlayback();
 
         if (crouchBody != null)
             crouchBody.SetActive(false);

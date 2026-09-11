@@ -183,13 +183,11 @@ public class PlayerAnimBase : MonoBehaviour
 
     public virtual bool InterruptTurn() => false;
 
-    public virtual bool TryPlayRollAnim() => false;
+    public virtual bool TryPlayRollAnim(float duration = 5f / 12f) => false;
 
-    public virtual void EndRollAnim() { }
+    public virtual bool IsRollAnimationComplete => true;
 
-    public virtual void SetRollRotation(float degreesZ) { }
-
-    public virtual void ResetRollRotation() { }
+    public virtual void EndRollAnim(bool completed = false, bool grounded = false) { }
 
     /// <summary>
     /// 解析玩家动画组件：优先返回启用中的实例，避免与禁用的 <see cref="PlayerAnim"/> 同挂时绑错。
