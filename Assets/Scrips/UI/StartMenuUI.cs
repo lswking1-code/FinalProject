@@ -4,7 +4,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// 主菜单开始界面：方向/鼠标高亮按钮，Jump 或左键确认。
+/// 菜单按钮选中：方向/鼠标高亮，Jump / Submit / 左键确认。
+/// 主菜单、暂停、通关等面板共用。
 /// </summary>
 public class StartMenuUI : MonoBehaviour
 {
@@ -192,6 +193,13 @@ public class StartMenuUI : MonoBehaviour
         if (actions.Player.Jump.WasPressedThisFrame())
         {
             InputPromptDeviceTracker.RememberFromAction(actions.Player.Jump);
+            ConfirmSelection();
+            return;
+        }
+
+        if (actions.UI.Submit.WasPressedThisFrame())
+        {
+            InputPromptDeviceTracker.RememberFromAction(actions.UI.Submit);
             ConfirmSelection();
         }
     }

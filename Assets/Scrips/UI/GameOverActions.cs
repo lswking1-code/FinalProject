@@ -13,12 +13,35 @@ public class GameOverActions : MonoBehaviour
         newGameEvent = newGame;
     }
 
-    /// <summary>GAME OVER / 暂停 Restart：从 Stage1 起点重开并刷新数值。</summary>
+    /// <summary>GAME OVER Restart：清空进度，从 Stage1 起点重开。</summary>
     public void OnRestartFromSave()
     {
         var loader = FindFirstObjectByType<SceneLoader>();
         if (loader != null)
             loader.RestartCurrentLevel();
+    }
+
+    /// <summary>暂停 Restart：回到最新存档点；没有存档时再从 Stage1 重开。</summary>
+    public void OnRestartFromCheckpoint()
+    {
+        if (HasLatestCheckpoint())
+        {
+            loadDataEvent?.RaiseEvent();
+            return;
+        }
+
+        OnRestartFromSave();
+    }
+
+    static bool HasLatestCheckpoint()
+    {
+        var data = DataManager.instance;
+        var loader = FindFirstObjectByType<SceneLoader>();
+        if (data == null || loader == null || loader.playerTrans == null)
+            return false;
+
+        var def = loader.playerTrans.GetComponent<DataDefination>();
+        return def != null && data.HasPlayerCheckpoint(def.ID);
     }
 
     /// <summary>返回主菜单。</summary>

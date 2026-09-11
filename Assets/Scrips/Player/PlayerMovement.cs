@@ -76,7 +76,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     float knockbackUntil;
 
     bool actionLocked;
-    public bool IsActionLocked => actionLocked || GameplayPause.IsPaused;
+    public bool IsActionLocked => actionLocked || GameplayPause.SuppressesGameplayInput || GameplayHold.IsHeld;
     public bool IsExternallyControlled => actionLocked;
     public bool IsKnockbackActive => Time.time < knockbackUntil;
     public bool IsSlopeDetached => slopeDetachTimer > 0f;
@@ -187,6 +187,12 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
     void Update()
     {
+        if (GameplayPause.SuppressesGameplayInput)
+        {
+            jumpPressed = false;
+            jumpBufferCounter = 0f;
+        }
+
         if (!IsActionLocked && !playerAnim.IsRolling)
         {
             ReadInput();

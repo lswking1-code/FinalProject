@@ -447,7 +447,9 @@ public class Bob_Controller : MonoBehaviour
         if (holdingAttackInputLock)
             MaintainAttackLockAnimation();
 
-        if (actions.Player.Jump.WasPressedThisFrame())
+        if (playerMovement != null && playerMovement.IsActionLocked)
+            jumpPressedThisFrame = false;
+        else if (actions.Player.Jump.WasPressedThisFrame())
             jumpPressedThisFrame = true;
 
         TryStartMeleeAttack();

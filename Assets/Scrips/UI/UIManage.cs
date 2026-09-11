@@ -48,6 +48,19 @@ public class UIManage : MonoBehaviour
         CacheClearTimeText();
         WireEndGameButtons();
         WirePauseButtons();
+        EnsureMenuButtonSelect(gamePausePanel);
+        EnsureMenuButtonSelect(gameClearPannel);
+        EnsureMenuButtonSelect(gameOverPannel);
+        if (gameClearPannel != null)
+            gameClearPannel.SetActive(false);
+    }
+
+    static void EnsureMenuButtonSelect(GameObject panel)
+    {
+        if (panel == null || panel.GetComponent<StartMenuUI>() != null)
+            return;
+
+        panel.AddComponent<StartMenuUI>();
     }
 
     void EnsureGameOverUI()
@@ -192,7 +205,7 @@ public class UIManage : MonoBehaviour
         if (restart != null)
         {
             pauseRestartBtn = restart.gameObject;
-            BindButton(restart, endGameActions.OnRestartFromSave);
+            BindButton(restart, endGameActions.OnRestartFromCheckpoint);
         }
 
         var backToMenu = FindChildButton(gamePausePanel.transform, "Backtomenu", "BackToMenu", "Back");
