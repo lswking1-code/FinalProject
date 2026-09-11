@@ -86,6 +86,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     bool hasRegisteredAny;
     bool lockReleased;
     bool airWallsSealed;
+    bool saveProgressReady;
     int pendingSpawnSources;
     CameraControl cameraControl;
     readonly List<Collider2D> playerColliders = new();
@@ -169,23 +170,34 @@ public class EncounterZone : MonoBehaviour, ISaveable
         SetEncounterBoundsVisible(false);
         if (airWallsRoot != null)
             airWallsRoot.SetActive(false);
+
+        // 先关触发器，避免读档落点叠在区内时，完成旗标尚未套上就开战。
+        if (triggerOnce)
+            SetEnterTriggerEnabled(false);
     }
 
     void OnEnable()
     {
         ((ISaveable)this).RegisterSaveData();
-        DataManager.instance?.ApplyLoadedData(this);
+        TryApplySaveProgress();
     }
 
     void Start()
     {
         // Additive 加载时 OnEnable 里 scene.name 可能仍为空，补一次以免完成旗标对不上。
-        DataManager.instance?.ApplyLoadedData(this);
+        TryApplySaveProgress();
+        saveProgressReady = true;
+        if (triggerOnce && !hasCompleted)
+            SetEnterTriggerEnabled(true);
     }
 
     void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other) => TryStartFromPlayer(other);
+
+    void OnTriggerStay2D(Collider2D other) => TryStartFromPlayer(other);
+
+    void TryStartFromPlayer(Collider2D other)
     {
         if (!startOnPlayerEnter)
             return;
@@ -202,6 +214,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (isActive)
             return;
         if (triggerOnce && hasCompleted)
+            return;
+        if (triggerOnce && !saveProgressReady)
             return;
 
         isActive = true;
@@ -288,6 +302,11 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     public void ApplyCompletedState(bool invokeEndedEvent, bool restoreBoundsSmooth)
     {
+        ApplyCompletedState(invokeEndedEvent, restoreBoundsSmooth, persistProgress: true);
+    }
+
+    void ApplyCompletedState(bool invokeEndedEvent, bool restoreBoundsSmooth, bool persistProgress)
+    {
         if (hasCompleted && !isActive)
         {
             if (triggerOnce)
@@ -295,6 +314,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return;
         }
 
+        bool newlyCompleted = !hasCompleted;
         isActive = false;
         hasCompleted = true;
         lockReleased = false;
@@ -314,6 +334,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
         SetEncounterBoundsVisible(false);
         if (triggerOnce)
             SetEnterTriggerEnabled(false);
+
+        if (newlyCompleted && persistProgress)
+            PersistCompletedProgress();
 
         if (invokeEndedEvent)
             OnEncounterEnded?.Invoke();
@@ -1105,11 +1128,26 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     public DataDefination GetDataID() => GetComponent<DataDefination>();
 
-    string ProgressKey(string suffix)
+    void TryApplySaveProgress()
+    {
+        DataManager.instance?.ApplyLoadedData(this);
+    }
+
+    string ProgressId()
     {
         var dataId = GetDataID();
-        string id = dataId != null && !string.IsNullOrEmpty(dataId.ID) ? dataId.ID : name;
-        return $"{ResolveSceneName()}:{id}:{name}:{suffix}";
+        return dataId != null && !string.IsNullOrEmpty(dataId.ID) ? dataId.ID : name;
+    }
+
+    string ProgressKey(string suffix)
+    {
+        return $"{ResolveSceneName()}:{ProgressId()}:{name}:{suffix}";
+    }
+
+    bool HasStableSceneName()
+    {
+        var scene = gameObject.scene;
+        return scene.IsValid() && !string.IsNullOrEmpty(scene.name);
     }
 
     string ResolveSceneName()
@@ -1122,6 +1160,27 @@ public class EncounterZone : MonoBehaviour, ISaveable
         return !string.IsNullOrEmpty(active.name) ? active.name : name;
     }
 
+    bool IsCompletedInData(Data data)
+    {
+        return data?.boolSavedData != null
+            && data.boolSavedData.TryGetValue(ProgressKey("completed"), out bool saved)
+            && saved;
+    }
+
+    void PersistCompletedProgress()
+    {
+        if (!triggerOnce || !hasCompleted)
+            return;
+
+        var manager = DataManager.instance;
+        var data = manager != null ? manager.CurrentData : null;
+        if (data?.boolSavedData == null)
+            return;
+
+        data.boolSavedData[ProgressKey("completed")] = true;
+        manager.PersistTransientProgress();
+    }
+
     public void GetSaveData(Data data)
     {
         if (data?.boolSavedData == null)
@@ -1131,8 +1190,9 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (!triggerOnce)
             return;
 
-        // 存档时若仍在遭遇中，不刷新完成旗标，沿用上一次在区外存下的进度。
-        if (HasActiveEncounter)
+        // 本区仍在进行中时不要把 completed 写成 false，以免盖掉已写入的完成旗标。
+        // 其它遭遇进行中不应阻止本区写入。
+        if (isActive && !hasCompleted)
             return;
 
         data.boolSavedData[ProgressKey("completed")] = hasCompleted;
@@ -1149,11 +1209,12 @@ public class EncounterZone : MonoBehaviour, ISaveable
             return;
         }
 
-        bool completed = data.boolSavedData.TryGetValue(ProgressKey("completed"), out bool saved)
-            && saved;
+        // 场景名未就绪时不要按错误键重置，否则读档落点会再次开战。
+        if (!HasStableSceneName() && !IsCompletedInData(data))
+            return;
 
-        if (completed)
-            ApplyCompletedState(invokeEndedEvent: true, restoreBoundsSmooth: false);
+        if (IsCompletedInData(data))
+            ApplyCompletedState(invokeEndedEvent: true, restoreBoundsSmooth: false, persistProgress: false);
         else
             ResetIncompleteEncounter();
     }
