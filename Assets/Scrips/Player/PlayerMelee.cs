@@ -24,12 +24,16 @@ public class PlayerMelee : MonoBehaviour
 
     PlayerAnimBase playerAnim;
     PlayerMovement playerMovement;
+    PlayerWeaponController weaponController;
+    bool isGunner;
     Attack attack;
 
     void Awake()
     {
         playerAnim = PlayerAnimBase.Resolve(gameObject);
         playerMovement = GetComponent<PlayerMovement>();
+        weaponController = GetComponent<PlayerWeaponController>();
+        isGunner = GetComponent<PlayerShooting>() != null;
 
         if (meleeHitbox != null)
         {
@@ -78,6 +82,10 @@ public class PlayerMelee : MonoBehaviour
 
     public bool TryMelee()
     {
+        // Gunner 的霰弹枪保留近距离射击，不以近战替代攻击输入。
+        if (isGunner && weaponController != null && weaponController.CurrentWeaponId == 3)
+            return false;
+
         if (detectZone == null)
             return false;
 
