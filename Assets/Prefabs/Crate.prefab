@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1001000001001000004}
   - component: {fileID: 1001000001001000005}
   - component: {fileID: 1001000001001000006}
+  - component: {fileID: 1001000001001000007}
   m_Layer: 19
   m_Name: Crate
   m_TagString: Box
@@ -180,6 +181,20 @@ MonoBehaviour:
   knockbackResistance: 0.1
   blastSlideSpeed: 10
   blastSlideDistance: 8
+--- !u!114 &1001000001001000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1001000001001000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0e3da11df83e724fabf207aec40f56d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  persistentType: 0
+  ID: crate-prefab-001
 --- !u!1 &4772168586347018248
 GameObject:
   m_ObjectHideFlags: 0

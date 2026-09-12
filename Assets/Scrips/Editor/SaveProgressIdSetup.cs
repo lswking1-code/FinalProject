@@ -8,12 +8,14 @@ using UnityEngine;
 public static class SaveProgressIdSetup
 {
     const string EncounterZonePrefabPath = "Assets/Prefabs/EncounterZone.prefab";
+    const string CratePrefabPath = "Assets/Prefabs/Crate.prefab";
 
     [MenuItem("Lost Division/Ensure Save Progress Data IDs")]
     public static void EnsureSaveProgressDataIds()
     {
         int fixedCount = 0;
         fixedCount += EnsureOnPrefab(EncounterZonePrefabPath, "encounter-zone-prefab-001");
+        fixedCount += EnsureOnPrefab(CratePrefabPath, "crate-prefab-001");
 
         foreach (var zone in Object.FindObjectsByType<EncounterZone>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             fixedCount += EnsureComponentId(zone.gameObject, $"encounter-{zone.gameObject.scene.name}-{zone.name}");
@@ -26,6 +28,9 @@ public static class SaveProgressIdSetup
 
         foreach (var lifePack in Object.FindObjectsByType<LifePack>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             fixedCount += EnsureComponentId(lifePack.gameObject, $"lifepack-{lifePack.gameObject.scene.name}-{lifePack.name}");
+
+        foreach (var prop in Object.FindObjectsByType<PushableProp>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            fixedCount += EnsureSceneCrateId(prop.gameObject, $"crate-{prop.gameObject.scene.name}-{prop.name}");
 
         AssetDatabase.SaveAssets();
         Debug.Log($"Ensure Save Progress Data IDs: updated {fixedCount} object(s).");
@@ -67,6 +72,34 @@ public static class SaveProgressIdSetup
         }
 
         if (string.IsNullOrEmpty(def.ID))
+        {
+            def.ID = stableId;
+            changed = true;
+        }
+
+        if (changed)
+            EditorUtility.SetDirty(def);
+
+        return changed ? 1 : 0;
+    }
+
+    static int EnsureSceneCrateId(GameObject go, string stableId)
+    {
+        if (go == null || !go.scene.IsValid() || string.IsNullOrEmpty(go.scene.name))
+            return 0;
+
+        var def = go.GetComponent<DataDefination>();
+        if (def == null)
+            def = go.AddComponent<DataDefination>();
+
+        bool changed = false;
+        if (def.persistentType != PersistentType.ReadWrite)
+        {
+            def.persistentType = PersistentType.ReadWrite;
+            changed = true;
+        }
+
+        if (string.IsNullOrEmpty(def.ID) || def.ID == "crate-prefab-001")
         {
             def.ID = stableId;
             changed = true;

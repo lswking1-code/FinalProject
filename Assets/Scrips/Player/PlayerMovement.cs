@@ -744,10 +744,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
 
         Vector2 platformVelocity = platform.PlatformVelocity;
 
-        // 起跳脱离、或相对平台仍在上升：不要携带，避免盖掉起跳速度
+        // 起跳脱离期间不要覆盖跳跃速度
         if (applyVertical && platformDetachTimer > 0f)
             return;
-        if (applyVertical && rb.linearVelocity.y > platformVelocity.y + 0.05f)
+
+        // 只有玩家自己仍在上升（起跳/弹起）才跳过竖直携带。
+        // 站立时 vy≈0，下行平台 vy<0，旧判断 0>platformVy 会误当成“相对上升”，
+        // 整段携带被跳过，玩家留在原高度浮空。
+        bool jumpingAway = applyVertical
+            && rb.linearVelocity.y > 0.05f
+            && rb.linearVelocity.y > platformVelocity.y + 0.05f;
+        if (jumpingAway)
             return;
 
         Vector2 velocity = rb.linearVelocity;

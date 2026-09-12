@@ -1521,7 +1521,9 @@ public class AE74Enemy : Enemy
             ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
         if (provider == null || provider.PlatformVelocity.y >= -0.01f)
             return false;
-        return feetY < platformTop - margin;
+
+        float rideBand = Mathf.Max(margin, 0.2f);
+        return feetY < platformTop - rideBand;
     }
 
     static bool IsLayeredSlope(Collider2D col)

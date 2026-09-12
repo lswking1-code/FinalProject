@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 死亡区域：玩家与敌人进入 Trigger 后立即死亡；机器人进入后立刻收回。
+/// 死亡区域：玩家与敌人进入 Trigger 后立即死亡；机器人进入后立刻收回；可推箱传送回初始位置。
 /// </summary>
 [RequireComponent(typeof(Collider2D))]
 public class DeathZone : MonoBehaviour
@@ -57,6 +57,13 @@ public class DeathZone : MonoBehaviour
                 return;
 
             enemyCharacter.Kill();
+            return;
+        }
+
+        PushableProp prop = other.GetComponentInParent<PushableProp>();
+        if (prop != null)
+        {
+            prop.ResetToInitialPosition();
             return;
         }
 

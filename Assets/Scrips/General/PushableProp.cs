@@ -4,9 +4,11 @@ using UnityEngine;
 /// 可被击退的场景物（箱子等），无生命值，仅响应 Attack 击退。
 /// 站在顶部时向玩家暴露刚体速度，供移动平台携带。
 /// Blast 命中后按固定速度滑过一段距离，不受质量/阻力/地面摩擦限制；贴身推仍用常态高阻尼。
+/// 掉入 DeathZone 时回到场景摆放点；存档记录当前坐标。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProvider
+[RequireComponent(typeof(DataDefination))]
+public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProvider, ISaveable
 {
     [Tooltip("击退阻力，越大越难推；默认高于敌人(1)。仅用于非 Blast 击退")]
     [SerializeField] float knockbackResistance = 2.5f;
@@ -28,6 +30,7 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
     float blastSlideOriginX;
     float blastSlideUntil;
     float nextLightPushTime;
+    Vector3 initialPosition;
 
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
@@ -53,11 +56,20 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
             friction = 0f,
             bounciness = 0f
         };
+
+        initialPosition = transform.position;
+    }
+
+    void OnEnable()
+    {
+        ((ISaveable)this).RegisterSaveData();
+        DataManager.instance?.ApplyLoadedData(this);
     }
 
     void OnDisable()
     {
         EndBlastSlide();
+        ((ISaveable)this).UnregisterSaveData();
     }
 
     void FixedUpdate()
@@ -134,5 +146,50 @@ public class PushableProp : MonoBehaviour, IKnockbackable, IPlatformVelocityProv
             if (colliders[i] != null)
                 colliders[i].sharedMaterial = restColliderMaterials[i];
         }
+    }
+
+    public void ResetToInitialPosition()
+    {
+        ApplyPosition(initialPosition);
+    }
+
+    void ApplyPosition(Vector3 position)
+    {
+        EndBlastSlide();
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.position = position;
+        }
+
+        transform.position = position;
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        if (data?.characterPosDict == null)
+            return;
+
+        data.characterPosDict[ProgressKey()] = new SerializeVector3(transform.position);
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        if (data?.characterPosDict == null)
+            return;
+
+        if (!data.characterPosDict.TryGetValue(ProgressKey(), out var savedPos))
+            return;
+
+        ApplyPosition(savedPos.ToVector3());
+    }
+
+    string ProgressKey()
+    {
+        var dataId = GetDataID();
+        string id = dataId != null && !string.IsNullOrEmpty(dataId.ID) ? dataId.ID : name;
+        return $"{gameObject.scene.name}:{id}:{name}:cratePos";
     }
 }

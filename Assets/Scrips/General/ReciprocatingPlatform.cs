@@ -5,7 +5,8 @@ using UnityEngine;
 /// 不勾选 oneShot 为持续移动（ON 往复、OFF 停在当前位置）；勾选为单次开合（ON 到终点、OFF 回初始位置）。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
-public class ReciprocatingPlatform : MonoBehaviour
+[DefaultExecutionOrder(-50)]
+public class ReciprocatingPlatform : MonoBehaviour, IPlatformVelocityProvider
 {
     public enum CombineMode
     {
@@ -239,8 +240,10 @@ public class ReciprocatingPlatform : MonoBehaviour
             return;
         }
 
-        rb.MovePosition(previousPos + toTarget / distance * step);
-        platformVelocity = (rb.position - previousPos) / Time.fixedDeltaTime;
+        // MovePosition 要等物理步进才写回 rb.position，不能用位移差算速度，否则常为 0。
+        Vector2 next = previousPos + toTarget / distance * step;
+        rb.MovePosition(next);
+        platformVelocity = (next - previousPos) / Time.fixedDeltaTime;
     }
 
 #if UNITY_EDITOR

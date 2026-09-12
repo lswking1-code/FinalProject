@@ -209,7 +209,9 @@ public class RobotOneWayPlatformPass : MonoBehaviour
             ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
         if (provider == null || provider.PlatformVelocity.y >= -0.01f)
             return false;
-        return feetY < platformTop - surfaceMargin;
+
+        float rideBand = Mathf.Max(surfaceMargin, 0.2f);
+        return feetY < platformTop - rideBand;
     }
 
     void SetCollisionIgnored(Collider2D platform, bool ignore)

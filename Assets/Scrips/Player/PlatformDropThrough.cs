@@ -266,7 +266,11 @@ public class PlatformDropThrough : MonoBehaviour
             ?? platform.GetComponentInParent<IPlatformVelocityProvider>();
         if (provider == null || provider.PlatformVelocity.y >= -0.01f)
             return false;
-        return feetY < platformTop - surfaceMargin;
+
+        // 站在顶面时脚底常略低于 top，不能当成“在板内”，否则会 Ignore 碰撞并中断承载。
+        // 仅当身体明显陷入下行板（被从上压下）时才穿透。
+        float rideBand = Mathf.Max(surfaceMargin, 0.2f);
+        return feetY < platformTop - rideBand;
     }
 
     /// <summary>
