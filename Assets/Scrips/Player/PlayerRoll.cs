@@ -18,6 +18,8 @@ public class PlayerRoll : MonoBehaviour
     [SerializeField, Min(0f)] float rollDistance = 2.45f;
     [SerializeField, Min(0f)] float rollHeight = 0.25f;
     [SerializeField] float rollCooldown = 1f;
+    [Tooltip("正常翻滚结束后，无敌和子弹穿透额外持续的秒数")]
+    [SerializeField, Min(0f)] float postRollProtectionDuration = 0.15f;
 
     InputSystem_Actions actions;
     PlayerAnimBase playerAnim;
@@ -28,6 +30,7 @@ public class PlayerRoll : MonoBehaviour
 
     float cooldownTimer;
     float rollTimer;
+    float postRollProtectionTimer;
     float rollFaceDir = 1f;
     float duration;
     float acceleration;
@@ -35,6 +38,8 @@ public class PlayerRoll : MonoBehaviour
     CollisionDetectionMode2D savedCollisionMode;
 
     public bool IsRolling { get; private set; }
+    public bool IsRollProtected => isActiveAndEnabled && !character.IsDead
+        && (IsRolling || postRollProtectionTimer > 0f);
 
     /// <summary>0 = 冷却结束可用，1 = 刚进入冷却。</summary>
     public float CooldownNormalized =>
@@ -57,6 +62,7 @@ public class PlayerRoll : MonoBehaviour
         if (IsRolling)
             EndRoll(startCooldown: false, completed: false);
 
+        postRollProtectionTimer = 0f;
         actions.Player.Disable();
     }
 
@@ -64,6 +70,11 @@ public class PlayerRoll : MonoBehaviour
 
     void Update()
     {
+        if (character.IsDead || playerMovement.IsExternallyControlled)
+            postRollProtectionTimer = 0f;
+        else if (!GameplayPause.IsPaused && postRollProtectionTimer > 0f)
+            postRollProtectionTimer = Mathf.Max(0f, postRollProtectionTimer - Time.deltaTime);
+
         if (cooldownTimer > 0f)
             cooldownTimer -= Time.deltaTime;
 
@@ -132,6 +143,7 @@ public class PlayerRoll : MonoBehaviour
             return;
 
         IsRolling = true;
+        postRollProtectionTimer = 0f;
         rollTimer = 0f;
         rollFaceDir = playerMovement.FaceDirection;
         if (Mathf.Approximately(rollFaceDir, 0f))
@@ -157,6 +169,7 @@ public class PlayerRoll : MonoBehaviour
 
         IsRolling = false;
         rollTimer = 0f;
+        postRollProtectionTimer = completed ? Mathf.Max(0f, postRollProtectionDuration) : 0f;
 
         rb.collisionDetectionMode = savedCollisionMode;
         if (!playerMovement.IsExternallyControlled)

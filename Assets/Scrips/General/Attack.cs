@@ -420,6 +420,11 @@ public class Attack : MonoBehaviour
 
         if (target != null)
         {
+            // A roll evades the contact itself: keep the bullet alive and do not
+            // record a hit, so an overlap after roll protection can hit normally.
+            if (attackType == AttackType.Projectile && target.IsDodgingProjectiles)
+                return;
+
             if (!string.IsNullOrEmpty(ignoreTag) && target.CompareTag(ignoreTag))
                 return;
 

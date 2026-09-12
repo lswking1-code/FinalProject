@@ -55,7 +55,8 @@ public class Character : MonoBehaviour,ISaveable
     public float KnockbackResistance => Mathf.Max(1f, knockbackResistance);
 
     public bool IsDead => isDead;
-    public bool IsForcedInvulnerable => forcedInvulnerable || (playerRoll != null && playerRoll.IsRolling);
+    public bool IsDodgingProjectiles => playerRoll != null && playerRoll.IsRollProtected;
+    public bool IsForcedInvulnerable => forcedInvulnerable || IsDodgingProjectiles;
     /// <summary>逻辑死亡后仍允许受击（敌人濒死窗口）。</summary>
     [HideInInspector] public bool allowHitsWhileDead;
     public bool CanReceiveHits => !isDead || allowHitsWhileDead;
