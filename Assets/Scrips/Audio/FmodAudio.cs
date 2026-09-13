@@ -15,6 +15,14 @@ public static class FmodAudio
     static int worldOneShotFrame = -1;
     static int worldOneShotsThisFrame;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetSessionState()
+    {
+        listenerCache = null;
+        worldOneShotFrame = -1;
+        worldOneShotsThisFrame = 0;
+    }
+
     /// <summary>
     /// EventReference.Path 仅在 Editor 存在，Player Build 只能赋 Guid。
     /// </summary>
@@ -160,8 +168,13 @@ public static class FmodAudio
             // Editor CreateInstance parks 3D events at 1e17 until set3DAttributes.
             // Pin to the listener so 3D events (hit_shield_bullet etc.) stay audible;
             // this project does distance with setVolume / pan, not FMOD rolloff.
+            // FMOD's listener can be on the camera (including its Z offset),
+            // while our XY distance culling follows the active player.
             Vector3 fmodPos = Vector3.zero;
-            if (TryGetListenerPosition(out Vector2 listener))
+            if (RuntimeManager.StudioSystem.getListenerAttributes(0, out FMOD.ATTRIBUTES_3D attributes,
+                    out FMOD.VECTOR attenuationPosition) == FMOD.RESULT.OK)
+                fmodPos = new Vector3(attenuationPosition.x, attenuationPosition.y, attenuationPosition.z);
+            else if (TryGetListenerPosition(out Vector2 listener))
                 fmodPos = listener;
             instance.set3DAttributes(fmodPos.To3DAttributes());
 
@@ -269,6 +282,11 @@ public static class FmodAudio
 
     static bool TryGetListenerPosition(out Vector2 position)
     {
+        // SceneLoader disables unselected characters but keeps them alive in
+        // Persistent. A non-null cache can therefore point at the old character.
+        if (listenerCache != null && !listenerCache.gameObject.activeInHierarchy)
+            listenerCache = null;
+
         if (listenerCache == null)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
