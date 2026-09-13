@@ -36,6 +36,8 @@ public class MachinistImpactLibrary : ScriptableObject
     public Color energy = new Color(0.15f, 0.7f, 1f, 1f);
     [Tooltip("重击弹命中火星颜色；烟尘保持灰色")]
     public Color heavyColor = new Color(0.08f, 0.4f, 1f, 1f);
+    [Tooltip("Gunner 普通霰弹与蓄力龙息命中颜色；烟尘保持灰色")]
+    public Color shotgunColor = new Color(1f, 0.46f, 0.08f, 1f);
     public Color metal = new Color(0.62f, 0.78f, 1f, 1f);
 
     public static bool IsEnemyBullet(MachinistImpactKind kind) =>

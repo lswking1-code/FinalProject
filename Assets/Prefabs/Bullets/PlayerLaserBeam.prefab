@@ -48,9 +48,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damage: 15
-  tickInterval: 0.2
+  tickInterval: 0.16
   abilityPowerRestore: 5
   maxRange: 12
+  hitWidth: 0.5
   hitMask:
     serializedVersion: 2
     m_Bits: 463168

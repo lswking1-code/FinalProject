@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 镭射枪持续光束：跟随枪口、射线穿透普通敌人，截断于墙/平台/精英；松手播结束动画后销毁。
+/// 镭射枪持续光束：跟随枪口、带宽度判定穿透普通敌人，截断于墙/平台/精英；松手播结束动画后销毁。
 /// </summary>
 public class PlayerLaserBeam : MonoBehaviour
 {
@@ -16,6 +16,8 @@ public class PlayerLaserBeam : MonoBehaviour
     [SerializeField] float tickInterval = 0.1f;
     [SerializeField] float abilityPowerRestore = 5f;
     [SerializeField] float maxRange = 12f;
+    [Tooltip("光束判定总宽度（世界单位）；0 使用原直线判定。")]
+    [SerializeField, Min(0f)] float hitWidth = 0.5f;
     [SerializeField] LayerMask hitMask;
 
     [Header("视觉")]
@@ -30,7 +32,8 @@ public class PlayerLaserBeam : MonoBehaviour
     Attack attackSource;
     readonly Dictionary<Character, float> nextHitTime = new();
     readonly Dictionary<IHitCountable, float> nextHitCountableTime = new();
-    readonly RaycastHit2D[] hitBuffer = new RaycastHit2D[32];
+    readonly Dictionary<int, float> nextHitSfxTime = new();
+    RaycastHit2D[] hitBuffer = new RaycastHit2D[32];
     readonly List<RaycastHit2D> sortedHits = new(32);
 
     Transform firePoint;
@@ -78,6 +81,7 @@ public class PlayerLaserBeam : MonoBehaviour
         endAt = -1f;
         nextHitTime.Clear();
         nextHitCountableTime.Clear();
+        nextHitSfxTime.Clear();
 
         attackSource.damage = damage;
         transform.rotation = PlayerProjectile.GetRotation(dir, faceYaw);
@@ -143,7 +147,7 @@ public class PlayerLaserBeam : MonoBehaviour
         Vector2 direction = transform.right;
         float range = Mathf.Max(0.01f, maxRange);
 
-        int count = Physics2D.RaycastNonAlloc(origin, direction, hitBuffer, range, hitMask);
+        int count = CastBeam(origin, direction, range);
         sortedHits.Clear();
         for (int i = 0; i < count; i++)
         {
@@ -181,8 +185,10 @@ public class PlayerLaserBeam : MonoBehaviour
 
             if (isBlockSurface || isEliteBlock)
             {
-                stopDistance = hit.distance;
-                tip = hit.point;
+                // 起点重叠时接触点不可靠，直接在枪口截断。
+                stopDistance = hit.distance <= 0f ? 0f
+                    : Mathf.Clamp(Vector2.Dot(hit.point - origin, direction), 0f, range);
+                tip = origin + direction * stopDistance;
                 if (dealDamage && (character == null || character == owner))
                     attackSource.ReportImpact(col, MachinistImpactKind.Surface, hit.point, direction);
                 break;
@@ -191,6 +197,29 @@ public class PlayerLaserBeam : MonoBehaviour
 
         currentLength = stopDistance;
         ApplyVisualLength(stopDistance, tip);
+    }
+
+    int CastBeam(Vector2 origin, Vector2 direction, float range)
+    {
+        float width = Mathf.Max(0f, hitWidth);
+        const float castDepth = 0.01f;
+        // 矩形后沿从枪口开始，前沿最多到达 range，不额外延长射程。
+        Vector2 castOrigin = origin + direction * (castDepth * 0.5f);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        var filter = new ContactFilter2D { useTriggers = Physics2D.queriesHitTriggers };
+        filter.SetLayerMask(hitMask);
+        while (true)
+        {
+            int count = width > 0f
+                ? Physics2D.BoxCast(castOrigin, new Vector2(castDepth, width), angle,
+                    direction, filter, hitBuffer, Mathf.Max(0f, range - castDepth))
+                : Physics2D.RaycastNonAlloc(origin, direction, hitBuffer, range, hitMask);
+            if (count < hitBuffer.Length)
+                return count;
+
+            // 加宽后可能同时覆盖更多碰撞体，不能因缓冲区满而漏掉阻挡物。
+            System.Array.Resize(ref hitBuffer, hitBuffer.Length * 2);
+        }
     }
 
     bool ShouldIgnoreCollider(Collider2D col)
@@ -256,6 +285,15 @@ public class PlayerLaserBeam : MonoBehaviour
         }
     }
 
+    internal void PlayHitSfx(int targetId, Vector3 position)
+    {
+        if (ending || (nextHitSfxTime.TryGetValue(targetId, out float next) && Time.time < next))
+            return;
+
+        nextHitSfxTime[targetId] = Time.time + Mathf.Max(0.01f, tickInterval);
+        FmodAudio.Play(GunnerAudio.LaserHit, position);
+    }
+
     void TryTickHitCountable(IHitCountable target)
     {
         if (target == null)
@@ -295,6 +333,12 @@ public class PlayerLaserBeam : MonoBehaviour
         Vector3 dir = transform.right;
         float len = Application.isPlaying ? currentLength : maxRange;
         Gizmos.DrawLine(origin, origin + dir * len);
+        Vector3 halfWidth = Vector3.Cross(Vector3.forward, dir).normalized * (Mathf.Max(0f, hitWidth) * 0.5f);
+        Vector3 end = origin + dir * len;
+        Gizmos.DrawLine(origin + halfWidth, end + halfWidth);
+        Gizmos.DrawLine(origin - halfWidth, end - halfWidth);
+        Gizmos.DrawLine(origin - halfWidth, origin + halfWidth);
+        Gizmos.DrawLine(end - halfWidth, end + halfWidth);
     }
 #endif
 }

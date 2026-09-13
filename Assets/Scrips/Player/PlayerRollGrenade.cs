@@ -85,8 +85,8 @@ public class PlayerRollGrenade : MonoBehaviour
         if (actions.Player.Ability1.WasPressedThisFrame())
         {
             bool lookingUp = IsHoldingUp();
-            // 蹲下时下方向是姿势，不是滚动炸弹瞄准
-            bool lookingDown = IsHoldingDown() && !playerAnim.IsCrouching;
+            // 按住下方向即可选择滚动炸弹，地面蹲下和空中均可。
+            bool lookingDown = IsHoldingDown();
             upIntent = lookingUp;
             rollIntent = !lookingUp && lookingDown;
             forwardIntent = !lookingUp && !lookingDown;
@@ -114,7 +114,7 @@ public class PlayerRollGrenade : MonoBehaviour
 
         if (rollIntent)
         {
-            if (IsHoldingDown() && !playerAnim.IsCrouching)
+            if (IsHoldingDown())
                 TrySpawnRollGrenade();
             return;
         }

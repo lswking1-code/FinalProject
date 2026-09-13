@@ -110,8 +110,18 @@ public class MachinistImpactVfx : MonoBehaviour
         return target.ClosestPoint(source - incoming.normalized * reach);
     }
 
+    public static Color ShotgunColor
+    {
+        get
+        {
+            var data = instance != null ? instance.library
+                : Resources.Load<MachinistImpactLibrary>("MachinistImpactLibrary");
+            return data != null ? data.shotgunColor : new Color(1f, 0.46f, 0.08f, 1f);
+        }
+    }
+
     public static void Play(MachinistImpactKind kind, Vector3 point, Vector2 direction, float size = 1f,
-        MachinistImpactKind sourceKind = MachinistImpactKind.Auto)
+        MachinistImpactKind sourceKind = MachinistImpactKind.Auto, Color? colorOverride = null)
     {
         if (!Application.isPlaying || kind == MachinistImpactKind.None || kind == MachinistImpactKind.Auto)
             return;
@@ -131,7 +141,7 @@ public class MachinistImpactVfx : MonoBehaviour
             instance = go.AddComponent<MachinistImpactVfx>();
             instance.Initialize(data);
         }
-        instance.Spawn(kind, point, direction, size, sourceKind);
+        instance.Spawn(kind, point, direction, size, sourceKind, colorOverride);
     }
 
     void Initialize(MachinistImpactLibrary data)
@@ -174,7 +184,8 @@ public class MachinistImpactVfx : MonoBehaviour
         return sr;
     }
 
-    void Spawn(MachinistImpactKind kind, Vector3 point, Vector2 direction, float size, MachinistImpactKind sourceKind)
+    void Spawn(MachinistImpactKind kind, Vector3 point, Vector2 direction, float size,
+        MachinistImpactKind sourceKind, Color? colorOverride)
     {
         Sprite[] frames = library.Frames(kind);
         if (frames == null || frames.Length == 0) return;
@@ -253,10 +264,12 @@ public class MachinistImpactVfx : MonoBehaviour
                 : palette == MachinistImpactKind.Heavy ? library.heavyColor : Color.white;
         }
         if (b.slash) b.core.color = new Color(1f, 0.9f, 0.65f, 1f);
+        // Apply after contact palettes, and capture afresh on every pool reuse.
+        if (colorOverride.HasValue) b.core.color = colorOverride.Value;
         b.core.transform.localRotation = Quaternion.Euler(0f, 0f, b.slash ? -35f : 0f);
         b.tint = b.core.color;
-        b.accent.color = bulletAccent ? library.warm
-            : b.slash ? new Color(1f, 0.9f, 0.65f, 1f) : b.core.color;
+        b.accent.color = colorOverride ?? (bulletAccent ? library.warm
+            : b.slash ? new Color(1f, 0.9f, 0.65f, 1f) : b.core.color);
         b.accent.transform.localRotation = Quaternion.Euler(0f, 0f, b.slash ? -35f : 0f);
         b.root.gameObject.SetActive(true);
         Draw(b, 0f);

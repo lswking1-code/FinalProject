@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 近战索敌传感器：只查询敌人，不参与物理接触，因此不会引爆导弹、也不会替玩家挨打。
+/// 近战索敌传感器：查询敌人与升降门 Core，不参与物理接触，因此不会引爆导弹、也不会替玩家挨打。
+/// 其它机关（开关等）不纳入索敌，避免抢走射击输入。
 /// </summary>
 [RequireComponent(typeof(BoxCollider2D))]
 public class MeleeDetectZone : MonoBehaviour
@@ -104,7 +105,7 @@ public class MeleeDetectZone : MonoBehaviour
         if (targets.Count == 0)
             return;
 
-        targets.RemoveWhere(target => target == null || !IsAliveEnemy(target));
+        targets.RemoveWhere(target => target == null || !IsValidTarget(target));
     }
 
     bool TryGetTargetRoot(Collider2D other, out Transform root)
@@ -117,20 +118,33 @@ public class MeleeDetectZone : MonoBehaviour
             return false;
 
         var enemy = other.GetComponentInParent<Enemy>();
-        if (enemy == null || !enemy.IsHittable)
+        if (enemy != null)
+        {
+            if (!enemy.IsHittable)
+                return false;
+            root = enemy.transform;
+            return true;
+        }
+
+        // 仅升降门 Core 可作为机关近战目标；其它 IHitCountable 不纳入
+        var doorCore = other.GetComponentInParent<OverheadDoorCore>();
+        if (doorCore == null)
             return false;
 
-        root = enemy.transform;
+        root = doorCore.transform;
         return true;
     }
 
-    static bool IsAliveEnemy(Transform target)
+    static bool IsValidTarget(Transform target)
     {
         if (target == null)
             return false;
 
         var enemy = target.GetComponent<Enemy>();
-        return enemy != null && enemy.IsHittable;
+        if (enemy != null)
+            return enemy.IsHittable;
+
+        return target.GetComponent<OverheadDoorCore>() != null;
     }
 
     void OnDrawGizmosSelected()

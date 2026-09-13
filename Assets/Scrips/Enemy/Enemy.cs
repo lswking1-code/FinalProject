@@ -1239,6 +1239,9 @@ public class Enemy : MonoBehaviour
 
     public void PlayHitSfx(bool metal, Attack attacker)
     {
+        if (GunnerAudio.TryPlayLaserHit(attacker, this, transform.position))
+            return;
+
         if (UseTankHitSfx || metal)
         {
             PlayArmorHitSfx(attacker);

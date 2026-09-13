@@ -516,7 +516,10 @@ public class Attack : MonoBehaviour
             ? body.linearVelocity.normalized : (Vector2)transform.right;
         Vector2 impactPoint = point ?? MachinistImpactVfx.ContactPoint(this, collision);
         MachinistImpactKind resolvedKind = kind == MachinistImpactKind.Auto ? sourceKind : kind;
-        MachinistImpactVfx.Play(resolvedKind, impactPoint, direction ?? facing, impactScale, sourceKind);
+        bool shotgun = GetComponentInParent<PlayerShotgunBlast>(true) != null
+            || GetComponentInParent<PlayerShotgunDragonBlast>(true) != null;
+        Color? impactColor = shotgun ? MachinistImpactVfx.ShotgunColor : (Color?)null;
+        MachinistImpactVfx.Play(resolvedKind, impactPoint, direction ?? facing, impactScale, sourceKind, impactColor);
         PlayProjectileImpactSfx(collision, resolvedKind, impactPoint);
     }
 

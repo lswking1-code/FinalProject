@@ -17684,8 +17684,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Press <sprite="GamepadIcons" name="dpad_down"> + <sprite="GamepadIcons"
-    name="xbox_a"> to drop through platforms
+  m_text: 'Press <sprite="KeyIcons" name="s"> + <sprite="KeyIcons" name="k"> to drop
+    through platforms
 
 '
   m_isRightToLeft: 0
@@ -18504,7 +18504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc28d4fa92cf9594aa8068f80d6b09c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceText: Attack the charging core with shock bullets to open the gate.
+  sourceText: Attack the charging core with electric bullets to open the gate.
 --- !u!114 &1114227791
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18525,7 +18525,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Attack the charging core with electric bullets to open the gate
+  m_text: Attack the charging core with electric bullets to open the gate.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -20430,8 +20430,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Use <sprite="GamepadIcons" name="left_stick"> to move, press <sprite="GamepadIcons"
-    name="xbox_a"> to jump
+  m_text: 'Use <sprite="KeyIcons" name="w"> <sprite="KeyIcons" name="a"> <sprite="KeyIcons"
+    name="s"> <sprite="KeyIcons" name="d"> to move, press <sprite="KeyIcons" name="k">
+    to jump
 
 '
   m_isRightToLeft: 0
@@ -20664,8 +20665,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press <sprite="GamepadIcons" name="left_shoulder"> <sprite="GamepadIcons"
-    name="right_shoulder"> to switch weapons
+  m_text: Press <sprite="KeyIcons" name="q"> <sprite="KeyIcons" name="e"> to switch
+    weapons
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -20858,7 +20859,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Press <sprite="GamepadIcons" name="xbox_y"> to use a special attack
+  m_text: 'Press <sprite="KeyIcons" name="u"> to use a special attack
 
 '
   m_isRightToLeft: 0
@@ -21051,8 +21052,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: On the ground, press <sprite="GamepadIcons" name="dpad_down"> + <sprite="GamepadIcons"
-    name="xbox_x"> to slide-attack
+  m_text: On the ground, press <sprite="KeyIcons" name="s"> + <sprite="KeyIcons"
+    name="j"> to slide-attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -21243,8 +21244,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: In the air, press <sprite="GamepadIcons" name="dpad_down"> + <sprite="GamepadIcons"
-    name="xbox_x"> to slam-attack
+  m_text: In the air, press <sprite="KeyIcons" name="s"> + <sprite="KeyIcons" name="j">
+    to slam-attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -21435,8 +21436,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press <sprite="GamepadIcons" name="xbox_b"> to spend energy for an empowered
-    attack
+  m_text: Press <sprite="KeyIcons" name="i"> to spend energy for an empowered attack
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -21630,7 +21630,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Press <sprite="GamepadIcons" name="xbox_a"> again for a double jump
+  m_text: 'Press <sprite="KeyIcons" name="k"> again for a double jump
 
 
     Jump
@@ -21827,7 +21827,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Press <sprite="GamepadIcons" name="xbox_x"> to attack.
+  m_text: 'Press <sprite="KeyIcons" name="j"> to attack.
 
 '
   m_isRightToLeft: 0

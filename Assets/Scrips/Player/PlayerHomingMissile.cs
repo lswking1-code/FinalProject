@@ -225,6 +225,8 @@ public class PlayerHomingMissile : MonoBehaviour
         hasExploded = true;
         CancelInvoke(nameof(Despawn));
 
+        FmodAudio.Play(GunnerAudio.MissileExplode, transform.position);
+
         if (explosionPrefab != null)
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
 

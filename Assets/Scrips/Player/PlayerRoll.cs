@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 枪械 Player 翻滚：全身动画、带实体碰撞的短抛物线，期间无敌。
+/// 枪械 Player 翻滚：地面和空中均可使用，全身动画、带实体碰撞的短抛物线，期间无敌。
 /// 仅挂在 Player prefab，勿挂到 PlayerMachinist。
 /// </summary>
 [DefaultExecutionOrder(100)]
@@ -118,12 +118,6 @@ public class PlayerRoll : MonoBehaviour
             return false;
 
         if (cooldownTimer > 0f)
-            return false;
-
-        physicsCheck.Check();
-        if (!physicsCheck.isSolidGround || playerMovement.DidGroundJumpThisFixedUpdate
-            || actions.Player.Jump.WasPressedThisFrame()
-            || (rb.linearVelocity.y > 0.01f && !playerMovement.CanLandOnSlopeWhileAscending))
             return false;
 
         if (playerAnim.IsThrowing || playerAnim.IsMelee || playerAnim.IsSwitchingWeapon || playerAnim.IsRecalling)

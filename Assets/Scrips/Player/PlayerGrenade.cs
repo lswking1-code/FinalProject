@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -35,6 +37,14 @@ public class PlayerGrenade : MonoBehaviour
     [SerializeField] float maxRollAnimSpeed = 1.8f;
     [SerializeField] LayerMask groundLayer;
     [SerializeField] float groundSnapRayDistance = 1.5f;
+    [Header("单向平台")]
+    [SerializeField, Min(0f)] float platformSurfaceMargin = 0.02f;
+
+    readonly List<Collider2D> nearbyPlatforms = new List<Collider2D>(16);
+    readonly HashSet<Collider2D> trackedPlatforms = new HashSet<Collider2D>();
+    readonly HashSet<Collider2D> ignoredPlatforms = new HashSet<Collider2D>();
+    readonly List<Collider2D> platformsToRemove = new List<Collider2D>(16);
+    ContactFilter2D platformFilter;
 
     Rigidbody2D rb;
     CircleCollider2D grenadeCollider;
@@ -48,6 +58,12 @@ public class PlayerGrenade : MonoBehaviour
         grenadeCollider = GetComponent<CircleCollider2D>();
         animator = GetComponent<Animator>();
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        platformFilter = new ContactFilter2D
+        {
+            useLayerMask = true,
+            layerMask = groundLayer.value | LayerMask.GetMask("Ground", "Platform"),
+            useTriggers = false
+        };
         ApplyRollFriction();
     }
 
@@ -90,6 +106,7 @@ public class PlayerGrenade : MonoBehaviour
             animator.Play(RollingStateName, 0, 0f);
 
         rb.SetRotation(0f);
+        UpdatePlatformCollisions();
         SyncRollAnimSpeed();
         Invoke(nameof(Explode), fuseTime);
     }
@@ -97,7 +114,94 @@ public class PlayerGrenade : MonoBehaviour
     void FixedUpdate()
     {
         if (!hasExploded)
+        {
+            UpdatePlatformCollisions();
             SyncRollAnimSpeed();
+        }
+    }
+
+    void UpdatePlatformCollisions()
+    {
+        Bounds bounds = grenadeCollider.bounds;
+        float dt = Time.fixedDeltaTime;
+        Vector2 step = (rb.linearVelocity + Physics2D.gravity * rb.gravityScale * dt) * dt;
+        float padding = Mathf.Max(0.1f, platformSurfaceMargin * 2f);
+        Vector2 scanSize = (Vector2)bounds.size
+            + new Vector2(Mathf.Abs(step.x), Mathf.Abs(step.y)) + Vector2.one * (padding * 2f);
+        gameObject.scene.GetPhysicsScene2D().OverlapBox((Vector2)bounds.center + step * 0.5f, scanSize, 0f,
+            platformFilter, nearbyPlatforms);
+
+        for (int i = 0; i < nearbyPlatforms.Count; i++)
+        {
+            Collider2D platform = nearbyPlatforms[i];
+            if (!IsOneWayPlatform(platform))
+                continue;
+
+            float distance = GetDistanceAbovePlatform(platform, bounds);
+            // 新接近或穿越中的手雷必须完全越过顶面才能恢复碰撞。
+            // 已由顶部承托的碰撞对允许少量物理穿入，避免滚动时掉板。
+            bool wasColliding = trackedPlatforms.Contains(platform) && !ignoredPlatforms.Contains(platform);
+            float threshold = wasColliding ? -platformSurfaceMargin : platformSurfaceMargin;
+            SetPlatformIgnored(platform, distance < threshold);
+            trackedPlatforms.Add(platform);
+        }
+
+        platformsToRemove.Clear();
+        foreach (Collider2D platform in trackedPlatforms)
+        {
+            if (platform != null && IsOneWayPlatform(platform) && nearbyPlatforms.Contains(platform))
+                continue;
+
+            SetPlatformIgnored(platform, false);
+            platformsToRemove.Add(platform);
+        }
+        foreach (Collider2D platform in platformsToRemove)
+            trackedPlatforms.Remove(platform);
+    }
+
+    static bool IsOneWayPlatform(Collider2D platform) =>
+        platform != null && platform.enabled && !platform.isTrigger && platform.usedByEffector
+        && FallingPlatform.IsOneWayPlatformCollider(platform);
+
+    static float GetDistanceAbovePlatform(Collider2D platform, Bounds grenadeBounds)
+    {
+        Vector2 center = grenadeBounds.center;
+        // CircleCollider2D 的世界半径；沿坡面法线计算圆的最低支持点。
+        float radius = Mathf.Max(grenadeBounds.extents.x, grenadeBounds.extents.y);
+        var pathSlope = platform.GetComponentInParent<SlopePathSegment>();
+        if (pathSlope != null)
+            return pathSlope.GetSignedDistanceToSurface(center) - radius;
+
+        var slope = platform.GetComponentInParent<SlopeOneWayPlatform>();
+        if (slope != null)
+            return slope.GetSignedDistanceToSurface(center) - radius;
+
+        // 普通旋转平台也使用实际顶边，而不是旋转后 AABB 的最高点。
+        if (platform is BoxCollider2D box)
+        {
+            Vector2 normal = box.transform.up;
+            Vector2 top = box.transform.TransformPoint(box.offset + Vector2.up * (box.size.y * 0.5f));
+            return Vector2.Dot(center - top, normal) - radius;
+        }
+
+        return grenadeBounds.min.y - platform.bounds.max.y;
+    }
+
+    void SetPlatformIgnored(Collider2D platform, bool ignore)
+    {
+        bool changed = ignore ? ignoredPlatforms.Add(platform) : ignoredPlatforms.Remove(platform);
+        if (changed && platform != null && grenadeCollider != null)
+            Physics2D.IgnoreCollision(grenadeCollider, platform, ignore);
+    }
+
+    void OnDisable()
+    {
+        foreach (Collider2D platform in trackedPlatforms)
+            SetPlatformIgnored(platform, false);
+        trackedPlatforms.Clear();
+        ignoredPlatforms.Clear();
+        nearbyPlatforms.Clear();
+        platformsToRemove.Clear();
     }
 
     void LateUpdate()
@@ -149,11 +253,11 @@ public class PlayerGrenade : MonoBehaviour
 
     void TryApplyLandingFeel(Collision2D collision)
     {
-        if (hasLanded || groundLayer.value == 0)
+        if (hasLanded)
             return;
 
         int layerBit = 1 << collision.collider.gameObject.layer;
-        if ((groundLayer.value & layerBit) == 0)
+        if ((groundLayer.value & layerBit) == 0 && !IsOneWayPlatform(collision.collider))
             return;
 
         bool landedOnTop = false;
