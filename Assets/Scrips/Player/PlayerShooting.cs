@@ -56,6 +56,8 @@ public class WeaponFireConfig
     public GameObject chargedProjectilePrefab;
     [Tooltip("每次出弹消耗弹药数；weaponId 0 永远不耗弹。1/2/3 对应 BulletS/M/L")]
     public int ammoCost = 1;
+    [Tooltip("蓄力释放消耗弹药数；负数表示沿用普通 ammoCost")]
+    public int chargedAmmoCost = -1;
     [Tooltip("holdToFire 时每隔该秒数再耗弹一次；0 表示仅开束时耗一次")]
     public float holdAmmoInterval = 0.1f;
 }
@@ -377,7 +379,7 @@ public class PlayerShooting : MonoBehaviour
         }
 
         // 先扣弹再播释放动画，避免空放
-        if (!TryConsumeAmmo(config))
+        if (!TryConsumeAmmo(config, charged: true))
         {
             playerAnim?.CancelCharge();
             return false;
@@ -960,13 +962,14 @@ public class PlayerShooting : MonoBehaviour
     static bool TryResolveAmmoType(int weaponId, out AmmoType ammoType) =>
         Character.TryAmmoFromWeaponId(weaponId, out ammoType);
 
-    int ResolveAmmoCost(WeaponFireConfig config)
+    int ResolveAmmoCost(WeaponFireConfig config, bool charged = false)
     {
         if (config == null)
             return 0;
         if (!TryResolveAmmoType(config.weaponId, out _))
             return 0;
-        return Mathf.Max(0, config.ammoCost);
+        int cost = charged && config.chargedAmmoCost >= 0 ? config.chargedAmmoCost : config.ammoCost;
+        return Mathf.Max(0, cost);
     }
 
     bool HasAmmo(WeaponFireConfig config)
@@ -986,9 +989,9 @@ public class PlayerShooting : MonoBehaviour
         };
     }
 
-    bool TryConsumeAmmo(WeaponFireConfig config)
+    bool TryConsumeAmmo(WeaponFireConfig config, bool charged = false)
     {
-        int cost = ResolveAmmoCost(config);
+        int cost = ResolveAmmoCost(config, charged);
         if (cost <= 0)
             return true;
         if (character == null || !TryResolveAmmoType(config.weaponId, out AmmoType type))

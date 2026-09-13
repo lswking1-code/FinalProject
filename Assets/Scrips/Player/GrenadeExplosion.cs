@@ -17,6 +17,19 @@ public class GrenadeExplosion : MonoBehaviour
     Attack attack;
     bool isFinishing;
 
+    /// <summary>手雷碰撞引爆的机关目标；子碰撞体也可命中父级核心。</summary>
+    public static bool IsCoreCollider(Collider2D collider)
+    {
+        if (collider == null || MeleeDetectZone.IsSensorCollider(collider))
+            return false;
+
+        if (collider.GetComponentInParent<OverheadDoorCore>() != null)
+            return true;
+
+        var prop = collider.GetComponentInParent<BreakableProp>();
+        return prop != null && prop.IsCore && !prop.IsBroken;
+    }
+
     void Awake()
     {
         animator = GetComponent<Animator>();

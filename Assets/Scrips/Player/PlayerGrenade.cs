@@ -242,6 +242,15 @@ public class PlayerGrenade : MonoBehaviour
         if (hasExploded)
             return;
 
+        if (GrenadeExplosion.IsCoreCollider(collision.collider))
+        {
+            Vector2 contact = collision.contactCount > 0
+                ? collision.GetContact(0).point
+                : collision.collider.ClosestPoint(transform.position);
+            ExplodeAt(new Vector3(contact.x, contact.y, transform.position.z));
+            return;
+        }
+
         if (IsEnemyCollider(collision.collider))
         {
             Explode();
@@ -249,6 +258,15 @@ public class PlayerGrenade : MonoBehaviour
         }
 
         TryApplyLandingFeel(collision);
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (hasExploded || !GrenadeExplosion.IsCoreCollider(other))
+            return;
+
+        Vector2 contact = other.ClosestPoint(transform.position);
+        ExplodeAt(new Vector3(contact.x, contact.y, transform.position.z));
     }
 
     void TryApplyLandingFeel(Collision2D collision)
@@ -293,13 +311,18 @@ public class PlayerGrenade : MonoBehaviour
 
     void Explode()
     {
+        if (!hasExploded)
+            ExplodeAt(GetExplosionPosition());
+    }
+
+    void ExplodeAt(Vector3 explodePos)
+    {
         if (hasExploded)
             return;
 
         hasExploded = true;
         CancelInvoke(nameof(Explode));
 
-        Vector3 explodePos = GetExplosionPosition();
         if (!explodeEvent.IsNull)
             FmodAudio.Play(explodeEvent, explodePos);
 

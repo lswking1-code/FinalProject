@@ -50,6 +50,89 @@ public class AnimatedDestroy : MonoBehaviour
     float slideTimer;
     Vector3 slideStart;
     Vector3 slideEnd;
+    bool restoreEnabled;
+    Vector3 initialPosition;
+    Transform[] initialTransforms;
+    Vector3[] initialLocalPositions;
+    Vector3[] initialScales;
+    Quaternion[] initialRotations;
+    Renderer[] savedRenderers;
+    bool[] rendererStates;
+    Animator[] savedAnimators;
+    bool[] animatorStates;
+    bool[] colliderStates;
+    bool initialVisualActive;
+
+    public void EnableStateRestoration()
+    {
+        if (restoreEnabled)
+            return;
+        restoreEnabled = true;
+        ResolveVisualRoot();
+        colliders = GetComponentsInChildren<Collider2D>(true);
+        initialPosition = transform.position;
+        initialVisualActive = visualRoot.gameObject.activeSelf;
+        initialTransforms = GetComponentsInChildren<Transform>(true);
+        initialLocalPositions = new Vector3[initialTransforms.Length];
+        initialScales = new Vector3[initialTransforms.Length];
+        initialRotations = new Quaternion[initialTransforms.Length];
+        for (int i = 0; i < initialTransforms.Length; i++)
+        {
+            initialLocalPositions[i] = initialTransforms[i].localPosition;
+            initialScales[i] = initialTransforms[i].localScale;
+            initialRotations[i] = initialTransforms[i].localRotation;
+        }
+        savedRenderers = GetComponentsInChildren<Renderer>(true);
+        rendererStates = new bool[savedRenderers.Length];
+        for (int i = 0; i < savedRenderers.Length; i++)
+            rendererStates[i] = savedRenderers[i].enabled;
+        savedAnimators = GetComponentsInChildren<Animator>(true);
+        animatorStates = new bool[savedAnimators.Length];
+        for (int i = 0; i < savedAnimators.Length; i++)
+            animatorStates[i] = savedAnimators[i].enabled;
+        colliderStates = new bool[colliders.Length];
+        for (int i = 0; i < colliders.Length; i++)
+            colliderStates[i] = colliders[i].enabled;
+    }
+
+    /// <summary>恢复开关状态，不触发动画、音效、特效或游戏事件。</summary>
+    public void RestoreOpenState(bool open)
+    {
+        EnableStateRestoration();
+        isDestroying = isFinishing = open;
+        waitingForAnimator = sawDestroyState = sliding = false;
+        fallbackTimer = animatorTimer = slideTimer = 0f;
+        if (visualRoot != transform)
+            visualRoot.gameObject.SetActive(initialVisualActive);
+        for (int i = 0; i < savedAnimators.Length; i++)
+        {
+            if (savedAnimators[i] == null)
+                continue;
+            savedAnimators[i].enabled = animatorStates[i];
+            if (savedAnimators[i].isActiveAndEnabled && savedAnimators[i].runtimeAnimatorController != null)
+            {
+                savedAnimators[i].Rebind();
+                savedAnimators[i].Update(0f);
+            }
+        }
+        for (int i = 0; i < initialTransforms.Length; i++)
+        {
+            if (initialTransforms[i] == null)
+                continue;
+            initialTransforms[i].localPosition = initialLocalPositions[i];
+            initialTransforms[i].localScale = initialScales[i];
+            initialTransforms[i].localRotation = initialRotations[i];
+        }
+        transform.position = initialPosition + (open ? (Vector3)openWorldOffset : Vector3.zero);
+        for (int i = 0; i < savedRenderers.Length; i++)
+            if (savedRenderers[i] != null)
+                savedRenderers[i].enabled = rendererStates[i];
+        for (int i = 0; i < colliders.Length; i++)
+            if (colliders[i] != null)
+                colliders[i].enabled = !open && colliderStates[i];
+        if (open)
+            HideVisual();
+    }
 
     void Awake()
     {
@@ -237,7 +320,7 @@ public class AnimatedDestroy : MonoBehaviour
 
         isFinishing = true;
 
-        if (hideWhenFinished)
+        if (hideWhenFinished || restoreEnabled)
         {
             HideVisual();
             return;

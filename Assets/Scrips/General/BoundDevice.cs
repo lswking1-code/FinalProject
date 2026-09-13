@@ -6,7 +6,7 @@ using UnityEngine.Events;
 /// 绑定装置：所有链接充能机关同时已充能后进入待激活，保持亮灯；
 /// 玩家回到装置附近后才永久激活（开门/过场），之后不再关闭。
 /// </summary>
-public class BoundDevice : MonoBehaviour
+public class BoundDevice : MonoBehaviour, ISaveable
 {
     [Header("链接")]
     [SerializeField] EnergyNode[] nodes;
@@ -39,12 +39,19 @@ public class BoundDevice : MonoBehaviour
 
     bool pendingActivate;
     bool permanentlyActive;
+    string saveKey;
+    bool restoring;
 
     public bool IsPermanentlyActive => permanentlyActive;
     public bool IsPendingActivate => pendingActivate;
 
     void Awake()
     {
+        // 缓存场景层级标识，避免门位移或其他物体销毁影响存档定位。
+        string path = "";
+        for (Transform current = transform; current != null; current = current.parent)
+            path = $"/{current.name}[{current.GetSiblingIndex()}]" + path;
+        saveKey = $"BoundDevice:{gameObject.scene.name}:{path}";
         if (sfxSource == null)
             sfxSource = GetComponent<AudioSource>();
         if (sfxSource != null)
@@ -56,10 +63,12 @@ public class BoundDevice : MonoBehaviour
 
         if (destroyOnComplete == null)
             destroyOnComplete = GetComponent<AnimatedDestroy>();
+        destroyOnComplete?.EnableStateRestoration();
     }
 
     void OnEnable()
     {
+        ((ISaveable)this).RegisterSaveData();
         if (nodes == null)
             return;
 
@@ -74,6 +83,7 @@ public class BoundDevice : MonoBehaviour
 
     void OnDisable()
     {
+        ((ISaveable)this).UnregisterSaveData();
         if (nodes == null)
             return;
 
@@ -99,7 +109,57 @@ public class BoundDevice : MonoBehaviour
 
     void HandleNodeChargeChanged(EnergyNode node, bool charged)
     {
+        if (restoring)
+            return;
         Refresh();
+    }
+
+    void Start()
+    {
+        ((ISaveable)this).RegisterSaveData();
+        DataManager.instance?.ApplyLoadedData(this);
+    }
+
+    public DataDefination GetDataID() => GetComponent<DataDefination>();
+
+    public void GetSaveData(Data data)
+    {
+        data.boolSavedData[saveKey + ":pending"] = pendingActivate;
+        data.boolSavedData[saveKey + ":open"] = permanentlyActive;
+        if (nodes == null)
+            return;
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            if (nodes[i] == null)
+                continue;
+            data.floatSavedData[$"{saveKey}:node:{i}:remain"] = nodes[i].RemainingChargeTime;
+            data.boolSavedData[$"{saveKey}:node:{i}:held"] = nodes[i].IsHeld;
+        }
+    }
+
+    public void LoadSaveData(Data data)
+    {
+        if (data == null)
+            return;
+        restoring = true;
+        permanentlyActive = data.boolSavedData.TryGetValue(saveKey + ":open", out bool open) && open;
+        pendingActivate = !permanentlyActive
+            && data.boolSavedData.TryGetValue(saveKey + ":pending", out bool pending) && pending;
+        if (nodes != null)
+        {
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i] == null)
+                    continue;
+                data.floatSavedData.TryGetValue($"{saveKey}:node:{i}:remain", out float remaining);
+                bool held = permanentlyActive || pendingActivate
+                    || (data.boolSavedData.TryGetValue($"{saveKey}:node:{i}:held", out bool savedHeld) && savedHeld);
+                nodes[i].RestoreChargeState(remaining, held);
+            }
+        }
+        destroyOnComplete?.RestoreOpenState(permanentlyActive);
+        SyncLamps();
+        restoring = false;
     }
 
     void Refresh()

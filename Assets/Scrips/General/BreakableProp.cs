@@ -19,6 +19,7 @@ public class BreakableProp : MonoBehaviour, IHitCountable
     [SerializeField] bool destroyOnBreak;
     [SerializeField] UnityEvent OnBroken;
 
+    public bool IsCore => isCore;
     public bool IsBroken => isBroken;
     public int CurrentHits => currentHits;
     public int HitsToBreak => hitsToBreak;

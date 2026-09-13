@@ -2,7 +2,7 @@ using FMODUnity;
 using UnityEngine;
 
 /// <summary>
-/// 向前飞行的手雷弹：命中敌人、墙壁（Ground）或引信到期后生成 GrenadeExplosion。
+/// 向前飞行的手雷弹：命中敌人、核心、墙壁或引信到期后生成 GrenadeExplosion。
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -61,16 +61,24 @@ public class PlayerGrenadeBullet : MonoBehaviour
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision != null)
-            TryExplodeFromHit(collision.collider);
+            TryExplodeFromHit(collision.collider,
+                collision.contactCount > 0 ? collision.GetContact(0).point : (Vector2?)null);
     }
 
-    void TryExplodeFromHit(Collider2D other)
+    void TryExplodeFromHit(Collider2D other, Vector2? contactPoint = null)
     {
         if (hasExploded || other == null)
             return;
 
         if (other.CompareTag("Player"))
             return;
+
+        if (GrenadeExplosion.IsCoreCollider(other))
+        {
+            Vector2 contact = contactPoint ?? other.ClosestPoint(transform.position);
+            ExplodeAt(new Vector3(contact.x, contact.y, transform.position.z));
+            return;
+        }
 
         if (Attack.IsProjectileBlockingCollider(other) || IsEnemyCollider(other))
             Explode();
@@ -88,13 +96,17 @@ public class PlayerGrenadeBullet : MonoBehaviour
 
     void Explode()
     {
+        ExplodeAt(transform.position);
+    }
+
+    void ExplodeAt(Vector3 explodePos)
+    {
         if (hasExploded)
             return;
 
         hasExploded = true;
         CancelInvoke(nameof(Explode));
 
-        Vector3 explodePos = transform.position;
         if (!explodeEvent.IsNull)
             FmodAudio.Play(explodeEvent, explodePos);
 

@@ -46,6 +46,21 @@ public class EnergyNode : MonoBehaviour, IHitCountable
 
     public bool IsCharged => isCharged;
     public bool IsHeld => held;
+    public float RemainingChargeTime => isCharged ? remain : 0f;
+
+    /// <summary>静默恢复存档，避免充能事件在多个节点恢复途中触发开门。</summary>
+    public void RestoreChargeState(float remaining, bool hold)
+    {
+        held = hold;
+        remain = hold ? chargeDuration : Mathf.Clamp(remaining, 0f, chargeDuration);
+        isCharged = hold || remain > 0f;
+        warnTimer = isCharged && !held ? CurrentWarnInterval() : 0f;
+        lastHitAttacker = null;
+        lastHitFrame = -1;
+        if (sfxSource != null)
+            sfxSource.Stop();
+        ApplyVisual();
+    }
     public float ChargeNormalized =>
         !isCharged || chargeDuration <= 0f ? 0f : Mathf.Clamp01(remain / chargeDuration);
 
