@@ -81,6 +81,9 @@ public static class InputPromptFormatter
         if (string.IsNullOrEmpty(source))
             return source;
 
+        if (InputPromptDeviceTracker.UsesGamepad)
+            source = source.Replace("{RobotControlHold} + {Move}", "{RobotMove}");
+
         string rendered = Placeholder.Replace(source, match => ResolveToken(match.Groups[1].Value));
         return CollapseSpriteTagWhitespace(rendered);
     }

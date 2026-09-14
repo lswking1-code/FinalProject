@@ -436,6 +436,14 @@ public class Bob_Controller : MonoBehaviour
         actions?.Dispose();
     }
 
+    Vector2 ReadGatedMoveInput()
+    {
+        if (playerMovement != null)
+            return playerMovement.PeekGatedMoveInput();
+
+        return actions.Player.Move.ReadValue<Vector2>();
+    }
+
     void Update()
     {
         RefreshWeaponProfile(force: false);
@@ -1047,7 +1055,7 @@ public class Bob_Controller : MonoBehaviour
         }
 
         // 攻击前用本帧输入同步仰视/俯视，避免与 Bob 比 PlayerMovement 的 Update 顺序导致站立 upattack 丢方向
-        Vector2 move = actions.Player.Move.ReadValue<Vector2>();
+        Vector2 move = ReadGatedMoveInput();
         bool lookUp = move.y > inputThreshold;
         bool lookDown = !physicsCheck.isGround && move.y < -inputThreshold;
         playerAnim.SetLookUp(lookUp);
@@ -2366,7 +2374,7 @@ public class Bob_Controller : MonoBehaviour
         if (rb == null)
             return;
 
-        Vector2 move = actions.Player.Move.ReadValue<Vector2>();
+        Vector2 move = ReadGatedMoveInput();
         float moveX = Mathf.Abs(move.x) > inputThreshold ? Mathf.Sign(move.x) : 0f;
 
         if (physicsCheck != null && moveX != 0f && physicsCheck.IsBlockedHorizontally(moveX))
@@ -2940,7 +2948,7 @@ public class Bob_Controller : MonoBehaviour
         float gravity = Mathf.Abs(Physics2D.gravity.y * gravityScale);
         float jumpVelocity = Mathf.Sqrt(2f * gravity * height);
 
-        Vector2 move = actions.Player.Move.ReadValue<Vector2>();
+        Vector2 move = ReadGatedMoveInput();
         bool hasHorizontal = Mathf.Abs(move.x) > inputThreshold;
 
         float velocityX = rb.linearVelocity.x;

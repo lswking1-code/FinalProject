@@ -1628,6 +1628,7 @@ MonoBehaviour:
   followRadius: 4.5
   followCenterOffset: {x: 0, y: 1, z: 0}
   autoRecallRange: 35
+  stationedReturnToFollowDistance: 8
   detectRangeX: 14.5
   detectRangeY: 11
   attackDistance: 2.2
@@ -1760,7 +1761,7 @@ MonoBehaviour:
   pullLandingDistanceX: 0.8
   pullLandingYOffset: 0
   pullMaxRange: 40
-  pullCooldown: 8
+  pullCooldown: 5
   pullInvulnerableLinger: 0.5
   pullStuckTimeout: 1.5
   pullStuckProgressEpsilon: 0.02

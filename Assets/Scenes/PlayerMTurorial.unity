@@ -432,7 +432,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &171500102
 Transform:
   m_ObjectHideFlags: 0
@@ -1816,7 +1816,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -11.44, y: -2.72}
+  m_AnchoredPosition: {x: -28.099998, y: -2.72}
   m_SizeDelta: {x: 8.3081, y: 5.0954}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &520736081
@@ -20485,7 +20485,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u8FDE\u7EED\u5C04\u51FB\u53EF\u4EE5\u89E6\u53D1\u673A\u5668\u4EBA\u7684\u534F\u540C\u653B\u51FB"
+  m_text: "\u8FDE\u7EED\u5C04\u51FB\u53EF\u4EE5\u89E6\u53D1\u673A\u5668\u4EBA\u7684\u8FDE\u643A\u653B\u51FB"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -21114,7 +21114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1172903004
 Transform:
   m_ObjectHideFlags: 0
@@ -21947,7 +21947,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9.3, y: -1.38}
+  m_AnchoredPosition: {x: -7.385, y: -1.38}
   m_SizeDelta: {x: 8.3081, y: 5.0954}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1401500024
@@ -22345,11 +22345,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc28d4fa92cf9594aa8068f80d6b09c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceText: 'Use {RobotMove} to move the robot
+  sourceText: 'Use {RobotControlHold} + {Move} to move the robot
 
 
-    Stomp on the robot to jump
-    higher'
+    Stomp on the
+    robot to jump higher'
 --- !u!114 &1411329485
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24445,7 +24445,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   language: {fileID: 11400000, guid: 9a6c3e1d4f0b42a5c8d7e6f5a4b3c2d1, type: 2}
-  useEnglish: 1
+  useEnglish: 0
   guideCN: {fileID: 171500101}
   guideEN: {fileID: 1172903003}
 --- !u!1 &1881000001
@@ -25759,7 +25759,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc28d4fa92cf9594aa8068f80d6b09c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceText: "\u4F7F\u7528 {RobotMove} \u79FB\u52A8\u673A\u5668\u4EBA\n\n\u8E29\u8E0F\u673A\u5668\u4EBA\u8DF3\u5411\u66F4\u9AD8\u4F4D\u7F6E\u5427"
+  sourceText: "\u4F7F\u7528 {RobotControlHold} + {Move} \u79FB\u52A8\u673A\u5668\u4EBA\n\n\u8E29\u8E0F\u673A\u5668\u4EBA\u8DF3\u5411\u66F4\u9AD8\u4F4D\u7F6E\u5427"
 --- !u!114 &2059230412
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25780,9 +25780,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u4F7F\u7528 <sprite=\"KeyIcons\" name=\"arrow_up\"> <sprite=\"KeyIcons\"
-    name=\"arrow_left\"> <sprite=\"KeyIcons\" name=\"arrow_down\"> <sprite=\"KeyIcons\"
-    name=\"arrow_right\"> \u79FB\u52A8\u673A\u5668\u4EBA\n\n\u8E29\u8E0F\u673A\u5668\u4EBA\u8DF3\u5411\u66F4\u9AD8\u4F4D\u7F6E\u5427"
+  m_text: "\u4F7F\u7528 <sprite=\"KeyIcons\" name=\"shift\"> + <sprite=\"KeyIcons\"
+    name=\"w\"> <sprite=\"KeyIcons\" name=\"a\"> <sprite=\"KeyIcons\" name=\"s\">
+    <sprite=\"KeyIcons\" name=\"d\"> \u79FB\u52A8\u673A\u5668\u4EBA\n\n\u8E29\u8E0F\u673A\u5668\u4EBA\u8DF3\u5411\u66F4\u9AD8\u4F4D\u7F6E\u5427"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}

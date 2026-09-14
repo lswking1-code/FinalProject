@@ -71,6 +71,10 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
     float accelerExitTimer;
 
     public bool HasRobot => HasActiveRobot();
+    public bool IsHoldingRobotControl =>
+        actions != null
+        && actions.Player.RobotControlHold.IsPressed()
+        && HasActiveRobot();
     public float PullCooldownNormalized =>
         activeRobotController != null
             ? activeRobotController.PullCooldownNormalized
@@ -380,7 +384,13 @@ public class PlayerAbilities : MonoBehaviour, ISaveable
         if (!HasActiveRobot() || activeRobotController == null)
             return;
 
-        activeRobotController.SetManualMoveInput(actions.Player.RobotMove.ReadValue<Vector2>());
+        Vector2 robotInput = actions.Player.RobotMove.ReadValue<Vector2>();
+        if (IsHoldingRobotControl)
+            robotInput += actions.Player.Move.ReadValue<Vector2>();
+        if (robotInput.sqrMagnitude > 1f)
+            robotInput.Normalize();
+
+        activeRobotController.SetManualMoveInput(robotInput);
     }
 
     bool HasActiveRobot()

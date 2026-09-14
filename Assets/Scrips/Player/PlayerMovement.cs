@@ -46,6 +46,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     PhysicsCheck physicsCheck;
     PlatformDropThrough platformDropThrough;
     PlayerAnimBase playerAnim;
+    PlayerAbilities playerAbilities;
     InputSystem_Actions actions;
     CapsuleCollider2D capsuleCollider;
     Vector2 standingColliderSize;
@@ -107,9 +108,11 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
     public float FaceDirection => faceDir;
     public Vector2 MoveInput => moveInput;
     public float InputThreshold => inputThreshold;
-    public bool GetShootLookUp() => actions.Player.Move.ReadValue<Vector2>().y > inputThreshold;
+    public bool IsHoldingRobotControl =>
+        playerAbilities != null && playerAbilities.IsHoldingRobotControl;
+    public bool GetShootLookUp() => PeekGatedMoveInput().y > inputThreshold;
     public bool GetShootLookDown() =>
-        !physicsCheck.isGround && actions.Player.Move.ReadValue<Vector2>().y < -inputThreshold;
+        !physicsCheck.isGround && PeekGatedMoveInput().y < -inputThreshold;
     int lastKPressFrame = -1; // 最近一次在 Update 检测到 K 的帧号
 
     [Header("事件监听")]
@@ -132,6 +135,7 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         physicsCheck = GetComponent<PhysicsCheck>();
         platformDropThrough = GetComponent<PlatformDropThrough>();
         playerAnim = PlayerAnimBase.Resolve(gameObject);
+        playerAbilities = GetComponent<PlayerAbilities>();
         if (playerAnim == null)
             Debug.LogError("PlayerMovement 需要 PlayerAnim 或 PlayerFullBodyAnim 组件。", this);
         capsuleCollider = GetComponent<CapsuleCollider2D>();
@@ -470,9 +474,17 @@ public class PlayerMovement : MonoBehaviour, ISaveable // 玩家移动：输入/
         rb.gravityScale = normalGravityScale;
     }
 
+    public Vector2 PeekGatedMoveInput()
+    {
+        if (IsHoldingRobotControl)
+            return Vector2.zero;
+
+        return actions.Player.Move.ReadValue<Vector2>();
+    }
+
     void ReadInput()
     {
-        moveInput = actions.Player.Move.ReadValue<Vector2>();
+        moveInput = PeekGatedMoveInput();
         jumpPressed = actions.Player.Jump.WasPressedThisFrame();
 
         dbgKPressedThisUpdate = jumpPressed;

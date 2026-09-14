@@ -12,6 +12,7 @@ public class PhysicsCheck : MonoBehaviour
     private Rigidbody2D rb;
     PlatformDropThrough platformDropThrough;
     RobotOneWayPlatformPass robotOneWayPlatformPass;
+    PlayerAbilities playerAbilities;
 
     [Header("检测参数")]
     [Tooltip("勾选后使用手动配置的偏移量，否则根据碰撞体自动计算左右偏移")]
@@ -104,7 +105,10 @@ public class PhysicsCheck : MonoBehaviour
         ResolveCollider();
         rb = GetComponent<Rigidbody2D>();
         if (isPlayer)
+        {
             platformDropThrough = GetComponent<PlatformDropThrough>();
+            playerAbilities = GetComponent<PlayerAbilities>();
+        }
         else
             robotOneWayPlatformPass = GetComponent<RobotOneWayPlatformPass>();
         RecalculateOffsets();
@@ -752,6 +756,8 @@ public class PhysicsCheck : MonoBehaviour
         if (isPlayer && rb != null)
         {
             float inputX = Input.GetAxisRaw("Horizontal");
+            if (playerAbilities != null && playerAbilities.IsHoldingRobotControl)
+                inputX = 0f;
             onWall = (touchLeftWall && inputX < 0f || touchRightWall && inputX > 0f) && rb.linearVelocity.y < 0f;
         }
     }
