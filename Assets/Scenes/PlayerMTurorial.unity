@@ -432,7 +432,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &171500102
 Transform:
   m_ObjectHideFlags: 0
@@ -21114,7 +21114,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1172903004
 Transform:
   m_ObjectHideFlags: 0
@@ -22809,8 +22809,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sourceText: "\u673A\u5668\u4EBA\u5B58\u5728\u65F6\uFF0C\u77ED\u6309 {Ability2}
-    \u53EF\u8BA9\u673A\u5668\u4EBA\u4F7F\u7528\u94A9\u9501\u5C06\u4F60\u62C9\u81F3\u5B83\u6240\u5728\u7684\u4F4D\u7F6E\n\uFF08\u957F\u6309
-    {Ability2} \u53EF\u4EE5\u5C06\u673A\u5668\u4EBA\u653E\u7F6E\u66F4\u8FDC\uFF09"
+    \u53EF\u8BA9\u673A\u5668\u4EBA\u4F7F\u7528\u94A9\u9501\u5C06\u4F60\u62C9\u81F3\u5B83\u6240\u5728\u7684\u4F4D\u7F6E\n"
 --- !u!114 &1484228677
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22832,8 +22831,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u673A\u5668\u4EBA\u5B58\u5728\u65F6\uFF0C\u77ED\u6309 <sprite=\"KeyIcons\"
-    name=\"i\"> \u53EF\u8BA9\u673A\u5668\u4EBA\u4F7F\u7528\u94A9\u9501\u5C06\u4F60\u62C9\u81F3\u5B83\u6240\u5728\u7684\u4F4D\u7F6E\n\uFF08\u957F\u6309
-    <sprite=\"KeyIcons\" name=\"i\"> \u53EF\u4EE5\u5C06\u673A\u5668\u4EBA\u653E\u7F6E\u66F4\u8FDC\uFF09"
+    name=\"i\"> \u53EF\u8BA9\u673A\u5668\u4EBA\u4F7F\u7528\u94A9\u9501\u5C06\u4F60\u62C9\u81F3\u5B83\u6240\u5728\u7684\u4F4D\u7F6E\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -23249,8 +23247,8 @@ MonoBehaviour:
   sourceText: 'Tap {Ability2} to summon the robot
 
 
-    Hold {Ability2} to station
-    the robot at a set position
+    Hold {Ability2} to place
+    the robot farther
 
 '
 --- !u!114 &1619388694
@@ -23277,7 +23275,7 @@ MonoBehaviour:
 
 
     Hold <sprite="KeyIcons"
-    name="i"> to station the robot at a set position
+    name="i"> to place the robot farther
 
 '
   m_isRightToLeft: 0
@@ -23345,7 +23343,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -2.4707003, w: 1.6227552}
+  m_margin: {x: 0, y: 0, z: -3.2563944, w: 1.6227552}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -23601,11 +23599,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc28d4fa92cf9594aa8068f80d6b09c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sourceText: 'While the robot is out, tap {Ability2} to pull you to it with the
-    grappling hook
-
-
-    (Hold {Ability2} to place the robot farther)'
+  sourceText: While the robot is out, tap {Ability2} to pull you to it with the grappling
+    hook
 --- !u!114 &1651468268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23626,12 +23621,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'While the robot is out, tap <sprite="KeyIcons" name="i"> to pull you to
+  m_text: While the robot is out, tap <sprite="KeyIcons" name="i"> to pull you to
     it with the grappling hook
-
-
-    (Hold <sprite="KeyIcons" name="i"> to place
-    the robot farther)'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
@@ -24267,7 +24258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sourceText: "\u77ED\u6309 {Ability2} \u53EC\u5524\u673A\u5668\u4EBA\n\n\u957F\u6309
-    {Ability2} \u8BA9\u673A\u5668\u4EBA\u5728\u6307\u5B9A\u4F4D\u7F6E\u9A7B\u5B88\n"
+    {Ability2} \u53EF\u4EE5\u5C06\u673A\u5668\u4EBA\u653E\u7F6E\u66F4\u8FDC\n"
 --- !u!114 &1842046662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -24289,7 +24280,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\u77ED\u6309 <sprite=\"KeyIcons\" name=\"i\"> \u53EC\u5524\u673A\u5668\u4EBA\n\n\u957F\u6309
-    <sprite=\"KeyIcons\" name=\"i\"> \u8BA9\u673A\u5668\u4EBA\u5728\u6307\u5B9A\u4F4D\u7F6E\u9A7B\u5B88\n"
+    <sprite=\"KeyIcons\" name=\"i\"> \u53EF\u4EE5\u5C06\u673A\u5668\u4EBA\u653E\u7F6E\u66F4\u8FDC\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}
   m_sharedMaterial: {fileID: -7082034885765915002, guid: ffaafd8d71d6ab04a819ac09f09da55a, type: 2}

@@ -65,6 +65,10 @@ public class AllyRobot : MonoBehaviour
     [Tooltip("机器人与玩家距离超过此半径时自动收回（遥控/钩爪/生成/收回中不触发）")]
     public float autoRecallRange = 20f;
 
+    [Header("驻守自动跟随")]
+    [Tooltip("驻守后玩家 X 轴路径累计超过此值则切回跟随。钩锁拖拽不计。")]
+    [SerializeField] float stationedReturnToFollowDistance = 8f;
+
     [Header("索敌")]
     [Tooltip("以自身为中心的 X 轴单侧索敌半径")]
     public float detectRangeX = 6f;
@@ -419,9 +423,11 @@ public class AllyRobot : MonoBehaviour
     EventInstance dashInstance;
 
     RobotDeployMode deployMode = RobotDeployMode.Stationed;
-    RobotDeployMode deployModeBeforeManual = RobotDeployMode.Stationed;
     bool idleFollowing;
     float idleFollowDir;
+    float stationedPlayerMoveX;
+    float lastOwnerX;
+    bool hasLastOwnerX;
 
     Vector2 manualMoveInput;
     bool manualJumpHeldPrev;
@@ -658,6 +664,8 @@ public class AllyRobot : MonoBehaviour
 
     void FixedUpdate()
     {
+        UpdateStationedPlayerMove();
+
         // 单向平台 Ignore 须在接地检测与物理步进前完成。
         if (oneWayPlatformPass != null)
             oneWayPlatformPass.UpdateCollisions();
@@ -808,7 +816,10 @@ public class AllyRobot : MonoBehaviour
         ownerMovement = player != null ? player.GetComponent<PlayerMovement>() : null;
         ownerCharacter = player != null ? player.GetComponent<Character>() : null;
         ownerRb = player != null ? player.GetComponent<Rigidbody2D>() : null;
-        deployMode = mode;
+        if (mode == RobotDeployMode.Stationed)
+            EnterStationedMode();
+        else
+            EnterFollowMode();
     }
 
     /// <summary>
@@ -906,7 +917,6 @@ public class AllyRobot : MonoBehaviour
         currentTarget = null;
         pendingRetarget = false;
         pendingStationOnLand = false;
-        deployModeBeforeManual = deployMode;
         SwitchState(AllyState.ManualMove);
     }
 
@@ -928,14 +938,68 @@ public class AllyRobot : MonoBehaviour
     void FinishManualMove()
     {
         pendingStationOnLand = false;
-        deployMode = deployModeBeforeManual;
-        if (deployMode == RobotDeployMode.Stationed)
-            spawnPoint = transform.position;
+        EnterStationedMode();
         manualMoveInput = Vector2.zero;
         manualJumpHeldPrev = false;
         currentTarget = null;
         pendingRetarget = false;
         AcquireNearestTargetAfterManual();
+    }
+
+    void EnterStationedMode()
+    {
+        deployMode = RobotDeployMode.Stationed;
+        spawnPoint = transform.position;
+        ResetStationedPlayerMoveTracking();
+    }
+
+    void EnterFollowMode()
+    {
+        deployMode = RobotDeployMode.Follow;
+        stationedPlayerMoveX = 0f;
+        hasLastOwnerX = false;
+    }
+
+    void ResetStationedPlayerMoveTracking()
+    {
+        stationedPlayerMoveX = 0f;
+        if (owner == null)
+        {
+            hasLastOwnerX = false;
+            return;
+        }
+
+        lastOwnerX = ownerRb != null ? ownerRb.position.x : owner.position.x;
+        hasLastOwnerX = true;
+    }
+
+    void UpdateStationedPlayerMove()
+    {
+        if (deployMode != RobotDeployMode.Stationed || owner == null)
+            return;
+        if (currentState == AllyState.ManualMove)
+            return;
+
+        float x = ownerRb != null ? ownerRb.position.x : owner.position.x;
+        if (!hasLastOwnerX)
+        {
+            lastOwnerX = x;
+            hasLastOwnerX = true;
+            return;
+        }
+
+        if (playerHooked)
+        {
+            lastOwnerX = x;
+            return;
+        }
+
+        stationedPlayerMoveX += Mathf.Abs(x - lastOwnerX);
+        lastOwnerX = x;
+
+        if (stationedReturnToFollowDistance > 0f
+            && stationedPlayerMoveX >= stationedReturnToFollowDistance)
+            EnterFollowMode();
     }
 
     /// <summary>
