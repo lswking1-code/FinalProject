@@ -204,8 +204,20 @@ public class ElevatorDirector : MonoBehaviour, ISaveable
         UnsubscribeActiveEncounter();
         subscribedEncounter = encounter;
         encounter.OnEncounterEnded.AddListener(OnActiveFloorEncounterEnded);
+        encounter.OnEncounterStarted.AddListener(OnActiveFloorEncounterStarted);
         if (!encounter.IsActive)
             encounter.StartEncounter();
+        if (encounter.IsActive)
+            EnterState(ElevatorRideState.WaveActive);
+    }
+
+    void OnActiveFloorEncounterStarted()
+    {
+        if (state != ElevatorRideState.FloorEvent)
+            return;
+        if (subscribedEncounter == null || !subscribedEncounter.IsActive)
+            return;
+
         EnterState(ElevatorRideState.WaveActive);
     }
 
@@ -309,6 +321,7 @@ public class ElevatorDirector : MonoBehaviour, ISaveable
         if (subscribedEncounter != null)
         {
             subscribedEncounter.OnEncounterEnded.RemoveListener(OnActiveFloorEncounterEnded);
+            subscribedEncounter.OnEncounterStarted.RemoveListener(OnActiveFloorEncounterStarted);
             subscribedEncounter = null;
         }
     }

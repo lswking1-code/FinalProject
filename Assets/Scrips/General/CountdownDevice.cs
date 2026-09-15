@@ -201,13 +201,20 @@ public class CountdownDevice : MonoBehaviour, ISaveable
 
     void FinishLinkedEncounter()
     {
-        if (encounterZone == null || !encounterZone.IsActive)
+        if (encounterZone == null)
             return;
 
-        if (endEncounterOnComplete)
-            encounterZone.EndEncounter();
-        else
-            encounterZone.UnlockLock();
+        if (encounterZone.IsActive)
+        {
+            if (endEncounterOnComplete)
+                encounterZone.EndEncounter();
+            else
+                encounterZone.UnlockLock();
+            return;
+        }
+
+        if (encounterZone.IsPendingStart)
+            encounterZone.CancelPendingStart();
     }
 
     void CreateDisplay()

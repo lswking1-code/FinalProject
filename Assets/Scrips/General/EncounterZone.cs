@@ -13,6 +13,7 @@ using UnityEngine.Events;
 /// 结束后经 OnEncounterEnded → StopSpawning 停止（含无限刷怪）。
 /// UnlockLock() 只解开空气墙与镜头，不结束遭遇、不停刷。
 /// startOnPlayerEnter：默认 true（进区开战）；取消后仅外部 StartEncounter() 开战。
+/// requirePlayerInsideBounds：开战时玩家必须在 EncounterBounds 内，否则只挂起，进入后再开战。
 /// 敌人空气墙为单向：区外可穿入，主体中心进入后按墙锁定不让出区；敌人弹不能穿过空气墙。
 /// 可选弹药援助：停留过久且 S/M/L 全空时在固定点刷 BulletBox。
 /// </summary>
@@ -40,6 +41,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     [SerializeField] bool triggerOnce = true;
     [Tooltip("勾选（默认）：玩家一进入遭遇触发区就开战。\n取消：提前进入不会开战，仅可由 CountdownDevice / StartEncounter() 等外部调用触发。")]
     [SerializeField] bool startOnPlayerEnter = true;
+    [Tooltip("勾选（默认）：开战时玩家必须在 EncounterBounds 内。区外触发只挂起，进入锁区后再真正开战。无 Bounds 时视为通过。")]
+    [SerializeField] bool requirePlayerInsideBounds = true;
     [SerializeField] bool autoEndWhenCleared = true;
     [Tooltip("启用空气墙后先与玩家忽略碰撞，直到玩家不再与空气墙重叠，避免卡在墙外")]
     [SerializeField] bool delaySealAirWalls = true;
@@ -94,6 +97,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     bool lockReleased;
     bool airWallsSealed;
     bool saveProgressReady;
+    bool pendingStart;
     int pendingSpawnSources;
     CameraControl cameraControl;
     readonly List<Collider2D> playerColliders = new();
@@ -103,6 +107,8 @@ public class EncounterZone : MonoBehaviour, ISaveable
     public bool IsActive => isActive;
     public bool HasCompleted => hasCompleted;
     public bool LockReleased => lockReleased;
+    /// <summary>区外触发后等待玩家进入 EncounterBounds 再开战。</summary>
+    public bool IsPendingStart => pendingStart;
     public int AliveRegisteredCount => aliveRegistered.Count;
     /// <summary>是否在玩家进入触发区时自动开战（默认 true）。</summary>
     public bool StartOnPlayerEnter => startOnPlayerEnter;
@@ -203,15 +209,23 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     void OnDisable() => ((ISaveable)this).UnregisterSaveData();
 
+    void Update()
+    {
+        if (!pendingStart)
+            return;
+
+        StartEncounter(null);
+    }
+
     void OnTriggerEnter2D(Collider2D other) => TryStartFromPlayer(other);
 
     void OnTriggerStay2D(Collider2D other) => TryStartFromPlayer(other);
 
     void TryStartFromPlayer(Collider2D other)
     {
-        if (!startOnPlayerEnter)
-            return;
         if (!other.CompareTag("Player"))
+            return;
+        if (!startOnPlayerEnter && !pendingStart)
             return;
 
         StartEncounter(other);
@@ -228,6 +242,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
         if (triggerOnce && !saveProgressReady)
             return;
 
+        if (!IsPlayerInsideEncounterArea(playerCollider))
+        {
+            pendingStart = true;
+            return;
+        }
+
+        pendingStart = false;
         isActive = true;
         hasRegisteredAny = false;
         lockReleased = false;
@@ -277,6 +298,14 @@ public class EncounterZone : MonoBehaviour, ISaveable
     }
 
     /// <summary>
+    /// 取消区外挂起的开战请求。已开战时无效。
+    /// </summary>
+    public void CancelPendingStart()
+    {
+        pendingStart = false;
+    }
+
+    /// <summary>
     /// 结束遭遇战（清敌自动结束、关键敌人死亡或机关/Timeline 等外部事件均可调用）。
     /// 触发 OnEncounterEnded（通常用于 StopSpawning 停刷）。场上其余敌人保留。
     /// </summary>
@@ -321,11 +350,13 @@ public class EncounterZone : MonoBehaviour, ISaveable
     {
         if (hasCompleted && !isActive)
         {
+            pendingStart = false;
             if (triggerOnce)
                 SetEnterTriggerEnabled(false);
             return;
         }
 
+        pendingStart = false;
         isActive = false;
         hasCompleted = true;
         lockReleased = false;
@@ -357,6 +388,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
     {
         hasCompleted = false;
         lockReleased = false;
+        pendingStart = false;
         if (triggerOnce)
             SetEnterTriggerEnabled(true);
 
@@ -600,6 +632,29 @@ public class EncounterZone : MonoBehaviour, ISaveable
             airWallColliders,
             encounterBounds,
             fallbackPoint);
+    }
+
+    bool IsPlayerInsideEncounterArea(Collider2D playerCollider)
+    {
+        if (!requirePlayerInsideBounds)
+            return true;
+        if (encounterBounds == null)
+            return true;
+
+        var col = ResolvePlayerCollider(playerCollider);
+        if (col != null)
+        {
+            if (IsPointInsideEncounterBounds(col.bounds.center))
+                return true;
+            if (IsPointInsideEncounterBounds(col.transform.position))
+                return true;
+        }
+
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null)
+            return false;
+
+        return IsPointInsideEncounterBounds(player.transform.position);
     }
 
     /// <summary>世界坐标是否落在本遭遇区的 EncounterBounds 内。</summary>
@@ -1315,6 +1370,7 @@ public class EncounterZone : MonoBehaviour, ISaveable
 
     void OnDestroy()
     {
+        pendingStart = false;
         UnregisterActiveZone(this);
         StopAmmoAssist();
         DeactivateAirWalls();
