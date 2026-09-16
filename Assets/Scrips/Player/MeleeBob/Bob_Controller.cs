@@ -438,8 +438,10 @@ public class Bob_Controller : MonoBehaviour
 
     Vector2 ReadGatedMoveInput()
     {
-        if (playerMovement != null)
-            return playerMovement.PeekGatedMoveInput();
+        // 攻击锁会禁用 PlayerMovement，其 OnDisable 会关掉自己的 Player Action Map。
+        // PeekGatedMoveInput 读的是那份已禁用输入，空中攻击会拿不到左右方向、无法转向。
+        if (playerMovement != null && playerMovement.IsHoldingRobotControl)
+            return Vector2.zero;
 
         return actions.Player.Move.ReadValue<Vector2>();
     }
